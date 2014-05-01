@@ -120,12 +120,6 @@
   <PropertyGroup>
     <AssemblyOriginatorKeyFile>Key.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
-  <PropertyGroup>
-    <AssemblyName>Microsoft.VisualStudio.VSCommon</AssemblyName>
-  </PropertyGroup>
-  <PropertyGroup>
-    <RootNamespace>Microsoft.VisualStudio.VSCommon</RootNamespace>
-  </PropertyGroup>
   <ItemGroup>
     <Reference Include="extensibility, Version=7.0.3300.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <EmbedInteropTypes>True</EmbedInteropTypes>
