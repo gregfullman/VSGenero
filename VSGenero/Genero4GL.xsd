@@ -1,0 +1,178 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema id="Genero4GL"
+    targetNamespace="GeneroXML"
+    elementFormDefault="qualified"
+    xmlns="GeneroXML"
+    xmlns:mstns="GeneroXML"
+    xmlns:xs="http://www.w3.org/2001/XMLSchema"
+>
+  <xs:element name="Genero4GL">
+    <xs:complexType>
+      <xs:all>
+        <xs:element name="Lexing">
+          <xs:complexType>
+            <xs:all>
+              <xs:element name="Symbols">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="Symbol" maxOccurs="unbounded" minOccurs="0">
+                      <xs:complexType>
+                        <xs:attribute name="value" type="xs:string"/>
+                        <xs:attribute name="name" type="xs:string"/>
+                      </xs:complexType>
+                    </xs:element>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+              <xs:element name="Keywords">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="Keyword" maxOccurs="unbounded" minOccurs="0">
+                      <xs:complexType>
+                        <xs:attribute name="value" type="xs:string"/>
+                        <xs:attribute name="name" type="xs:string"/>
+                      </xs:complexType>
+                    </xs:element>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+            </xs:all>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="BraceMatching">
+          
+        </xs:element>
+        <xs:element name="Parsing">
+          <xs:complexType>
+            <xs:all>
+              <xs:element name="DataTypes">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="DataType" maxOccurs="unbounded" minOccurs="0">
+                      <xs:complexType>
+                        <xs:attribute name="name" type="xs:string"/>
+                        <xs:attribute name="synonyms" type="xs:string"/>
+                        <xs:attribute name="dim_req" type="xs:boolean"/>
+                        <xs:attribute name="range_req" type="xs:boolean"/>
+                      </xs:complexType>
+                    </xs:element>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+              <xs:element name="Functions">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="Function" maxOccurs="unbounded" minOccurs="0">
+                      <xs:complexType>
+                        <xs:all>
+                          <xs:element name="Parameters">
+                            <xs:complexType>
+                              <xs:sequence>
+                                <xs:element name="Parameter" maxOccurs="unbounded" minOccurs="0">
+                                  <xs:complexType>
+                                    <xs:attribute name="name" type="xs:string"/>
+                                    <xs:attribute name="type" type="xs:string"/>
+                                  </xs:complexType>
+                                </xs:element>
+                              </xs:sequence>
+                            </xs:complexType>
+                          </xs:element>
+                          <xs:element name="Returns">
+                            <xs:complexType>
+                              <xs:sequence>
+                                <xs:element name="Return" maxOccurs="unbounded" minOccurs="0">
+                                  <xs:complexType>
+                                    <xs:attribute name="name" type="xs:string"/>
+                                    <xs:attribute name="type" type="xs:string"/>
+                                  </xs:complexType>
+                                </xs:element>
+                              </xs:sequence>
+                            </xs:complexType>
+                          </xs:element>
+                        </xs:all>
+                      </xs:complexType>
+                    </xs:element>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+              <xs:element name="Packages">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="Package" maxOccurs="unbounded" minOccurs="0">
+                      <xs:complexType>
+                        <xs:sequence>
+                          <xs:element name="Classes">
+                            <xs:complexType>
+                              <xs:sequence>
+                                <xs:element name="Class" maxOccurs="unbounded" minOccurs="0">
+                                  <xs:complexType>
+                                    <xs:sequence>
+                                      <xs:element name="Methods">
+                                        <xs:complexType>
+                                          <xs:sequence>
+                                            <xs:element name="Method" maxOccurs="unbounded" minOccurs="0">
+                                              <xs:complexType>
+                                                <xs:all>
+                                                  <xs:element name="Parameters">
+                                                    <xs:complexType>
+                                                      <xs:sequence>
+                                                        <xs:element name="Parameter" maxOccurs="unbounded" minOccurs="0">
+                                                          <xs:complexType>
+                                                            <xs:attribute name="name" type="xs:string"/>
+                                                            <xs:attribute name="type" type="xs:string"/>
+                                                          </xs:complexType>
+                                                        </xs:element>
+                                                      </xs:sequence>
+                                                    </xs:complexType>
+                                                  </xs:element>
+                                                  <xs:element name="Returns">
+                                                    <xs:complexType>
+                                                      <xs:sequence>
+                                                        <xs:element name="Return" maxOccurs="unbounded" minOccurs="0">
+                                                          <xs:complexType>
+                                                            <xs:attribute name="name" type="xs:string"/>
+                                                            <xs:attribute name="type" type="xs:string"/>
+                                                          </xs:complexType>
+                                                        </xs:element>
+                                                      </xs:sequence>
+                                                    </xs:complexType>
+                                                  </xs:element>
+                                                </xs:all>
+                                                <xs:attribute name="name" type="xs:string"/>
+                                                <xs:attribute name="desc" type="xs:string"/>
+                                                <xs:attribute name="scope">
+                                                  <xs:simpleType>
+                                                    <xs:restriction base="xs:string">
+                                                      <xs:enumeration value="static"/>
+                                                      <xs:enumeration value="instance"/>
+                                                    </xs:restriction>
+                                                  </xs:simpleType>
+                                                </xs:attribute>
+                                              </xs:complexType>
+                                            </xs:element>
+                                          </xs:sequence>
+                                        </xs:complexType>
+                                      </xs:element>
+                                    </xs:sequence>
+                                    <xs:attribute name="name" type="xs:string"/>
+                                    <xs:attribute name="isStatic" type="xs:boolean"/>
+                                  </xs:complexType>
+                                </xs:element>
+                              </xs:sequence>
+                            </xs:complexType>
+                          </xs:element>
+                        </xs:sequence>
+                        <xs:attribute name="name" type="xs:string"/>
+                        <xs:attribute name="type" type="xs:string"/>
+                      </xs:complexType>
+                    </xs:element>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+            </xs:all>
+          </xs:complexType>
+        </xs:element>
+      </xs:all>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

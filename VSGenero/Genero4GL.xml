@@ -1,0 +1,2444 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Genero4GL xmlns="GeneroXML">
+  <Lexing>
+    <Symbols>
+      <Symbol value="SingleEquals" name="="/>
+      <Symbol value="DoubleEquals" name="=="/>
+      <Symbol value="NotEqual" name="!="/>
+      <Symbol value="LessThan" name="&lt;"/>
+      <Symbol value="LessThanEqual" name="&lt;="/>
+      <Symbol value="GreaterThan" name="&gt;"/>
+      <Symbol value="GreaterThanEqual" name="&gt;="/>
+      <Symbol value="Plus" name="+"/>
+      <Symbol value="Minus" name="-"/>
+      <Symbol value="Star" name="*"/>
+      <Symbol value="Div" name="/"/>
+      <Symbol value="StarStar" name="**"/>
+      <Symbol value="DoubleVert" name="||"/>
+      <Symbol value="Comma" name=","/>
+      <Symbol value="OpenBracket" name="["/>
+      <Symbol value="CloseBracket" name="]"/>
+      <Symbol value="OpenBrace" name="{"/>
+      <Symbol value="CloseBrace" name="}"/>
+      <Symbol value="Dot" name="."/>
+      <Symbol value="Assign" name=":="/>
+      <Symbol value="SemiColon" name=";"/>
+      <Symbol value="Ampersand" name="&amp;"/>
+      <Symbol value="AtSym" name="@"/>
+      <Symbol value="OpenParen" name="("/>
+      <Symbol value="ClosedParen" name=")"/>
+    </Symbols>
+    <Keywords>
+      <Keyword value="Absolute" name="absolute"/>
+      <Keyword value="After" name="after"/>
+      <Keyword value="Accept" name="accept"/>
+      <Keyword value="Aggregate" name="aggregate"/>
+      <Keyword value="Allocate" name="allocate"/>
+      <Keyword value="All" name="all"/>
+      <Keyword value="AllRows" name="all_rows"/>
+      <Keyword value="And" name="and"/>
+      <Keyword value="Any" name="any"/>
+      <Keyword value="As" name="as"/>
+      <Keyword value="Asc" name="asc"/>
+      <Keyword value="Ascii" name="ascii"/>
+      <Keyword value="At" name="at"/>
+      <Keyword value="Attribute" name="attribute"/>
+      <Keyword value="Attributes" name="attributes"/>
+      <Keyword value="Average" name="average"/>
+      <Keyword value="Avg" name="avg"/>
+      <Keyword value="Array" name="array"/>
+      <Keyword value="Base" name="base"/>
+      <Keyword value="Before" name="before"/>
+      <Keyword value="Begin" name="begin"/>
+      <Keyword value="Between" name="between"/>
+      <Keyword value="Bigint" name="bigint"/>
+      <Keyword value="Black" name="black"/>
+      <Keyword value="Blink" name="blink"/>
+      <Keyword value="Blue" name="blue"/>
+      <Keyword value="Bold" name="bold"/>
+      <Keyword value="Border" name="border"/>
+      <Keyword value="Bottom" name="bottom"/>
+      <Keyword value="Buffered" name="buffered"/>
+      <Keyword value="By" name="by"/>
+      <Keyword value="Byte" name="byte"/>
+      <Keyword value="Cache" name="cache"/>
+      <Keyword value="Call" name="call"/>
+      <Keyword value="Case" name="case"/>
+      <Keyword value="Change" name="change"/>
+      <Keyword value="Char" name="char"/>
+      <Keyword value="Character" name="character"/>
+      <Keyword value="CharLength" name="char_length"/>
+      <Keyword value="Check" name="check"/>
+      <Keyword value="Clear" name="clear"/>
+      <Keyword value="Clipped" name="clipped"/>
+      <Keyword value="Close" name="close"/>
+      <Keyword value="Cluster" name="cluster"/>
+      <Keyword value="Column" name="column"/>
+      <Keyword value="Columns" name="columns"/>
+      <Keyword value="Command" name="command"/>
+      <Keyword value="Commit" name="commit"/>
+      <Keyword value="Committed" name="committed"/>
+      <Keyword value="Constant" name="constant"/>
+      <Keyword value="Constrained" name="constrained"/>
+      <Keyword value="Constraint" name="constraint"/>
+      <Keyword value="Construct" name="construct"/>
+      <Keyword value="Continue" name="continue"/>
+      <Keyword value="Count" name="count"/>
+      <Keyword value="Copy" name="copy"/>
+      <Keyword value="Crcols" name="crcols"/>
+      <Keyword value="Create" name="create"/>
+      <Keyword value="Current" name="current"/>
+      <Keyword value="Cursor" name="cursor"/>
+      <Keyword value="Cyan" name="cyan"/>
+      <Keyword value="Database" name="database"/>
+      <Keyword value="Date" name="date"/>
+      <Keyword value="Datetime" name="datetime"/>
+      <Keyword value="Day" name="day"/>
+      <Keyword value="Deallocate" name="deallocate"/>
+      <Keyword value="Dec" name="dec"/>
+      <Keyword value="Decimal" name="decimal"/>
+      <Keyword value="Decode" name="decode"/>
+      <Keyword value="Declare" name="declare"/>
+      <Keyword value="Default" name="default"/>
+      <Keyword value="Defaults" name="defaults"/>
+      <Keyword value="Defer" name="defer"/>
+      <Keyword value="Define" name="define"/>
+      <Keyword value="Delete" name="delete"/>
+      <Keyword value="Delimiter" name="delimiter"/>
+      <Keyword value="Desc" name="desc"/>
+      <Keyword value="Dim" name="dim"/>
+      <Keyword value="Dimensions" name="dimensions"/>
+      <Keyword value="Dirty" name="dirty"/>
+      <Keyword value="Display" name="display"/>
+      <Keyword value="Distinct" name="distinct"/>
+      <Keyword value="Do" name="do"/>
+      <Keyword value="Double" name="double"/>
+      <Keyword value="Down" name="down"/>
+      <Keyword value="Drop" name="drop"/>
+      <Keyword value="Dynamic" name="dynamic"/>
+      <Keyword value="Else" name="else"/>
+      <Keyword value="End" name="end"/>
+      <Keyword value="Error" name="error"/>
+      <Keyword value="Escape" name="escape"/>
+      <Keyword value="Every" name="every"/>
+      <Keyword value="Exclusive" name="exclusive"/>
+      <Keyword value="Exec" name="exec"/>
+      <Keyword value="Execute" name="execute"/>
+      <Keyword value="Exit" name="exit"/>
+      <Keyword value="Exists" name="exists"/>
+      <Keyword value="Explain" name="explain"/>
+      <Keyword value="Extend" name="extend"/>
+      <Keyword value="Extent" name="extent"/>
+      <Keyword value="External" name="external"/>
+      <Keyword value="False" name="false"/>
+      <Keyword value="Fetch" name="fetch"/>
+      <Keyword value="Field" name="field"/>
+      <Keyword value="Field_Touched" name="field_touched"/>
+      <Keyword value="File" name="file"/>
+      <Keyword value="Finish" name="finish"/>
+      <Keyword value="First" name="first"/>
+      <Keyword value="First_Rows" name="first_rows"/>
+      <Keyword value="Float" name="float"/>
+      <Keyword value="Flush" name="flush"/>
+      <Keyword value="For" name="for"/>
+      <Keyword value="Form" name="form"/>
+      <Keyword value="Format" name="format"/>
+      <Keyword value="Formonly" name="formonly"/>
+      <Keyword value="Foreach" name="foreach"/>
+      <Keyword value="Found" name="found"/>
+      <Keyword value="Fraction" name="fraction"/>
+      <Keyword value="Free" name="free"/>
+      <Keyword value="From" name="from"/>
+      <Keyword value="Function" name="function"/>
+      <Keyword value="Get_Fldbuf" name="get_fldbuf"/>
+      <Keyword value="Globals" name="globals"/>
+      <Keyword value="Go" name="go"/>
+      <Keyword value="Goto" name="goto"/>
+      <Keyword value="Green" name="green"/>
+      <Keyword value="Group" name="group"/>
+      <Keyword value="Having" name="having"/>
+      <Keyword value="Header" name="header"/>
+      <Keyword value="Help" name="help"/>
+      <Keyword value="Hide" name="hide"/>
+      <Keyword value="Hold" name="hold"/>
+      <Keyword value="Hour" name="hour"/>
+      <Keyword value="If" name="if"/>
+      <Keyword value="In" name="in"/>
+      <Keyword value="Inner" name="inner"/>
+      <Keyword value="Index" name="index"/>
+      <Keyword value="Indicator" name="indicator"/>
+      <Keyword value="Infield" name="infield"/>
+      <Keyword value="Initialize" name="initialize"/>
+      <Keyword value="Input" name="input"/>
+      <Keyword value="Insert" name="insert"/>
+      <Keyword value="Instructions" name="instructions"/>
+      <Keyword value="Into" name="into"/>
+      <Keyword value="Int" name="int"/>
+      <Keyword value="Int_Flag" name="int_flag"/>
+      <Keyword value="Integer" name="integer"/>
+      <Keyword value="Interrupt" name="interrupt"/>
+      <Keyword value="Interval" name="interval"/>
+      <Keyword value="Invisible" name="invisible"/>
+      <Keyword value="Is" name="is"/>
+      <Keyword value="Isnull" name="isnull"/>
+      <Keyword value="Isolation" name="isolation"/>
+      <Keyword value="Join" name="join"/>
+      <Keyword value="Key" name="key"/>
+      <Keyword value="Label" name="label"/>
+      <Keyword value="Last" name="last"/>
+      <Keyword value="Left" name="left"/>
+      <Keyword value="Length" name="length"/>
+      <Keyword value="Let" name="let"/>
+      <Keyword value="Like" name="like"/>
+      <Keyword value="Line" name="line"/>
+      <Keyword value="Lineno" name="lineno"/>
+      <Keyword value="Lines" name="lines"/>
+      <Keyword value="Load" name="load"/>
+      <Keyword value="Locate" name="locate"/>
+      <Keyword value="Lock" name="lock"/>
+      <Keyword value="Log" name="log"/>
+      <Keyword value="Long" name="long"/>
+      <Keyword value="Magenta" name="magenta"/>
+      <Keyword value="Matches" name="matches"/>
+      <Keyword value="Menu" name="menu"/>
+      <Keyword value="Message" name="message"/>
+      <Keyword value="Main" name="main"/>
+      <Keyword value="Margin" name="margin"/>
+      <Keyword value="Max" name="max"/>
+      <Keyword value="Mdy" name="mdy"/>
+      <Keyword value="Min" name="min"/>
+      <Keyword value="Minute" name="minute"/>
+      <Keyword value="Mod" name="mod"/>
+      <Keyword value="Mode" name="mode"/>
+      <Keyword value="Module" name="module"/>
+      <Keyword value="Month" name="month"/>
+      <Keyword value="Money" name="money"/>
+      <Keyword value="Name" name="name"/>
+      <Keyword value="Nchar" name="nchar"/>
+      <Keyword value="Value" name="value"/>
+      <Keyword value="Need" name="need"/>
+      <Keyword value="Next" name="next"/>
+      <Keyword value="New" name="new"/>
+      <Keyword value="Normal" name="normal"/>
+      <Keyword value="No" name="no"/>
+      <Keyword value="Not" name="not"/>
+      <Keyword value="Notfound" name="notfound"/>
+      <Keyword value="Now" name="now"/>
+      <Keyword value="Numeric" name="numeric"/>
+      <Keyword value="Null" name="null"/>
+      <Keyword value="Nvarchar" name="nvarchar"/>
+      <Keyword value="Nvl" name="nvl"/>
+      <Keyword value="Of" name="of"/>
+      <Keyword value="Off" name="off"/>
+      <Keyword value="On" name="on"/>
+      <Keyword value="Open" name="open"/>
+      <Keyword value="Option" name="option"/>
+      <Keyword value="Options" name="options"/>
+      <Keyword value="Or" name="or"/>
+      <Keyword value="Ord" name="ord"/>
+      <Keyword value="Order" name="order"/>
+      <Keyword value="Output" name="output"/>
+      <Keyword value="Outer" name="outer"/>
+      <Keyword value="Otherwise" name="otherwise"/>
+      <Keyword value="Page" name="page"/>
+      <Keyword value="Pageno" name="pageno"/>
+      <Keyword value="Pause" name="pause"/>
+      <Keyword value="Percent" name="percent"/>
+      <Keyword value="Pipe" name="pipe"/>
+      <Keyword value="Precision" name="precision"/>
+      <Keyword value="Prepare" name="prepare"/>
+      <Keyword value="Previous" name="previous"/>
+      <Keyword value="Print" name="print"/>
+      <Keyword value="Printer" name="printer"/>
+      <Keyword value="Private" name="private"/>
+      <Keyword value="Program" name="program"/>
+      <Keyword value="Prompt" name="prompt"/>
+      <Keyword value="Put" name="put"/>
+      <Keyword value="Quit" name="quit"/>
+      <Keyword value="Quit_Flag" name="quit_flag"/>
+      <Keyword value="Record" name="record"/>
+      <Keyword value="Real" name="real"/>
+      <Keyword value="Read" name="read"/>
+      <Keyword value="Red" name="red"/>
+      <Keyword value="Relative" name="relative"/>
+      <Keyword value="Remove" name="remove"/>
+      <Keyword value="Reoptimization" name="reoptimization"/>
+      <Keyword value="Repeatable" name="repeatable"/>
+      <Keyword value="Repeat" name="repeat"/>
+      <Keyword value="Report" name="report"/>
+      <Keyword value="Resize" name="resize"/>
+      <Keyword value="Return" name="return"/>
+      <Keyword value="Returning" name="returning"/>
+      <Keyword value="Reverse" name="reverse"/>
+      <Keyword value="Right" name="right"/>
+      <Keyword value="Rollback" name="rollback"/>
+      <Keyword value="Row" name="row"/>
+      <Keyword value="Rows" name="rows"/>
+      <Keyword value="Run" name="run"/>
+      <Keyword value="Screen" name="screen"/>
+      <Keyword value="Scroll" name="scroll"/>
+      <Keyword value="Second" name="second"/>
+      <Keyword value="Skip" name="skip"/>
+      <Keyword value="Select" name="select"/>
+      <Keyword value="Set" name="set"/>
+      <Keyword value="Share" name="share"/>
+      <Keyword value="Show" name="show"/>
+      <Keyword value="Size" name="size"/>
+      <Keyword value="Sleep" name="sleep"/>
+      <Keyword value="Smallfloat" name="smallfloat"/>
+      <Keyword value="Smallint" name="smallint"/>
+      <Keyword value="Space" name="space"/>
+      <Keyword value="Spaces" name="spaces"/>
+      <Keyword value="Sql" name="sql"/>
+      <Keyword value="Sqlerror" name="sqlerror"/>
+      <Keyword value="Sqlwarning" name="sqlwarning"/>
+      <Keyword value="Start" name="start"/>
+      <Keyword value="Stability" name="stability"/>
+      <Keyword value="Statistics" name="statistics"/>
+      <Keyword value="Status" name="status"/>
+      <Keyword value="String" name="string"/>
+      <Keyword value="Stop" name="stop"/>
+      <Keyword value="Sum" name="sum"/>
+      <Keyword value="Table" name="table"/>
+      <Keyword value="Tables" name="tables"/>
+      <Keyword value="Terminate" name="terminate"/>
+      <Keyword value="Temp" name="temp"/>
+      <Keyword value="Text" name="text"/>
+      <Keyword value="Then" name="then"/>
+      <Keyword value="Through" name="through"/>
+      <Keyword value="Thru" name="thru"/>
+      <Keyword value="Time" name="time"/>
+      <Keyword value="To" name="to"/>
+      <Keyword value="Today" name="today"/>
+      <Keyword value="Top" name="top"/>
+      <Keyword value="Trailer" name="trailer"/>
+      <Keyword value="True" name="true"/>
+      <Keyword value="Type" name="type"/>
+      <Keyword value="Unconstrained" name="unconstrained"/>
+      <Keyword value="Underline" name="underline"/>
+      <Keyword value="Union" name="union"/>
+      <Keyword value="Unique" name="unique"/>
+      <Keyword value="Units" name="units"/>
+      <Keyword value="Unload" name="unload"/>
+      <Keyword value="Up" name="up"/>
+      <Keyword value="Update" name="update"/>
+      <Keyword value="User" name="user"/>
+      <Keyword value="Using" name="using"/>
+      <Keyword value="Validate" name="validate"/>
+      <Keyword value="Values" name="values"/>
+      <Keyword value="Varchar" name="varchar"/>
+      <Keyword value="Weekday" name="weekday"/>
+      <Keyword value="View" name="view"/>
+      <Keyword value="Wait" name="wait"/>
+      <Keyword value="Waiting" name="waiting"/>
+      <Keyword value="Warning" name="warning"/>
+      <Keyword value="When" name="when"/>
+      <Keyword value="Whenever" name="whenever"/>
+      <Keyword value="Where" name="where"/>
+      <Keyword value="While" name="while"/>
+      <Keyword value="White" name="white"/>
+      <Keyword value="With" name="with"/>
+      <Keyword value="Without" name="without"/>
+      <Keyword value="Window" name="window"/>
+      <Keyword value="Wordwrap" name="wordwrap"/>
+      <Keyword value="Work" name="work"/>
+      <Keyword value="Year" name="year"/>
+      <Keyword value="Yellow" name="yellow"/>
+      <Keyword value="Layout" name="layout"/>
+      <Keyword value="Vbox" name="vbox"/>
+      <Keyword value="Grid" name="grid"/>
+      <Keyword value="Hbox" name="hbox"/>
+      <Keyword value="Edit" name="edit"/>
+      <Keyword value="Checkbox" name="checkbox"/>
+      <Keyword value="Button" name="button"/>
+      <Keyword value="Sizepolicy" name="sizepolicy"/>
+      <Keyword value="Tabindex" name="tabindex"/>
+      <Keyword value="Comments" name="comments"/>
+      <Keyword value="Valuechecked" name="valuechecked"/>
+      <Keyword value="valueunchecked" name="valueunchecked"/>
+      <Keyword value="Required" name="required"/>
+      <Keyword value="Tag" name="tag"/>
+    </Keywords>
+  </Lexing>
+  <BraceMatching>
+    <BracePair start="{" end="}"/>
+    <BracePair start="[" end="]"/>
+    <BracePair start="(" end=")"/>
+    <BracePair start="if" end="end if">
+      <Middle name="then" required="true"/>
+      <Middle name="else" required="false"/>
+    </BracePair>
+    <BracePair start="for" end="end for">
+      <Middle name="to" required="false"/>
+      <Middle name="step" required="false"/>
+      <Middle name="exit for" required="false"/>
+      <Middle name="continue for" required="false"/>
+    </BracePair>
+  </BraceMatching>
+  <Parsing>
+    <DataTypes>
+      <DataType name="char" synonyms="character" dim_req="true"/>
+      <DataType name="varchar" dim_req="true"/>
+      <DataType name="string"/>
+      <DataType name="date"/>
+      <DataType name="datetime" range_req="true"/>
+      <DataType name="interval" range_req="true"/>
+      <DataType name="bigint"/>
+      <DataType name="int" synonyms="integer"/>
+      <DataType name="smallint"/>
+      <DataType name="tinyint"/>
+      <DataType name="float" dim_req="true"/>
+      <DataType name="smallfloat"/>
+      <DataType name="dec" synonyms="decimal,numeric" dim_req="true"/>
+      <DataType name="money" dim_req="true"/>
+      <DataType name="byte"/>
+      <DataType name="text"/>
+      <DataType name="boolean"/>
+    </DataTypes>
+    <Functions>
+      <!--TODO: functions from http://pic.dhe.ibm.com/infocenter/idshelp/v117/topic/com.ibm.gen_busug.doc/c_fgl_BuiltInFunctions.htm -->
+    </Functions>
+    <Packages>
+      <Package name="base" type="builtin">
+        <Classes>
+          <Class name="Application" isStatic="true">
+            <Methods>
+              <Method name="getArgument" desc="Returns the command line argument by position." scope="static">
+                <Parameters>
+                  <Parameter name="index" type="integer"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="getArgumentCount" desc="Returns the total number of command line arguments." scope="static">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="getProgramDir" desc="Returns the directory path of the current program." scope="static">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="getProgramName" desc="Returns the name of the current program." scope="static">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="getFglDir" desc="Returns the path to the FGLDIR installation directory." scope="static">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="getResourceEntry" desc="Returns the value of an FGLPROFILE entry." scope="static">
+                <Parameters>
+                  <Parameter name="entry" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="getStackTrace" desc="Returns the function call stack trace." scope="static">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+            </Methods>
+          </Class>
+          <Class name="Channel" isStatic="false">
+            <Methods>
+              <Method name="create" desc="Create a new channel object." scope="static">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="base.Channel"/>
+                </Returns>
+              </Method>
+              <Method name="close" desc="Closes the channel object." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="isEof" desc="Detect the end of a file." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="boolean"/>
+                </Returns>
+              </Method>
+              <Method name="openFile" desc="Opening a file channel." scope="instance">
+                <Parameters>
+                  <Parameter name="path" type="string"/>
+                  <Parameter name="mode" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="openPipe" desc="Opening a pipe channel to a sub-process." scope="instance">
+                <Parameters>
+                  <Parameter name="cmd" type="string"/>
+                  <Parameter name="mode" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="openClientSocket" desc="Open a TCP client socket channel." scope="instance">
+                <Parameters>
+                  <Parameter name="host" type="string"/>
+                  <Parameter name="port" type="integer"/>
+                  <Parameter name="mode" type="string"/>
+                  <Parameter name="timeout" type="integer"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="setDelimiter" desc="Define the value delimiter for a channel." scope="instance">
+                <Parameters>
+                  <Parameter name="delim" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="dataAvailable" desc="Tests if some data can be read from the channel." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="boolean"/>
+                </Returns>
+              </Method>
+              <Method name="readLine" desc="Read a complete line from the channel." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="writeLine" desc="Write a complete line to the channel." scope="instance">
+                <Parameters>
+                  <Parameter name="line" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="read" desc="Reads a list of data delimited by a separator from the ch" scope="instance">
+                <Parameters>
+                  <Parameter name="variableList" type="square-brace-list"/> <!--Need to think about how this should be represented-->
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="write" desc="Writes a list of data delimited by a separator to the channel." scope="instance">
+                <Parameters>
+                  <Parameter name="variableList" type="square-brace-list"/> <!--Need to think about how this should be represented-->
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+            </Methods>
+          </Class>
+          <Class name="StringBuffer" isStatic="false">
+            <Methods>
+              <Method name="create" desc="Create a string buffer object." scope="static">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="base.StringBuffer"/>
+                </Returns>
+              </Method>
+              <Method name="append" desc="Append a string at the end of the current string." scope="instance">
+                <Parameters>
+                  <Parameter name="part" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="clear" desc="Clear the string buffer." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="equals" desc="Compare strings (case sensitive)." scope="instance">
+                <Parameters>
+                  <Parameter name="reference" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="boolean"/>
+                </Returns>
+              </Method>
+              <Method name="equalsIgnoreCase" desc="Compare strings (case insensitive)." scope="instance">
+                <Parameters>
+                  <Parameter name="reference" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="boolean"/>
+                </Returns>
+              </Method>
+              <Method name="getCharAt" desc="Return the character at a specified position." scope="instance">
+                <Parameters>
+                  <Parameter name="position" type="integer"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="getIndexOf" desc="Return the position of a substring." scope="instance">
+                <Parameters>
+                  <Parameter name="substr" type="string"/>
+                  <Parameter name="start" type="integer"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="getLength" desc="Return the length of a string." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="insertAt" desc="Insert a string at a given position." scope="instance">
+                <Parameters>
+                  <Parameter name="part" type="string"/>
+                  <Parameter name="pos" type="integer"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="replace" desc="Replace one string with another." scope="instance">
+                <Parameters>
+                  <Parameter name="old" type="string"/>
+                  <Parameter name="new" type="string"/>
+                  <Parameter name="numOccur" type="integer"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="replaceAt" desc="Replace part of a string with another string." scope="instance">
+                <Parameters>
+                  <Parameter name="start" type="integer"/>
+                  <Parameter name="length" type="integer"/>
+                  <Parameter name="new" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="subString" desc="Return the substring at the specified position." scope="instance">
+                <Parameters>
+                  <Parameter name="start" type="integer"/>
+                  <Parameter name="end" type="integer"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="toLowerCase" desc="Converts the string in the buffer to lower case." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="toUpperCase" desc="Converts the string in the buffer to upper case." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="toString" desc="Create a STRING from the string buffer." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="trim" desc="Remove leading and trailing blanks." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="trimLeft" desc="Removes leading blanks." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="trimRight" desc="Removes trailing blanks." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+            </Methods>
+          </Class>
+          <Class name="StringTokenizer" isStatic="false">
+            <Methods>
+              <Method name="create" desc="Create a string tokenizer object." scope="static">
+                <Parameters>
+                  <Parameter name="source" type="string"/>
+                  <Parameter name="delims" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="base.StringTokenizer"/>
+                </Returns>
+              </Method>
+              <Method name="createExt" desc="Create a string tokenizer object with escape char and null handling." scope="static">
+                <Parameters>
+                  <Parameter name="source" type="string"/>
+                  <Parameter name="delims" type="string"/>
+                  <Parameter name="escape" type="string"/>
+                  <Parameter name="nulls" type="boolean"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="base.StringTokenizer"/>
+                </Returns>
+              </Method>
+              <Method name="countTokens" desc="Returns the number of tokens left to be returned." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="hasMoreTokens" desc="Returns TRUE if there are more tokens to return." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="boolean"/>
+                </Returns>
+              </Method>
+              <Method name="nextToken" desc="Returns the next token found in the source string." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+            </Methods>
+          </Class>
+          <Class name="TypeInfo" isStatic="true">
+            <Methods>
+              <Method name="create" desc="Create a DomNode from a structured program variable." scope="static">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="om.DomNode"/>
+                </Returns>
+              </Method>
+            </Methods>
+          </Class>
+          <Class name="MessageServer" isStatic="true">
+            <Methods>
+              <Method name="connect" desc="Connects to the group of programs to be notified by a message." scope="static">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="send" desc="Sends a key event to the group of programs connected together." scope="static">
+                <Parameters>
+                  <Parameter name="keyname" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+            </Methods>
+          </Class>
+        </Classes>
+      </Package>
+      <Package name="ui" type="builtin">
+        <Classes>
+          <Class name="Interface" isStatic="true">
+            <Methods>
+              <Method name="frontCall" desc="Performs function calls to the current front end." scope="static">
+                <Parameters>
+                  <Parameter name="module" type="string"/>
+                  <Parameter name="function" type="string"/>
+                  <Parameter name="parameterList" type="square-brace-list"/>
+                  <Parameter name="returningList" type="square-brace-list"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="getDocument" desc="Returns the DOM document of the abstract user interface tree." scope="static">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="om.DomDocument"/>
+                </Returns>
+              </Method>
+              <Method name="getFrontEndName" desc="Returns the type of the front-end currently in use." scope="static">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="getFrontEndVersion" desc="Returns the version of the front-end currently in use." scope="static">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="getRootNode" desc="Get the root DOM node of the abstract user interface." scope="static">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="om.DomNode"/>
+                </Returns>
+              </Method>
+              <Method name="loadStartMenu" desc="Load the start menu file." scope="static">
+                <Parameters>
+                  <Parameter name="filename" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="loadToolBar" desc="Load a default toolbar file." scope="static">
+                <Parameters>
+                  <Parameter name="filename" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="loadActionDefaults" desc="Load the default action defaults file." scope="static">
+                <Parameters>
+                  <Parameter name="filename" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="loadStyles" desc="Load the presentation styles file." scope="static">
+                <Parameters>
+                  <Parameter name="filename" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="setName" desc="Define the name of the current program for the front-end." scope="static">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="getName" desc="Performs function calls to the current front end." scope="static">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="setText" desc="Defines the title for the program." scope="static">
+                <Parameters>
+                  <Parameter name="title" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="getText" desc="Returns the title of the program." scope="static">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="setImage" desc="Defines the icon image of the program." scope="static">
+                <Parameters>
+                  <Parameter name="icon" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="getImage" desc="Returns the icon image of the program." scope="static">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="setType" desc="Defines the type of the program for the front-end." scope="static">
+                <Parameters>
+                  <Parameter name="type" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="getType" desc="Returns the type of the program." scope="static">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="setSize" desc="Specify the initial size of the parent container window." scope="static">
+                <Parameters>
+                  <Parameter name="height" type="integer"/>
+                  <Parameter name="width" type="integer"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="setContainer" desc="Define the parent container for the current program." scope="static">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="getContainer" desc="Get the parent container of the current program." scope="static">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="getChildCount" desc="Get the number of children in a parent container." scope="static">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="getChildInstances" desc="Get the number of child instances for a given application name." scope="static">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="refresh" desc="Synchronize the user interface with the front-end." scope="static">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+            </Methods>
+          </Class>
+          <Class name="Window" isStatic="false">
+            <Methods>
+              <Method name="forName" desc="Get a window object by name." scope="static">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="ui.Window"/>
+                </Returns>
+              </Method>
+              <Method name="getCurrent" desc="Get the current window object." scope="static">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="ui.Window"/>
+                </Returns>
+              </Method>
+              <Method name="getForm" desc="Get the current form of a window." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="ui.Form"/>
+                </Returns>
+              </Method>
+              <Method name="getNode" desc="Get the DOM node of a window." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="ui.DomNode"/>
+                </Returns>
+              </Method>
+              <Method name="findNode" desc="Search for a specific element in the window." scope="instance">
+                <Parameters>
+                  <Parameter name="type" type="string"/>
+                  <Parameter name="name" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="ui.DomNode"/>
+                </Returns>
+              </Method>
+              <Method name="createForm" desc="Create a new empty form in a window." scope="instance">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="ui.Form"/>
+                </Returns>
+              </Method>
+              <Method name="setText" desc="Set the window title." scope="instance">
+                <Parameters>
+                  <Parameter name="text" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="getText" desc="Get the window title." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="setImage" desc="Set the window icon." scope="instance">
+                <Parameters>
+                  <Parameter name="image" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="getIcon" desc="Get the window icon." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+            </Methods>
+          </Class>
+          <Class name="Form" isStatic="false">
+            <Methods>
+              <Method name="setDefaultInitializer" desc="Define the default initializer for all forms." scope="static">
+                <Parameters>
+                  <Parameter name="funcname" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="getNode" desc="Get the DOM node of the form." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="om.DomNode"/>
+                </Returns>
+              </Method>
+              <Method name="loadActionDefaults" desc="Load form action defaults." scope="instance">
+                <Parameters>
+                  <Parameter name="filename" type="string"/>
+                </Parameters>
+                <Returns></Returns>
+              </Method>
+              <Method name="loadToolBar" desc="Load the form toolbar." scope="instance">
+                <Parameters>
+                  <Parameter name="filename" type="string"/>
+                </Parameters>
+                <Returns></Returns>
+              </Method>
+              <Method name="loadTopMenu" desc="Load the form topmenu." scope="instance">
+                <Parameters>
+                  <Parameter name="filename" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="findNode" desc="Search for a child node in the form." scope="instance">
+                <Parameters>
+                  <Parameter name="type" type="string"/>
+                  <Parameter name="name" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="om.DomNode"/>
+                </Returns>
+              </Method>
+              <Method name="setElementText" desc="Change the text of form elements." scope="instance">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                  <Parameter name="text" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="setElementImage" desc="Change the image of form elements." scope="instance">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                  <Parameter name="text" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="setElementStyle" desc="Change the style of form elements." scope="instance">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                  <Parameter name="style" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="setElementHidden" desc="Show or hide form elements." scope="instance">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                  <Parameter name="hide" type="integer"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="setFieldHidden" desc="Show or hide form field." scope="instance">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                  <Parameter name="hide" type="integer"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="setFieldStyle" desc="Change the style of a form field." scope="instance">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                  <Parameter name="style" type="integer"/> <!--TODO: not sure if this is an integer...the online doc might be wrong?-->
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="ensureFieldVisible" desc="Ensure visibility of a form field." scope="instance">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="ensureElementVisible" desc="Ensure the visibility of a form element." scope="instance">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+            </Methods>
+          </Class>
+          <Class name="Dialog" isStatic="false">
+            <Methods>
+              <Method name="getCurrent" desc="Returns the current dialog object." scope="static">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="ui.Dialog"/>
+                </Returns>
+              </Method>
+              <Method name="setDefaultUnbuffered" desc="Set the default unbuffered mode for all dialogs." scope="static">
+                <Parameters>
+                  <Parameter name="value" type="boolean"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="accept" desc="Validates and terminates the dialog." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="validate" desc="Check form level validation rules." scope="instance">
+                <Parameters>
+                  <Parameter name="field-list" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="appendRow" desc="Appends a new row in the specified list." scope="instance">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="appendNode" desc="Appends a new node in the specified tree-view." scope="instance">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                  <Parameter name="index" type="integer"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="deleteRow" desc="Deletes a row from the specified list." scope="instance">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                  <Parameter name="index" type="integer"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="deleteNode" desc="Deletes a node from the specified tree-view." scope="instance">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                  <Parameter name="index" type="integer"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="deleteAllRows" desc="Deletes all rows from the specified list." scope="instance">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="getArrayLength" desc="Returns the total number of rows in the specified list." scope="instance">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="getCurrentItem" desc="Returns the current item having focus." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="getCurrentRow" desc="Returns the current row of the specified list." scope="instance">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="getFieldBuffer" desc="Returns the input buffer of the specified field." scope="instance">
+                <Parameters>
+                  <Parameter name="field" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="getFieldTouched" desc="Returns the modification flag for a field." scope="instance">
+                <Parameters>
+                  <Parameter name="field-list" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="boolean"/>
+                </Returns>
+              </Method>
+              <Method name="getForm" desc="Returns the current form used by the dialog." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="ui.Form"/>
+                </Returns>
+              </Method>
+              <Method name="insertRow" desc="Inserts a new row in the specified list." scope="instance">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                  <Parameter name="index" type="integer"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="insertNode" desc="Inserts a new node in the specified tree." scope="instance">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                  <Parameter name="index" type="integer"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="isRowSelected" desc="Queries row selection for a give list and row." scope="instance">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                  <Parameter name="index" type="integer"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="boolean"/>
+                </Returns>
+              </Method>
+              <Method name="nextField" desc="Registering the next field to jump to." scope="instance">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="selectionToString" desc="Serializes data of the selected rows." scope="instance">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="setArrayLength" desc="Sets the total number of rows in the specified list." scope="instance">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                  <Parameter name="len" type="integer"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="setActionActive" desc="Enabling and disabling dialog actions." scope="instance">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                  <Parameter name="active" type="boolean"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="setActionHidden" desc="Handling default action view visibility." scope="instance">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                  <Parameter name="hide" type="integer"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="setCurrentRow" desc="Sets the current row in the specified list." scope="instance">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                  <Parameter name="row" type="integer"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="setFieldActive" desc="Enable and disable form fields." scope="instance">
+                <Parameters>
+                  <Parameter name="field-list" type="string"/>
+                  <Parameter name="active" type="boolean"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="setFieldTouched" desc="Sets the modification flag of the specified field." scope="instance">
+                <Parameters>
+                  <Parameter name="field-list" type="string"/>
+                  <Parameter name="touched" type="boolean"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="setArrayAttributes" desc="Define cell decoration attributes array for the specified list (singular or multiple dialogs)." scope="instance">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                  <Parameter name="array" type="array"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="setCellAttributes" desc="Define cell decoration attributes array for the specified list (singular dialog only)." scope="instance">
+                <Parameters>
+                  <Parameter name="program-array" type="array"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="setSelectionMode" desc="Defines the row selection mode for the specified list." scope="instance">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                  <Parameter name="mode" type="integer"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="setSelectionRange" desc="Sets the row selection flags for a range of rows." scope="instance">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                  <Parameter name="start" type="integer"/>
+                  <Parameter name="end" type="integer"/>
+                  <Parameter name="value" type="boolean"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+            </Methods>
+          </Class>
+          <Class name="ComboBox" isStatic="false">
+            <Methods>
+              <Method name="setDefaultInitializer" desc="Define the default initializer for combobox form items." scope="static">
+                <Parameters>
+                  <Parameter name="funcname" type="string"/>
+                </Parameters>
+                <Returns></Returns>
+              </Method>
+              <Method name="forName" desc="Search for a combobox in the current form." scope="static">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="ui.ComboBox"/>
+                </Returns>
+              </Method>
+              <Method name="clear" desc="Clear the item list of a combobox." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns></Returns>
+              </Method>
+              <Method name="addItem" desc="Add an element to the item list." scope="instance">
+                <Parameters>
+                  <Parameter name="value" type="string"/>
+                  <Parameter name="label" type="string"/>
+                </Parameters>
+                <Returns></Returns>
+              </Method>
+              <Method name="getColumnName" desc="Get the column name of the form field." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="getTableName" desc="Get the table prefix of the form field." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="getIndexOf" desc="Get an item position by name." scope="instance">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="getItemCount" desc="Get the number of items." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="getItemName" desc="Get an item name by position." scope="instance">
+                <Parameters>
+                  <Parameter name="position" type="integer"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="getItemText" desc="Get an item text by position." scope="instance">
+                <Parameters>
+                  <Parameter name="position" type="integer"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="getTag" desc="Get the combobox tag value." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="getTextOf" desc="Get the item text by name." scope="instance">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="removeItem" desc="Remove an item by name." scope="instance">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+            </Methods>
+          </Class>
+          <Class name="DragDrop" isStatic="false">
+            <Methods>
+              <Method name="addPossibleOperation" desc="Add a possible operation." scope="instance">
+                <Parameters>
+                  <Parameter name="oper" type="string"/>
+                </Parameters>
+                <Returns></Returns>
+              </Method>
+              <Method name="getLocationRow" desc="Get the index of the target row where the object was dropped." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="getLocationParent" desc="Get the index of the parent node where the object was dropped." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="getOperation" desc="Identify the type of operation on drop." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="setOperation" desc="Define the type of Drag &#38; Drop operation." scope="instance">
+                <Parameters>
+                  <Parameter name="oper" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="setFeedback" desc="Define the appearance of the target during Drag &#38; Drop." scope="instance">
+                <Parameters>
+                  <Parameter name="type" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="selectMimeType" desc="Select the MIME type before getting the data." scope="instance">
+                <Parameters>
+                  <Parameter name="type" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="getSelectedMimeType" desc="Get the previously selected MIME type." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="getBuffer" desc="Get drag &#38; drop data from the buffer." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="setMimeType" desc="Define the MIME type of the dragged object." scope="instance">
+                <Parameters>
+                  <Parameter name="type" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="setBuffer" desc="Set the text data of the dragged object." scope="instance">
+                <Parameters>
+                  <Parameter name="data" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="dropInternal" desc="Perform built-in row drop in trees." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+            </Methods>
+          </Class>
+        </Classes>
+      </Package>
+      <Package name="om" type="builtin">
+        <Classes>
+          <Class name="DomDocument" isStatic="false">
+            <Methods>
+              <Method name="create" desc="Create a new empty om.DomDocument object." scope="static">
+                <Parameters>
+                  <Parameter name="tag" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="om.DomDocument"/>
+                </Returns>
+              </Method>
+              <Method name="createFromString" desc="Create a new om.DomDocument object from an XML string." scope="static">
+                <Parameters>
+                  <Parameter name="string" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="om.DomDocument"/>
+                </Returns>
+              </Method>
+              <Method name="createFromXmlFile" desc="Create a new om.DomDocument object from an XML file." scope="static">
+                <Parameters>
+                  <Parameter name="filename" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="om.DomDocument"/>
+                </Returns>
+              </Method>
+              <Method name="createChars" desc="Create a new text node in the DOM document." scope="instance">
+                <Parameters>
+                  <Parameter name="string" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="om.DomNode"/>
+                </Returns>
+              </Method>
+              <Method name="createElement" desc="Create a new element node in the DOM document." scope="instance">
+                <Parameters>
+                  <Parameter name="tag" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="om.DomNode"/>
+                </Returns>
+              </Method>
+              <Method name="createEntity" desc="Create a new entity node in the DOM document." scope="instance">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="om.DomNode"/>
+                </Returns>
+              </Method>
+              <Method name="copy" desc="Create a new element node by copying an existing node." scope="instance">
+                <Parameters>
+                  <Parameter name="source" type="om.DomNode"/>
+                  <Parameter name="deep" type="integer"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="om.DomNode"/>
+                </Returns>
+              </Method>
+              <Method name="getDocumentElement" desc="Returns the root node element of the DOM document." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="om.DomNode"/>
+                </Returns>
+              </Method>
+              <Method name="getDocumentById" desc="Returns a node element according to the internal AUI tree id." scope="instance">
+                <Parameters>
+                  <Parameter name="id" type="integer"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="om.DomNode"/>
+                </Returns>
+              </Method>
+              <Method name="removeElement" desc="Remove a DomNode object and all its descendants." scope="instance">
+                <Parameters>
+                  <Parameter name="element" type="om.DomNode"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+            </Methods>
+          </Class>
+          <Class name="DomNode" isStatic="false">
+            <Methods>
+              <Method name="appendChild" desc="Adds an existing node at the end of the list of children in the current node." scope="instance">
+                <Parameters>
+                  <Parameter name="node" type="om.DomNode"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="createChild" desc="Creates and adds an node at the end of the list of children in the current node." scope="instance">
+                <Parameters>
+                  <Parameter name="tag" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="om.DomNode"/>
+                </Returns>
+              </Method>
+              <Method name="insertBefore" desc="Inserts an existing node before the existing node specified." scope="instance">
+                <Parameters>
+                  <Parameter name="new" type="om.DomNode"/>
+                  <Parameter name="existing" type="om.DomNode"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="removeChild" desc="Deletes the specified child node from the current node." scope="instance">
+                <Parameters>
+                  <Parameter name="node" type="om.DomNode"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="replaceChild" desc="Replaces a node by another in the children nodes of the current node." scope="instance">
+                <Parameters>
+                  <Parameter name="new" type="om.DomNode"/>
+                  <Parameter name="old" type="om.DomNode"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="loadXml" desc="Load an XML file into the current node." scope="instance">
+                <Parameters>
+                  <Parameter name="filename" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="om.DomNode"/>
+                </Returns>
+              </Method>
+              <Method name="parse" desc="Parses an XML formatted string and creates the DOM structure in the current node." scope="instance">
+                <Parameters>
+                  <Parameter name="string" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="om.DomNode"/>
+                </Returns>
+              </Method>
+              <Method name="toString" desc="Serializes the current node into an XML formatted string." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="writeXml" desc="Creates an XML file from the current DOM node." scope="instance">
+                <Parameters>
+                  <Parameter name="filename" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="write" desc="Processes a DOM document with a SAX document handler." scope="instance">
+                <Parameters>
+                  <Parameter name="sdh" type="om.SaxDocumentHandler"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="getId" desc="Returns the internal AUI tree id of a DOM node." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="getTagName" desc="Returns the XML tag name of a DOM node." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="setAttribute" desc="Sets the value of a DOM node attribute." scope="instance">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                  <Parameter name="value" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="getAttribute" desc="Returns the value of a DOM node attribute." scope="instance">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="getAttributeInteger" desc="Returns the value of a DOM node attribute, with default integer value." scope="instance">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                  <Parameter name="def" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="getAttributesCount" desc="Returns the number of attributes in the DOM node." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="getAttributeName" desc="Returns the name of a DOM node attribute by position." scope="instance">
+                <Parameters>
+                  <Parameter name="index" type="integer"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="getAttributeValue" desc="Returns the value of a DOM node attribute by position." scope="instance">
+                <Parameters>
+                  <Parameter name="index" type="integer"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="removeAttribute" desc="Delete the specified attribute from the DOM node." scope="instance">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="getChildCount" desc="Returns the number of children nodes." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="getChildByIndex" desc="Returns a child DOM node by position." scope="instance">
+                <Parameters>
+                  <Parameter name="index" type="integer"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="om.DomNode"/>
+                </Returns>
+              </Method>
+              <Method name="getFirstChild" desc="Returns the first child DOM node." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="om.DomNode"/>
+                </Returns>
+              </Method>
+              <Method name="getLastChild" desc="Returns the last child DOM node." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="om.DomNode"/>
+                </Returns>
+              </Method>
+              <Method name="getNext" desc="Returns the next sibling DOM node of this node." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="om.DomNode"/>
+                </Returns>
+              </Method>
+              <Method name="getParent" desc="Returns the parent DOM node." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="om.DomNode"/>
+                </Returns>
+              </Method>
+              <Method name="getPrevious" desc="Returns previous sibling DOM node of this node." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="om.DomNode"/>
+                </Returns>
+              </Method>
+              <Method name="selectByTagName" desc="Finds descendant DOM nodes according to a tag name." scope="instance">
+                <Parameters>
+                  <Parameter name="tagname" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="om.NodeList"/>
+                </Returns>
+              </Method>
+              <Method name="selectByPath" desc="Finds descendant DOM nodes according to an XPath-like pattern." scope="instance">
+                <Parameters>
+                  <Parameter name="xpath" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="om.NodeList"/>
+                </Returns>
+              </Method>
+            </Methods>
+          </Class>
+          <Class name="NodeList" isStatic="false">
+            <Methods>
+              <Method name="item" desc="Returns a DOM node element by position in the node list." scope="instance">
+                <Parameters>
+                  <Parameter name="index" type="om.DomNode"/> <!--This seems wrong! Shouldn't the type be integer?-->
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="om.DomNode"/>
+                </Returns>
+              </Method>
+              <Method name="getLength" desc="Returns the number of elements in the node list." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="integer"/>
+                </Returns>
+              </Method>
+            </Methods>
+          </Class>
+          <Class name="SaxAttributes" isStatic="false">
+            <Methods>
+              <Method name="copy" desc="Clones an existing SAX attributes object." scope="static">
+                <Parameters>
+                  <Parameter name="attrs" type="om.SaxAttributes"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="om.SaxAttributes"/>
+                </Returns>
+              </Method>
+              <Method name="create" desc="Create a new SAX attributes object." scope="static">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="om.SaxAttributes"/>
+                </Returns>
+              </Method>
+              <Method name="addAttribute" desc="Appends a new attribute to the end of the list." scope="instance">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                  <Parameter name="value" type="string"/>
+                </Parameters>
+                <Returns></Returns>
+              </Method>
+              <Method name="clear" desc="Clears the SAX attribute list." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns></Returns>
+              </Method>
+              <Method name="getLength" desc="Returns the number of attributes in the list." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="getName" desc="Returns the name of an attribute by position." scope="instance">
+                <Parameters>
+                  <Parameter name="index" type="integer"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="getValue" desc="Returns the value of an attribute by name." scope="instance">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="getValueByIndex" desc="Returns an attribute value by position." scope="instance">
+                <Parameters>
+                  <Parameter name="index" type="integer"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="removeAttribute" desc="Delete an attribute by position." scope="instance">
+                <Parameters>
+                  <Parameter name="index" type="integer"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="setAttributes" desc="Clears the list and copies the attributes passed." scope="instance">
+                <Parameters>
+                  <Parameter name="attrs" type="om.SaxAttributes"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+            </Methods>
+          </Class>
+          <Class name="SaxDocumentHandler" isStatic="false">
+            <Methods>
+              <Method name="createForName" desc="Creates a new SAX document handler object for the given 4gl module." scope="static">
+                <Parameters>
+                  <Parameter name="module" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="om.SaxDocumentHandler"/>
+                </Returns>
+              </Method>
+              <Method name="readXmlFile" desc="Reads and processes an XML file with the SAX document handler." scope="instance">
+                <Parameters>
+                  <Parameter name="filename" type="string"/>
+                </Parameters>
+                <Returns></Returns>
+              </Method>
+              <Method name="setIndent" desc="Controls indentation in XML output." scope="instance">
+                <Parameters>
+                  <Parameter name="on" type="boolean"/>
+                </Parameters>
+                <Returns></Returns>
+              </Method>
+              <Method name="startDocument" desc="Processes the beginning of the document." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns></Returns>
+              </Method>
+              <Method name="startElement" desc="Processes the beginning of an element." scope="instance">
+                <Parameters>
+                  <Parameter name="tagname" type="string"/>
+                  <Parameter name="attrs" type="om.SaxAttributes"/>
+                </Parameters>
+                <Returns></Returns>
+              </Method>
+              <Method name="endElement" desc="Processes the end of an element." scope="instance">
+                <Parameters>
+                  <Parameter name="tagname" type="string"/>
+                </Parameters>
+                <Returns></Returns>
+              </Method>
+              <Method name="endDocument" desc="Processes the end of the document." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns></Returns>
+              </Method>
+              <Method name="characters" desc="Processes a text node." scope="instance">
+                <Parameters>
+                  <Parameter name="data" type="string"/>
+                </Parameters>
+                <Returns></Returns>
+              </Method>
+              <Method name="skippedEntity" desc="Processes an unresolved entity." scope="instance">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                </Parameters>
+                <Returns></Returns>
+              </Method>
+              <Method name="processingInstruction" desc="Processes a processing instruction." scope="instance">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                  <Parameter name="data" type="string"/>
+                </Parameters>
+                <Returns></Returns>
+              </Method>
+            </Methods>
+          </Class>
+          <Class name="XmlReader" isStatic="false">
+            <Methods>
+              <Method name="createFileReader" desc="Creates an XML reader object from a file." scope="static">
+                <Parameters>
+                  <Parameter name="filename" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="om.XmlReader"/>
+                </Returns>
+              </Method>
+              <Method name="getAttributes" desc="Builds an attribute list for the current processed element." scope="instance">
+                <Parameters></Parameters>
+                <Returns>
+                  <Return name="result" type="om.SaxAttributes"/>
+                </Returns>
+              </Method>
+              <Method name="getCharacters" desc="Returns the character data of the current processed element." scope="instance">
+                <Parameters></Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="skippedEntity" desc="Returns the name of an unresolved entity." scope="instance">
+                <Parameters></Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="getTagName" desc="Returns the tag name of the current processed element." scope="instance">
+                <Parameters></Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="read" desc="Reads the next SAX event to process." scope="instance">
+                <Parameters></Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+            </Methods>
+          </Class>
+          <Class name="XmlWriter" isStatic="true">
+            <Methods>
+              <Method name="createFileWriter" desc="Creates an om.SaxDocumentHandler object writing to a file." scope="static">
+                <Parameters>
+                  <Parameter name="filename" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="om.SaxDocumentHandler"/>
+                </Returns>
+              </Method>
+              <Method name="createPipeWriter" desc="Creates an om.SaxDocumentHandler object writing to a pipe created for a process." scope="static">
+                <Parameters>
+                  <Parameter name="command" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="om.SaxDocumentHandler"/>
+                </Returns>
+              </Method>
+              <Method name="createSocketWriter" desc="Creates an om.SaxDocumentHandler object writing to a socket." scope="static">
+                <Parameters>
+                  <Parameter name="host" type="string"/>
+                  <Parameter name="port" type="integer"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="om.SaxDocumentHandler"/>
+                </Returns>
+              </Method>
+              <Method name="createChannelWriter" desc="Creates an om.SaxDocumentHandler object writing to a channel object." scope="static">
+                <Parameters>
+                  <Parameter name="channel" type="base.Channel"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="om.SaxDocumentHandler"/>
+                </Returns>
+              </Method>
+            </Methods>
+          </Class>
+        </Classes>
+      </Package>
+      <!-- http://pic.dhe.ibm.com/infocenter/idshelp/v117/topic/com.ibm.gen_busug.doc/c_fgl_section_extension_packages.htm -->
+      <Package name="util" type="extension">
+        <Classes>
+          <Class name="DateTime" isStatic="true">
+            <Methods>
+              <Method name="toLocalTime" desc="Converts a UTC datetime to the local time." scope="static">
+                <Parameters>
+                  <Parameter name="utc_datetime" type="datetime q1 to q2"/>
+                </Parameters>
+                <Returns>
+                  <Return name="local_datetime" type="datetime q1 to q2"/>
+                </Returns>
+              </Method>
+              <Method name="toUTC" desc="Converts a datetime value to the UTC datetime." scope="static">
+                <Parameters>
+                  <Parameter name="local_datetime" type="datetime q1 to q2"/>
+                </Parameters>
+                <Returns>
+                  <Return name="utc_datetime" type="datetime q1 to q2"/>
+                </Returns>
+              </Method>
+            </Methods>
+          </Class>
+          <Class name="Math" isStatic="true">
+            <Methods>
+              <Method name="sqrt" desc="Returns the square root of the argument provided." scope="static">
+                <Parameters>
+                  <Parameter name="val" type="float"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="float"/>
+                </Returns>
+              </Method>
+              <Method name="pow" desc="Computes the value of x raised to the power y." scope="static">
+                <Parameters>
+                  <Parameter name="x" type="float"/>
+                  <Parameter name="y" type="float"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="float"/>
+                </Returns>
+              </Method>
+              <Method name="exp" desc="Computes the base-e exponential of the value passed as parameter." scope="static">
+                <Parameters>
+                  <Parameter name="val" type="float"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="float"/>
+                </Returns>
+              </Method>
+              <Method name="srand" desc="Initializes the pseudo-random numbers generator." scope="static">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="rand" desc="Returns a positive pseudo-random number." scope="static">
+                <Parameters>
+                  <Parameter name="max" type="integer"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="sin" desc="Computes the sine of the passed value, measured in radians." scope="static">
+                <Parameters>
+                  <Parameter name="val" type="float"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="float"/>
+                </Returns>
+              </Method>
+              <Method name="cos" desc="Computes the cosine of the passed value, measured in radians." scope="static">
+                <Parameters>
+                  <Parameter name="val" type="float"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="float"/>
+                </Returns>
+              </Method>
+              <Method name="tan" desc="Computes the tangent of the passed value, measured in radians." scope="static">
+                <Parameters>
+                  <Parameter name="val" type="float"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="float"/>
+                </Returns>
+              </Method>
+              <Method name="asin" desc="Computes the arc sine of the passed value, measured in radians." scope="static">
+                <Parameters>
+                  <Parameter name="val" type="float"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="float"/>
+                </Returns>
+              </Method>
+              <Method name="acos" desc="Computes the arc cosine of the passed value, measured in radians." scope="static">
+                <Parameters>
+                  <Parameter name="val" type="float"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="float"/>
+                </Returns>
+              </Method>
+              <Method name="atan" desc="Computes the arc tangent of the passed value, measured in radians." scope="static">
+                <Parameters>
+                  <Parameter name="val" type="float"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="float"/>
+                </Returns>
+              </Method>
+              <Method name="log" desc="Computes the natural logarithm of the passed value." scope="static">
+                <Parameters>
+                  <Parameter name="val" type="float"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="float"/>
+                </Returns>
+              </Method>
+              <Method name="toDegrees" desc="Converts an angle measured in radians to an approximately equivalent angle measured in degrees." scope="static">
+                <Parameters>
+                  <Parameter name="val" type="float"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="float"/>
+                </Returns>
+              </Method>
+              <Method name="toRadians" desc="Converts an angle measured in degrees to an approximately equivalent angle measured in radians." scope="static">
+                <Parameters>
+                  <Parameter name="val" type="float"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="float"/>
+                </Returns>
+              </Method>
+              <Method name="pi" desc="Returns the FLOAT value of PI." scope="static">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="float"/>
+                </Returns>
+              </Method>
+            </Methods>
+          </Class>
+          <Class name="JSON" isStatic="true">
+            <Methods>
+              <Method name="parse" desc="Parses a JSON string and fills program variables with the values." scope="static">
+                <Parameters>
+                  <Parameter name="source" type="string"/>
+                  <Parameter name="destination" type="string"/>
+                </Parameters>
+                <Returns></Returns>
+              </Method>
+              <Method name="format" desc="Formats JSON string with indentation." scope="static">
+                <Parameters>
+                  <Parameter name="source" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="stringify" desc="Transforms a record variable to a flat JSON formatted string." scope="static">
+                <Parameters>
+                  <Parameter name="source" type="record"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="proposeType" desc="Describes the record structure that can hold a given JSON data string." scope="static">
+                <Parameters>
+                  <Parameter name="source" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+            </Methods>
+          </Class>
+          <Class name="JSONObject" isStatic="false">
+            <Methods>
+              <Method name="create" desc="Creates a new JSON object." scope="static">
+                <Parameters></Parameters>
+                <Returns>
+                  <Return name="object" type="util.JSONObject"/>
+                </Returns>
+              </Method>
+              <Method name="fromFGL" desc="Creates a new JSON object from a RECORD." scope="static">
+                <Parameters>
+                  <Parameter name="source" type="record"/>
+                </Parameters>
+                <Returns>
+                  <Return name="object" type="util.JSONObject"/>
+                </Returns>
+              </Method>
+              <Method name="parse" desc="Parses a JSON string and creates a JSON object from it." scope="static">
+                <Parameters>
+                  <Parameter name="source" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="object" type="util.JSONObject"/>
+                </Returns>
+              </Method>
+              <Method name="get" desc="Returns the value corresponding to the specified entry name." scope="instance">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="result-type"/>
+                </Returns>
+              </Method>
+              <Method name="getType" desc="Returns the type of a JSON object element." scope="instance">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="has" desc="Checks if the JSON object contains a specific entry name." scope="instance">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="boolean"/>
+                </Returns>
+              </Method>
+              <Method name="getLength" desc="Returns the number of name-value pairs in the JSON object." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="len" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="name" desc="Returns the name of a JSON object entry by position." scope="instance">
+                <Parameters>
+                  <Parameter name="index" type="integer"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="put" desc="Sets a name-value pair in the JSON object." scope="instance">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                  <Parameter name="value" type="value-type"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="remove" desc="Removes the specified element in the JSON object." scope="instance">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="toString" desc="Builds a JSON string from the values contained in the JSON object." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="toFGL" desc="Fills a record variable with the entries contained in the JSON object." scope="instance">
+                <Parameters>
+                  <Parameter name="dest" type="record"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+            </Methods>
+          </Class>
+          <Class name="JSONArray" isStatic="false">
+            <Methods>
+              <Method name="create" desc="Creates a new JSON array object." scope="static">
+                <Parameters></Parameters>
+                <Returns>
+                  <Return name="object" type="util.JSONArray"/>
+                </Returns>
+              </Method>
+              <Method name="fromFGL" desc="Creates a new JSON array object from a DYNAMIC ARRAY." scope="static">
+                <Parameters>
+                  <Parameter name="source" type="dynamic array"/>
+                </Parameters>
+                <Returns>
+                  <Return name="object" type="util.JSONArray"/>
+                </Returns>
+              </Method>
+              <Method name="parse" desc="Parses a JSON string and creates a JSON array object from it." scope="static">
+                <Parameters>
+                  <Parameter name="source" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="object" type="util.JSONArray"/>
+                </Returns>
+              </Method>
+              <Method name="get" desc="Returns the value of a JSON array element." scope="instance">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="result-type"/>
+                </Returns>
+              </Method>
+              <Method name="getType" desc="Returns the type of a JSON array element." scope="instance">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="getLength" desc="Returns the number of elements in the JSON array object." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="length" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="put" desc="Sets an element by position in the JSON array object." scope="instance">
+                <Parameters>
+                  <Parameter name="index" type="integer"/>
+                  <Parameter name="value" type="value-type"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="remove" desc="Removes the specified entry in the JSON array object." scope="instance">
+                <Parameters>
+                  <Parameter name="index" type="integer"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="toString" desc="Builds a JSON string from the elements contained in the JSON array object." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="toFGL" desc="Fills a dynamic array variable with the elements contained in the JSON array object." scope="instance">
+                <Parameters>
+                  <Parameter name="dest" type="dynamic record"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+            </Methods>
+          </Class>
+        </Classes>
+      </Package>
+      <!--TODO: os package-->
+      <!--TODO: com package-->
+      <!--TODO: xml package-->
+      <!--TODO: security package-->
+    </Packages>
+  </Parsing>
+</Genero4GL>
