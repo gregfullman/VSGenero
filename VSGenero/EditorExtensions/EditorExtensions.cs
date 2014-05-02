@@ -279,5 +279,17 @@ namespace VSGenero.EditorExtensions
             dic.Remove(fromKey);
             dic[toKey] = value;
         }
+
+        /// <summary>
+        /// This is the default function for getting program filenames. It simply retreives filenames for all files
+        /// with a .4gl extension in the same directory as <paramref name="moduleFilename"/>. 
+        /// </summary>
+        /// <param name="moduleFilename"></param>
+        /// <returns></returns>
+        public static IEnumerable<string> GetProgramFilenames(string moduleFilename)
+        {
+            string filepath = Path.GetDirectoryName(moduleFilename);
+            return Directory.GetFiles(filepath, "*.4gl").Where(x => !string.Equals(x, moduleFilename, StringComparison.OrdinalIgnoreCase));
+        }
     }
 }

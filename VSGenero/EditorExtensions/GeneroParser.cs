@@ -29,9 +29,34 @@ using System.ComponentModel.Composition;
 namespace VSGenero.EditorExtensions
 {
     public delegate void ParseCompleteEventHandler(object sender, ParseCompleteEventArgs e);
+    public delegate void ModuleContentsUpdatedEventHandler(object sender, ModuleContentsUpdatedEventArgs e);
 
     public class ParseCompleteEventArgs : EventArgs
     {
+        private GeneroFileParserManager _fpm;
+        public GeneroFileParserManager FileParserManager
+        {
+            get { return _fpm; }
+        }
+
+        public ParseCompleteEventArgs(GeneroFileParserManager fpm)
+        {
+            _fpm = fpm;
+        }
+    }
+
+    public class ModuleContentsUpdatedEventArgs : EventArgs
+    {
+        private GeneroModuleContents _contents;
+        public GeneroModuleContents ModuleContents
+        {
+            get { return _contents; }
+        }
+
+        public ModuleContentsUpdatedEventArgs(GeneroModuleContents moduleContents)
+        {
+            _contents = moduleContents;
+        }
     }
 
     public class TempTableDefinition
@@ -220,6 +245,20 @@ namespace VSGenero.EditorExtensions
             }
         }
 
+        private ConcurrentDictionary<string, FunctionDefinition> _moduleFunctionDefs;
+        /// <summary>
+        /// This dictionary contains function definitions from files within the same program (but from different .4gl files)
+        /// </summary>
+        public ConcurrentDictionary<string, FunctionDefinition> ModuleFunctionDefinitions
+        {
+            get
+            {
+                if (_moduleFunctionDefs == null)
+                    _moduleFunctionDefs = new ConcurrentDictionary<string, FunctionDefinition>();
+                return _moduleFunctionDefs;
+            }
+        }
+
         private ConcurrentDictionary<string, VariableDefinition> _globalVariables;
         public ConcurrentDictionary<string, VariableDefinition> GlobalVariables
         {
@@ -339,11 +378,9 @@ namespace VSGenero.EditorExtensions
         private ISynchronizeInvoke _synchObj;
         private bool _parseNeeded;
         private object _parseNeededLock;
+        private bool _initialParseComplete;
 
         public event ParseCompleteEventHandler ParseComplete;
-
-        [Import(AllowDefault=true)]
-        private IGlobal4GLFileProvider _global4glFileProvider; 
 
         private GeneroModuleContents _moduleContents;
         public GeneroModuleContents ModuleContents
@@ -354,14 +391,16 @@ namespace VSGenero.EditorExtensions
             }
         }
 
-        public GeneroFileParserManager(ITextBuffer buffer)
+        public GeneroFileParserManager(ITextBuffer buffer, string primarySibling = null)
         {
+            _initialParseComplete = false;
             _parseNeeded = false;
             _parseNeededLock = new object();
             _buffer = buffer;
             _buffer.Changed += _buffer_Changed;
             _parserThread = new BackgroundWorker();
-            _parser = new GeneroParser(_parserThread, _global4glFileProvider);
+            _parser = new GeneroParser(_parserThread, primarySibling);
+            _parser.ModuleContentsChanged += new ModuleContentsUpdatedEventHandler(_parser_ModuleContentsChanged);
             _parserThread.WorkerReportsProgress = true;
             _parserThread.WorkerSupportsCancellation = true;
             _parserThread.DoWork += _parser.DoWork;
@@ -376,6 +415,40 @@ namespace VSGenero.EditorExtensions
             _delayedParseTimer.SynchronizingObject = _synchObj;
             _delayedParseTimer.Elapsed += new ElapsedEventHandler(_delayedParseTimer_Elapsed);
             _delayedParseTimer.Start();
+        }
+
+        public void UseNewBuffer(ITextBuffer buffer)
+        {
+            _buffer.Changed -= _buffer_Changed;
+            _buffer = buffer;
+            _buffer.Changed += _buffer_Changed;
+        }
+
+        void _parser_ModuleContentsChanged(object sender, ModuleContentsUpdatedEventArgs e)
+        {
+            if (_moduleContents == null)
+                _moduleContents = new GeneroModuleContents();
+
+            // update the global variables dictionary
+            foreach (var globalVarKvp in e.ModuleContents.GlobalVariables)
+            {
+                _moduleContents.GlobalVariables.AddOrUpdate(globalVarKvp.Key, globalVarKvp.Value, (x, y) => y);
+            }
+
+            // Update the module functions dictionary
+            foreach (var programFuncKvp in e.ModuleContents.FunctionDefinitions.Where(x => !x.Value.Private))
+            {
+                _moduleContents.FunctionDefinitions.AddOrUpdate(programFuncKvp.Key, programFuncKvp.Value, (x, y) => y);
+            }
+
+            if (_initialParseComplete)
+            {
+                // pass to the caller's callback
+                if (ParseComplete != null)
+                {
+                    ParseComplete(this, new ParseCompleteEventArgs(this));
+                }
+            }
         }
 
         void _delayedParseTimer_Elapsed(object sender, ElapsedEventArgs e)
@@ -413,15 +486,56 @@ namespace VSGenero.EditorExtensions
         {
             if (!e.Cancelled)
             {
-                // get the function list out of the result
-                _moduleContents = e.Result as GeneroModuleContents;
+                _initialParseComplete = true;
+
+                if (_moduleContents == null)
+                    _moduleContents = new GeneroModuleContents();
+
+                var tempModuleContents = e.Result as GeneroModuleContents;
+                // merge the module contents
+                foreach (var funcDef in tempModuleContents.FunctionDefinitions)
+                    _moduleContents.FunctionDefinitions.AddOrUpdate(funcDef.Key, funcDef.Value, (x, y) => y);
+                foreach (var globalDef in tempModuleContents.GlobalVariables)
+                    _moduleContents.GlobalVariables.AddOrUpdate(globalDef.Key, globalDef.Value, (x, y) => y);
+                foreach (var moduleFuncDef in tempModuleContents.ModuleFunctionDefinitions)
+                    _moduleContents.ModuleFunctionDefinitions.AddOrUpdate(moduleFuncDef.Key, moduleFuncDef.Value, (x, y) => y);
+                foreach (var moduleVarDef in tempModuleContents.ModuleVariables)
+                    _moduleContents.ModuleVariables.AddOrUpdate(moduleVarDef.Key, moduleVarDef.Value, (x, y) => y);
+                foreach (var sqlCursor in tempModuleContents.SqlCursors)
+                {
+                    if (!_moduleContents.SqlCursors.ContainsKey(sqlCursor.Key))
+                        _moduleContents.SqlCursors.Add(sqlCursor.Key, sqlCursor.Value);
+                    else
+                        _moduleContents.SqlCursors[sqlCursor.Key] = sqlCursor.Value;
+                }
+                foreach (var sqlPrepare in tempModuleContents.SqlPrepares)
+                {
+                    if (!_moduleContents.SqlPrepares.ContainsKey(sqlPrepare.Key))
+                        _moduleContents.SqlPrepares.Add(sqlPrepare.Key, sqlPrepare.Value);
+                    else
+                        _moduleContents.SqlPrepares[sqlPrepare.Key] = sqlPrepare.Value;
+                }
+                foreach (var systemVar in tempModuleContents.SystemVariables)
+                {
+                    if (!_moduleContents.SystemVariables.ContainsKey(systemVar.Key))
+                        _moduleContents.SystemVariables.Add(systemVar.Key, systemVar.Value);
+                    else
+                        _moduleContents.SystemVariables[systemVar.Key] = systemVar.Value;
+                }
+                foreach (var tempTable in tempModuleContents.TempTables)
+                    _moduleContents.TempTables.AddOrUpdate(tempTable.Key, tempTable.Value, (x, y) => y);
 
                 // pass to the caller's callback
                 if (ParseComplete != null)
                 {
-                    ParseComplete(this, new ParseCompleteEventArgs());
+                    ParseComplete(this, new ParseCompleteEventArgs(this));
                 }
             }
+        }
+
+        public bool IsInitialParseComplete
+        {
+            get { return _initialParseComplete; }
         }
 
         public void CancelParsing()
@@ -445,15 +559,15 @@ namespace VSGenero.EditorExtensions
         private GeneroModuleContents _moduleContents;
         private Genero4GL_XMLSettingsLoader _languageSettings;
         private ITextBuffer _currentBuffer;
-        private IGlobal4GLFileProvider _global4glFileProvider;
+        private string _primarySibling;
 
-        public GeneroParser(BackgroundWorker threadRef, IGlobal4GLFileProvider globalProvider)
+        public GeneroParser(BackgroundWorker threadRef, string primarySibling)
         {
             _lexer = new GeneroLexer();
             _threadRef = threadRef;
             _moduleContents = new GeneroModuleContents();
             _languageSettings = GeneroSingletons.LanguageSettings;
-            _global4glFileProvider = globalProvider;
+            _primarySibling = primarySibling;
         }
 
         private Dictionary<string, int> existingGlobalVarsParsed = new Dictionary<string, int>();
@@ -470,7 +584,8 @@ namespace VSGenero.EditorExtensions
             _moduleContents.SqlCursors.Clear();
         }
 
-        // TODO: need to parse more than just functions
+        public event ModuleContentsUpdatedEventHandler ModuleContentsChanged;
+
         public void DoWork(object sender, DoWorkEventArgs e)
         {
             ITextBuffer buffer = e.Argument as ITextBuffer;
@@ -482,6 +597,37 @@ namespace VSGenero.EditorExtensions
             _gss = GlobalsSearchState.LookingForGlobalsKeyword;
             _vss = VariableSearchState.LookingForDefineKeyword;
             ClearParsedVariables();
+
+
+            if (_primarySibling == null)
+            {
+                /********************************************************************************************
+                 * This buffer is being opened as the "primary" program file
+                 * This means that it will hold the ModuleContents variable, from which all other siblings
+                 * will get global variables and public program functions.
+                 * We need to get all the sibling filenames and kick off threads to parse them.
+                 *********************************************************************************************/
+
+                string moduleFilename = buffer.GetFilePath();
+                IEnumerable<string> programFilenames = (VSGeneroPackage.Instance.CurrentProgram4GLFileProvider == null) ?
+                                                        EditorExtensions.GetProgramFilenames(moduleFilename) :
+                                                        VSGeneroPackage.Instance.CurrentProgram4GLFileProvider.GetProgramFilenames(moduleFilename);
+                foreach (var filename in programFilenames)
+                {
+                    var moduleBuffer = VSGeneroPackage.GetBufferForDocument(filename, false, VSGeneroConstants.ContentType4GL);
+                    if (moduleBuffer != null)
+                    {
+                        GeneroFileParserManager fpm = VSGeneroPackage.Instance.UpdateBufferFileParserManager(moduleBuffer, currentFile);
+                        fpm.ParseComplete += GeneroParser_ParseComplete;
+                    }
+                }
+            }
+            else
+            {
+                // TODO: need to find a way to have the globals and program functions be mapped back to the primary sibling's module content.
+            }
+
+
 
             token = _lexer.NextToken();
 
@@ -518,11 +664,16 @@ namespace VSGenero.EditorExtensions
             e.Result = _moduleContents;
         }
 
+        void GeneroParser_ParseComplete(object sender, ParseCompleteEventArgs e)
+        {
+            if (ModuleContentsChanged != null)
+                ModuleContentsChanged(this, new ModuleContentsUpdatedEventArgs(e.FileParserManager.ModuleContents));
+        }
+
         private void DiscardUnparsedVariablesAndFunctions(string filename)
         {
             VariableDefinition remove;
             int temp;
-
 
             // Remove globals
             List<string> removeList = new List<string>();
@@ -597,43 +748,7 @@ namespace VSGenero.EditorExtensions
                     // check to see if a globals file has been specified
                     if (token.TokenType == GeneroTokenType.String)
                     {
-                        // need to open the globals file
-
-                        // 1) Need to get the current directory
-                        string filename = _currentBuffer.GetFilePath();
-                        string filepath = Path.GetDirectoryName(filename);
-                        string globalsFilename = token.TokenText.Trim(new[] { '\"', '"' });
-                        if (_global4glFileProvider != null)
-                        {
-                            filepath = _global4glFileProvider.GetGlobal4GLFile(filepath, globalsFilename);
-                        }
-                        else
-                        {
-                            filepath = filepath + "\\" + globalsFilename;
-                        }
-                        if (File.Exists(filepath))
-                        {
-                            // open the global file and parse its contents.
-                            // TODO: should this be done on the same thread? Not sure...
-                            ITextBuffer globalBuffer = VSGeneroPackage.GetBufferForDocument(filepath, false, VSGeneroConstants.ContentType4GL);
-                            if (globalBuffer != null)
-                            {
-                                GeneroParser globalFileParser = new GeneroParser(null, null);
-                                var arg = new DoWorkEventArgs(globalBuffer);
-                                globalFileParser.DoWork(this, arg);
-                                // This should work...when DoWork is done, the module contents should be available
-                                GeneroModuleContents globalFileContents = arg.Result as GeneroModuleContents;
-
-                                // merge the global file contents into the module contents
-                                foreach (var globalFileVar in globalFileContents.GlobalVariables)
-                                {
-                                    globalFileVar.Value.ContainingFile = filepath;
-                                    _moduleContents.GlobalVariables.AddOrUpdate(globalFileVar.Key, globalFileVar.Value, (x, y) => y);
-                                    if (!existingGlobalVarsParsed.ContainsKey(globalFileVar.Key))
-                                        existingGlobalVarsParsed.Add(globalFileVar.Key, 1);
-                                }
-                            }
-                        }
+                        // TODO: do we not want globals from the global file showing up if they haven't been specified with an "globals" keyword?
                     }
                     else
                     {
@@ -871,7 +986,7 @@ namespace VSGenero.EditorExtensions
                     {
                         error = true;
                     }
-                    if(!error)
+                    if (!error)
                     {
                         int temp = 0;
                         if (!int.TryParse(token.TokenText, out temp))
@@ -885,7 +1000,7 @@ namespace VSGenero.EditorExtensions
                     }
                     if (!AdvanceToken(ref token, ref prevToken))
                         error = true;
-                    if(error)
+                    if (error)
                     {
                         valid = false;
                         searchState = VariableSearchState.LookingForDefineKeyword;

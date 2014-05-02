@@ -46,6 +46,7 @@ using Microsoft.VisualStudioTools;
 using Microsoft.VisualStudioTools.Navigation;
 using Microsoft.VisualStudioTools.Project;
 using NativeMethods = Microsoft.VisualStudioTools.Project.NativeMethods;
+using VSGenero.EditorExtensions;
 
 namespace VSGenero
 {
@@ -106,6 +107,13 @@ namespace VSGenero
         {
         }
 
+        private IProgram4GLFileProvider _currentProgram4GLFileProvider;
+        internal IProgram4GLFileProvider CurrentProgram4GLFileProvider
+        {
+            get { return _currentProgram4GLFileProvider; }
+            set { _currentProgram4GLFileProvider = value; }
+        }
+
         /////////////////////////////////////////////////////////////////////////////
         // Overriden Package Implementation
         #region Package Members
@@ -133,5 +141,38 @@ namespace VSGenero
         }
 
         #endregion
+
+        private Dictionary<string, GeneroFileParserManager> _bufferFileParserManagers;
+        public Dictionary<string, GeneroFileParserManager> BufferFileParserManagers
+        {
+            get
+            {
+                if (_bufferFileParserManagers == null)
+                    _bufferFileParserManagers = new Dictionary<string, GeneroFileParserManager>();
+                return _bufferFileParserManagers;
+            }
+        }
+
+        public GeneroFileParserManager UpdateBufferFileParserManager(ITextBuffer buffer, string primarySibling = null)
+        {
+            GeneroFileParserManager fpm;
+            if (!buffer.Properties.TryGetProperty(typeof(GeneroFileParserManager), out fpm))
+            {
+                string filename = buffer.GetFilePath();
+                // see if a file parser manager has been created for this file
+                if (VSGeneroPackage.Instance.BufferFileParserManagers.TryGetValue(filename, out fpm))
+                {
+                    // use this file parser manager instead of a new one
+                    fpm.UseNewBuffer(buffer);
+                }
+                else
+                {
+                    fpm = new GeneroFileParserManager(buffer, primarySibling);
+                    VSGeneroPackage.Instance.BufferFileParserManagers.Add(filename, fpm);
+                }
+                buffer.Properties.AddProperty(typeof(GeneroFileParserManager), fpm);
+            }
+            return fpm;
+        }
     }
 }

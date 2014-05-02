@@ -28,6 +28,7 @@ using VSGenero.EditorExtensions;
 using Microsoft.VisualStudio.Text;
 using System.Drawing;
 using System.IO;
+using Microsoft.VisualStudio.VSCommon;
 
 namespace VSGenero.Navigation
 {
@@ -54,17 +55,10 @@ namespace VSGenero.Navigation
             _topLevelEntries = _nestedEntries = EmptyEntries;
             _dispatcher = Dispatcher.CurrentDispatcher;
             _textView.Caret.PositionChanged += CaretPositionChanged;
-            GeneroFileParserManager fpm = null;
-            if (textView.TextBuffer.Properties.TryGetProperty<GeneroFileParserManager>(typeof(GeneroFileParserManager), out fpm))
-            {
-                _moduleContents = fpm.ModuleContents;
-                fpm.ParseComplete += this.UpdateFunctionList;
-            }
-            else
-            {
-                Func<GeneroFileParserManager> creator = delegate() { return new GeneroFileParserManager(textView.TextBuffer); };
-                textView.TextBuffer.Properties.GetOrCreateSingletonProperty(creator).ParseComplete += this.UpdateFunctionList;
-            }
+
+            GeneroFileParserManager fpm = VSGeneroPackage.Instance.UpdateBufferFileParserManager(_textView.TextBuffer);
+            fpm.ParseComplete += this.UpdateFunctionList;
+            ForceFunctionListUpdate(fpm);
         }
 
         private void CaretPositionChanged(object sender, CaretPositionChangedEventArgs e)
@@ -243,7 +237,8 @@ namespace VSGenero.Navigation
             // intialize the top level entries with a transform from function defs to drop down entries
             if (_moduleContents != null)
             {
-                var list = _moduleContents.FunctionDefinitions.Select(x => new DropDownEntryInfo(x.Value)).ToList();
+                string bufferFilename = _textView.TextBuffer.GetFilePath();
+                var list = _moduleContents.FunctionDefinitions.Where(y => y.Value.ContainingFile == bufferFilename).Select(x => new DropDownEntryInfo(x.Value)).ToList();
                 list.Sort(DropDownEntryInfo.CompareEntryInfo);
                 _topLevelEntries = new ReadOnlyCollection<DropDownEntryInfo>(list);
             }
@@ -455,7 +450,12 @@ namespace VSGenero.Navigation
 
         private void UpdateFunctionList(object sender, ParseCompleteEventArgs e)
         {
-            _moduleContents = (sender as GeneroFileParserManager).ModuleContents;
+            ForceFunctionListUpdate(sender as GeneroFileParserManager);
+        }
+
+        private void ForceFunctionListUpdate(GeneroFileParserManager fpm)
+        {
+            _moduleContents = fpm.ModuleContents;
             CalculateTopLevelEntries();
             CaretPositionChanged(this, new CaretPositionChangedEventArgs(null, _textView.Caret.Position, _textView.Caret.Position));
         }

@@ -22,6 +22,7 @@ using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.VSCommon;
 
 namespace VSGenero.EditorExtensions
 {
@@ -30,8 +31,17 @@ namespace VSGenero.EditorExtensions
     [ContentType(VSGeneroConstants.ContentType4GL)]
     internal sealed class Genero4GLOutliningTaggerProvider : ITaggerProvider
     {
+        [Import(AllowDefault = true)]
+        private IProgram4GLFileProvider _program4glFileProvider;
+
         public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
         {
+            if (_program4glFileProvider != null &&
+               VSGeneroPackage.Instance.CurrentProgram4GLFileProvider == null)
+            {
+                VSGeneroPackage.Instance.CurrentProgram4GLFileProvider = _program4glFileProvider;
+            }
+
             //create a single tagger for each buffer.
             Func<ITagger<T>> sc = delegate() { return new Genero4GLOutliner(buffer) as ITagger<T>; };
             return buffer.Properties.GetOrCreateSingletonProperty<ITagger<T>>(sc);
@@ -49,17 +59,23 @@ namespace VSGenero.EditorExtensions
         public Genero4GLOutliner(ITextBuffer buffer)
         {
             this.buffer = buffer;
+            this.buffer.Changed += BufferChanged;
             this.snapshot = buffer.CurrentSnapshot;
             this.regions = new List<Region>();
-            //this.ReParse();
-            this.buffer.Changed += BufferChanged;
-            Func<GeneroFileParserManager> creator = delegate() { return new GeneroFileParserManager(this.buffer); };
-            this.buffer.Properties.GetOrCreateSingletonProperty(creator).ParseComplete += Genero4GLOutliner_ParseComplete;
+
+            GeneroFileParserManager fpm = VSGeneroPackage.Instance.UpdateBufferFileParserManager(buffer);
+            fpm.ParseComplete += Genero4GLOutliner_ParseComplete;
+            ForceReoutline(fpm);
         }
 
         void Genero4GLOutliner_ParseComplete(object sender, ParseCompleteEventArgs e)
         {
-            _moduleContents = (sender as GeneroFileParserManager).ModuleContents;
+            ForceReoutline(sender as GeneroFileParserManager);
+        }
+
+        private void ForceReoutline(GeneroFileParserManager fpm)
+        {
+            _moduleContents = fpm.ModuleContents;
             ReOutline();
         }
 
@@ -110,53 +126,56 @@ namespace VSGenero.EditorExtensions
 
         void ReOutline()
         {
-            ITextSnapshot newSnapshot = buffer.CurrentSnapshot;
-            List<Region> newRegions = new List<Region>();
-
-            if (_moduleContents.FunctionDefinitions != null)
+            if (_moduleContents != null)
             {
-                FindHiddenRegions(newSnapshot, ref newRegions);
-            }
+                ITextSnapshot newSnapshot = buffer.CurrentSnapshot;
+                List<Region> newRegions = new List<Region>();
 
-            //determine the changed span, and send a changed event with the new spans
-            List<Span> oldSpans =
-                new List<Span>(this.regions.Select(r => AsSnapshotSpan(r, this.snapshot)
-                    .TranslateTo(newSnapshot, SpanTrackingMode.EdgeExclusive)
-                    .Span));
-            List<Span> newSpans =
-                    new List<Span>(newRegions.Select(r => AsSnapshotSpan(r, newSnapshot).Span));
+                if (_moduleContents.FunctionDefinitions != null)
+                {
+                    FindHiddenRegions(newSnapshot, ref newRegions);
+                }
 
-            NormalizedSpanCollection oldSpanCollection = new NormalizedSpanCollection(oldSpans);
-            NormalizedSpanCollection newSpanCollection = new NormalizedSpanCollection(newSpans);
+                //determine the changed span, and send a changed event with the new spans
+                List<Span> oldSpans =
+                    new List<Span>(this.regions.Select(r => AsSnapshotSpan(r, this.snapshot)
+                        .TranslateTo(newSnapshot, SpanTrackingMode.EdgeExclusive)
+                        .Span));
+                List<Span> newSpans =
+                        new List<Span>(newRegions.Select(r => AsSnapshotSpan(r, newSnapshot).Span));
 
-            //the changed regions are regions that appear in one set or the other, but not both.
-            NormalizedSpanCollection removed =
-            NormalizedSpanCollection.Difference(oldSpanCollection, newSpanCollection);
+                NormalizedSpanCollection oldSpanCollection = new NormalizedSpanCollection(oldSpans);
+                NormalizedSpanCollection newSpanCollection = new NormalizedSpanCollection(newSpans);
 
-            int changeStart = int.MaxValue;
-            int changeEnd = -1;
+                //the changed regions are regions that appear in one set or the other, but not both.
+                NormalizedSpanCollection removed =
+                NormalizedSpanCollection.Difference(oldSpanCollection, newSpanCollection);
 
-            if (removed.Count > 0)
-            {
-                changeStart = removed[0].Start;
-                changeEnd = removed[removed.Count - 1].End;
-            }
+                int changeStart = int.MaxValue;
+                int changeEnd = -1;
 
-            if (newSpans.Count > 0)
-            {
-                changeStart = Math.Min(changeStart, newSpans[0].Start);
-                changeEnd = Math.Max(changeEnd, newSpans[newSpans.Count - 1].End);
-            }
+                if (removed.Count > 0)
+                {
+                    changeStart = removed[0].Start;
+                    changeEnd = removed[removed.Count - 1].End;
+                }
 
-            this.snapshot = newSnapshot;
-            this.regions = newRegions;
+                if (newSpans.Count > 0)
+                {
+                    changeStart = Math.Min(changeStart, newSpans[0].Start);
+                    changeEnd = Math.Max(changeEnd, newSpans[newSpans.Count - 1].End);
+                }
 
-            if (changeStart <= changeEnd)
-            {
-                ITextSnapshot snap = this.snapshot;
-                if (this.TagsChanged != null)
-                    this.TagsChanged(this, new SnapshotSpanEventArgs(
-                        new SnapshotSpan(this.snapshot, Span.FromBounds(changeStart, changeEnd))));
+                this.snapshot = newSnapshot;
+                this.regions = newRegions;
+
+                if (changeStart <= changeEnd)
+                {
+                    ITextSnapshot snap = this.snapshot;
+                    if (this.TagsChanged != null)
+                        this.TagsChanged(this, new SnapshotSpanEventArgs(
+                            new SnapshotSpan(this.snapshot, Span.FromBounds(changeStart, changeEnd))));
+                }
             }
         }
 

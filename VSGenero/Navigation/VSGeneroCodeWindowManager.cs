@@ -98,12 +98,7 @@ namespace VSGenero.Navigation
             }
             
             // pass on the text view
-            GeneroFileParserManager fpm;
-            if (!_textBuffer.Properties.TryGetProperty(typeof(GeneroFileParserManager), out fpm) || fpm == null)
-            {
-                fpm = new GeneroFileParserManager(_textBuffer);
-                _textBuffer.Properties[typeof(GeneroFileParserManager)] = fpm;
-            }
+            GeneroFileParserManager fpm = VSGeneroPackage.Instance.UpdateBufferFileParserManager(_textBuffer);
             _client = new DropDownBarClient(wpfTextView);
 
             IVsDropdownBarManager manager = (IVsDropdownBarManager)_window;

@@ -72,8 +72,9 @@ namespace VSGenero.EditorExtensions.Intellisense
                                                                                 m_sourceProvider.PublicFunctionProvider);
             m_textBuffer = textBuffer;
 
-            Func<GeneroFileParserManager> creator = delegate() { return new GeneroFileParserManager(m_textBuffer); };
-            m_textBuffer.Properties.GetOrCreateSingletonProperty(creator).ParseComplete += CompletionSource_ParseComplete;
+            GeneroFileParserManager fpm = VSGeneroPackage.Instance.UpdateBufferFileParserManager(m_textBuffer);
+            fpm.ParseComplete += CompletionSource_ParseComplete;
+            _moduleContents = fpm.ModuleContents;
 
             m_compList = new List<MemberCompletion>();
 

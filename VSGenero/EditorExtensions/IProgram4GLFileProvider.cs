@@ -17,8 +17,8 @@ using System.Text;
 
 namespace VSGenero.EditorExtensions
 {
-    public interface IGlobal4GLFileProvider
+    public interface IProgram4GLFileProvider
     {
-        string GetGlobal4GLFile(string currentDirectory, string globalsFilename);
+        IEnumerable<string> GetProgramFilenames(string moduleFilename);
     }
 }
