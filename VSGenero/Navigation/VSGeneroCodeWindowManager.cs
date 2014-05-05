@@ -45,6 +45,9 @@ namespace VSGenero.Navigation
         {
             _window = codeWindow;
             _textBuffer = textView.TextBuffer;
+            string filename = _textBuffer.GetFilePath();
+            if (!VSGeneroPackage.BufferDictionary.ContainsKey(filename))
+                VSGeneroPackage.BufferDictionary.Add(filename, _textBuffer);
             VSGeneroPackage.Instance.OnIdle += OnIdle;
         }
 

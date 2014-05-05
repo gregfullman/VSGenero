@@ -27,9 +27,49 @@ using Microsoft.VisualStudio.Utilities;
 using System.Runtime.InteropServices;
 using EnvDTE80;
 using EnvDTE;
+using Microsoft.VisualStudioTools.Project;
 
 namespace Microsoft.VisualStudio.VSCommon
 {
+    public enum VSDialogButton
+    {
+        AbortRetryIgnore,
+        Ok,
+        OkCancel,
+        RetryCancel,
+        YesAllNoCancel,
+        YesNo,
+        YesNoCancel
+    }
+
+    public enum VSDialogDefaultButton
+    {
+        First,
+        Second,
+        Third,
+        Fourth
+    }
+
+    public enum VSDialogIconMode
+    {
+        Critical,
+        Info,
+        NoIcon,
+        Query,
+        Warning
+    }
+
+    public enum VSDialogResult
+    {
+        Abort,
+        Cancel,
+        Ignore,
+        No,
+        Ok,
+        Retry,
+        Yes
+    }
+
     public abstract class VSCommonPackage : Package, IVsInstalledProduct, IOleComponent
     {
         protected static VSCommonPackage Instance;
@@ -116,6 +156,42 @@ namespace Microsoft.VisualStudio.VSCommon
         // Shows the standard Visual Studio dialog
         public void ShowDialog(string caption, string message)
         {
+            ShowDialog(caption, message, VSDialogButton.Ok, VSDialogDefaultButton.First, VSDialogIconMode.Info);
+        }
+
+        public VSDialogResult ShowDialog(string caption, string message, VSDialogButton button, VSDialogDefaultButton defaultButton, VSDialogIconMode iconMode)
+        {
+            OLEMSGBUTTON buttonToUse = OLEMSGBUTTON.OLEMSGBUTTON_OK;
+            switch (button)
+            {
+                case VSDialogButton.AbortRetryIgnore: buttonToUse = OLEMSGBUTTON.OLEMSGBUTTON_ABORTRETRYIGNORE; break;
+                case VSDialogButton.Ok: buttonToUse = OLEMSGBUTTON.OLEMSGBUTTON_OK; break;
+                case VSDialogButton.OkCancel: buttonToUse = OLEMSGBUTTON.OLEMSGBUTTON_OKCANCEL; break;
+                case VSDialogButton.RetryCancel: buttonToUse = OLEMSGBUTTON.OLEMSGBUTTON_RETRYCANCEL; break;
+                case VSDialogButton.YesAllNoCancel: buttonToUse = OLEMSGBUTTON.OLEMSGBUTTON_YESALLNOCANCEL; break;
+                case VSDialogButton.YesNo: buttonToUse = OLEMSGBUTTON.OLEMSGBUTTON_YESNO; break;
+                case VSDialogButton.YesNoCancel: buttonToUse = OLEMSGBUTTON.OLEMSGBUTTON_YESNOCANCEL; break;
+            }
+
+            OLEMSGDEFBUTTON defaultButtonToUse = OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST;
+            switch (defaultButton)
+            {
+                case VSDialogDefaultButton.First: defaultButtonToUse = OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST; break;
+                case VSDialogDefaultButton.Second: defaultButtonToUse = OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_SECOND; break;
+                case VSDialogDefaultButton.Third: defaultButtonToUse = OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_THIRD; break;
+                case VSDialogDefaultButton.Fourth: defaultButtonToUse = OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FOURTH; break;
+            }
+
+            OLEMSGICON msgIconToUse = OLEMSGICON.OLEMSGICON_INFO;
+            switch (iconMode)
+            {
+                case VSDialogIconMode.Critical: msgIconToUse = OLEMSGICON.OLEMSGICON_CRITICAL; break;
+                case VSDialogIconMode.Info: msgIconToUse = OLEMSGICON.OLEMSGICON_INFO; break;
+                case VSDialogIconMode.NoIcon: msgIconToUse = OLEMSGICON.OLEMSGICON_NOICON; break;
+                case VSDialogIconMode.Query: msgIconToUse = OLEMSGICON.OLEMSGICON_QUERY; break;
+                case VSDialogIconMode.Warning: msgIconToUse = OLEMSGICON.OLEMSGICON_WARNING; break;
+            }
+
             Guid clsid = Guid.Empty;
             int result;
             Microsoft.VisualStudio.ErrorHandler.ThrowOnFailure(UIShell.ShowMessageBox(
@@ -125,11 +201,23 @@ namespace Microsoft.VisualStudio.VSCommon
                        message,
                        string.Empty,
                        0,
-                       OLEMSGBUTTON.OLEMSGBUTTON_OK,
-                       OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST,
-                       OLEMSGICON.OLEMSGICON_INFO,
+                       buttonToUse,
+                       defaultButtonToUse,
+                       msgIconToUse,
                        0,        // false
                        out result));
+
+            switch (result)
+            {
+                case NativeMethods.IDABORT: return VSDialogResult.Abort;
+                case NativeMethods.IDCANCEL: return VSDialogResult.Cancel;
+                case NativeMethods.IDIGNORE: return VSDialogResult.Ignore;
+                case NativeMethods.IDNO: return VSDialogResult.No;
+                case NativeMethods.IDOK: return VSDialogResult.Ok;
+                case NativeMethods.IDRETRY: return VSDialogResult.Retry;
+                case NativeMethods.IDYES: return VSDialogResult.Yes;
+                default: return VSDialogResult.Ok;
+            }
         }
 
         public IVsUIShell UIShell
@@ -243,6 +331,17 @@ namespace Microsoft.VisualStudio.VSCommon
             viewAdapter.CenterLines(line, 1);
         }
 
+        private static Dictionary<string, ITextBuffer> _bufferDictionary = new Dictionary<string, ITextBuffer>();
+        public static Dictionary<string, ITextBuffer> BufferDictionary
+        {
+            get
+            {
+                if (_bufferDictionary == null)
+                    _bufferDictionary = new Dictionary<string, ITextBuffer>();
+                return _bufferDictionary;
+            }
+        }
+
         public static ITextBuffer GetBufferForDocument(string filename, bool openDocument, string contentType)
         {
             if (openDocument)
@@ -256,103 +355,24 @@ namespace Microsoft.VisualStudio.VSCommon
                 ErrorHandler.ThrowOnFailure(viewAdapter.GetBuffer(out lines));
 
                 var adapter = ComponentModel.GetService<IVsEditorAdaptersFactoryService>();
-
-                return adapter.GetDocumentBuffer(lines);
+                var textBuffer = adapter.GetDocumentBuffer(lines);
+                if (!BufferDictionary.ContainsKey(filename))
+                    BufferDictionary.Add(filename, textBuffer);
+                return textBuffer;
             }
             else
             {
-                try
-                {
-                    //    IVsRunningDocumentTable rdt = Package.GetGlobalService(typeof(SVsRunningDocumentTable)) as IVsRunningDocumentTable;
-                    //    if (rdt != null)
-                    //    {
-                    //        IEnumRunningDocuments documents;
-                    //        rdt.GetRunningDocumentsEnum(out documents);
-                    //        IntPtr documentData = IntPtr.Zero;
-                    //        uint[] docCookie1 = new uint[1];
-                    //        uint fetched;
-                    //        while ((VSConstants.S_OK == documents.Next(1, docCookie1, out fetched)) && (1 == fetched))
-                    //        {
-                    //            uint flags;
-                    //            uint editLocks;
-                    //            uint readLocks;
-                    //            string moniker;
-                    //            IVsHierarchy docHierarchy;
-                    //            uint docId;
-                    //            IntPtr docData = IntPtr.Zero;
-                    //            try
-                    //            {
-                    //                ErrorHandler.ThrowOnFailure(
-                    //                    rdt.GetDocumentInfo(docCookie1[0], out flags, out readLocks, out editLocks, out moniker, out docHierarchy, out docId, out docData));
-                    //                // Check if this document is the one we are looking for.
-                    //                if (moniker == filename)
-                    //                {
-                    //                    documentData = docData;
-                    //                    docData = IntPtr.Zero;
-                    //                    break;
-                    //                }
-                    //            }
-                    //            finally
-                    //            {
-                    //                if (IntPtr.Zero != docData)
-                    //                {
-                    //                    Marshal.Release(docData);
-                    //                }
-                    //            }
-                    //        }
-                    //    }
-
-                    // TODO: occasionally this takes a LONG time to run...usually when several tool window panes are open in the main view.
-                    // But not always...
-                    uint docCookie;
-                    var res = _documentTable.FindDocument(filename, out docCookie);
-
-                    //IVsHierarchy pIVsHierarchy;
-                    //uint itemId;
-                    //IntPtr docData;
-                    //uint uiVsDocCookie;
-                    //var res = _vsDocumentTable.FindAndLockDocument((uint)_VSRDTFLAGS.RDT_NoLock, filename, out pIVsHierarchy, out itemId, out docData, out uiVsDocCookie);
-
-                    if (res == null && docCookie == 0)
-                    {
-                        ITextDocumentFactoryService documentFactory = ComponentModel.GetService<ITextDocumentFactoryService>();
-                        IContentTypeRegistryService contentRegistry = ComponentModel.GetService<IContentTypeRegistryService>();
-                        ITextDocument textDoc = documentFactory.CreateAndLoadTextDocument(filename, contentRegistry.GetContentType(contentType));
-                        return textDoc.TextBuffer;
-                    }
-                    else
-                    {
-                        var info = _documentTable.GetDocumentInfo(docCookie);
-                        var obj = info.DocData;
-                        var vsTextLines = obj as IVsTextLines;
-                        var vsTextBufferProvider = obj as IVsTextBufferProvider;
-
-                        ITextBuffer textBuffer;
-                        IVsEditorAdaptersFactoryService editorAdapter = ComponentModel.GetService<IVsEditorAdaptersFactoryService>();
-                        if (vsTextLines != null)
-                        {
-                            textBuffer = editorAdapter.GetDataBuffer(vsTextLines);
-                        }
-                        else if (vsTextBufferProvider != null
-                            && ErrorHandler.Succeeded(vsTextBufferProvider.GetTextBuffer(out vsTextLines))
-                            && vsTextLines != null)
-                        {
-                            textBuffer = editorAdapter.GetDataBuffer(vsTextLines);
-                        }
-                        else
-                        {
-                            textBuffer = null;
-                        }
-                        return textBuffer;
-                    }
-                }
-                catch (Exception e)
+                ITextBuffer retBuffer = null;
+                if (!BufferDictionary.TryGetValue(filename, out retBuffer))
                 {
                     ITextDocumentFactoryService documentFactory = ComponentModel.GetService<ITextDocumentFactoryService>();
                     IContentTypeRegistryService contentRegistry = ComponentModel.GetService<IContentTypeRegistryService>();
                     ITextDocument textDoc = documentFactory.CreateAndLoadTextDocument(filename, contentRegistry.GetContentType(contentType));
+                    if (!BufferDictionary.ContainsKey(filename))
+                        BufferDictionary.Add(filename, textDoc.TextBuffer);
                     return textDoc.TextBuffer;
                 }
+                return retBuffer;
             }
         }
 

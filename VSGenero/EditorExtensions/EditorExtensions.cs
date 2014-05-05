@@ -289,7 +289,7 @@ namespace VSGenero.EditorExtensions
         public static IEnumerable<string> GetProgramFilenames(string moduleFilename)
         {
             string filepath = Path.GetDirectoryName(moduleFilename);
-            return Directory.GetFiles(filepath, "*.4gl").Where(x => !string.Equals(x, moduleFilename, StringComparison.OrdinalIgnoreCase));
+            return Directory.GetFiles(filepath, "*.4gl").Where(x => x.EndsWith(".4gl") && !string.Equals(x, moduleFilename, StringComparison.OrdinalIgnoreCase));
         }
     }
 }
