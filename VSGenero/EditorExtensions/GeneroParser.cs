@@ -1959,6 +1959,14 @@ namespace VSGenero.EditorExtensions
                                 {
                                     if (prepareLineNumber > 0)
                                         prepareLineNumber--;
+                                    if (prepareLineNumber < _currentFunctionDef.LineNumber)
+                                    {
+                                        // we can't gather information on a cursor whose sql text is not set within the current function.
+                                        // set the cursor statement in the prepare
+                                        cp.CursorStatement = "";
+                                        _moduleContents.SqlPrepares.Add(cp.Name, cp);
+                                        return true;
+                                    }
                                     var textSnapshotLine = _currentBuffer.CurrentSnapshot.GetLineFromLineNumber(prepareLineNumber);
                                     tempLexer.StartLexing(0, textSnapshotLine.GetText());
                                     GeneroToken currToken = null;
