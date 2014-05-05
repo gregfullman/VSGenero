@@ -4,10 +4,6 @@
     <Identity Id="18274d18-91c9-420c-a121-2ffe4f920b4f" Version="0.7.2" Language="en-US" Publisher="Greg Fullman" />
     <DisplayName>VSGenero for VS2013</DisplayName>
     <Description xml:space="preserve">This is a Visual Studio plugin for the Genero BDL. It currently supports syntax highlighting and a list of functions with 4GL files.</Description>
-    <MoreInfo></MoreInfo>
-    <GettingStartedGuide></GettingStartedGuide>
-    <Icon></Icon>
-    <PreviewImage></PreviewImage>
   </Metadata>
   <!-- Version="11.0" specifies the minimum (not the maximum) version, and the
        Id specifications are minimums; any SKU equal or 'higher' will accept
