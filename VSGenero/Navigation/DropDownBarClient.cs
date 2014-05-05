@@ -29,6 +29,7 @@ using Microsoft.VisualStudio.Text;
 using System.Drawing;
 using System.IO;
 using Microsoft.VisualStudio.VSCommon;
+using Microsoft.VisualStudio.VSCommon.Utilities;
 
 namespace VSGenero.Navigation
 {
@@ -40,6 +41,7 @@ namespace VSGenero.Navigation
         private IWpfTextView _textView;                                 // text view we're drop downs for
         private IVsDropdownBar _dropDownBar;                            // drop down bar - used to refresh when changes occur
         private int _curTopLevelIndex = -1, _curNestedIndex = -1;       // currently selected indices for each oar
+        private GenericSynchronizingObject _synchObj = new GenericSynchronizingObject();
 
         private static readonly ImageList _imageList = GetImageList();
         private static readonly ReadOnlyCollection<DropDownEntryInfo> EmptyEntries = new ReadOnlyCollection<DropDownEntryInfo>(new DropDownEntryInfo[0]);
@@ -450,7 +452,14 @@ namespace VSGenero.Navigation
 
         private void UpdateFunctionList(object sender, ParseCompleteEventArgs e)
         {
-            ForceFunctionListUpdate(sender as GeneroFileParserManager);
+            if (!_synchObj.InvokeRequired)
+            {
+                ForceFunctionListUpdate(sender as GeneroFileParserManager);
+            }
+            else
+            {
+                _synchObj.Invoke(new Action<GeneroFileParserManager>(ForceFunctionListUpdate), new object[] { sender as GeneroFileParserManager });
+            }
         }
 
         private void ForceFunctionListUpdate(GeneroFileParserManager fpm)

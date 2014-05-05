@@ -133,7 +133,7 @@ namespace VSGenero.EditorExtensions
 
                 if (_moduleContents.FunctionDefinitions != null)
                 {
-                    FindHiddenRegions(newSnapshot, ref newRegions);
+                    FindHiddenRegions(newSnapshot, ref newRegions, buffer.GetFilePath());
                 }
 
                 //determine the changed span, and send a changed event with the new spans
@@ -179,9 +179,9 @@ namespace VSGenero.EditorExtensions
             }
         }
 
-        void FindHiddenRegions(ITextSnapshot snapShot, ref List<Region> regions)
+        void FindHiddenRegions(ITextSnapshot snapShot, ref List<Region> regions, string currentFilename)
         {
-            foreach (var function in _moduleContents.FunctionDefinitions)
+            foreach (var function in _moduleContents.FunctionDefinitions.Where(x => x.Value.ContainingFile == currentFilename))
             {
                 var region = new Region();
                 region.Start = function.Value.Start;
