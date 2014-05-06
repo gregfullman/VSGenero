@@ -49,7 +49,7 @@ namespace Microsoft.VisualStudioTools.Project {
         InterpretersPackage = SearchPath
     }
 
-    internal abstract class CommonProjectNode : ProjectNode, IVsProjectSpecificEditorMap2, IVsDeferredSaveProject {
+    public abstract class CommonProjectNode : ProjectNode, IVsProjectSpecificEditorMap2, IVsDeferredSaveProject {
         private CommonProjectPackage/*!*/ _package;
         private Guid _mruPageGuid = new Guid(CommonConstants.AddReferenceMRUPageGuid);
         private VSLangProj.VSProject _vsProject = null;

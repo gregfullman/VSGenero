@@ -25,8 +25,9 @@ namespace Microsoft.VisualStudioTools.Project {
     public class CommonProjectNodeProperties : ProjectNodeProperties, IVsCfgBrowseObject, VSLangProj.ProjectProperties {
         private OAProjectConfigurationProperties _activeCfgSettings;
 
-        internal CommonProjectNodeProperties(ProjectNode node)
-            : base(node) {
+        public CommonProjectNodeProperties(ProjectNode node)
+            : base(node) 
+        {
         }
 
         #region properties

@@ -309,6 +309,8 @@
     <Compile Include="Navigation\IPublicFunctionNavigator.cs" />
     <Compile Include="Project\GeneroEditorFactory.cs" />
     <Compile Include="Project\GeneroProjectFactory.cs" />
+    <Compile Include="Project\GeneroProjectNode.cs" />
+    <Compile Include="Project\GeneroProjectNodeProperties.cs" />
     <Compile Include="Project\GeneroProjectPackage.cs" />
     <Compile Include="Project\ProvideEditorExtension2Attribute.cs" />
     <Compile Include="Project\ProvideFileFilterAttribute.cs" />
@@ -380,6 +382,8 @@
     <None Include="VS2013_Specific\source.extension.vsixmanifest" Condition="'$(VisualStudioVersion)' &gt; '11.0'">
       <SubType>Designer</SubType>
     </None>-->
+    <Resource Include="Resources\PythonImageList.png" />
+    <EmbeddedResource Include="Resources\GeneroImageList.bmp" />
     <Content Include="Templates\NewItem\NewGeneroItems.vsdir">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>

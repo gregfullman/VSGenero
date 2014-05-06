@@ -45,9 +45,8 @@ namespace VSGenero.Navigation
             IVsTextView textView;
             if (ErrorHandler.Succeeded(pCodeWin.GetPrimaryView(out textView)))
             {
-                // TODO: need to implement the CodeWindowManager
+                // need to implement the CodeWindowManager
                 ppCodeWinMgr = new VSGeneroCodeWindowManager(pCodeWin, service.GetWpfTextView(textView));
-                //ppCodeWinMgr = null;
                 return VSConstants.S_OK;
             }
 

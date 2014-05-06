@@ -19,7 +19,7 @@ using OleConstants = Microsoft.VisualStudio.OLE.Interop.Constants;
 using VsCommands2K = Microsoft.VisualStudio.VSConstants.VSStd2KCmdID;
 
 namespace Microsoft.VisualStudioTools {
-    internal static class CommonConstants {
+    public static class CommonConstants {
         /// <summary>
         /// <see cref="VsConstants.UICONTEXT_NoSolution"/>.
         /// </summary>
@@ -34,22 +34,22 @@ namespace Microsoft.VisualStudioTools {
         /// Do not change this constant. It is a guid of the Visual Studio "Recent" page in
         /// the "Add Reference" dialog.
         /// </summary>
-        internal const string AddReferenceMRUPageGuid = "{19B97F03-9594-4c1c-BE28-25FF030113B3}";
+        public const string AddReferenceMRUPageGuid = "{19B97F03-9594-4c1c-BE28-25FF030113B3}";
 
-        internal const string TextEditorPackage = "{F5E7E720-1401-11D1-883B-0000F87579D2}";
+        public const string TextEditorPackage = "{F5E7E720-1401-11D1-883B-0000F87579D2}";
 
         /// <summary>
         /// Do not change this constant. This is Visual Studio core text editor GUID.
         /// </summary>
         public static readonly Guid CMDUIGUID_TextEditor = new Guid("{8B382828-6202-11d1-8870-0000F87579D2}");
 
-        internal const string LibraryGuid = "c0000061-2c33-4277-bf44-7e5f2677d6b8";
-        internal const string FileNodePropertiesGuid = "c000008b-a973-4d60-9518-5ea1411ccd67";
-        internal const string SearchPathsPropertiesGuid = "D94E2410-B416-4CB2-B892-AE83D7BF7356";
-        internal const string FolderNodePropertiesGuid = "c0000081-fb55-4d5d-901b-ee624db34961";
-        internal const string ProjectNodePropertiesGuid = "c0000016-9ab0-4d58-80e6-54f29e8d3144";
-        internal static Guid NoSharedCommandsGuid = new Guid("{C4EBB0A2-969D-49D9-B87A-DCA1D3DF3A5B}");
-        internal static Guid SearchPathItemTypeGuid = new Guid("{245F8B38-B204-4676-8F59-7415C34C06EA}");
+        public const string LibraryGuid = "c0000061-2c33-4277-bf44-7e5f2677d6b8";
+        public const string FileNodePropertiesGuid = "c000008b-a973-4d60-9518-5ea1411ccd67";
+        public const string SearchPathsPropertiesGuid = "D94E2410-B416-4CB2-B892-AE83D7BF7356";
+        public const string FolderNodePropertiesGuid = "c0000081-fb55-4d5d-901b-ee624db34961";
+        public const string ProjectNodePropertiesGuid = "c0000016-9ab0-4d58-80e6-54f29e8d3144";
+        public static Guid NoSharedCommandsGuid = new Guid("{C4EBB0A2-969D-49D9-B87A-DCA1D3DF3A5B}");
+        public static Guid SearchPathItemTypeGuid = new Guid("{245F8B38-B204-4676-8F59-7415C34C06EA}");
 
         //"Set As StartUp File" command
         public const string StartupFile = "StartupFile";

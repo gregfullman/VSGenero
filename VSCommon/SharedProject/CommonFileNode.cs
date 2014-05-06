@@ -31,7 +31,7 @@ using VsCommands2K = Microsoft.VisualStudio.VSConstants.VSStd2KCmdID;
 using VSConstants = Microsoft.VisualStudio.VSConstants;
 
 namespace Microsoft.VisualStudioTools.Project {
-    internal class CommonFileNode : FileNode {
+    public class CommonFileNode : FileNode {
         private OAVSProjectItem _vsProjectItem;
         private CommonProjectNode _project;
 
