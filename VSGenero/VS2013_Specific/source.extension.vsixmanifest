@@ -1,24 +1,19 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
   <Metadata>
-    <Identity Id="18274d18-91c9-420c-a121-2ffe4f920b4f" Version="0.7.2" Language="en-US" Publisher="Greg Fullman" />
+    <Identity Id="18274d18-91c9-420c-a121-2ffe4f920b4f" Version="0.7.3" Language="en-US" Publisher="Greg Fullman" />
     <DisplayName>VSGenero for VS2013</DisplayName>
-    <Description xml:space="preserve">This is a Visual Studio plugin for the Genero BDL. It currently supports syntax highlighting and a list of functions with 4GL files.</Description>
+    <Description>This is a Visual Studio plugin for the Genero BDL. It currently supports syntax highlighting and a list of functions with 4GL files.</Description>
   </Metadata>
-  <!-- Version="11.0" specifies the minimum (not the maximum) version, and the
-       Id specifications are minimums; any SKU equal or 'higher' will accept
-       them. -->
-  <Installation>
-    <InstallationTarget Id="Microsoft.VisualStudio.Ultimate" Version="12.0" />
-    <InstallationTarget Id="Microsoft.VisualStudio.Premium" Version="12.0" />
-    <InstallationTarget Id="Microsoft.VisualStudio.Pro" Version="12.0" />
-    <InstallationTarget Id="Microsoft.VisualStudio.IntegratedShell" Version="12.0" />
+  <Installation InstalledByMsi="false">
+    <InstallationTarget Version="[12.0,13.0)" Id="Microsoft.VisualStudio.IntegratedShell" />
   </Installation>
   <Dependencies>
-    <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" Version="4.5" />
+    <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.5,)" />
+    <Dependency Id="Microsoft.VisualStudio.MPF.12.0" DisplayName="Visual Studio MPF 12.0" d:Source="Installed" Version="[12.0]" />
   </Dependencies>
   <Assets>
-    <Asset Type="Microsoft.VisualStudio.Package" Path="|%CurrentProject%;PkgdefProjectOutputGroup|" />
-    <Asset Type="Microsoft.VisualStudio.MefComponent" Path="|%CurrentProject%|" />
+    <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%;PkgdefProjectOutputGroup|" />
+    <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%|" />
   </Assets>
 </PackageManifest>

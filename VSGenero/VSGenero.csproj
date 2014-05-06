@@ -348,6 +348,22 @@
       <ManifestResourceName>VSPackage</ManifestResourceName>
     </EmbeddedResource>
   </ItemGroup>
+  <Choose>
+    <When Condition="'$(VisualStudioVersion)' &gt; '11.0'">
+      <ItemGroup>
+        <None Include="VS2013_Specific\source.extension.vsixmanifest">
+          <SubType>Designer</SubType>
+        </None>
+      </ItemGroup>
+    </When>
+    <Otherwise>
+      <ItemGroup>
+        <None Include="source.extension.vsixmanifest">
+          <SubType>Designer</SubType>
+        </None>
+      </ItemGroup>
+    </Otherwise>
+  </Choose>
   <ItemGroup>
     <None Include="app.config" />
     <None Include="Genero4GL.xsd">
@@ -358,12 +374,12 @@
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
-    <None Include="source.extension.vsixmanifest" Condition="'$(VisualStudioVersion)' &lt;= '11.0'">
+    <!--<None Include="source.extension.vsixmanifest" Condition="'$(VisualStudioVersion)' &lt;= '11.0'">
       <SubType>Designer</SubType>
     </None>
     <None Include="VS2013_Specific\source.extension.vsixmanifest" Condition="'$(VisualStudioVersion)' &gt; '11.0'">
       <SubType>Designer</SubType>
-    </None>
+    </None>-->
     <Content Include="Templates\NewItem\NewGeneroItems.vsdir">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
