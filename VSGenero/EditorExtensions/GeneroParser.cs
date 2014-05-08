@@ -65,6 +65,7 @@ namespace VSGenero.EditorExtensions
         public int Position { get; set; }
         public int LineNumber { get; set; }
         public int ColumnNumber { get; set; }
+        public string ContainingFile { get; set; }
 
         private ConcurrentDictionary<string, VariableDefinition> _columns;
         public ConcurrentDictionary<string, VariableDefinition> Columns
@@ -232,6 +233,13 @@ namespace VSGenero.EditorExtensions
 
     public class GeneroModuleContents
     {
+        private string _contentFilename;
+        public string ContentFilename
+        {
+            get { return _contentFilename; }
+            set { _contentFilename = value; }
+        }
+
         public object CollectionLock = new object();
 
         private ConcurrentDictionary<string, FunctionDefinition> _functionDefs;
@@ -242,20 +250,6 @@ namespace VSGenero.EditorExtensions
                 if (_functionDefs == null)
                     _functionDefs = new ConcurrentDictionary<string, FunctionDefinition>();
                 return _functionDefs;
-            }
-        }
-
-        private ConcurrentDictionary<string, FunctionDefinition> _moduleFunctionDefs;
-        /// <summary>
-        /// This dictionary contains function definitions from files within the same program (but from different .4gl files)
-        /// </summary>
-        public ConcurrentDictionary<string, FunctionDefinition> ModuleFunctionDefinitions
-        {
-            get
-            {
-                if (_moduleFunctionDefs == null)
-                    _moduleFunctionDefs = new ConcurrentDictionary<string, FunctionDefinition>();
-                return _moduleFunctionDefs;
             }
         }
 
@@ -432,13 +426,13 @@ namespace VSGenero.EditorExtensions
             // update the global variables dictionary
             foreach (var globalVarKvp in e.ModuleContents.GlobalVariables)
             {
-                _moduleContents.GlobalVariables.AddOrUpdate(globalVarKvp.Key, globalVarKvp.Value, (x, y) => y);
+                _moduleContents.GlobalVariables.AddOrUpdate(globalVarKvp.Key, globalVarKvp.Value, (x, y) => globalVarKvp.Value);
             }
 
             // Update the module functions dictionary
             foreach (var programFuncKvp in e.ModuleContents.FunctionDefinitions.Where(x => !x.Value.Private))
             {
-                _moduleContents.FunctionDefinitions.AddOrUpdate(programFuncKvp.Key, programFuncKvp.Value, (x, y) => y);
+                _moduleContents.FunctionDefinitions.AddOrUpdate(programFuncKvp.Key, programFuncKvp.Value, (x, y) => programFuncKvp.Value);
             }
 
             if (_initialParseComplete)
@@ -482,6 +476,85 @@ namespace VSGenero.EditorExtensions
         {
         }
 
+        private void MergeNewContents(GeneroModuleContents newContents)
+        {
+            // Function definitions
+            foreach(var rem in _moduleContents.FunctionDefinitions.Where(x => x.Value.ContainingFile == newContents.ContentFilename && 
+                                                                              !newContents.FunctionDefinitions.ContainsKey(x.Key)).ToList())
+            {
+                FunctionDefinition temp;
+                _moduleContents.FunctionDefinitions.TryRemove(rem.Key, out temp);
+            }
+            foreach (var funcDef in newContents.FunctionDefinitions)
+            {
+                _moduleContents.FunctionDefinitions.AddOrUpdate(funcDef.Key, funcDef.Value, (x, y) => funcDef.Value);
+            }
+
+            // Global variables
+            foreach (var rem in _moduleContents.GlobalVariables.Where(x => x.Value.ContainingFile == newContents.ContentFilename &&
+                                                                              !newContents.GlobalVariables.ContainsKey(x.Key)).ToList())
+            {
+                VariableDefinition temp;
+                _moduleContents.GlobalVariables.TryRemove(rem.Key, out temp);
+            }
+            foreach (var globDef in newContents.GlobalVariables)
+            {
+                _moduleContents.GlobalVariables.AddOrUpdate(globDef.Key, globDef.Value, (x,y) => globDef.Value);
+            }
+           
+            // Module variables
+            foreach (var rem in _moduleContents.ModuleVariables.Where(x => x.Value.ContainingFile == newContents.ContentFilename &&
+                                                                              !newContents.ModuleVariables.ContainsKey(x.Key)).ToList())
+            {
+                VariableDefinition temp;
+                _moduleContents.ModuleVariables.TryRemove(rem.Key, out temp);
+            }
+            foreach (var modDef in newContents.ModuleVariables)
+            {
+                _moduleContents.ModuleVariables.AddOrUpdate(modDef.Key, modDef.Value, (x,y) => modDef.Value);
+            }
+
+            // SQL cursors
+            foreach (var rem in _moduleContents.SqlCursors.Where(x => x.Value.ContainingFile == newContents.ContentFilename).ToList())
+            {
+                _moduleContents.SqlCursors.Remove(rem.Key);
+            }
+            foreach (var sqlCursor in newContents.SqlCursors)
+            {
+                _moduleContents.SqlCursors.Add(sqlCursor.Key, sqlCursor.Value);
+            }
+
+            // SQL Prepares
+            foreach (var rem in _moduleContents.SqlPrepares.Where(x => x.Value.ContainingFile == newContents.ContentFilename).ToList())
+            {
+                _moduleContents.SqlPrepares.Remove(rem.Key);
+            }
+            foreach (var sqlPrep in newContents.SqlPrepares)
+            {
+                _moduleContents.SqlPrepares.Add(sqlPrep.Key, sqlPrep.Value);
+            }
+
+            foreach (var systemVar in newContents.SystemVariables)
+            {
+                if (!_moduleContents.SystemVariables.ContainsKey(systemVar.Key))
+                    _moduleContents.SystemVariables.Add(systemVar.Key, systemVar.Value);
+                else
+                    _moduleContents.SystemVariables[systemVar.Key] = systemVar.Value;
+            }
+
+            // Temp tables
+            foreach (var rem in _moduleContents.TempTables.Where(x => x.Value.ContainingFile == newContents.ContentFilename &&
+                                                                              !newContents.TempTables.ContainsKey(x.Key)).ToList())
+            {
+                TempTableDefinition temp;
+                _moduleContents.TempTables.TryRemove(rem.Key, out temp);
+            }
+            foreach (var tempDef in newContents.TempTables)
+            {
+                _moduleContents.TempTables.AddOrUpdate(tempDef.Key, tempDef.Value, (x,y) => tempDef.Value);
+            }
+        }
+
         private void _parserThread_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             if (!e.Cancelled)
@@ -489,41 +562,14 @@ namespace VSGenero.EditorExtensions
                 _initialParseComplete = true;
 
                 if (_moduleContents == null)
+                {
                     _moduleContents = new GeneroModuleContents();
+                }
 
                 var tempModuleContents = e.Result as GeneroModuleContents;
+                
                 // merge the module contents
-                foreach (var funcDef in tempModuleContents.FunctionDefinitions)
-                    _moduleContents.FunctionDefinitions.AddOrUpdate(funcDef.Key, funcDef.Value, (x, y) => y);
-                foreach (var globalDef in tempModuleContents.GlobalVariables)
-                    _moduleContents.GlobalVariables.AddOrUpdate(globalDef.Key, globalDef.Value, (x, y) => y);
-                foreach (var moduleFuncDef in tempModuleContents.ModuleFunctionDefinitions)
-                    _moduleContents.ModuleFunctionDefinitions.AddOrUpdate(moduleFuncDef.Key, moduleFuncDef.Value, (x, y) => y);
-                foreach (var moduleVarDef in tempModuleContents.ModuleVariables)
-                    _moduleContents.ModuleVariables.AddOrUpdate(moduleVarDef.Key, moduleVarDef.Value, (x, y) => y);
-                foreach (var sqlCursor in tempModuleContents.SqlCursors)
-                {
-                    if (!_moduleContents.SqlCursors.ContainsKey(sqlCursor.Key))
-                        _moduleContents.SqlCursors.Add(sqlCursor.Key, sqlCursor.Value);
-                    else
-                        _moduleContents.SqlCursors[sqlCursor.Key] = sqlCursor.Value;
-                }
-                foreach (var sqlPrepare in tempModuleContents.SqlPrepares)
-                {
-                    if (!_moduleContents.SqlPrepares.ContainsKey(sqlPrepare.Key))
-                        _moduleContents.SqlPrepares.Add(sqlPrepare.Key, sqlPrepare.Value);
-                    else
-                        _moduleContents.SqlPrepares[sqlPrepare.Key] = sqlPrepare.Value;
-                }
-                foreach (var systemVar in tempModuleContents.SystemVariables)
-                {
-                    if (!_moduleContents.SystemVariables.ContainsKey(systemVar.Key))
-                        _moduleContents.SystemVariables.Add(systemVar.Key, systemVar.Value);
-                    else
-                        _moduleContents.SystemVariables[systemVar.Key] = systemVar.Value;
-                }
-                foreach (var tempTable in tempModuleContents.TempTables)
-                    _moduleContents.TempTables.AddOrUpdate(tempTable.Key, tempTable.Value, (x, y) => y);
+                MergeNewContents(tempModuleContents);
 
                 // pass to the caller's callback
                 if (ParseComplete != null)
@@ -660,7 +706,7 @@ namespace VSGenero.EditorExtensions
             // TODO: need to keep track of the variables and functions that already existed in the tables, and
             // remove the ones that weren't parsed
             DiscardUnparsedVariablesAndFunctions(currentFile);
-
+            _moduleContents.ContentFilename = currentFile;
             e.Result = _moduleContents;
         }
 
@@ -719,6 +765,12 @@ namespace VSGenero.EditorExtensions
 
             foreach (var cursorPrep in _moduleContents.SqlPrepares)
                 cursorPrep.Value.ContainingFile = filename;
+
+            foreach (var cursor in _moduleContents.SqlCursors)
+                cursor.Value.ContainingFile = filename;
+
+            foreach (var tempTab in _moduleContents.TempTables)
+                tempTab.Value.ContainingFile = filename;
         }
 
         #region Variables Parsing
@@ -739,7 +791,7 @@ namespace VSGenero.EditorExtensions
             if (_fss == FunctionSearchState.LookingForFunctionStart &&
                 _gss == GlobalsSearchState.LookingForGlobalsKeyword)
             {
-                if (token.LowercaseText == "globals")
+                if (token.LowercaseText == "globals" && (prevToken == null || prevToken.LowercaseText != "end"))
                 {
                     // we want to be in globals mode
                     _gss = GlobalsSearchState.LookingForEndKeyword;
@@ -1347,12 +1399,13 @@ namespace VSGenero.EditorExtensions
 
         private void AddVariablesAndReset(ConcurrentDictionary<string, VariableDefinition> scope, ref VariableDefinition currentDef, List<VariableDefinition> buffer, Dictionary<string, int> parsed)
         {
-            scope.AddOrUpdate(currentDef.Name, currentDef, (x, y) => y);
+            VariableDefinition tempDef = currentDef;    // Needed so we can do update in concurrent update lambda
+            scope.AddOrUpdate(currentDef.Name, currentDef, (x, y) => tempDef);
             if (!parsed.ContainsKey(currentDef.Name))
                 parsed.Add(currentDef.Name, 1);
             foreach (var vardef in buffer)
             {
-                scope.AddOrUpdate(vardef.Name, vardef, (x, y) => y);
+                scope.AddOrUpdate(vardef.Name, vardef, (x, y) => vardef);
                 if (!parsed.ContainsKey(vardef.Name))
                     parsed.Add(vardef.Name, 1);
             }
@@ -1721,7 +1774,7 @@ namespace VSGenero.EditorExtensions
                                         bool valid = TryGetActualVariableType(ref token, ref prevToken, ref tableVss, ref column, dummyVarList);
                                         if (valid)
                                         {
-                                            ttd.Columns.AddOrUpdate(column.Name, column, (x, y) => y);
+                                            ttd.Columns.AddOrUpdate(column.Name, column, (x, y) => column);
                                             if (tableVss == VariableSearchState.LookingForDefineKeyword)
                                             {
                                                 // The table definition is done
@@ -1736,7 +1789,7 @@ namespace VSGenero.EditorExtensions
                                     }
                                 }
 
-                                _moduleContents.TempTables.AddOrUpdate(ttd.Name, ttd, (x, y) => y);
+                                _moduleContents.TempTables.AddOrUpdate(ttd.Name, ttd, (x, y) => ttd);
                             }
                         }
                     }
