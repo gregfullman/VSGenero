@@ -565,7 +565,7 @@ namespace VSGenero.Navigation
                 {
                     _name = def.GetIntellisenseText();
                 }
-                _start = def.Start;
+                _start = def.Position;
                 _end = def.End;
             }
 

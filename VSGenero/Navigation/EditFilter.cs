@@ -147,7 +147,7 @@ namespace VSGenero.Navigation
                         }
                         else if (funcDef != null)
                         {
-                            goToLocation = new GoToDefinitionLocation { Filename = funcDef.ContainingFile, Position = funcDef.Start, ColumnNumber = funcDef.ColumnNumber, LineNumber = funcDef.LineNumber };
+                            goToLocation = new GoToDefinitionLocation { Filename = funcDef.ContainingFile, Position = funcDef.Position, ColumnNumber = funcDef.ColumnNumber, LineNumber = funcDef.LineNumber };
                             return goToLocation;
                         }
                         else if (cursorPrep != null)

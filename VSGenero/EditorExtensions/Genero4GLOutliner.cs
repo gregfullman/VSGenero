@@ -184,7 +184,7 @@ namespace VSGenero.EditorExtensions
             foreach (var function in _moduleContents.FunctionDefinitions.Where(x => x.Value.ContainingFile == currentFilename))
             {
                 var region = new Region();
-                region.Start = function.Value.Start;
+                region.Start = function.Value.Position;
                 region.End = function.Value.End;
                 string collapsedText = "";
                 if (function.Value.Main)

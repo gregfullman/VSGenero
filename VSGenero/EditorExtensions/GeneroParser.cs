@@ -59,91 +59,6 @@ namespace VSGenero.EditorExtensions
         }
     }
 
-    public class TempTableDefinition
-    {
-        public string Name { get; set; }
-        public int Position { get; set; }
-        public int LineNumber { get; set; }
-        public int ColumnNumber { get; set; }
-        public string ContainingFile { get; set; }
-
-        private ConcurrentDictionary<string, VariableDefinition> _columns;
-        public ConcurrentDictionary<string, VariableDefinition> Columns
-        {
-            get
-            {
-                if (_columns == null)
-                    _columns = new ConcurrentDictionary<string, VariableDefinition>();
-                return _columns;
-            }
-        }
-    }
-
-    public class FunctionDefinition
-    {
-        private Dictionary<string, bool> existingVariablesParsed = new Dictionary<string, bool>();
-
-        public string Name { get; set; }
-        public bool Private { get; set; }
-        public bool Main { get; set; }
-        // TODO: will get the line and column from outside
-        //public int Line { get; set; }
-        //public int Column { get; set; }
-        public int Start { get; set; }
-        public int LineNumber { get; set; }
-        public int ColumnNumber { get; set; }
-        public int End { get; set; }
-        public bool Report { get; set; }
-
-        private string _containingFile;
-        public string ContainingFile
-        {
-            get { return _containingFile; }
-            set
-            {
-                if (_containingFile != value)
-                {
-                    _containingFile = value;
-                    foreach (var vardef in Variables)
-                        vardef.Value.ContainingFile = _containingFile;
-                }
-            }
-        }
-
-        private ConcurrentDictionary<string, VariableDefinition> _variables;
-        public ConcurrentDictionary<string, VariableDefinition> Variables
-        {
-            get
-            {
-                if (_variables == null)
-                    _variables = new ConcurrentDictionary<string, VariableDefinition>();
-                return _variables;
-            }
-        }
-
-        private List<string> _parameters;
-        public List<string> Parameters
-        {
-            get
-            {
-                if (_parameters == null)
-                    _parameters = new List<string>();
-                return _parameters;
-            }
-        }
-
-        private List<GeneroFunctionReturn> _returns;
-        public List<GeneroFunctionReturn> Returns
-        {
-            get
-            {
-                if (_returns == null)
-                    _returns = new List<GeneroFunctionReturn>();
-                return _returns;
-            }
-        }
-    }
-
     public class GeneroFunctionReturn
     {
         public string Name { get; set; }
@@ -162,73 +77,6 @@ namespace VSGenero.EditorExtensions
         None,
         Static,
         Dynamic
-    }
-
-    public class VariableDefinition
-    {
-        public string Name { get; set; }
-        public string Type { get; set; }
-        public bool IsRecordType { get; set; }
-        public bool IsMimicType { get; set; }
-        public int StaticArraySize { get; set; }
-        public ArrayType ArrayType { get; set; }
-        public int Position { get; set; }
-        public int LineNumber { get; set; }
-        public int ColumnNumber { get; set; }
-        public string ContainingFile { get; set; }
-        public string MimicTypeTable
-        {
-            get { return GetMimicPart(0); }
-        }
-
-        public string MimicTypeColumn
-        {
-            get { return GetMimicPart(1); }
-        }
-
-        private string GetMimicPart(int index)
-        {
-            if (IsMimicType)
-            {
-                string[] parts = Type.Split(new[] { '.' });
-                if (parts.Length > 1)
-                {
-                    return parts[index];
-                }
-            }
-            return null;
-        }
-
-
-        private ConcurrentDictionary<string, VariableDefinition> _recordElements;
-        public ConcurrentDictionary<string, VariableDefinition> RecordElements
-        {
-            get
-            {
-                if (_recordElements == null)
-                    _recordElements = new ConcurrentDictionary<string, VariableDefinition>();
-                return _recordElements;
-            }
-        }
-
-        public VariableDefinition Clone()
-        {
-            VariableDefinition ret = new VariableDefinition
-            {
-                Name = this.Name,
-                Type = this.Type,
-                IsMimicType = this.IsMimicType,
-                IsRecordType = this.IsRecordType,
-                ArrayType = this.ArrayType,
-                Position = this.Position,
-                ColumnNumber = this.ColumnNumber,
-                LineNumber = this.LineNumber,
-                ContainingFile = this.ContainingFile
-            };
-            foreach (var recEle in RecordElements)
-                ret.RecordElements.AddOrUpdate(recEle.Key, recEle.Value.Clone(), (x, y) => recEle.Value.Clone());
-            return ret;
-        }
     }
 
     public class GeneroModuleContents
@@ -331,38 +179,6 @@ namespace VSGenero.EditorExtensions
         }
     }
 
-    public class CursorPreparation
-    {
-        public string ContainingFile;
-        public string Name;
-        public string StatementVariable;
-        public string CursorStatement;
-        public int Position;
-        public int LineNumber { get; set; }
-        public int ColumnNumber { get; set; }
-    }
-
-    public class CursorDeclaration
-    {
-        public string ContainingFile;
-        public string Name;
-        public string PreparationVariable;
-        public int Position;
-        public int LineNumber { get; set; }
-        public int ColumnNumber { get; set; }
-
-        private List<string> _options;
-        public List<string> Options
-        {
-            get
-            {
-                if (_options == null)
-                    _options = new List<string>();
-                return _options;
-            }
-        }
-    }
-
     public class GeneroFileParserManager
     {
         private ITextBuffer _buffer;
@@ -452,8 +268,8 @@ namespace VSGenero.EditorExtensions
                 }
             }
 
-            string programName = Path.GetDirectoryName(_moduleContents.ContentFilename);
-            VSGeneroPackage.Instance.ProgramContentsManager.AddProgramContents(programName, _moduleContents);
+            string programName = Path.GetDirectoryName(e.ModuleContents.ContentFilename);
+            VSGeneroPackage.Instance.ProgramContentsManager.AddProgramContents(programName, e.ModuleContents);
         }
 
         void _delayedParseTimer_Elapsed(object sender, ElapsedEventArgs e)
@@ -830,7 +646,7 @@ namespace VSGenero.EditorExtensions
                     else
                     {
                         // now use the general variable definition consumer
-                        ret = TryParseVariableDefinitions(ref token, ref prevToken, ref _vss, _moduleContents.GlobalVariables, ref _currentVariableDef,
+                        ret = TryParseVarConstTypeDefinitions(ref token, ref prevToken, ref _vss, _moduleContents.GlobalVariables, ref _currentVariableDef,
                                                             _variableBuffer, existingGlobalVarsParsed, new[] { "end", "define" });
                         // TODO: need to consume "end" and "global"
                     }
@@ -855,7 +671,7 @@ namespace VSGenero.EditorExtensions
                 _vss == VariableSearchState.LookingForDefineKeyword)
             {
                 // now use the general variable definition consumer
-                ret = TryParseVariableDefinitions(ref token, ref prevToken, ref _vss, _moduleContents.ModuleVariables, ref _currentVariableDef,
+                ret = TryParseVarConstTypeDefinitions(ref token, ref prevToken, ref _vss, _moduleContents.ModuleVariables, ref _currentVariableDef,
                                                   _variableBuffer, existingModuleVarsParsed, new[] { "function", "define" });
             }
             return ret;
@@ -894,7 +710,7 @@ namespace VSGenero.EditorExtensions
         private VariableDefinition _currentVariableDef;
         private List<VariableDefinition> _variableBuffer = new List<VariableDefinition>();  // This is used since more than one variable can be defined under a type
 
-        private bool TryParseVariableDefinitions(ref GeneroToken token,
+        private bool TryParseVarConstTypeDefinitions(ref GeneroToken token,
                                                  ref GeneroToken prevToken,
                                                  ref VariableSearchState searchState,
                                                  ConcurrentDictionary<string, VariableDefinition> scope,
@@ -1206,7 +1022,7 @@ namespace VSGenero.EditorExtensions
             ConcurrentDictionary<string, VariableDefinition> elementList = new ConcurrentDictionary<string, VariableDefinition>();
 
             Dictionary<string, int> temp = new Dictionary<string, int>();
-            bool valid = TryParseVariableDefinitions(ref token, ref prevToken, ref recordVss, elementList, ref recordCurrentVariableDef, recordVariableBuffer, temp);
+            bool valid = TryParseVarConstTypeDefinitions(ref token, ref prevToken, ref recordVss, elementList, ref recordCurrentVariableDef, recordVariableBuffer, temp);
 
             if (!valid)
             {
@@ -1506,13 +1322,13 @@ namespace VSGenero.EditorExtensions
                             {
                                 if (token.LowercaseText == "main")
                                 {
-                                    _currentFunctionDef = new FunctionDefinition { Main = true, Start = token.StartPosition, LineNumber = token.LineNumber, ColumnNumber = token.ColumnNumber };
+                                    _currentFunctionDef = new FunctionDefinition { Main = true, Position = token.StartPosition, LineNumber = token.LineNumber, ColumnNumber = token.ColumnNumber };
                                     _fss = FunctionSearchState.LookingForFunctionEnd;
                                     AdvanceToken(ref token, ref prevToken);
                                 }
                                 else if (token.LowercaseText == "function")
                                 {
-                                    _currentFunctionDef = new FunctionDefinition { Main = false, Start = token.StartPosition, LineNumber = token.LineNumber, ColumnNumber = token.ColumnNumber, Report = false };
+                                    _currentFunctionDef = new FunctionDefinition { Main = false, Position = token.StartPosition, LineNumber = token.LineNumber, ColumnNumber = token.ColumnNumber, Report = false };
                                     // check to see if the previous token is "private"
                                     if (prevToken != null && prevToken.LowercaseText == "private")
                                         _currentFunctionDef.Private = true;
@@ -1521,7 +1337,7 @@ namespace VSGenero.EditorExtensions
                                 }
                                 else if (token.LowercaseText == "report" && !(prevToken != null && prevToken.LowercaseText == "to"))
                                 {
-                                    _currentFunctionDef = new FunctionDefinition { Main = false, Start = token.StartPosition, LineNumber = token.LineNumber, ColumnNumber = token.ColumnNumber, Report = true };
+                                    _currentFunctionDef = new FunctionDefinition { Main = false, Position = token.StartPosition, LineNumber = token.LineNumber, ColumnNumber = token.ColumnNumber, Report = true };
                                     // check to see if the previous token is "private"
                                     if (prevToken != null && prevToken.TokenText.ToLower() == "private")
                                         _currentFunctionDef.Private = true;
@@ -1648,7 +1464,7 @@ namespace VSGenero.EditorExtensions
                             {
                                 // TODO: not sure if we want to do anything with the return value
                                 Dictionary<string, int> temp = new Dictionary<string, int>();
-                                bool defFound = TryParseVariableDefinitions(ref token, ref prevToken, ref _vss, _currentFunctionDef.Variables, ref _currentVariableDef, _variableBuffer, temp, new[] { "end", "define" });
+                                bool defFound = TryParseVarConstTypeDefinitions(ref token, ref prevToken, ref _vss, _currentFunctionDef.Variables, ref _currentVariableDef, _variableBuffer, temp, new[] { "end", "define" });
                                 if (defFound)
                                 {
                                     break;

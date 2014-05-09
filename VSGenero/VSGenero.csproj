@@ -279,6 +279,7 @@
     </COMReference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="EditorExtensions\DefinitionClasses.cs" />
     <Compile Include="EditorExtensions\EditorExtensions.cs" />
     <Compile Include="EditorExtensions\Genero4GLBraceMatchingTagger.cs" />
     <Compile Include="EditorExtensions\Genero4GLOutliner.cs" />

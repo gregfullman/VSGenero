@@ -592,7 +592,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                 var kvp = fpm.ModuleContents.FunctionDefinitions.Where(x => x.Value.ContainingFile == fpm.ModuleContents.ContentFilename)
                                                                 .FirstOrDefault(x =>
                 {
-                    return position > x.Value.Start && position < x.Value.End;
+                    return position > x.Value.Position && position < x.Value.End;
                 });
 
                 if (kvp.Value != null)
