@@ -60,7 +60,6 @@ namespace VSGenero.EditorExtensions.Intellisense
         private Genero4GLCompletionSourceProvider m_sourceProvider;
         private ITextBuffer m_textBuffer;
         private List<MemberCompletion> m_compList;
-        private GeneroModuleContents _moduleContents;
         private readonly int _removeFromIndex = 0;
         private readonly Genero4GLCompletionContextAnalyzer _completionContextAnalyzer;
 
@@ -72,10 +71,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                                                                                 m_sourceProvider.PublicFunctionProvider);
             m_textBuffer = textBuffer;
 
-            GeneroFileParserManager fpm = VSGeneroPackage.Instance.UpdateBufferFileParserManager(m_textBuffer);
-            fpm.ParseComplete += CompletionSource_ParseComplete;
-            _moduleContents = fpm.ModuleContents;
-
+            VSGeneroPackage.Instance.UpdateBufferFileParserManager(m_textBuffer);
             m_compList = new List<MemberCompletion>();
 
             // Add system keywords
@@ -96,75 +92,47 @@ namespace VSGenero.EditorExtensions.Intellisense
             _removeFromIndex = m_compList.Count;
         }
 
-        void CompletionSource_ParseComplete(object sender, ParseCompleteEventArgs e)
-        {
-            _moduleContents = (sender as GeneroFileParserManager).ModuleContents;
-
-            // update the completion list
-            //m_compList.RemoveAll(x => !(bool)x.Properties["system"]);
-
-            //// add global variables
-            //foreach (var globalVar in _moduleContents.GlobalVariables)
-            //{
-            //    var comp = new MemberCompletion(globalVar.Key, globalVar.Key, globalVar.Key,
-            //                    m_sourceProvider.GlyphService.GetGlyph(StandardGlyphGroup.GlyphGroupVariable, StandardGlyphItem.GlyphItemPublic), null);
-            //    comp.Properties.AddProperty("system", false);
-            //    m_compList.Add(comp);
-            //}
-
-            //// add the module variables
-            //foreach (var moduleVar in _moduleContents.ModuleVariables)
-            //{
-            //    var comp = new MemberCompletion(moduleVar.Key, moduleVar.Key, moduleVar.Key,
-            //                    m_sourceProvider.GlyphService.GetGlyph(StandardGlyphGroup.GlyphGroupVariable, StandardGlyphItem.GlyphItemInternal), null);
-            //    comp.Properties.AddProperty("system", false);
-            //    m_compList.Add(comp);
-            //}
-        }
-
-
-
         void ICompletionSource.AugmentCompletionSession(ICompletionSession session, IList<CompletionSet> completionSets)
         {
             ITrackingSpan applicableSpan = FindTokenSpanAtPosition(session.GetTriggerPoint(m_textBuffer), session);
-            GeneroFileParserManager fpm = null;
-            if (m_textBuffer.Properties.TryGetProperty(typeof(GeneroFileParserManager), out fpm))
+            GeneroFileParserManager fpm;
+            if (m_textBuffer.Properties.TryGetProperty<GeneroFileParserManager>(typeof(GeneroFileParserManager), out fpm))
             {
-                _moduleContents = fpm.ModuleContents;
-            }
-            if (_moduleContents != null)
-            {
-                bool isMemberCompletion = false;
-                bool isDefiniteFunctionOrReportCall = false;
-                List<MemberCompletion> contextCompletions = _completionContextAnalyzer.AnalyzeContext(session, applicableSpan, fpm, _moduleContents, out isMemberCompletion, out isDefiniteFunctionOrReportCall);
-                if (contextCompletions.Count > 0)
+                GeneroModuleContents moduleContents;
+                if (VSGeneroPackage.Instance.ProgramContentsManager.Programs.TryGetValue(m_textBuffer.GetProgram(), out moduleContents))
                 {
-                    List<MemberCompletion> completionListToUse = null;
-                    if (isMemberCompletion)
+                    bool isMemberCompletion = false;
+                    bool isDefiniteFunctionOrReportCall = false;
+                    List<MemberCompletion> contextCompletions = _completionContextAnalyzer.AnalyzeContext(session, applicableSpan, fpm, moduleContents, out isMemberCompletion, out isDefiniteFunctionOrReportCall);
+                    if (contextCompletions.Count > 0)
                     {
-                        applicableSpan = GetApplicableSpan(session, m_textBuffer);
-                        completionListToUse = contextCompletions;
-                    }
-                    else
-                    {
-                        m_compList.RemoveRange(_removeFromIndex, m_compList.Count - _removeFromIndex);
-                        if (isDefiniteFunctionOrReportCall)
+                        List<MemberCompletion> completionListToUse = null;
+                        if (isMemberCompletion)
                         {
+                            applicableSpan = GetApplicableSpan(session, m_textBuffer);
                             completionListToUse = contextCompletions;
                         }
                         else
                         {
-                            m_compList.AddRange(contextCompletions);
-                            completionListToUse = m_compList;
+                            m_compList.RemoveRange(_removeFromIndex, m_compList.Count - _removeFromIndex);
+                            if (isDefiniteFunctionOrReportCall)
+                            {
+                                completionListToUse = contextCompletions;
+                            }
+                            else
+                            {
+                                m_compList.AddRange(contextCompletions);
+                                completionListToUse = m_compList;
+                            }
                         }
+                        MemberCompletionSet memberCompletionSet =
+                                new MemberCompletionSet("Tokens",    //the non-localized title of the tab 
+                                                        "Tokens",    //the display title of the tab
+                                                        applicableSpan,
+                                                        completionListToUse,
+                                                        CompletionComparer.UnderscoresLast);
+                        completionSets.Add(memberCompletionSet);
                     }
-                    MemberCompletionSet memberCompletionSet =
-                            new MemberCompletionSet("Tokens",    //the non-localized title of the tab 
-                                                    "Tokens",    //the display title of the tab
-                                                    applicableSpan,
-                                                    completionListToUse,
-                                                    CompletionComparer.UnderscoresLast);
-                    completionSets.Add(memberCompletionSet);
                 }
             }
         }

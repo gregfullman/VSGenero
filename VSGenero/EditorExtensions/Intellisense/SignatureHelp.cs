@@ -333,7 +333,10 @@ namespace VSGenero.EditorExtensions.Intellisense
             {
                 _moduleContents = fpm.ModuleContents;
                 funcDef = IntellisenseExtensions.DetermineContainingFunction((session.TextView.Caret.Position.BufferPosition) - 1, fpm);
-            }     
+            }
+
+            GeneroModuleContents programContents;
+            VSGeneroPackage.Instance.ProgramContentsManager.Programs.TryGetValue(m_textBuffer.GetProgram(), out programContents);
 
             // see if we can split up the functionName by '.' chars. If so, we have a member access
             string[] splitTokens = functionName.Split(new[] { '.' });
@@ -366,7 +369,8 @@ namespace VSGenero.EditorExtensions.Intellisense
                         // look in module variables
                         if (!_moduleContents.ModuleVariables.TryGetValue(splitTokens[0], out varDef))
                         {
-                            if (!_moduleContents.GlobalVariables.TryGetValue(splitTokens[0], out varDef))
+                            if (!_moduleContents.GlobalVariables.TryGetValue(splitTokens[0], out varDef) &&
+                                (programContents != null && programContents.GlobalVariables.TryGetValue(splitTokens[0], out varDef)))
                             {
                                 GeneroSingletons.SystemVariables.TryGetValue(splitTokens[0], out varDef);
                             }
@@ -391,7 +395,8 @@ namespace VSGenero.EditorExtensions.Intellisense
             else
             {
                 // get the function from the file parser in the subjectBuffer
-                if (fpm.ModuleContents.FunctionDefinitions.TryGetValue(functionName, out funcDef))
+                if (fpm.ModuleContents.FunctionDefinitions.TryGetValue(functionName, out funcDef) ||
+                    (programContents != null && programContents.FunctionDefinitions.TryGetValue(functionName, out funcDef)))
                 {
                     string methodSig = funcDef.GetIntellisenseText();
                     return GetSignature(methodSig, textBuffer, span);

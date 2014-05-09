@@ -19,6 +19,7 @@ using System.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text;
 using System.IO;
+using Microsoft.VisualStudio.VSCommon;
 
 namespace VSGenero.EditorExtensions
 {
@@ -290,6 +291,11 @@ namespace VSGenero.EditorExtensions
         {
             string filepath = Path.GetDirectoryName(moduleFilename);
             return Directory.GetFiles(filepath, "*.4gl").Where(x => x.EndsWith(".4gl") && !string.Equals(x, moduleFilename, StringComparison.OrdinalIgnoreCase));
+        }
+
+        public static string GetProgram(this ITextBuffer buffer)
+        {
+            return Path.GetDirectoryName(buffer.GetFilePath());
         }
     }
 }

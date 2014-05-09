@@ -418,22 +418,30 @@ namespace VSGenero.EditorExtensions
             _buffer.Changed += _buffer_Changed;
         }
 
-        void _parser_ModuleContentsChanged(object sender, ModuleContentsUpdatedEventArgs e)
+        private void UpdateModuleContents(GeneroModuleContents newModuleContents)
         {
             if (_moduleContents == null)
+            {
                 _moduleContents = new GeneroModuleContents();
+                _moduleContents.ContentFilename = _buffer.GetFilePath();
+            }
 
             // update the global variables dictionary
-            foreach (var globalVarKvp in e.ModuleContents.GlobalVariables)
+            foreach (var globalVarKvp in newModuleContents.GlobalVariables)
             {
                 _moduleContents.GlobalVariables.AddOrUpdate(globalVarKvp.Key, globalVarKvp.Value, (x, y) => globalVarKvp.Value);
             }
 
             // Update the module functions dictionary
-            foreach (var programFuncKvp in e.ModuleContents.FunctionDefinitions.Where(x => !x.Value.Private))
+            foreach (var programFuncKvp in newModuleContents.FunctionDefinitions.Where(x => !x.Value.Private))
             {
                 _moduleContents.FunctionDefinitions.AddOrUpdate(programFuncKvp.Key, programFuncKvp.Value, (x, y) => programFuncKvp.Value);
             }
+        }
+
+        void _parser_ModuleContentsChanged(object sender, ModuleContentsUpdatedEventArgs e)
+        {
+            UpdateModuleContents(e.ModuleContents);
 
             if (_initialParseComplete)
             {
@@ -443,6 +451,9 @@ namespace VSGenero.EditorExtensions
                     ParseComplete(this, new ParseCompleteEventArgs(this));
                 }
             }
+
+            string programName = Path.GetDirectoryName(_moduleContents.ContentFilename);
+            VSGeneroPackage.Instance.ProgramContentsManager.AddProgramContents(programName, _moduleContents);
         }
 
         void _delayedParseTimer_Elapsed(object sender, ElapsedEventArgs e)
@@ -478,6 +489,9 @@ namespace VSGenero.EditorExtensions
 
         private void MergeNewContents(GeneroModuleContents newContents)
         {
+            if (string.IsNullOrWhiteSpace(_moduleContents.ContentFilename))
+                _moduleContents.ContentFilename = newContents.ContentFilename;
+
             // Function definitions
             foreach(var rem in _moduleContents.FunctionDefinitions.Where(x => x.Value.ContainingFile == newContents.ContentFilename && 
                                                                               !newContents.FunctionDefinitions.ContainsKey(x.Key)).ToList())
@@ -576,6 +590,13 @@ namespace VSGenero.EditorExtensions
                 {
                     ParseComplete(this, new ParseCompleteEventArgs(this));
                 }
+
+                if (_parser.PrimarySibling == null)
+                {
+                    // this is the primary file, so add contents directly to the Content manager
+                    string programName = Path.GetDirectoryName(tempModuleContents.ContentFilename);
+                    VSGeneroPackage.Instance.ProgramContentsManager.AddProgramContents(programName, _moduleContents);
+                }
             }
         }
 
@@ -606,6 +627,10 @@ namespace VSGenero.EditorExtensions
         private Genero4GL_XMLSettingsLoader _languageSettings;
         private ITextBuffer _currentBuffer;
         private string _primarySibling;
+        public string PrimarySibling
+        {
+            get { return _primarySibling; }
+        }
 
         public GeneroParser(BackgroundWorker threadRef, string primarySibling)
         {

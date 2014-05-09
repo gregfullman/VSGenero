@@ -101,11 +101,15 @@ namespace VSGenero.Navigation
                     GeneroFileParserManager fpm;
                     if (textView.TextBuffer.Properties.TryGetProperty<GeneroFileParserManager>(typeof(GeneroFileParserManager), out fpm))
                     {
+                        GeneroModuleContents programContents;
+                        VSGeneroPackage.Instance.ProgramContentsManager.Programs.TryGetValue(textView.TextBuffer.GetProgram(), out programContents);
+
                         EditorExtensions.VariableDefinition varDef = null;
                         FunctionDefinition funcDef = null;
                         CursorPreparation cursorPrep = null;
                         // 1) first see if the caret is on a function name                                                                                                                 
-                        if (!fpm.ModuleContents.FunctionDefinitions.TryGetValue(tokenText, out funcDef))
+                        if (!fpm.ModuleContents.FunctionDefinitions.TryGetValue(tokenText, out funcDef) &&
+                            (programContents != null && programContents.FunctionDefinitions.TryGetValue(tokenText, out funcDef)))
                         {
                             // 1a) look for a cursor
                             CursorDeclaration cursorDecl;

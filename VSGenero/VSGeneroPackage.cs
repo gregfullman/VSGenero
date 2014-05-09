@@ -114,6 +114,12 @@ namespace VSGenero
             set { _currentProgram4GLFileProvider = value; }
         }
 
+        private GeneroProgramContentsManager _programContentsManager;
+        internal GeneroProgramContentsManager ProgramContentsManager
+        {
+            get { return _programContentsManager; }
+        }
+
         /////////////////////////////////////////////////////////////////////////////
         // Overriden Package Implementation
         #region Package Members
@@ -138,6 +144,8 @@ namespace VSGenero
             {
                 this.RegisterEditorFactory(new EditorFactory(this));
             }
+
+            _programContentsManager = new GeneroProgramContentsManager();
         }
 
         #endregion

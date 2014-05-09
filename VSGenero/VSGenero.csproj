@@ -284,6 +284,7 @@
     <Compile Include="EditorExtensions\Genero4GLOutliner.cs" />
     <Compile Include="EditorExtensions\GeneroLexer.cs" />
     <Compile Include="EditorExtensions\GeneroParser.cs" />
+    <Compile Include="EditorExtensions\GeneroProgramContentsManager.cs" />
     <Compile Include="EditorExtensions\GeneroReverseParser.cs" />
     <Compile Include="EditorExtensions\GeneroSingletons.cs" />
     <Compile Include="EditorExtensions\GeneroToken.cs" />

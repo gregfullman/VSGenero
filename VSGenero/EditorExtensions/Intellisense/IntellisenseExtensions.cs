@@ -589,7 +589,8 @@ namespace VSGenero.EditorExtensions.Intellisense
             FunctionDefinition ret = null;  // assume no function yet
             if (fpm.ModuleContents != null)
             {
-                var kvp = fpm.ModuleContents.FunctionDefinitions.FirstOrDefault(x =>
+                var kvp = fpm.ModuleContents.FunctionDefinitions.Where(x => x.Value.ContainingFile == fpm.ModuleContents.ContentFilename)
+                                                                .FirstOrDefault(x =>
                 {
                     return position > x.Value.Start && position < x.Value.End;
                 });

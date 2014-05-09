@@ -130,6 +130,8 @@ namespace VSGenero.EditorExtensions.Intellisense
                             var fpm = m_subjectBuffer.Properties.GetProperty(typeof(GeneroFileParserManager)) as GeneroFileParserManager;
                             if (fpm != null)
                             {
+                                GeneroModuleContents programContents;
+                                VSGeneroPackage.Instance.ProgramContentsManager.Programs.TryGetValue(m_subjectBuffer.GetProgram(), out programContents);
                                 // look at the variables in the current function
                                 funcDef = IntellisenseExtensions.DetermineContainingFunction(subjectTriggerPoint.Value, fpm);
                                 if (funcDef != null)
@@ -143,7 +145,8 @@ namespace VSGenero.EditorExtensions.Intellisense
                                 {
                                     if (!fpm.ModuleContents.ModuleVariables.TryGetValue(splitTokens[i], out tempDef))
                                     {
-                                        if (fpm.ModuleContents.GlobalVariables.TryGetValue(splitTokens[i], out tempDef))
+                                        if (fpm.ModuleContents.GlobalVariables.TryGetValue(splitTokens[i], out tempDef) ||
+                                            (programContents != null && programContents.GlobalVariables.TryGetValue(splitTokens[i], out tempDef)))
                                         {
                                             context = "global";
                                         }
@@ -176,7 +179,8 @@ namespace VSGenero.EditorExtensions.Intellisense
                                 if (tempDef == null)
                                 {
                                     // If we got down to here, it might be a function?
-                                    if (fpm.ModuleContents.FunctionDefinitions.TryGetValue(splitTokens[i], out funcDef))
+                                    if (fpm.ModuleContents.FunctionDefinitions.TryGetValue(splitTokens[i], out funcDef) ||
+                                        (programContents != null && programContents.FunctionDefinitions.TryGetValue(splitTokens[i], out funcDef)))
                                     {
                                         string functionName = funcDef.Name;
                                         if (functionName == null && funcDef.Main)
