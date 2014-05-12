@@ -113,14 +113,34 @@ namespace VSGenero.EditorExtensions.Intellisense
                     // Take care of packages, classes, and methods
                     if (tmpClass != null && i == 2)
                     {
-                        tmpClass.Methods.TryGetValue(splitTokens[i], out tmpMethod);
+                        if (tmpClass.Methods.TryGetValue(splitTokens[i], out tmpMethod))
+                        {
+                            applicableToSpan = currentSnapshot.CreateTrackingSpan
+                                        (
+                                            textSpan.Start.Position, splitTokens[i].Length, SpanTrackingMode.EdgeInclusive
+                                        );
+                        }
                     }
                     if (tmpPackage != null && i == 1)
                     {
-                        tmpPackage.Classes.TryGetValue(splitTokens[i], out tmpClass);
+                        if (tmpPackage.Classes.TryGetValue(splitTokens[i], out tmpClass))
+                        {
+                            applicableToSpan = currentSnapshot.CreateTrackingSpan
+                                        (
+                                            textSpan.Start.Position, splitTokens[i].Length, SpanTrackingMode.EdgeInclusive
+                                        );
+                        }
                     }
                     if (i == 0)
-                        GeneroSingletons.LanguageSettings.Packages.TryGetValue(splitTokens[i], out tmpPackage);
+                    {
+                        if (GeneroSingletons.LanguageSettings.Packages.TryGetValue(splitTokens[i], out tmpPackage))
+                        {
+                            applicableToSpan = currentSnapshot.CreateTrackingSpan
+                                        (
+                                            textSpan.Start.Position, splitTokens[i].Length, SpanTrackingMode.EdgeInclusive
+                                        );
+                        }
+                    }
 
                     if (tmpPackage == null &&
                        tmpClass == null &&
@@ -147,7 +167,9 @@ namespace VSGenero.EditorExtensions.Intellisense
                                 }
                                 if (tempDef == null)
                                 {
-                                    if (!fpm.ModuleContents.ModuleVariables.TryGetValue(splitTokens[i], out tempDef))
+                                    if (!fpm.ModuleContents.ModuleVariables.TryGetValue(splitTokens[i], out tempDef) &&
+                                        !fpm.ModuleContents.ModuleConstants.TryGetValue(splitTokens[i], out constantDef) &&
+                                        !fpm.ModuleContents.ModuleTypes.TryGetValue(splitTokens[i], out typeDef))
                                     {
                                         if ((fpm.ModuleContents.GlobalVariables.TryGetValue(splitTokens[i], out tempDef) ||
                                             (programContents != null && programContents.GlobalVariables.TryGetValue(splitTokens[i], out tempDef))) ||
@@ -298,11 +320,11 @@ namespace VSGenero.EditorExtensions.Intellisense
                 }
                 else if (tmpClass != null)
                 {
-                    qiContent.Add("(class) " + tmpClass.Name);
+                    qiContent.Add(tmpClass.GetIntellisenseText());
                 }
                 else if (tmpPackage != null)
                 {
-                    qiContent.Add("(package) " + tmpPackage.Name);
+                    qiContent.Add(tmpPackage.GetIntellisenseText());
                 }
                 else if (columnOrRecordField != null)
                 {

@@ -440,7 +440,7 @@ namespace VSGenero.EditorExtensions
                 _moduleContents.TempTables.AddOrUpdate(tempDef.Key, tempDef.Value, (x, y) => tempDef.Value);
             }
 
-            // Constant defs
+            // Global Constant defs
             foreach (var rem in _moduleContents.GlobalConstants.Where(x => x.Value.ContainingFile == newContents.ContentFilename &&
                                                                               !newContents.GlobalConstants.ContainsKey(x.Key)).ToList())
             {
@@ -452,7 +452,7 @@ namespace VSGenero.EditorExtensions
                 _moduleContents.GlobalConstants.AddOrUpdate(tempDef.Key, tempDef.Value, (x, y) => tempDef.Value);
             }
 
-            // Type defs
+            // Global Type defs
             foreach (var rem in _moduleContents.GlobalTypes.Where(x => x.Value.ContainingFile == newContents.ContentFilename &&
                                                                               !newContents.GlobalTypes.ContainsKey(x.Key)).ToList())
             {
@@ -462,6 +462,30 @@ namespace VSGenero.EditorExtensions
             foreach (var tempDef in newContents.GlobalTypes)
             {
                 _moduleContents.GlobalTypes.AddOrUpdate(tempDef.Key, tempDef.Value, (x, y) => tempDef.Value);
+            }
+
+            // Module Constant defs
+            foreach (var rem in _moduleContents.ModuleConstants.Where(x => x.Value.ContainingFile == newContents.ContentFilename &&
+                                                                              !newContents.ModuleConstants.ContainsKey(x.Key)).ToList())
+            {
+                ConstantDefinition temp;
+                _moduleContents.ModuleConstants.TryRemove(rem.Key, out temp);
+            }
+            foreach (var tempDef in newContents.ModuleConstants)
+            {
+                _moduleContents.ModuleConstants.AddOrUpdate(tempDef.Key, tempDef.Value, (x, y) => tempDef.Value);
+            }
+
+            // Module Type defs
+            foreach (var rem in _moduleContents.ModuleTypes.Where(x => x.Value.ContainingFile == newContents.ContentFilename &&
+                                                                              !newContents.ModuleTypes.ContainsKey(x.Key)).ToList())
+            {
+                TypeDefinition temp;
+                _moduleContents.ModuleTypes.TryRemove(rem.Key, out temp);
+            }
+            foreach (var tempDef in newContents.ModuleTypes)
+            {
+                _moduleContents.ModuleTypes.AddOrUpdate(tempDef.Key, tempDef.Value, (x, y) => tempDef.Value);
             }
         }
 
@@ -692,6 +716,19 @@ namespace VSGenero.EditorExtensions
 
             foreach (var tempTab in _moduleContents.TempTables)
                 tempTab.Value.ContainingFile = filename;
+
+            // TODO: not sure if we need to clear out the constants and types like we're doing above on variables...we'll see
+            foreach (var constDef in _moduleContents.GlobalConstants)
+                constDef.Value.ContainingFile = filename;
+
+            foreach (var constDef in _moduleContents.ModuleConstants)
+                constDef.Value.ContainingFile = filename;
+
+            foreach (var typeDef in _moduleContents.GlobalTypes)
+                typeDef.Value.ContainingFile = filename;
+
+            foreach (var typeDef in _moduleContents.ModuleTypes)
+                typeDef.Value.ContainingFile = filename;
         }
 
         #region Variables Parsing

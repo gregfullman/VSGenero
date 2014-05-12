@@ -24,6 +24,7 @@ namespace VSGenero.EditorExtensions
             if (!Programs.TryGetValue(program, out gmc))
             {
                 gmc = new GeneroModuleContents();
+                gmc.ContentFilename = "global";
             }
 
             // update the global variables dictionary
@@ -32,13 +33,31 @@ namespace VSGenero.EditorExtensions
                 gmc.GlobalVariables.AddOrUpdate(globalVarKvp.Key, globalVarKvp.Value, (x, y) => globalVarKvp.Value);
             }
 
+            // update the global constants dictionary
+            foreach (var globalVarKvp in newContents.GlobalConstants)
+            {
+                gmc.GlobalConstants.AddOrUpdate(globalVarKvp.Key, globalVarKvp.Value, (x, y) => globalVarKvp.Value);
+            }
+
+            // update the global types dictionary
+            foreach (var globalVarKvp in newContents.GlobalTypes)
+            {
+                gmc.GlobalTypes.AddOrUpdate(globalVarKvp.Key, globalVarKvp.Value, (x, y) => globalVarKvp.Value);
+            }
+
             // Update the module functions dictionary
             foreach (var programFuncKvp in newContents.FunctionDefinitions.Where(x => !x.Value.Private))
             {
                 gmc.FunctionDefinitions.AddOrUpdate(programFuncKvp.Key, programFuncKvp.Value, (x, y) => programFuncKvp.Value);
             }
 
-            Programs[program] = gmc;
+            if (program != null && gmc != null)
+            {
+                if (Programs.ContainsKey(program))
+                    Programs[program] = gmc;
+                else
+                    Programs.Add(program, gmc);
+            }
         }
     }
 }

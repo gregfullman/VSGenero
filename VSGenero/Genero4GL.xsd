@@ -62,34 +62,43 @@
               <xs:element name="Functions">
                 <xs:complexType>
                   <xs:sequence>
-                    <xs:element name="Function" maxOccurs="unbounded" minOccurs="0">
+                    <xs:element name="Context" maxOccurs="unbounded" minOccurs="0">
                       <xs:complexType>
-                        <xs:all>
-                          <xs:element name="Parameters">
+                        <xs:sequence>
+                          <xs:element name="Function" maxOccurs="unbounded" minOccurs="0">
                             <xs:complexType>
-                              <xs:sequence>
-                                <xs:element name="Parameter" maxOccurs="unbounded" minOccurs="0">
+                              <xs:all>
+                                <xs:element name="Parameters">
                                   <xs:complexType>
-                                    <xs:attribute name="name" type="xs:string"/>
-                                    <xs:attribute name="type" type="xs:string"/>
+                                    <xs:sequence>
+                                      <xs:element name="Parameter" maxOccurs="unbounded" minOccurs="0">
+                                        <xs:complexType>
+                                          <xs:attribute name="name" type="xs:string"/>
+                                          <xs:attribute name="type" type="xs:string"/>
+                                        </xs:complexType>
+                                      </xs:element>
+                                    </xs:sequence>
                                   </xs:complexType>
                                 </xs:element>
-                              </xs:sequence>
-                            </xs:complexType>
-                          </xs:element>
-                          <xs:element name="Returns">
-                            <xs:complexType>
-                              <xs:sequence>
-                                <xs:element name="Return" maxOccurs="unbounded" minOccurs="0">
+                                <xs:element name="Returns">
                                   <xs:complexType>
-                                    <xs:attribute name="name" type="xs:string"/>
-                                    <xs:attribute name="type" type="xs:string"/>
+                                    <xs:sequence>
+                                      <xs:element name="Return" maxOccurs="unbounded" minOccurs="0">
+                                        <xs:complexType>
+                                          <xs:attribute name="name" type="xs:string"/>
+                                          <xs:attribute name="type" type="xs:string"/>
+                                        </xs:complexType>
+                                      </xs:element>
+                                    </xs:sequence>
                                   </xs:complexType>
                                 </xs:element>
-                              </xs:sequence>
+                              </xs:all>
+                              <xs:attribute name="name" type="xs:string"/>
+                              <xs:attribute name="description" type="xs:string"/>
                             </xs:complexType>
                           </xs:element>
-                        </xs:all>
+                        </xs:sequence>
+                        <xs:attribute name="name" type="xs:string"/>
                       </xs:complexType>
                     </xs:element>
                   </xs:sequence>

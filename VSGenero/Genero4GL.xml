@@ -397,6 +397,253 @@
     </DataTypes>
     <Functions>
       <!--TODO: functions from http://pic.dhe.ibm.com/infocenter/idshelp/v117/topic/com.ibm.gen_busug.doc/c_fgl_BuiltInFunctions.htm -->
+      <Context name="array">
+        <Function name="appendElement" description="Adds a new element at the end of a dynamic array. This method has no effect on a static array.">
+          <Parameters></Parameters>
+          <Returns></Returns>
+        </Function>
+        <Function name="clear" description="Removes all elements in a dynamic array. Sets all elements to NULL in a static array.">
+          <Parameters></Parameters>
+          <Returns></Returns>
+        </Function>
+        <Function name="deleteElement" description="Removes an element at the given position. In a static or dynamic array, the elements after the given position are moved up. In a dynamic array, the number of elements is decremented by 1.">
+          <Parameters>
+            <Parameter name="pos" type="integer"/>
+          </Parameters>
+          <Returns></Returns>
+        </Function>
+        <Function name="getLength" description="Returns the length of a one-dimensional array.">
+          <Parameters></Parameters>
+          <Returns>
+            <Return name="result" type="integer"/>
+          </Returns>
+        </Function>
+        <Function name="insertElement" description="Inserts a new element at the given position. In a static or dynamic array, the elements after the given position are moved down. In a dynamic array, the number of elements increments by 1.">
+          <Parameters>
+            <Parameter name="pos" type="integer"/>
+          </Parameters>
+          <Returns></Returns>
+        </Function>
+      </Context>
+      <Context name="system">
+        <Function name="arg_val" description="Returns a command line argument by position.">
+          <Parameters>
+            <Parameter name="position" type="integer"/>
+          </Parameters>
+          <Returns>
+            <Return name="result" type="string"/>
+          </Returns>
+        </Function>
+        <Function name="arr_count" description="Returns the number of rows entered during a INPUT ARRAY statement.">
+          <Parameters></Parameters>
+          <Returns>
+            <Return name="result" type="integer"/>
+          </Returns>
+        </Function>
+        <Function name="arr_curr" description="Returns the current row in a DISPLAY ARRAY or INPUT ARRAY.">
+          <Parameters></Parameters>
+          <Returns>
+            <Return name="result" type="integer"/>
+          </Returns>
+        </Function>
+        <Function name="downshift" description="Converts a string to lowercase.">
+          <Parameters>
+            <Parameter name="source" type="string"/>
+          </Parameters>
+          <Returns>
+            <Return name="result" type="string"/>
+          </Returns>
+        </Function>
+        <Function name="err_get" description="Returns the text corresponding to an error number.">
+          <Parameters>
+            <Parameter name="errnum" type="integer"/>
+          </Parameters>
+          <Returns>
+            <Return name="result" type="string"/>
+          </Returns>
+        </Function>
+        <Function name="err_print" description="Prints in the error line the text corresponding to an error number.">
+          <Parameters>
+            <Parameter name="errnum" type="integer"/>
+          </Parameters>
+          <Returns>
+          </Returns>
+        </Function>
+        <Function name="err_quit" description="Prints in the error line the text corresponding to an error number and terminates the program">
+          <Parameters>
+            <Parameter name="errnum" type="integer"/>
+          </Parameters>
+          <Returns>
+          </Returns>
+        </Function>
+        <Function name="errorlog" description="Copies the string passed as parameter into the error log file.">
+          <Parameters>
+            <Parameter name="text" type="string"/>
+          </Parameters>
+          <Returns>
+          </Returns>
+        </Function>
+        <Function name="fgl_buffertouched" description="Returns TRUE if the input buffer was modified in the current field">
+          <Parameters>
+          </Parameters>
+          <Returns>
+            <Return name="result" type="integer"/>
+          </Returns>
+        </Function>
+        <Function name="fgl_db_driver_type" description="Returns the 3-letter identifier/code of the current database driver.">
+          <Parameters>
+          </Parameters>
+          <Returns>
+            <Return name="drvtype" type="char(3)"/>
+          </Returns>
+        </Function>
+        <Function name="fgl_decimal_truncate" description="Returns a decimal truncated to the precision passed as parameter.">
+          <Parameters>
+            <Parameter name="value" type="decimal"/>
+            <Parameter name="decimals" type="integer"/>
+          </Parameters>
+          <Returns>
+            <Return name="result" type="decimal"/>
+          </Returns>
+        </Function>
+        <Function name="fgl_decimal_sqrt" description="Computes the square root of the decimal passed as parameter.">
+          <Parameters>
+            <Parameter name="value" type="decimal"/>
+          </Parameters>
+          <Returns>
+            <Return name="result" type="decimal"/>
+          </Returns>
+        </Function>
+        <Function name="fgl_decimal_exp" description="Returns the value of Euler's constant (e) raised to the power of the decimal passed as parameter">
+          <Parameters>
+            <Parameter name="value" type="decimal"/>
+          </Parameters>
+          <Returns>
+            <Return name="result" type="decimal"/>
+          </Returns>
+        </Function>
+        <Function name="fgl_decimal_logn" description="Returns the natural logarithm of the decimal passed as parameter.">
+          <Parameters>
+            <Parameter name="value" type="decimal"/>
+          </Parameters>
+          <Returns>
+            <Return name="result" type="decimal"/>
+          </Returns>
+        </Function>
+        <Function name="fgl_decimal_power" description="Raises decimal to the power of the real exponent.">
+          <Parameters>
+            <Parameter name="base" type="decimal"/>
+            <Parameter name="exp" type="decimal"/>
+          </Parameters>
+          <Returns>
+            <Return name="result" type="decimal"/>
+          </Returns>
+        </Function>
+        <Function name="fgl_dialog_getbuffer" description="Returns the text of the input buffer of the current field.">
+          <Parameters>
+          </Parameters>
+          <Returns>
+            <Return name="result" type="string"/>
+          </Returns>
+        </Function>
+        <Function name="fgl_dialog_getbufferlength" description="Returns the number of rows to feed a paged DISPLAY ARRAY.">
+          <Parameters>
+          </Parameters>
+          <Returns>
+            <Return name="result" type="integer"/>
+          </Returns>
+        </Function>
+        <Function name="fgl_dialog_getbufferstart" description="Returns the row offset of the page to feed a paged display array.">
+          <Parameters>
+          </Parameters>
+          <Returns>
+            <Return name="result" type="integer"/>
+          </Returns>
+        </Function>
+        <Function name="fgl_dialog_getcursor" description="Returns the position of the edit cursor in the current field.">
+          <Parameters>
+          </Parameters>
+          <Returns>
+            <Return name="index" type="integer"/>
+          </Returns>
+        </Function>
+        <Function name="fgl_dialog_getfieldname" description="Returns the name of the current input field.">
+          <Parameters>
+          </Parameters>
+          <Returns>
+            <Return name="result" type="string"/>
+          </Returns>
+        </Function>
+        <Function name="fgl_dialog_getkeylabel" description="Returns the label associated to a key for the current interactive instruction">
+          <Parameters>
+            <Parameter name="keyname" type="string"/>
+          </Parameters>
+          <Returns>
+            <Return name="result" type="string"/>
+          </Returns>
+        </Function>
+        <Function name="fgl_dialog_getselectionend" description="Returns the position of the last selected character in the current field.">
+          <Parameters>
+          </Parameters>
+          <Returns>
+            <Return name="position" type="integer"/>
+          </Returns>
+        </Function>
+        <Function name="fgl_dialog_infield" description="This function checks for the current input field.">
+          <Parameters>
+            <Parameter name="field-name" type="string"/>
+          </Parameters>
+          <Returns>
+            <Return name="result" type="integer"/>
+          </Returns>
+        </Function>
+        <Function name="fgl_dialog_setbuffer" description="Sets the input buffer of the current field.">
+          <Parameters>
+            <Parameter name="value" type="string"/>
+          </Parameters>
+          <Returns>
+          </Returns>
+        </Function>
+        <Function name="fgl_dialog_setcurrline" description="This function moves to a specific row in a record list.">
+          <Parameters>
+            <Parameter name="line" type="integer"/>
+            <Parameter name="row" type="integer"/>
+          </Parameters>
+          <Returns>
+          </Returns>
+        </Function>
+        <Function name="fgl_dialog_setcursor" description="This function sets the position of the edit cursor in the current field.">
+          <Parameters>
+            <Parameter name="position" type="integer"/>
+          </Parameters>
+          <Returns>
+          </Returns>
+        </Function>
+        <Function name="fgl_dialog_setfieldorder" description="This function enables or disables field order constraint.">
+          <Parameters>
+            <Parameter name="active" type="integer"/>
+          </Parameters>
+          <Returns>
+          </Returns>
+        </Function>
+        <Function name="fgl_dialog_setkeylabel" description="Sets the label associated to a key for the current interactive instruction.">
+          <Parameters>
+            <Parameter name="keyname" type="string"/>
+            <Parameter name="label" type="string"/>
+          </Parameters>
+          <Returns>
+          </Returns>
+        </Function>
+        <Function name="fgl_dialog_setselection" description="Selects the text in the current field.">
+          <Parameters>
+            <Parameter name="cursor" type="integer"/>
+            <Parameter name="end" type="integer"/>
+          </Parameters>
+          <Returns>
+          </Returns>
+        </Function>
+        <!-- TODO: pick up with fgl_drawbox-->
+      </Context>
     </Functions>
     <Packages>
       <Package name="base" type="builtin">
@@ -534,7 +781,8 @@
               </Method>
               <Method name="read" desc="Reads a list of data delimited by a separator from the ch" scope="instance">
                 <Parameters>
-                  <Parameter name="variableList" type="square-brace-list"/> <!--Need to think about how this should be represented-->
+                  <Parameter name="variableList" type="square-brace-list"/>
+                  <!--Need to think about how this should be represented-->
                 </Parameters>
                 <Returns>
                   <Return name="result" type="integer"/>
@@ -542,7 +790,8 @@
               </Method>
               <Method name="write" desc="Writes a list of data delimited by a separator to the channel." scope="instance">
                 <Parameters>
-                  <Parameter name="variableList" type="square-brace-list"/> <!--Need to think about how this should be represented-->
+                  <Parameter name="variableList" type="square-brace-list"/>
+                  <!--Need to think about how this should be represented-->
                 </Parameters>
                 <Returns>
                 </Returns>
@@ -1096,7 +1345,8 @@
               <Method name="setFieldStyle" desc="Change the style of a form field." scope="instance">
                 <Parameters>
                   <Parameter name="name" type="string"/>
-                  <Parameter name="style" type="integer"/> <!--TODO: not sure if this is an integer...the online doc might be wrong?-->
+                  <Parameter name="style" type="integer"/>
+                  <!--TODO: not sure if this is an integer...the online doc might be wrong?-->
                 </Parameters>
                 <Returns>
                 </Returns>
@@ -1843,7 +2093,8 @@
             <Methods>
               <Method name="item" desc="Returns a DOM node element by position in the node list." scope="instance">
                 <Parameters>
-                  <Parameter name="index" type="om.DomNode"/> <!--This seems wrong! Shouldn't the type be integer?-->
+                  <Parameter name="index" type="om.DomNode"/>
+                  <!--This seems wrong! Shouldn't the type be integer?-->
                 </Parameters>
                 <Returns>
                   <Return name="result" type="om.DomNode"/>

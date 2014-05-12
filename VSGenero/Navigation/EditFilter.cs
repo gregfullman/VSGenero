@@ -107,9 +107,11 @@ namespace VSGenero.Navigation
                         EditorExtensions.VariableDefinition varDef = null;
                         FunctionDefinition funcDef = null;
                         CursorPreparation cursorPrep = null;
+                        ConstantDefinition constDef = null;
+                        TypeDefinition typeDef = null;
                         // 1) first see if the caret is on a function name                                                                                                                 
                         if (!fpm.ModuleContents.FunctionDefinitions.TryGetValue(tokenText, out funcDef) &&
-                            (programContents != null && programContents.FunctionDefinitions.TryGetValue(tokenText, out funcDef)))
+                            (programContents != null && !programContents.FunctionDefinitions.TryGetValue(tokenText, out funcDef)))
                         {
                             // 1a) look for a cursor
                             CursorDeclaration cursorDecl;
@@ -126,16 +128,28 @@ namespace VSGenero.Navigation
                                 FunctionDefinition tmpFunc = IntellisenseExtensions.DetermineContainingFunction(absoluteCaretPos, fpm);
                                 if (tmpFunc != null)
                                 {
-                                    tmpFunc.Variables.TryGetValue(tokenText, out varDef);
+                                    if (!tmpFunc.Variables.TryGetValue(tokenText, out varDef))
+                                        if (!tmpFunc.Constants.TryGetValue(tokenText, out constDef))
+                                            tmpFunc.Types.TryGetValue(tokenText, out typeDef);
                                 }
-                                if (varDef == null)
+                                if (varDef == null && constDef == null && typeDef == null)
                                 {
                                     // look at module variables
                                     if (!fpm.ModuleContents.ModuleVariables.TryGetValue(tokenText, out varDef))
-                                    {
                                         // look at global variables
-                                        fpm.ModuleContents.GlobalVariables.TryGetValue(tokenText, out varDef);
-                                    }
+                                        if (!fpm.ModuleContents.GlobalVariables.TryGetValue(tokenText, out varDef) &&
+                                            (programContents != null && !programContents.GlobalVariables.TryGetValue(tokenText, out varDef)))
+                                            // look at module constants
+                                            if (!fpm.ModuleContents.ModuleConstants.TryGetValue(tokenText, out constDef))
+                                                // look at global constants
+                                                if (!fpm.ModuleContents.GlobalConstants.TryGetValue(tokenText, out constDef) &&
+                                                    (programContents != null && !programContents.GlobalConstants.TryGetValue(tokenText, out constDef)))
+                                                    // look at module types
+                                                    if (!fpm.ModuleContents.ModuleTypes.TryGetValue(tokenText, out typeDef))
+                                                        // look at global types
+                                                        if (!fpm.ModuleContents.GlobalTypes.TryGetValue(tokenText, out typeDef))
+                                                            if (programContents != null)
+                                                                programContents.GlobalTypes.TryGetValue(tokenText, out typeDef);
                                 }
                             }
                         }
@@ -143,6 +157,16 @@ namespace VSGenero.Navigation
                         if (varDef != null)
                         {
                             goToLocation = new GoToDefinitionLocation { Filename = varDef.ContainingFile, Position = varDef.Position, ColumnNumber = varDef.ColumnNumber, LineNumber = varDef.LineNumber };
+                            return goToLocation;
+                        }
+                        else if (constDef != null)
+                        {
+                            goToLocation = new GoToDefinitionLocation { Filename = constDef.ContainingFile, Position = constDef.Position, ColumnNumber = constDef.ColumnNumber, LineNumber = constDef.LineNumber };
+                            return goToLocation;
+                        }
+                        else if (typeDef != null)
+                        {
+                            goToLocation = new GoToDefinitionLocation { Filename = typeDef.ContainingFile, Position = typeDef.Position, ColumnNumber = typeDef.ColumnNumber, LineNumber = typeDef.LineNumber };
                             return goToLocation;
                         }
                         else if (funcDef != null)

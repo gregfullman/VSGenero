@@ -44,6 +44,8 @@ namespace VSGenero.EditorExtensions
 
     public class GeneroClassMethod : GeneroComponentBase
     {
+        public string ParentClass { get; set; }
+
         public enum GeneroClassScope
         {
             Static,
@@ -140,6 +142,7 @@ namespace VSGenero.EditorExtensions
 
     public class GeneroClass : GeneroComponentBase
     {
+        public string ParentPackage { get; set; }
         public bool IsStatic { get; set; }
 
         private Dictionary<string, GeneroClassMethod> _methods;
@@ -280,6 +283,7 @@ namespace VSGenero.EditorExtensions
                                                     .XPathSelectElements("gns:Class", _nsManager))
                 {
                     GeneroClass newClass = new GeneroClass();
+                    newClass.ParentPackage = newPackage.Name;
                     newClass.Name = (string)classElement.Attribute("name");
                     newClass.IsStatic = (bool)classElement.Attribute("isStatic");
 
@@ -287,6 +291,7 @@ namespace VSGenero.EditorExtensions
                                                               .XPathSelectElements("gns:Method", _nsManager))
                     {
                         GeneroClassMethod newMethod = new GeneroClassMethod();
+                        newMethod.ParentClass = newClass.Name;
                         newMethod.Name = (string)methodElement.Attribute("name");
                         newMethod.Description = (string)methodElement.Attribute("desc");
                         newMethod.Scope = ((string)methodElement.Attribute("scope") == "static") ?

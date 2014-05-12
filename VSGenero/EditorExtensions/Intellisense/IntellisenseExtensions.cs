@@ -59,21 +59,50 @@ namespace VSGenero.EditorExtensions.Intellisense
             return sb.ToString();
         }
 
+        internal static string GetIntellisenseText(this GeneroPackage generoPackage)
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.AppendFormat("(package) {0}", generoPackage.Name);
+            if (!string.IsNullOrWhiteSpace(generoPackage.Description))
+            {
+                sb.AppendFormat("\n{0}", generoPackage.Description);
+            }
+            return sb.ToString();
+        }
+
+        internal static string GetIntellisenseText(this GeneroClass generoClass)
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.AppendFormat("(class) {0}.{1}", generoClass.ParentPackage, generoClass.Name);
+            if (!string.IsNullOrWhiteSpace(generoClass.Description))
+            {
+                sb.AppendFormat("\n{0}", generoClass.Description);
+            }
+            return sb.ToString();
+        }
+
         internal static string GetIntellisenseText(this GeneroClassMethod classMethod)
         {
             StringBuilder sb = new StringBuilder();
-            sb.Append("(class method) ");
-            sb.Append(classMethod.Name + "(");
-            List<GeneroClassMethodParameter> sortedParams = classMethod.Parameters.Values.OrderBy(x => x.Position).ToList();
-            for (int i = 0; i < sortedParams.Count; i++)
+            sb.AppendFormat("(class {0} method) ", classMethod.ParentClass);
+            if (!string.IsNullOrWhiteSpace(classMethod.Description))
             {
-                sb.Append(sortedParams[i].Type + " " + sortedParams[i].Name);
-                if (i + 1 < sortedParams.Count)
-                {
-                    sb.Append(", ");
-                }
+                sb.AppendFormat("{0}", classMethod.Description);
             }
-            sb.Append(")");
+            else
+            {
+                sb.Append(classMethod.ParentClass + "." + classMethod.Name + "(");
+                List<GeneroClassMethodParameter> sortedParams = classMethod.Parameters.Values.OrderBy(x => x.Position).ToList();
+                for (int i = 0; i < sortedParams.Count; i++)
+                {
+                    sb.Append(sortedParams[i].Type + " " + sortedParams[i].Name);
+                    if (i + 1 < sortedParams.Count)
+                    {
+                        sb.Append(", ");
+                    }
+                }
+                sb.Append(")");
+            }
             return sb.ToString();
         }
 
@@ -527,7 +556,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             return EditorExtensions.GetLineString(currentPoint, startPosition);
         }
 
-        
+
 
         private static GeneroReverseParser GetReverseParser(IIntellisenseSession session, int startPosition = -1)
         {
