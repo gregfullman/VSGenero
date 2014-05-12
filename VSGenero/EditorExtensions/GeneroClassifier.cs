@@ -178,7 +178,7 @@ namespace VSGenero.EditorExtensions
                 do
                 {
                     token = _lexer.NextToken();
-                    if (token != null && token.TokenType != GeneroTokenType.Eof)
+                    if (token.TokenType != GeneroTokenType.Eof && token.TokenType != GeneroTokenType.Unknown)
                     {
                         ClassificationTag tag;
                         // if the piece of text was recognizable, let's classify it
@@ -219,7 +219,7 @@ namespace VSGenero.EditorExtensions
                         }
                     }
                 }
-                while (token != null && token.TokenType != GeneroTokenType.Eof);
+                while (token.TokenType != GeneroTokenType.Unknown && token.TokenType != GeneroTokenType.Eof);
             }
         }
 

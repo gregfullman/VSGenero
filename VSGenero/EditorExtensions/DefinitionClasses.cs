@@ -86,6 +86,28 @@ namespace VSGenero.EditorExtensions
             }
         }
 
+        private ConcurrentDictionary<string, ConstantDefinition> _constants;
+        public ConcurrentDictionary<string, ConstantDefinition> Constants
+        {
+            get
+            {
+                if (_constants == null)
+                    _constants = new ConcurrentDictionary<string, ConstantDefinition>();
+                return _constants;
+            }
+        }
+
+        private ConcurrentDictionary<string, TypeDefinition> _types;
+        public ConcurrentDictionary<string, TypeDefinition> Types
+        {
+            get
+            {
+                if (_types == null)
+                    _types = new ConcurrentDictionary<string, TypeDefinition>();
+                return _types;
+            }
+        }
+
         private List<string> _parameters;
         public List<string> Parameters
         {
@@ -109,14 +131,13 @@ namespace VSGenero.EditorExtensions
         }
     }
 
-    public class ConstantDefinition : GeneroLanguageItemDefinition
+    public class ConstantDefinition : VariableDefinition
     {
-        // TODO: 
+        public string Value { get; set; }
     }
 
-    public class TypeDefinition : GeneroLanguageItemDefinition
+    public class TypeDefinition : VariableDefinition
     {
-        // TODO:
     }
 
     public class VariableDefinition : GeneroLanguageItemDefinition
@@ -178,6 +199,27 @@ namespace VSGenero.EditorExtensions
             foreach (var recEle in RecordElements)
                 ret.RecordElements.AddOrUpdate(recEle.Key, recEle.Value.Clone(), (x, y) => recEle.Value.Clone());
             return ret;
+        }
+
+        public void CloneContents(VariableDefinition clone)
+        {
+            if(string.IsNullOrWhiteSpace(Name))
+                Name = clone.Name;
+            if (string.IsNullOrWhiteSpace(Type))
+                Type = clone.Type;
+            IsMimicType = clone.IsMimicType;
+            IsRecordType = clone.IsRecordType;
+            ArrayType = clone.ArrayType;
+            if(Position <= 0)
+                Position = clone.Position;
+            if(ColumnNumber <= 0)
+                ColumnNumber = clone.ColumnNumber;
+            if (LineNumber <= 0)
+                LineNumber = clone.LineNumber;
+            if(string.IsNullOrWhiteSpace(ContainingFile))
+                ContainingFile = clone.ContainingFile;
+            foreach (var recEle in clone.RecordElements)
+                RecordElements.AddOrUpdate(recEle.Key, recEle.Value.Clone(), (x, y) => recEle.Value.Clone());
         }
     }
 }

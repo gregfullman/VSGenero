@@ -112,6 +112,28 @@ namespace VSGenero.EditorExtensions
             }
         }
 
+        private ConcurrentDictionary<string, ConstantDefinition> _globalConstants;
+        public ConcurrentDictionary<string, ConstantDefinition> GlobalConstants
+        {
+            get
+            {
+                if (_globalConstants == null)
+                    _globalConstants = new ConcurrentDictionary<string, ConstantDefinition>();
+                return _globalConstants;
+            }
+        }
+
+        private ConcurrentDictionary<string, TypeDefinition> _globalTypes;
+        public ConcurrentDictionary<string, TypeDefinition> GlobalTypes
+        {
+            get
+            {
+                if (_globalTypes == null)
+                    _globalTypes = new ConcurrentDictionary<string, TypeDefinition>();
+                return _globalTypes;
+            }
+        }
+
         private ConcurrentDictionary<string, VariableDefinition> _moduleVariables;
         public ConcurrentDictionary<string, VariableDefinition> ModuleVariables
         {
@@ -120,6 +142,28 @@ namespace VSGenero.EditorExtensions
                 if (_moduleVariables == null)
                     _moduleVariables = new ConcurrentDictionary<string, VariableDefinition>();
                 return _moduleVariables;
+            }
+        }
+
+        private ConcurrentDictionary<string, ConstantDefinition> _moduleConstants;
+        public ConcurrentDictionary<string, ConstantDefinition> ModuleConstants
+        {
+            get
+            {
+                if (_moduleConstants == null)
+                    _moduleConstants = new ConcurrentDictionary<string, ConstantDefinition>();
+                return _moduleConstants;
+            }
+        }
+
+        private ConcurrentDictionary<string, TypeDefinition> _moduleTypes;
+        public ConcurrentDictionary<string, TypeDefinition> ModuleTypes
+        {
+            get
+            {
+                if (_moduleTypes == null)
+                    _moduleTypes = new ConcurrentDictionary<string, TypeDefinition>();
+                return _moduleTypes;
             }
         }
 
@@ -248,6 +292,18 @@ namespace VSGenero.EditorExtensions
                 _moduleContents.GlobalVariables.AddOrUpdate(globalVarKvp.Key, globalVarKvp.Value, (x, y) => globalVarKvp.Value);
             }
 
+            // update the global constants dictionary
+            foreach (var globalConst in newModuleContents.GlobalConstants)
+            {
+                _moduleContents.GlobalConstants.AddOrUpdate(globalConst.Key, globalConst.Value, (x, y) => globalConst.Value);
+            }
+
+            // update the global types dictionary
+            foreach (var globalType in newModuleContents.GlobalTypes)
+            {
+                _moduleContents.GlobalTypes.AddOrUpdate(globalType.Key, globalType.Value, (x, y) => globalType.Value);
+            }
+
             // Update the module functions dictionary
             foreach (var programFuncKvp in newModuleContents.FunctionDefinitions.Where(x => !x.Value.Private))
             {
@@ -309,7 +365,7 @@ namespace VSGenero.EditorExtensions
                 _moduleContents.ContentFilename = newContents.ContentFilename;
 
             // Function definitions
-            foreach(var rem in _moduleContents.FunctionDefinitions.Where(x => x.Value.ContainingFile == newContents.ContentFilename && 
+            foreach (var rem in _moduleContents.FunctionDefinitions.Where(x => x.Value.ContainingFile == newContents.ContentFilename &&
                                                                               !newContents.FunctionDefinitions.ContainsKey(x.Key)).ToList())
             {
                 FunctionDefinition temp;
@@ -329,9 +385,9 @@ namespace VSGenero.EditorExtensions
             }
             foreach (var globDef in newContents.GlobalVariables)
             {
-                _moduleContents.GlobalVariables.AddOrUpdate(globDef.Key, globDef.Value, (x,y) => globDef.Value);
+                _moduleContents.GlobalVariables.AddOrUpdate(globDef.Key, globDef.Value, (x, y) => globDef.Value);
             }
-           
+
             // Module variables
             foreach (var rem in _moduleContents.ModuleVariables.Where(x => x.Value.ContainingFile == newContents.ContentFilename &&
                                                                               !newContents.ModuleVariables.ContainsKey(x.Key)).ToList())
@@ -341,7 +397,7 @@ namespace VSGenero.EditorExtensions
             }
             foreach (var modDef in newContents.ModuleVariables)
             {
-                _moduleContents.ModuleVariables.AddOrUpdate(modDef.Key, modDef.Value, (x,y) => modDef.Value);
+                _moduleContents.ModuleVariables.AddOrUpdate(modDef.Key, modDef.Value, (x, y) => modDef.Value);
             }
 
             // SQL cursors
@@ -381,7 +437,31 @@ namespace VSGenero.EditorExtensions
             }
             foreach (var tempDef in newContents.TempTables)
             {
-                _moduleContents.TempTables.AddOrUpdate(tempDef.Key, tempDef.Value, (x,y) => tempDef.Value);
+                _moduleContents.TempTables.AddOrUpdate(tempDef.Key, tempDef.Value, (x, y) => tempDef.Value);
+            }
+
+            // Constant defs
+            foreach (var rem in _moduleContents.GlobalConstants.Where(x => x.Value.ContainingFile == newContents.ContentFilename &&
+                                                                              !newContents.GlobalConstants.ContainsKey(x.Key)).ToList())
+            {
+                ConstantDefinition temp;
+                _moduleContents.GlobalConstants.TryRemove(rem.Key, out temp);
+            }
+            foreach (var tempDef in newContents.GlobalConstants)
+            {
+                _moduleContents.GlobalConstants.AddOrUpdate(tempDef.Key, tempDef.Value, (x, y) => tempDef.Value);
+            }
+
+            // Type defs
+            foreach (var rem in _moduleContents.GlobalTypes.Where(x => x.Value.ContainingFile == newContents.ContentFilename &&
+                                                                              !newContents.GlobalTypes.ContainsKey(x.Key)).ToList())
+            {
+                TypeDefinition temp;
+                _moduleContents.GlobalTypes.TryRemove(rem.Key, out temp);
+            }
+            foreach (var tempDef in newContents.GlobalTypes)
+            {
+                _moduleContents.GlobalTypes.AddOrUpdate(tempDef.Key, tempDef.Value, (x, y) => tempDef.Value);
             }
         }
 
@@ -397,7 +477,7 @@ namespace VSGenero.EditorExtensions
                 }
 
                 var tempModuleContents = e.Result as GeneroModuleContents;
-                
+
                 // merge the module contents
                 MergeNewContents(tempModuleContents);
 
@@ -526,7 +606,7 @@ namespace VSGenero.EditorExtensions
                     return;
                 }
                 // if the token is not null, we can look at it
-                if (token != null)
+                if (token.TokenType != GeneroTokenType.Unknown)
                 {
                     // break out of loop if at end of file
                     if (token.TokenType == GeneroTokenType.Eof)
@@ -632,7 +712,7 @@ namespace VSGenero.EditorExtensions
             if (_fss == FunctionSearchState.LookingForFunctionStart &&
                 _gss == GlobalsSearchState.LookingForGlobalsKeyword)
             {
-                if (token.LowercaseText == "globals" && (prevToken == null || prevToken.LowercaseText != "end"))
+                if (token.LowercaseText == "globals" && prevToken.LowercaseText != "end")
                 {
                     // we want to be in globals mode
                     _gss = GlobalsSearchState.LookingForEndKeyword;
@@ -646,8 +726,8 @@ namespace VSGenero.EditorExtensions
                     else
                     {
                         // now use the general variable definition consumer
-                        ret = TryParseVarConstTypeDefinitions(ref token, ref prevToken, ref _vss, _moduleContents.GlobalVariables, ref _currentVariableDef,
-                                                            _variableBuffer, existingGlobalVarsParsed, new[] { "end", "define" });
+                        ret = TryParseVarConstTypeDefinitions(ref token, ref prevToken, ref _vss, _moduleContents.GlobalVariables, _moduleContents.GlobalTypes, _moduleContents.GlobalConstants, ref _currentVariableDef,
+                                                            _variableBuffer, existingGlobalVarsParsed, new[] { "end", "define", "type", "constant" });
                         // TODO: need to consume "end" and "global"
                     }
 
@@ -671,8 +751,8 @@ namespace VSGenero.EditorExtensions
                 _vss == VariableSearchState.LookingForDefineKeyword)
             {
                 // now use the general variable definition consumer
-                ret = TryParseVarConstTypeDefinitions(ref token, ref prevToken, ref _vss, _moduleContents.ModuleVariables, ref _currentVariableDef,
-                                                  _variableBuffer, existingModuleVarsParsed, new[] { "function", "define" });
+                ret = TryParseVarConstTypeDefinitions(ref token, ref prevToken, ref _vss, _moduleContents.ModuleVariables, _moduleContents.ModuleTypes, _moduleContents.ModuleConstants, ref _currentVariableDef,
+                                                  _variableBuffer, existingModuleVarsParsed, new[] { "function", "define", "type", "constant" });
             }
             return ret;
         }
@@ -703,7 +783,11 @@ namespace VSGenero.EditorExtensions
         {
             LookingForDefineKeyword,
             LookingForVariableName,
-            LookingForVariableType
+            LookingForTypeName,
+            LookingForConstName,
+            LookingForVariableType,
+            LookingForSubTypeType,
+            LookingForConstValue
         }
 
         private VariableSearchState _vss;
@@ -713,12 +797,17 @@ namespace VSGenero.EditorExtensions
         private bool TryParseVarConstTypeDefinitions(ref GeneroToken token,
                                                  ref GeneroToken prevToken,
                                                  ref VariableSearchState searchState,
-                                                 ConcurrentDictionary<string, VariableDefinition> scope,
+                                                 ConcurrentDictionary<string, VariableDefinition> scopeVariables,
+                                                 ConcurrentDictionary<string, TypeDefinition> scopeTypes,
+                                                 ConcurrentDictionary<string, ConstantDefinition> scopeConstants,
                                                  ref VariableDefinition currentVariableDef,
                                                  List<VariableDefinition> variableBuffer,
                                                  Dictionary<string, int> variablesCollected,
                                                  string[] advanceBlacklist = null)
         {
+            ConstantDefinition currentConstantDef = null;
+            TypeDefinition currentTypeDef = null;
+
             bool valid = false;
             bool end = false;
             while (!end)
@@ -734,6 +823,16 @@ namespace VSGenero.EditorExtensions
                                 searchState = VariableSearchState.LookingForVariableName;
 
                                 // go to the next token
+                                AdvanceToken(ref token, ref prevToken);
+                            }
+                            else if (token.LowercaseText == "constant")
+                            {
+                                searchState = VariableSearchState.LookingForConstName;
+                                AdvanceToken(ref token, ref prevToken);
+                            }
+                            else if (token.LowercaseText == "type")
+                            {
+                                searchState = VariableSearchState.LookingForTypeName;
                                 AdvanceToken(ref token, ref prevToken);
                             }
                             else
@@ -765,6 +864,53 @@ namespace VSGenero.EditorExtensions
                             }
                         }
                         break;
+                    case VariableSearchState.LookingForTypeName:
+                        {
+                            // if the next token is an identifier or keyword, we can get a name
+                            if (token.TokenType == GeneroTokenType.Identifier || token.TokenType == GeneroTokenType.Keyword)
+                            {
+                                currentTypeDef = new TypeDefinition
+                                {
+                                    Name = token.TokenText,
+                                    Position = token.StartPosition,
+                                    LineNumber = token.LineNumber,
+                                    ColumnNumber = token.ColumnNumber,
+                                };
+                                searchState = VariableSearchState.LookingForSubTypeType;
+
+                                // go to the next token
+                                AdvanceToken(ref token, ref prevToken);
+                            }
+                            else
+                            {
+                                // give up. If we don't have a variable name, there's not much we can do
+                                currentTypeDef = null;
+                                searchState = VariableSearchState.LookingForDefineKeyword;
+                            }
+                        }
+                        break;
+                    case VariableSearchState.LookingForConstName:
+                        {
+                            if (token.TokenType == GeneroTokenType.Identifier || token.TokenType == GeneroTokenType.Keyword)
+                            {
+                                currentConstantDef = new ConstantDefinition
+                                {
+                                    Name = token.TokenText,
+                                    Position = token.StartPosition,
+                                    LineNumber = token.LineNumber,
+                                    ColumnNumber = token.ColumnNumber
+                                };
+                                searchState = VariableSearchState.LookingForConstValue;
+                                // go to the next token
+                                AdvanceToken(ref token, ref prevToken);
+                            }
+                            else
+                            {
+                                currentConstantDef = null;
+                                searchState = VariableSearchState.LookingForDefineKeyword;
+                            }
+                        }
+                        break;
                     case VariableSearchState.LookingForVariableType:
                         {
                             if (token.LowercaseText == ",")
@@ -784,9 +930,90 @@ namespace VSGenero.EditorExtensions
                                                    ref searchState,
                                                    ref currentVariableDef,
                                                    ref variableBuffer,
-                                                   scope, variablesCollected, advanceBlacklist);
+                                                   scopeVariables, variablesCollected, advanceBlacklist);
                             }
 
+                        }
+                        break;
+                    case VariableSearchState.LookingForSubTypeType:
+                        {
+                            VariableSearchState typeVss = VariableSearchState.LookingForVariableType;
+                            VariableDefinition dummyVarDef = new VariableDefinition();
+                            dummyVarDef.CloneContents(currentTypeDef);
+                            List<VariableDefinition> dummyVarList = new List<VariableDefinition>();
+                            ConcurrentDictionary<string, VariableDefinition> dummyScopeVars = new ConcurrentDictionary<string, VariableDefinition>();
+                            Dictionary<string, int> dummyVarsCollected = new Dictionary<string, int>();
+                            if (GetVariableType(ref token,
+                                                   ref prevToken,
+                                                   ref typeVss,
+                                                   ref dummyVarDef,
+                                                   ref dummyVarList,
+                                                   dummyScopeVars, dummyVarsCollected, advanceBlacklist))
+                            {
+                                foreach(var scopeVar in dummyScopeVars)     // there should only be one
+                                    currentTypeDef.CloneContents(scopeVar.Value);
+                                if (typeVss == VariableSearchState.LookingForVariableName)
+                                    searchState = VariableSearchState.LookingForTypeName;
+                                else
+                                    searchState = VariableSearchState.LookingForDefineKeyword;
+                                scopeTypes.AddOrUpdate(currentTypeDef.Name, currentTypeDef, (x, y) => currentTypeDef);
+                            }
+                            else
+                            {
+                                currentTypeDef = null;
+                                searchState = VariableSearchState.LookingForDefineKeyword;
+                            }
+                        }
+                        break;
+                    case VariableSearchState.LookingForConstValue:
+                        {
+                            if (token.TokenType == GeneroTokenType.Keyword)
+                            {
+                                VariableSearchState tempVss = VariableSearchState.LookingForConstValue;
+                                List<VariableDefinition> dummyList = new List<VariableDefinition>();
+                                VariableDefinition dummyVar = currentConstantDef;
+                                // a type was specified for the constant
+                                if (!TryGetActualVariableType(ref token, ref prevToken, ref tempVss, ref dummyVar, dummyList))
+                                {
+                                    currentConstantDef = null;
+                                    searchState = VariableSearchState.LookingForDefineKeyword;
+                                }
+                                else
+                                {
+                                    currentConstantDef.Type = dummyVar.Type;
+                                }
+                            }
+
+                            if (token.LowercaseText != "=")
+                            {
+                                currentConstantDef = null;
+                                searchState = VariableSearchState.LookingForDefineKeyword;
+                            }
+                            else
+                            {
+                                AdvanceToken(ref token, ref prevToken);
+                            }
+
+                            if (!GetConstantValue(ref token, ref prevToken, ref currentConstantDef))
+                            {
+                                currentConstantDef = null;
+                                searchState = VariableSearchState.LookingForDefineKeyword;
+                            }
+                            else
+                            {
+                                // add the current constant def to the scope given.
+                                scopeConstants.AddOrUpdate(currentConstantDef.Name, currentConstantDef, (x, y) => currentConstantDef);
+                                AdvanceToken(ref token, ref prevToken);
+                                if (token.LowercaseText == ",")
+                                {
+                                    searchState = VariableSearchState.LookingForConstName;
+                                    AdvanceToken(ref token, ref prevToken);
+                                }
+                                else
+                                {
+                                    searchState = VariableSearchState.LookingForDefineKeyword;
+                                }
+                            }
                         }
                         break;
                 }
@@ -794,7 +1021,137 @@ namespace VSGenero.EditorExtensions
             return valid;
         }
 
+        private bool GetConstantValue(ref GeneroToken token, ref GeneroToken prevToken, ref ConstantDefinition constantDef)
+        {
+            if (token.TokenType == GeneroTokenType.String || token.TokenType == GeneroTokenType.Number)
+            {
+                constantDef.Value = token.TokenText;
+                return true;
+            }
+            else
+            {
+                constantDef.Value = "";
+                // there are some constant values that can span multiple tokens
+                if (token.LowercaseText == "mdy" &&
+                    GetConstantMDYValue(ref token, ref prevToken, ref constantDef))
+                {
+                    return true;
+                }
+                else if ((token.LowercaseText == "datetime" || token.LowercaseText == "interval") &&
+                    GetConstantDatetimeIntervalValue(ref token, ref prevToken, ref constantDef))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
 
+        private bool GetConstantMDYValue(ref GeneroToken token, ref GeneroToken prevToken, ref ConstantDefinition constantDef)
+        {
+            string value = token.TokenText;
+            AdvanceToken(ref token, ref prevToken);
+            if (token.LowercaseText != "(")
+                return false;
+            value += token.TokenText;
+            AdvanceToken(ref token, ref prevToken);
+            if (token.TokenType != GeneroTokenType.Number)
+                return false;
+            value += token.TokenText;
+            AdvanceToken(ref token, ref prevToken);
+            if (token.LowercaseText != ",")
+                return false;
+            value += token.TokenText;
+            AdvanceToken(ref token, ref prevToken);
+            if (token.TokenType != GeneroTokenType.Number)
+                return false;
+            value += token.TokenText;
+            AdvanceToken(ref token, ref prevToken);
+            if (token.LowercaseText != ",")
+                return false;
+            value += token.TokenText;
+            AdvanceToken(ref token, ref prevToken);
+            if (token.TokenType != GeneroTokenType.Number)
+                return false;
+            value += token.TokenText;
+            AdvanceToken(ref token, ref prevToken);
+            if (token.LowercaseText != ")")
+                return false;
+            value += token.TokenText;
+            constantDef.Value = value;
+            return true;
+        }
+
+        private bool GetConstantDatetimeIntervalValue(ref GeneroToken token, ref GeneroToken prevToken, ref ConstantDefinition constantDef)
+        {
+            string value = token.TokenText;
+            AdvanceToken(ref token, ref prevToken);
+            if (token.LowercaseText != "(")
+                return false;
+            value += token.TokenText;
+            bool rightParenFound = false;
+            while (AdvanceToken(ref token, ref prevToken) &&
+                  (token.TokenType == GeneroTokenType.Number || token.TokenType == GeneroTokenType.Symbol))
+            {
+                value += token.TokenText;
+                if (token.LowercaseText == ")")
+                {
+                    rightParenFound = true;
+                    break;
+                }
+            }
+            if (!rightParenFound)
+                return false;
+
+            AdvanceToken(ref token, ref prevToken);
+            if (token.TokenType == GeneroTokenType.Keyword)
+            {
+                value += token.TokenText;
+                AdvanceToken(ref token, ref prevToken);
+
+                if (token.TokenText == "(")
+                {
+                    // handle FRACTION(1) format
+                    value += token.TokenText;
+                    AdvanceToken(ref token, ref prevToken);
+                    if (token.TokenType != GeneroTokenType.Number)
+                        return false;
+                    value += token.TokenText;
+                    AdvanceToken(ref token, ref prevToken);
+                    if (token.TokenText != ")")
+                        return false;
+                    value += token.TokenText;
+                    AdvanceToken(ref token, ref prevToken);
+                }
+
+                if (token.LowercaseText == "to")
+                {
+                    value += token.TokenText;
+                    AdvanceToken(ref token, ref prevToken);
+                    if (token.TokenType == GeneroTokenType.Keyword)
+                    {
+                        value += token.TokenText;
+                        AdvanceToken(ref token, ref prevToken);
+                        if (token.TokenText == "(")
+                        {
+                            value += token.TokenText;
+                            // handle FRACTION(1) format
+                            AdvanceToken(ref token, ref prevToken);
+                            if (token.TokenType != GeneroTokenType.Number)
+                                return false;
+                            value += token.TokenText;
+                            AdvanceToken(ref token, ref prevToken);
+                            if (token.TokenText != ")")
+                                return false;
+                            value += token.TokenText;
+                            AdvanceToken(ref token, ref prevToken);
+                        }
+                        constantDef.Value = value;
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
 
         private bool GetVariableType(ref GeneroToken token,
                                                     ref GeneroToken prevToken,
@@ -831,6 +1188,18 @@ namespace VSGenero.EditorExtensions
                     if (token.LowercaseText == "like")
                         continue;
 
+                    if (token.LowercaseText == "attribute")
+                    {
+                        AdvanceToken(ref token, ref prevToken);
+                        if (token.LowercaseText == "(")
+                        {
+                            // TODO: get the serialization attributes
+                            valid = GetSerializationAttributes(ref token, ref prevToken, ref currentVariableDef);
+                        }
+                        else
+                            valid = false;
+                    }
+
                     valid = GetVariablesRecordType(ref token, ref prevToken, ref searchState, ref currentVariableDef, variableBuffer);
                     break;
                 }
@@ -848,6 +1217,17 @@ namespace VSGenero.EditorExtensions
                                 valid = false;
                                 searchState = VariableSearchState.LookingForDefineKeyword;
                                 break;
+                            }
+                            else if (token.LowercaseText == "attribute")
+                            {
+                                AdvanceToken(ref token, ref prevToken);
+                                if (token.LowercaseText == "(")
+                                {
+                                    // TODO: get the serialization attributes
+                                    valid = GetSerializationAttributes(ref token, ref prevToken, ref currentVariableDef);
+                                }
+                                else
+                                    valid = false;
                             }
                         }
                         else
@@ -899,6 +1279,26 @@ namespace VSGenero.EditorExtensions
                         searchState = VariableSearchState.LookingForDefineKeyword;
                         break;
                     }
+                    if (token.LowercaseText == "attribute")
+                    {
+                        AdvanceToken(ref token, ref prevToken);
+                        if (token.LowercaseText == "(")
+                        {
+                            // TODO: get the serialization attributes
+                            valid = GetSerializationAttributes(ref token, ref prevToken, ref currentVariableDef);
+                            if (!valid)
+                            {
+                                searchState = VariableSearchState.LookingForDefineKeyword;
+                                break;
+                            }
+                        }
+                        else
+                        {
+                            valid = false;
+                            searchState = VariableSearchState.LookingForDefineKeyword;
+                            break;
+                        }
+                    }
                 }
                 else if (token.LowercaseText == "of")
                 {
@@ -910,6 +1310,23 @@ namespace VSGenero.EditorExtensions
                         searchState = VariableSearchState.LookingForDefineKeyword;
                         break;
                     }
+                }
+                else if (token.LowercaseText == "with")
+                {
+                    // this is a multi-dimensionsal dynamic array
+                    if (!AdvanceToken(ref token, ref prevToken) || token.LowercaseText != "dimension")
+                    {
+                        valid = false;
+                        searchState = VariableSearchState.LookingForDefineKeyword;
+                        break;
+                    }
+                    if (!AdvanceToken(ref token, ref prevToken) || token.TokenType != GeneroTokenType.Number)
+                    {
+                        valid = false;
+                        searchState = VariableSearchState.LookingForDefineKeyword;
+                        break;
+                    }
+                    AdvanceToken(ref token, ref prevToken); // allow the "of" case handle the rest
                 }
                 else
                 {
@@ -1020,9 +1437,11 @@ namespace VSGenero.EditorExtensions
             List<VariableDefinition> recordVariableBuffer = new List<VariableDefinition>();
             VariableDefinition backup = currentVariableDef.Clone();
             ConcurrentDictionary<string, VariableDefinition> elementList = new ConcurrentDictionary<string, VariableDefinition>();
+            ConcurrentDictionary<string, ConstantDefinition> dummyConstList = new ConcurrentDictionary<string, ConstantDefinition>();
+            ConcurrentDictionary<string, TypeDefinition> dummyTypeList = new ConcurrentDictionary<string, TypeDefinition>();
 
             Dictionary<string, int> temp = new Dictionary<string, int>();
-            bool valid = TryParseVarConstTypeDefinitions(ref token, ref prevToken, ref recordVss, elementList, ref recordCurrentVariableDef, recordVariableBuffer, temp);
+            bool valid = TryParseVarConstTypeDefinitions(ref token, ref prevToken, ref recordVss, elementList, dummyTypeList, dummyConstList, ref recordCurrentVariableDef, recordVariableBuffer, temp);
 
             if (!valid)
             {
@@ -1077,8 +1496,7 @@ namespace VSGenero.EditorExtensions
             {
                 currentVariableDef.Type += token.TokenText;
                 AdvanceToken(ref token, ref prevToken);
-                if (token == null ||
-                   token.TokenType == GeneroTokenType.Eof ||
+                if (token.TokenType == GeneroTokenType.Eof ||
                    (token.TokenType != GeneroTokenType.Identifier && token.TokenType != GeneroTokenType.Keyword))
                 {
                     return false;
@@ -1120,6 +1538,19 @@ namespace VSGenero.EditorExtensions
             }
             else
             {
+                // check for the "attribute" keyword.
+                if (token.LowercaseText == "attribute")
+                {
+                    AdvanceToken(ref token, ref prevToken);
+                    if (token.LowercaseText == "(")
+                    {
+                        // TODO: get the serialization attributes
+                        valid = GetSerializationAttributes(ref token, ref prevToken, ref currentVariableDef);
+                    }
+                    else
+                        valid = false;
+                }
+
                 // determine what our search state is now...if all is good, the token has already been advanced
                 searchState = token.LowercaseText == "," ? VariableSearchState.LookingForVariableName : VariableSearchState.LookingForDefineKeyword;
 
@@ -1127,6 +1558,30 @@ namespace VSGenero.EditorExtensions
                 PopulateBufferedVariables(variableBuffer, currentVariableDef);
             }
             return valid;
+        }
+
+        private bool GetSerializationAttributes(ref GeneroToken token, ref GeneroToken prevToken, ref VariableDefinition currentVariableDefinition)
+        {
+            // For right now, don't do anything, just go through the attributes until the close paren
+            while (AdvanceToken(ref token, ref prevToken))
+            {
+                if (token.LowercaseText == ")")
+                {
+                    AdvanceToken(ref token, ref prevToken);
+                    return true;
+                }
+                else
+                {
+                    if (token.TokenType != GeneroTokenType.Identifier &&
+                        token.LowercaseText != "=" &&
+                        token.TokenType != GeneroTokenType.String &&
+                        token.LowercaseText != ",")
+                    {
+                        return false;
+                    }
+                }
+            }
+            return false;
         }
 
         private bool GetVariableTypeDimension(ref GeneroToken token,
@@ -1183,38 +1638,46 @@ namespace VSGenero.EditorExtensions
             // For right now, let's just assume that the keywords used for start and end specifiers
             // are correct keywords.
             // TODO: at some point, I'd like to check for correct keywords in use.
-            if (token != null && token.TokenType == GeneroTokenType.Keyword)
+            if (token.TokenType == GeneroTokenType.Keyword)
             {
+                currentVariableDefinition.Type += token.TokenText;
                 AdvanceToken(ref token, ref prevToken);
 
-                if (token != null && token.TokenText == "(")
+                if (token.TokenText == "(")
                 {
                     // handle FRACTION(1) format
+                    currentVariableDefinition.Type += token.TokenText;
                     AdvanceToken(ref token, ref prevToken);
-                    if (token == null || token.TokenType != GeneroTokenType.Number)
+                    if (token.TokenType != GeneroTokenType.Number)
                         return false;
+                    currentVariableDefinition.Type += token.TokenText;
                     AdvanceToken(ref token, ref prevToken);
-                    if (token == null || token.TokenText != ")")
+                    if (token.TokenText != ")")
                         return false;
+                    currentVariableDefinition.Type += token.TokenText;
                     AdvanceToken(ref token, ref prevToken);
                 }
 
-                if (token != null && token.LowercaseText == "to")
+                if (token.LowercaseText == "to")
                 {
+                    currentVariableDefinition.Type += token.TokenText;
                     AdvanceToken(ref token, ref prevToken);
-                    if (token != null && token.TokenType == GeneroTokenType.Keyword)
+                    if (token.TokenType == GeneroTokenType.Keyword)
                     {
+                        currentVariableDefinition.Type += token.TokenText;
                         AdvanceToken(ref token, ref prevToken);
-
-                        if (token != null && token.TokenText == "(")
+                        if (token.TokenText == "(")
                         {
+                            currentVariableDefinition.Type += token.TokenText;
                             // handle FRACTION(1) format
                             AdvanceToken(ref token, ref prevToken);
-                            if (token == null || token.TokenType != GeneroTokenType.Number)
+                            if (token.TokenType != GeneroTokenType.Number)
                                 return false;
+                            currentVariableDefinition.Type += token.TokenText;
                             AdvanceToken(ref token, ref prevToken);
-                            if (token == null || token.TokenText != ")")
+                            if (token.TokenText != ")")
                                 return false;
+                            currentVariableDefinition.Type += token.TokenText;
                             AdvanceToken(ref token, ref prevToken);
                         }
                         valid = true;
@@ -1275,10 +1738,10 @@ namespace VSGenero.EditorExtensions
         {
             prevToken = token;
             token = _lexer.NextToken();
-            while (token != null &&
+            while (token.TokenType != GeneroTokenType.Unknown &&
                    token.TokenType == GeneroTokenType.Comment)
                 token = _lexer.NextToken();
-            return token != null;
+            return token.TokenType != GeneroTokenType.Unknown;
         }
 
         #endregion General Variable Consumption
@@ -1330,16 +1793,16 @@ namespace VSGenero.EditorExtensions
                                 {
                                     _currentFunctionDef = new FunctionDefinition { Main = false, Position = token.StartPosition, LineNumber = token.LineNumber, ColumnNumber = token.ColumnNumber, Report = false };
                                     // check to see if the previous token is "private"
-                                    if (prevToken != null && prevToken.LowercaseText == "private")
+                                    if (prevToken.LowercaseText == "private")
                                         _currentFunctionDef.Private = true;
                                     _fss = FunctionSearchState.LookingForFunctionName;
                                     AdvanceToken(ref token, ref prevToken);
                                 }
-                                else if (token.LowercaseText == "report" && !(prevToken != null && prevToken.LowercaseText == "to"))
+                                else if (token.LowercaseText == "report" && prevToken.LowercaseText != "to")
                                 {
                                     _currentFunctionDef = new FunctionDefinition { Main = false, Position = token.StartPosition, LineNumber = token.LineNumber, ColumnNumber = token.ColumnNumber, Report = true };
                                     // check to see if the previous token is "private"
-                                    if (prevToken != null && prevToken.TokenText.ToLower() == "private")
+                                    if (prevToken.LowercaseText == "private")
                                         _currentFunctionDef.Private = true;
                                     _fss = FunctionSearchState.LookingForFunctionName;
                                     AdvanceToken(ref token, ref prevToken);
@@ -1451,7 +1914,7 @@ namespace VSGenero.EditorExtensions
                         }
                     case FunctionSearchState.LookingForFunctionEnd:
                         {
-                            if (token == null ||
+                            if (token.TokenType == GeneroTokenType.Unknown ||
                                 token.TokenType == GeneroTokenType.Eof)
                             {
                                 end = true;
@@ -1464,7 +1927,7 @@ namespace VSGenero.EditorExtensions
                             {
                                 // TODO: not sure if we want to do anything with the return value
                                 Dictionary<string, int> temp = new Dictionary<string, int>();
-                                bool defFound = TryParseVarConstTypeDefinitions(ref token, ref prevToken, ref _vss, _currentFunctionDef.Variables, ref _currentVariableDef, _variableBuffer, temp, new[] { "end", "define" });
+                                bool defFound = TryParseVarConstTypeDefinitions(ref token, ref prevToken, ref _vss, _currentFunctionDef.Variables, _currentFunctionDef.Types, _currentFunctionDef.Constants, ref _currentVariableDef, _variableBuffer, temp, new[] { "end", "define", "type", "constant" });
                                 if (defFound)
                                 {
                                     break;
@@ -1481,7 +1944,6 @@ namespace VSGenero.EditorExtensions
 
                             if (token.TokenType == GeneroTokenType.Keyword)
                             {
-                                //var prevlower = (prevToken == null) ? "" : prevToken.TokenText.ToLower();
                                 // we've hit a new function and the one we were on wasn't complete...so scrap the current one
                                 if (token.LowercaseText == "function" || token.LowercaseText == "main" ||
                                     (token.LowercaseText == "report" &&
@@ -1497,13 +1959,12 @@ namespace VSGenero.EditorExtensions
                                     // get next token. If it's "function" we've completed the function
                                     AdvanceToken(ref token, ref prevToken);
 
-                                    if (token != null &&
-                                       ((_currentFunctionDef.Main && token.LowercaseText == "main") ||
+                                    if ((_currentFunctionDef.Main && token.LowercaseText == "main") ||
                                         (_currentFunctionDef.Report && token.LowercaseText == "report") ||
-                                        (token.LowercaseText == "function")))
+                                        (token.LowercaseText == "function"))
                                     {
                                         var nextToken = _lexer.Lookahead(1);
-                                        if (nextToken != null && nextToken.TokenType == GeneroTokenType.Identifier)
+                                        if (nextToken.TokenType == GeneroTokenType.Identifier)
                                         {
                                             _currentFunctionDef = null;
                                             _fss = FunctionSearchState.LookingForFunctionStart;
@@ -1561,27 +2022,27 @@ namespace VSGenero.EditorExtensions
         private bool TryParseCreateTempTable(ref GeneroToken token, ref GeneroToken prevToken)
         {
             bool getVariableName = false;
-            if (token != null && token.LowercaseText == "create")
+            if (token.LowercaseText == "create")
             {
                 var nextToken = _lexer.Lookahead(1);
-                if (nextToken != null && nextToken.LowercaseText == "temp")
+                if (nextToken.LowercaseText == "temp")
                 {
                     var nextNextToken = _lexer.Lookahead(2);
-                    if (nextNextToken != null && nextNextToken.LowercaseText == "table")
+                    if (nextNextToken.LowercaseText == "table")
                     {
                         AdvanceToken(ref token, ref prevToken);
                         AdvanceToken(ref token, ref prevToken);
                         AdvanceToken(ref token, ref prevToken);
 
                         TempTableDefinition ttd = new TempTableDefinition();
-                        if (token != null && token.TokenType != GeneroTokenType.Eof)
+                        if (token.TokenType != GeneroTokenType.Eof)
                         {
                             ttd.Name = token.TokenText;
                             ttd.Position = token.StartPosition;
                             ttd.LineNumber = token.LineNumber;
                             ttd.ColumnNumber = token.ColumnNumber;
                             AdvanceToken(ref token, ref prevToken);
-                            if (token != null && token.TokenText == "(")
+                            if (token.TokenText == "(")
                             {
                                 AdvanceToken(ref token, ref prevToken);
                                 getVariableName = true;
@@ -1644,102 +2105,86 @@ namespace VSGenero.EditorExtensions
             int startingPosition = token.StartPosition;
             int startingLine = token.LineNumber;
             int startingColumn = token.ColumnNumber;
-            if (token != null && token.LowercaseText == "declare")
+            if (token.LowercaseText == "declare")
             {
                 AdvanceToken(ref token, ref prevToken);
-                if (token != null && token.TokenType == GeneroTokenType.Identifier)
+                if (token.TokenType == GeneroTokenType.Identifier)
                 {
                     CursorDeclaration cd = new CursorDeclaration();
                     cd.Name = token.TokenText;
 
                     AdvanceToken(ref token, ref prevToken);
-                    if (token != null)
+                    if (token.LowercaseText == "scroll")
                     {
-                        if (token.LowercaseText == "scroll")
-                        {
-                            cd.Options.Add(token.LowercaseText);
-                            AdvanceToken(ref token, ref prevToken);
-                            if (token == null)
-                                return false;
-                        }
-
-                        if (token.LowercaseText != "cursor")
-                            return false;
-
+                        cd.Options.Add(token.LowercaseText);
                         AdvanceToken(ref token, ref prevToken);
+                    }
 
-                        if (token != null)
+                    if (token.LowercaseText != "cursor")
+                        return false;
+
+                    AdvanceToken(ref token, ref prevToken);
+
+                    if (token.LowercaseText == "with")
+                    {
+                        AdvanceToken(ref token, ref prevToken);
+                        if (token.LowercaseText == "hold")
                         {
-                            if (token.LowercaseText == "with")
-                            {
-                                AdvanceToken(ref token, ref prevToken);
-                                if (token != null && token.LowercaseText == "hold")
-                                {
-                                    cd.Options.Add("with hold");
-                                    AdvanceToken(ref token, ref prevToken);
-                                    if (token == null)
-                                        return false;
-                                }
-                                else
-                                    return false;
-                            }
+                            cd.Options.Add("with hold");
+                            AdvanceToken(ref token, ref prevToken);
+                        }
+                        else
+                            return false;
+                    }
 
-                            if (token.LowercaseText == "for")
+                    if (token.LowercaseText == "for")
+                    {
+                        AdvanceToken(ref token, ref prevToken);
+                        // 3 potential cases
+                        // 1) static sql statement -> the next token will be "select"
+                        if (token.LowercaseText == "select")
+                        {
+                            // TODO:
+                        }
+                        // 2) prepared statement -> next token will be an identifier, which should be found in _moduleContents
+                        else if (token.TokenType == GeneroTokenType.Identifier)
+                        {
+                            CursorPreparation cp;
+                            if (_moduleContents.SqlPrepares.TryGetValue(token.TokenText, out cp))
                             {
-                                AdvanceToken(ref token, ref prevToken);
-                                if (token != null)
-                                {
-                                    // 3 potential cases
-                                    // 1) static sql statement -> the next token will be "select"
-                                    if (token.LowercaseText == "select")
-                                    {
-                                        // TODO:
-                                    }
-                                    // 2) prepared statement -> next token will be an identifier, which should be found in _moduleContents
-                                    else if (token.TokenType == GeneroTokenType.Identifier)
-                                    {
-                                        CursorPreparation cp;
-                                        if (_moduleContents.SqlPrepares.TryGetValue(token.TokenText, out cp))
-                                        {
-                                            cd.PreparationVariable = cp.Name;
-                                            cd.Position = startingPosition;
-                                            cd.LineNumber = startingLine;
-                                            cd.ColumnNumber = startingColumn;
-                                            _moduleContents.SqlCursors.Add(cd.Name, cd);
-                                        }
-                                    }
-                                    // 3) a sql block -> next token will be "sql"
-                                    else if (token.TokenText == "sql")
-                                    {
-                                        // TODO:
-                                    }
-                                    else
-                                    {
-                                        return false;
-                                    }
-                                }
-                            }
-                            else if (token.LowercaseText == "from")
-                            {
-                                AdvanceToken(ref token, ref prevToken);
-                                if (token != null)
-                                {
-                                    // The next token(s) will be one or more strings which comprise a string expression for the cursor
-                                    if (token.TokenType == GeneroTokenType.String)
-                                    {
-
-                                    }
-                                    else
-                                    {
-                                        return false;
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                return false;
+                                cd.PreparationVariable = cp.Name;
+                                cd.Position = startingPosition;
+                                cd.LineNumber = startingLine;
+                                cd.ColumnNumber = startingColumn;
+                                _moduleContents.SqlCursors.Add(cd.Name, cd);
                             }
                         }
+                        // 3) a sql block -> next token will be "sql"
+                        else if (token.TokenText == "sql")
+                        {
+                            // TODO:
+                        }
+                        else
+                        {
+                            return false;
+                        }
+                    }
+                    else if (token.LowercaseText == "from")
+                    {
+                        AdvanceToken(ref token, ref prevToken);
+                        // The next token(s) will be one or more strings which comprise a string expression for the cursor
+                        if (token.TokenType == GeneroTokenType.String)
+                        {
+
+                        }
+                        else
+                        {
+                            return false;
+                        }
+                    }
+                    else
+                    {
+                        return false;
                     }
                 }
             }
@@ -1749,7 +2194,7 @@ namespace VSGenero.EditorExtensions
         private bool TryParseReturnStatement(ref GeneroToken token, ref GeneroToken prevToken)
         {
             bool validReturnFound = false;
-            if (token != null && token.LowercaseText == "return")
+            if (token.LowercaseText == "return")
             {
                 List<GeneroToken> returns = new List<GeneroToken>();
                 List<GeneroFunctionReturn> funcReturns = new List<GeneroFunctionReturn>();
@@ -1757,7 +2202,7 @@ namespace VSGenero.EditorExtensions
                 bool checkCollectedReturns = false;
                 AdvanceToken(ref token, ref prevToken);
 
-                while (token != null)
+                while (token.TokenType != GeneroTokenType.Unknown)
                 {
                     if (token.LowercaseText != ",")
                     {
@@ -1818,19 +2263,19 @@ namespace VSGenero.EditorExtensions
             int startingPosition = token.StartPosition;
             int startingLine = token.LineNumber;
             int startingColumn = token.ColumnNumber;
-            if (token != null && token.LowercaseText == "prepare")
+            if (token.LowercaseText == "prepare")
             {
                 AdvanceToken(ref token, ref prevToken);
-                if (token != null && token.TokenType == GeneroTokenType.Identifier)
+                if (token.TokenType == GeneroTokenType.Identifier)
                 {
                     CursorPreparation cp = new CursorPreparation();
                     cp.Name = token.TokenText;
 
                     AdvanceToken(ref token, ref prevToken);
-                    if (token != null && token.LowercaseText == "from")
+                    if (token.LowercaseText == "from")
                     {
                         AdvanceToken(ref token, ref prevToken);
-                        if (token != null && token.TokenType == GeneroTokenType.Identifier)
+                        if (token.TokenType == GeneroTokenType.Identifier)
                         {
                             cp.StatementVariable = token.TokenText;
                             cp.Position = startingPosition;
@@ -1865,7 +2310,7 @@ namespace VSGenero.EditorExtensions
                                     tempLexer.StartLexing(0, textSnapshotLine.GetText());
                                     GeneroToken currToken = null;
                                     lineContents.Clear();
-                                    while ((currToken = tempLexer.NextToken()) != null &&
+                                    while ((currToken = tempLexer.NextToken()).TokenType != GeneroTokenType.Unknown &&
                                           currToken.TokenType != GeneroTokenType.Eof)
                                     {
                                         if (currToken.LowercaseText == "let")

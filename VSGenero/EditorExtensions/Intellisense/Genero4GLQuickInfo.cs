@@ -103,6 +103,8 @@ namespace VSGenero.EditorExtensions.Intellisense
                 FunctionDefinition funcDef = null;
                 CursorPreparation cursorPrep = null;
                 TempTableDefinition tempTableDef = null;
+                ConstantDefinition constantDef = null;
+                TypeDefinition typeDef = null;
                 string publicFunctionQuickInfo = null;
                 string context = null;
                 GeneroTableColumn columnOrRecordField = null;
@@ -136,7 +138,9 @@ namespace VSGenero.EditorExtensions.Intellisense
                                 funcDef = IntellisenseExtensions.DetermineContainingFunction(subjectTriggerPoint.Value, fpm);
                                 if (funcDef != null)
                                 {
-                                    if (funcDef.Variables.TryGetValue(splitTokens[i], out tempDef))
+                                    if (funcDef.Variables.TryGetValue(splitTokens[i], out tempDef) ||
+                                        funcDef.Constants.TryGetValue(splitTokens[i], out constantDef) ||
+                                        funcDef.Types.TryGetValue(splitTokens[i], out typeDef))
                                     {
                                         context = "local";
                                     }
@@ -145,8 +149,12 @@ namespace VSGenero.EditorExtensions.Intellisense
                                 {
                                     if (!fpm.ModuleContents.ModuleVariables.TryGetValue(splitTokens[i], out tempDef))
                                     {
-                                        if (fpm.ModuleContents.GlobalVariables.TryGetValue(splitTokens[i], out tempDef) ||
-                                            (programContents != null && programContents.GlobalVariables.TryGetValue(splitTokens[i], out tempDef)))
+                                        if ((fpm.ModuleContents.GlobalVariables.TryGetValue(splitTokens[i], out tempDef) ||
+                                            (programContents != null && programContents.GlobalVariables.TryGetValue(splitTokens[i], out tempDef))) ||
+                                            (fpm.ModuleContents.GlobalConstants.TryGetValue(splitTokens[i], out constantDef) ||
+                                            (programContents != null && programContents.GlobalConstants.TryGetValue(splitTokens[i], out constantDef))) ||
+                                            (fpm.ModuleContents.GlobalTypes.TryGetValue(splitTokens[i], out typeDef) ||
+                                            (programContents != null && programContents.GlobalTypes.TryGetValue(splitTokens[i], out typeDef))))
                                         {
                                             context = "global";
                                         }
@@ -176,7 +184,21 @@ namespace VSGenero.EditorExtensions.Intellisense
                                             textSpan.Start.Position, tempDef.Name.Length, SpanTrackingMode.EdgeInclusive
                                         );
                                 }
-                                if (tempDef == null)
+                                else if (constantDef != null)
+                                {
+                                    applicableToSpan = currentSnapshot.CreateTrackingSpan
+                                        (
+                                            textSpan.Start.Position, constantDef.Name.Length, SpanTrackingMode.EdgeInclusive
+                                        );
+                                }
+                                else if (typeDef != null)
+                                {
+                                    applicableToSpan = currentSnapshot.CreateTrackingSpan
+                                        (
+                                            textSpan.Start.Position, typeDef.Name.Length, SpanTrackingMode.EdgeInclusive
+                                        );
+                                }
+                                if (tempDef == null && constantDef == null && typeDef == null)
                                 {
                                     // If we got down to here, it might be a function?
                                     if (fpm.ModuleContents.FunctionDefinitions.TryGetValue(splitTokens[i], out funcDef) ||
@@ -233,7 +255,8 @@ namespace VSGenero.EditorExtensions.Intellisense
                         }
                         else
                         {
-                            // we're on a member access, so we're limited to mimic types, record types, and (when supported) system types (i.e. sqlca)
+                            // we're on a member access, so we're limited to mimic types, record types, and (when supported) system types (i.e. sqlca).
+                            // We can also be hovering over a function belonging to a class instance
                             if (tempDef != null)
                             {
                                 if (tempDef.IsMimicType && i == 1)  // can't go more than one level deep
@@ -252,6 +275,13 @@ namespace VSGenero.EditorExtensions.Intellisense
                                         tempDef = tempRecDef;
                                     }
                                 }
+
+                                GeneroClass generoClass = null;
+                                if (IntellisenseExtensions.IsClassInstance(tempDef.Type, out generoClass))
+                                {
+                                    // find the function
+                                    generoClass.Methods.TryGetValue(splitTokens[i], out tmpMethod);
+                                }
                                 applicableToSpan = currentSnapshot.CreateTrackingSpan
                                             (
                                                 textSpan.Start.Position, splitTokens[i].Length, SpanTrackingMode.EdgeInclusive
@@ -264,7 +294,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                 // Now let's see what we have
                 if (tmpMethod != null)
                 {
-                    qiContent.Add("(class method) " + tmpMethod.Name);
+                    qiContent.Add(tmpMethod.GetIntellisenseText());
                 }
                 else if (tmpClass != null)
                 {
@@ -282,9 +312,13 @@ namespace VSGenero.EditorExtensions.Intellisense
                 {
                     qiContent.Add(tempDef.GetIntellisenseText(context));
                 }
-                else if (funcDef != null)
+                else if (constantDef != null)
                 {
-                    qiContent.Add(funcDef.GetIntellisenseText());
+                    qiContent.Add(constantDef.GetIntellisenseText(context));
+                }
+                else if (typeDef != null)
+                {
+                    qiContent.Add(typeDef.GetIntellisenseText(context));
                 }
                 else if (cursorPrep != null)
                 {
@@ -297,6 +331,10 @@ namespace VSGenero.EditorExtensions.Intellisense
                 else if (publicFunctionQuickInfo != null)
                 {
                     qiContent.Add(publicFunctionQuickInfo);
+                }
+                else if (funcDef != null)
+                {
+                    qiContent.Add(funcDef.GetIntellisenseText());
                 }
             }
         }

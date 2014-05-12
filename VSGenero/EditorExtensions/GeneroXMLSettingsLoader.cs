@@ -33,11 +33,13 @@ namespace VSGenero.EditorExtensions
     public class GeneroClassMethodReturn : GeneroComponentBase
     {
         public string Type { get; set; }
+        public int Position { get; set; }
     }
 
     public class GeneroClassMethodParameter : GeneroComponentBase
     {
         public string Type { get; set; }
+        public int Position { get; set; }
     }
 
     public class GeneroClassMethod : GeneroComponentBase
@@ -112,9 +114,9 @@ namespace VSGenero.EditorExtensions
                 sb.Append("(");
                 total = Parameters.Count;
                 i = 0;
-                foreach (var param in Parameters)
+                foreach (var param in Parameters.Values.OrderBy(x => x.Position))
                 {
-                    sb.Append(param.Value.Type + " " + param.Value.Name);
+                    sb.Append(param.Type + " " + param.Name);
                     if (i + 1 < total)
                     {
                         sb.Append(", ");
@@ -290,21 +292,25 @@ namespace VSGenero.EditorExtensions
                         newMethod.Scope = ((string)methodElement.Attribute("scope") == "static") ?
                             GeneroClassMethod.GeneroClassScope.Static : GeneroClassMethod.GeneroClassScope.Instance;
 
+                        int position = 0;
                         foreach (var paramElement in methodElement.XPathSelectElement("gns:Parameters", _nsManager)
                                                                   .XPathSelectElements("gns:Parameter", _nsManager))
                         {
                             GeneroClassMethodParameter newParam = new GeneroClassMethodParameter();
                             newParam.Name = (string)paramElement.Attribute("name");
                             newParam.Type = (string)paramElement.Attribute("type");
+                            newParam.Position = position++;
                             newMethod.Parameters.Add(newParam.Name, newParam);
                         }
 
+                        position = 0;
                         foreach (var returnElement in methodElement.XPathSelectElement("gns:Returns", _nsManager)
                                                                    .XPathSelectElements("gns:Return", _nsManager))
                         {
                             GeneroClassMethodReturn newReturn = new GeneroClassMethodReturn();
                             newReturn.Name = (string)returnElement.Attribute("name");
                             newReturn.Type = (string)returnElement.Attribute("type");
+                            newReturn.Position = position++;
                             newMethod.Returns.Add(newReturn.Name, newReturn);
                         }
 

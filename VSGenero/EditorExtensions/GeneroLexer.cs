@@ -91,7 +91,7 @@ namespace VSGenero.EditorExtensions
             for (int i = 0; i < numTokens; i++)
             {
                 token = NextToken();
-                if (token == null)
+                if (token.TokenType == GeneroTokenType.Unknown)
                     break;
             }
 
@@ -371,9 +371,9 @@ namespace VSGenero.EditorExtensions
                 {
                     IncrementCurrentPosition();
                 }
-                return retToken;
+                return new GeneroToken("", 0, 0, GeneroTokenType.Unknown, 0, 0);
             }
-            return null;
+            return new GeneroToken("", 0, 0, GeneroTokenType.Unknown, 0, 0); ;
         }
     }
 }

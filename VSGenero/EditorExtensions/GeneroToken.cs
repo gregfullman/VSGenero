@@ -28,7 +28,8 @@ namespace VSGenero.EditorExtensions
         Comment,
         MultiLineComment,
         Symbol,
-        Keyword
+        Keyword,
+        Unknown
     }
 
     public class GeneroToken

@@ -92,7 +92,7 @@ namespace VSGenero.Navigation
                         break;
                     }
                 }
-                while (currentTok != null && currentTok.TokenType != GeneroTokenType.Eof);
+                while (currentTok.TokenType != GeneroTokenType.Unknown && currentTok.TokenType != GeneroTokenType.Eof);
 
                 if (tokenFound)
                 {

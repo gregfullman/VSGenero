@@ -59,13 +59,27 @@ namespace VSGenero.EditorExtensions.Intellisense
             return sb.ToString();
         }
 
-        internal static string GetIntellisenseText(this VariableDefinition varDef, string context = null)
+        internal static string GetIntellisenseText(this GeneroClassMethod classMethod)
         {
             StringBuilder sb = new StringBuilder();
-            if (context != null)
+            sb.Append("(class method) ");
+            sb.Append(classMethod.Name + "(");
+            List<GeneroClassMethodParameter> sortedParams = classMethod.Parameters.Values.OrderBy(x => x.Position).ToList();
+            for (int i = 0; i < sortedParams.Count; i++)
             {
-                sb.Append(string.Format("({0} variable) ", context));
+                sb.Append(sortedParams[i].Type + " " + sortedParams[i].Name);
+                if (i + 1 < sortedParams.Count)
+                {
+                    sb.Append(", ");
+                }
             }
+            sb.Append(")");
+            return sb.ToString();
+        }
+
+        private static string GetVariableIntellisenseText(VariableDefinition varDef)
+        {
+            StringBuilder sb = new StringBuilder();
             if (varDef.ArrayType == ArrayType.Static)
             {
                 sb.Append(string.Format("array[{0}] of ", varDef.StaticArraySize));
@@ -88,6 +102,39 @@ namespace VSGenero.EditorExtensions.Intellisense
                 sb.Append(" ");
             }
             sb.Append(varDef.Name);
+            return sb.ToString();
+        }
+
+        internal static string GetIntellisenseText(this VariableDefinition varDef, string context = null)
+        {
+            StringBuilder sb = new StringBuilder();
+            if (context != null)
+            {
+                sb.Append(string.Format("({0} variable) ", context));
+            }
+            sb.Append(GetVariableIntellisenseText(varDef));
+            return sb.ToString();
+        }
+
+        internal static string GetIntellisenseText(this ConstantDefinition constantDef, string context = null)
+        {
+            StringBuilder sb = new StringBuilder();
+            if (context != null)
+            {
+                sb.Append(string.Format("({0} constant) ", context));
+            }
+            sb.Append(constantDef.Name + " = " + constantDef.Value);
+            return sb.ToString();
+        }
+
+        internal static string GetIntellisenseText(this TypeDefinition typeDef, string context = null)
+        {
+            StringBuilder sb = new StringBuilder();
+            if (context != null)
+            {
+                sb.Append(string.Format("({0} type) ", context));
+            }
+            sb.Append(GetVariableIntellisenseText(typeDef));
             return sb.ToString();
         }
 
