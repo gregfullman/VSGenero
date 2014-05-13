@@ -7,6 +7,8 @@ namespace VSGenero.EditorExtensions
 {
     internal class GeneroProgramContentsManager
     {
+        private object _lock = new object();
+
         private Dictionary<string, GeneroModuleContents> _programs;
         public Dictionary<string, GeneroModuleContents> Programs
         {
@@ -51,12 +53,15 @@ namespace VSGenero.EditorExtensions
                 gmc.FunctionDefinitions.AddOrUpdate(programFuncKvp.Key, programFuncKvp.Value, (x, y) => programFuncKvp.Value);
             }
 
-            if (program != null && gmc != null)
+            lock (_lock)
             {
-                if (Programs.ContainsKey(program))
-                    Programs[program] = gmc;
-                else
-                    Programs.Add(program, gmc);
+                if (program != null && gmc != null)
+                {
+                    if (Programs.ContainsKey(program))
+                        Programs[program] = gmc;
+                    else
+                        Programs.Add(program, gmc);
+                }
             }
         }
     }

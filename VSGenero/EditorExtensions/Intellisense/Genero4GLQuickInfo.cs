@@ -146,16 +146,16 @@ namespace VSGenero.EditorExtensions.Intellisense
                        tmpClass == null &&
                        tmpMethod == null)
                     {
-                        if (i == 0)
+                        // check globals and module variables first
+                        var fpm = m_subjectBuffer.Properties.GetProperty(typeof(GeneroFileParserManager)) as GeneroFileParserManager;
+                        if (fpm != null)
                         {
-                            // check globals and module variables first
-                            var fpm = m_subjectBuffer.Properties.GetProperty(typeof(GeneroFileParserManager)) as GeneroFileParserManager;
-                            if (fpm != null)
+                            GeneroModuleContents programContents;
+                            VSGeneroPackage.Instance.ProgramContentsManager.Programs.TryGetValue(m_subjectBuffer.GetProgram(), out programContents);
+                            // look at the variables in the current function
+                            funcDef = IntellisenseExtensions.DetermineContainingFunction(subjectTriggerPoint.Value, fpm);
+                            if (i == 0)
                             {
-                                GeneroModuleContents programContents;
-                                VSGeneroPackage.Instance.ProgramContentsManager.Programs.TryGetValue(m_subjectBuffer.GetProgram(), out programContents);
-                                // look at the variables in the current function
-                                funcDef = IntellisenseExtensions.DetermineContainingFunction(subjectTriggerPoint.Value, fpm);
                                 if (funcDef != null)
                                 {
                                     if (funcDef.Variables.TryGetValue(splitTokens[i], out tempDef) ||
@@ -274,40 +274,70 @@ namespace VSGenero.EditorExtensions.Intellisense
                                     }
                                 }
                             }
-                        }
-                        else
-                        {
-                            // we're on a member access, so we're limited to mimic types, record types, and (when supported) system types (i.e. sqlca).
-                            // We can also be hovering over a function belonging to a class instance
-                            if (tempDef != null)
+                            else
                             {
-                                if (tempDef.IsMimicType && i == 1)  // can't go more than one level deep
+                                // we're on a member access, so we're limited to mimic types, record types, and (when supported) system types (i.e. sqlca).
+                                // We can also be hovering over a function belonging to a class instance
+                                if (tempDef != null)
                                 {
-                                    if (m_provider.DbInformationProvider != null)
+                                    GeneroClass generoClass = null;
+                                    if (tempDef.IsMimicType && i == 1)  // can't go more than one level deep
                                     {
-                                        columnOrRecordField = m_provider.DbInformationProvider.GetTableColumn(tempDef.MimicTypeTable, splitTokens[i]);
+                                        if (m_provider.DbInformationProvider != null)
+                                        {
+                                            columnOrRecordField = m_provider.DbInformationProvider.GetTableColumn(tempDef.MimicTypeTable, splitTokens[i]);
+                                            if (columnOrRecordField != null)
+                                            {
+                                                applicableToSpan = currentSnapshot.CreateTrackingSpan
+                                                (
+                                                    textSpan.Start.Position, splitTokens[i].Length, SpanTrackingMode.EdgeInclusive
+                                                );
+                                            }
+                                        }
+                                    }
+                                    else if (tempDef.IsRecordType)  // possibly could go many levels deep...in theory the logic here should work.
+                                    {
+                                        // look for splitTokens[i] within the record's element variables
+                                        VariableDefinition tempRecDef;
+                                        if (tempDef.RecordElements.TryGetValue(splitTokens[i], out tempRecDef))
+                                        {
+                                            tempDef = tempRecDef;
+                                            applicableToSpan = currentSnapshot.CreateTrackingSpan
+                                                (
+                                                    textSpan.Start.Position, splitTokens[i].Length, SpanTrackingMode.EdgeInclusive
+                                                );
+                                        }
+                                    }
+                                    else if (IntellisenseExtensions.IsClassInstance(tempDef.Type, out generoClass))
+                                    {
+                                        // find the function
+                                        if (generoClass.Methods.TryGetValue(splitTokens[i], out tmpMethod))
+                                        {
+                                            applicableToSpan = currentSnapshot.CreateTrackingSpan
+                                                (
+                                                    textSpan.Start.Position, splitTokens[i].Length, SpanTrackingMode.EdgeInclusive
+                                                );
+                                        }
+                                    }
+                                    else if (tempDef != null)
+                                    {
+                                        // check to see if the tempDef is a type that has record elements
+                                        if ((funcDef != null && funcDef.Types.TryGetValue(tempDef.Type, out typeDef)) ||
+                                           fpm.ModuleContents.GlobalTypes.TryGetValue(tempDef.Type, out typeDef) ||
+                                           (programContents != null && programContents.GlobalTypes.TryGetValue(tempDef.Type, out typeDef)))
+                                        {
+                                            VariableDefinition tempRecDef;
+                                            if (typeDef.RecordElements.TryGetValue(splitTokens[i], out tempRecDef))
+                                            {
+                                                tempDef = tempRecDef;
+                                                applicableToSpan = currentSnapshot.CreateTrackingSpan
+                                                    (
+                                                        textSpan.Start.Position, splitTokens[i].Length, SpanTrackingMode.EdgeInclusive
+                                                    );
+                                            }
+                                        }
                                     }
                                 }
-                                else if (tempDef.IsRecordType)  // possibly could go many levels deep...in theory the logic here should work.
-                                {
-                                    // look for splitTokens[i] within the record's element variables
-                                    VariableDefinition tempRecDef;
-                                    if (tempDef.RecordElements.TryGetValue(splitTokens[i], out tempRecDef))
-                                    {
-                                        tempDef = tempRecDef;
-                                    }
-                                }
-
-                                GeneroClass generoClass = null;
-                                if (IntellisenseExtensions.IsClassInstance(tempDef.Type, out generoClass))
-                                {
-                                    // find the function
-                                    generoClass.Methods.TryGetValue(splitTokens[i], out tmpMethod);
-                                }
-                                applicableToSpan = currentSnapshot.CreateTrackingSpan
-                                            (
-                                                textSpan.Start.Position, splitTokens[i].Length, SpanTrackingMode.EdgeInclusive
-                                            );
                             }
                         }
                     }
