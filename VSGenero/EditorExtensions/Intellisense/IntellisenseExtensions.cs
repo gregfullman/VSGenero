@@ -81,28 +81,56 @@ namespace VSGenero.EditorExtensions.Intellisense
             return sb.ToString();
         }
 
+        internal static string GetIntellisenseText(this GeneroSystemClass generoSysClass)
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.AppendFormat("(native class) {0}", generoSysClass.Name);
+            if (!string.IsNullOrWhiteSpace(generoSysClass.Description))
+            {
+                sb.AppendFormat("\n{0}", generoSysClass.Description);
+            }
+            return sb.ToString();
+        }
+
         internal static string GetIntellisenseText(this GeneroClassMethod classMethod)
         {
             StringBuilder sb = new StringBuilder();
-            sb.AppendFormat("(class {0} method) ", classMethod.ParentClass);
-            if (!string.IsNullOrWhiteSpace(classMethod.Description))
+            if (classMethod.Returns.Count == 1)
             {
-                sb.AppendFormat("{0}", classMethod.Description);
+                foreach (var ret in classMethod.Returns)
+                    sb.AppendFormat("{0} ", ret.Value.Type);
             }
-            else
+            sb.Append(classMethod.ParentClass + "." + classMethod.Name + "(");
+            List<GeneroClassMethodParameter> sortedParams = classMethod.Parameters.Values.OrderBy(x => x.Position).ToList();
+            for (int i = 0; i < sortedParams.Count; i++)
             {
-                sb.Append(classMethod.ParentClass + "." + classMethod.Name + "(");
-                List<GeneroClassMethodParameter> sortedParams = classMethod.Parameters.Values.OrderBy(x => x.Position).ToList();
-                for (int i = 0; i < sortedParams.Count; i++)
+                sb.Append(sortedParams[i].Type + " " + sortedParams[i].Name);
+                if (i + 1 < sortedParams.Count)
                 {
-                    sb.Append(sortedParams[i].Type + " " + sortedParams[i].Name);
-                    if (i + 1 < sortedParams.Count)
+                    sb.Append(", ");
+                }
+            }
+            sb.Append(")");
+            if (classMethod.Returns.Count > 1)
+            {
+                sb.Append("\nReturns: ");
+
+                List<GeneroClassMethodReturn> sortedReturns = classMethod.Returns.Values.OrderBy(x => x.Position).ToList();
+                for (int i = 0; i < sortedReturns.Count; i++)
+                {
+                    sb.Append(sortedReturns[i].Type);
+                    if (i + 1 < sortedReturns.Count)
                     {
-                        sb.Append(", ");
+                        sb.Append(",\n");
                     }
                 }
-                sb.Append(")");
             }
+
+            if (!string.IsNullOrWhiteSpace(classMethod.Description))
+            {
+                sb.AppendFormat("\n{0}", classMethod.Description);
+            }
+
             return sb.ToString();
         }
 
@@ -231,7 +259,8 @@ namespace VSGenero.EditorExtensions.Intellisense
                     break;
                 if (tagSpan.Span.End.Position <= currPosition)
                 {
-                    if (!isMemberAccess && tagSpan.Span.GetText() == ".")
+                    string tokenText = tagSpan.Span.GetText();
+                    if (!isMemberAccess && tokenText == ".")
                     {
                         lastTokenType = GeneroTokenType.Symbol;
                         isMemberAccess = true;
@@ -244,17 +273,24 @@ namespace VSGenero.EditorExtensions.Intellisense
                             // get the token type
                             GeneroTokenType tokType = revParser.GetTokenType(tagSpan.Tag.ClassificationType);
                             if ((tokType == GeneroTokenType.Identifier ||
-                                    tokType == GeneroTokenType.Keyword) &&
+                                    tokType == GeneroTokenType.Keyword ||
+                                    tokType == GeneroTokenType.Number) &&
                                 lastTokenType == GeneroTokenType.Symbol)
                             {
-                                memberName = tagSpan.Span.GetText() + memberName;
+                                memberName = tokenText + memberName;
                                 lastTokenType = GeneroTokenType.Keyword;
                                 continue;
                             }
-                            else if ((tokType == GeneroTokenType.Symbol && tagSpan.Span.GetText() == ".") &&
+                            else if ((tokType == GeneroTokenType.Symbol && tokenText == ".") &&
                                     lastTokenType == GeneroTokenType.Keyword)
                             {
-                                memberName = tagSpan.Span.GetText() + memberName;
+                                memberName = tokenText + memberName;
+                                lastTokenType = GeneroTokenType.Symbol;
+                                continue;
+                            }
+                            else if (tokType == GeneroTokenType.Symbol && (tokenText == "[" || tokenText == "]"))
+                            {
+                                memberName = tokenText + memberName;
                                 lastTokenType = GeneroTokenType.Symbol;
                                 continue;
                             }
@@ -393,6 +429,11 @@ namespace VSGenero.EditorExtensions.Intellisense
             string memberName = testHoveringOver;
             if (memberName == null)
                 memberName = "";
+            else
+            {
+                if (memberName.All(x => Char.IsPunctuation(x) || Char.IsSeparator(x) || Char.IsSymbol(x) || Char.IsNumber(x)))
+                    return memberName;
+            }
             int currPosition = triggerPoint.Position;
 
             string lineText = EditorExtensions.GetLineString(triggerPoint, currPosition);
@@ -694,9 +735,9 @@ namespace VSGenero.EditorExtensions.Intellisense
             if (tokens.Length == 2)
             {
                 GeneroPackage package;
-                if (GeneroSingletons.LanguageSettings.Packages.TryGetValue(tokens[0], out package))
+                if (GeneroSingletons.LanguageSettings.Packages.TryGetValue(tokens[0].ToLower(), out package))
                 {
-                    if (package.Classes.TryGetValue(tokens[1], out classType))
+                    if (package.Classes.TryGetValue(tokens[1].ToLower(), out classType))
                     {
                         isClass = true;
                     }
@@ -710,25 +751,44 @@ namespace VSGenero.EditorExtensions.Intellisense
             if (text == null) return null;
             // parse assuming the form:
             // array_name[index1{,index2,...}]
-            string[] tokens = text.Split(new[] { '[', ',', ']' });
+            //string[] tokens = text.Split(new[] { '[', ',', ']' });
 
             ArrayElement ae = new ArrayElement();
-            for (int i = 0; i < tokens.Length; i++)
+            int dimensions = 1;
+            bool hitOpenBracket = false;
+            bool hitClosedBracket = false;
+            string arrayName = "";
+            string currentIndex = "";
+            for (int i = 0; i < text.Length; i++)
             {
-                if (!string.IsNullOrWhiteSpace(tokens[i]))
+                switch (text[i])
                 {
-                    if (i == 0)
-                    {
-                        ae.ArrayName = tokens[i];
-                        ae.Dimension = 0;
-                    }
-                    else
-                    {
-                        ae.Dimension++;
-                        ae.Indices.Add(tokens[i]);
-                    }
+                    case '[':
+                        hitOpenBracket = true;
+                        break;
+                    case ']':
+                        hitClosedBracket = true;
+                        break;
+                    case ',':
+                        dimensions++;
+                        ae.Indices.Add(currentIndex);
+                        currentIndex = "";
+                        break;
+                    default:
+                        {
+                            if (!hitOpenBracket)
+                                arrayName = arrayName + text[i];
+                            else if (!hitClosedBracket)
+                                currentIndex = currentIndex + text[i];
+                        }
+                        break;
                 }
             }
+
+            ae.ArrayName = arrayName;
+            ae.Indices.Add(currentIndex);
+            if (hitOpenBracket && hitClosedBracket)
+                ae.IsComplete = true;
             return ae;
         }
     }
@@ -737,6 +797,7 @@ namespace VSGenero.EditorExtensions.Intellisense
     {
         public string ArrayName { get; set; }
         public int Dimension { get; set; }
+        public bool IsComplete { get; set; }
 
         private List<string> _indices;
         public List<string> Indices

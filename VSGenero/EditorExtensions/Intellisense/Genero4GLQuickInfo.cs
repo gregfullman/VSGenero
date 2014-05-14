@@ -99,6 +99,8 @@ namespace VSGenero.EditorExtensions.Intellisense
                 GeneroPackage tmpPackage = null;
                 GeneroClass tmpClass = null;
                 GeneroClassMethod tmpMethod = null;
+                GeneroSystemClass tmpSysClass = null;
+                GeneroSystemClassFunction tmpSysClassFunction = null;
                 VariableDefinition tempDef = null;
                 VariableDefinition parentDef = null;
                 FunctionDefinition funcDef = null;
@@ -115,13 +117,16 @@ namespace VSGenero.EditorExtensions.Intellisense
                     if ((arrayElement = IntellisenseExtensions.GetArrayElement(splitTokens[i])) != null)
                     {
                         // for now, just replace
-                        splitTokens[i] = arrayElement.ArrayName;
+                        if (arrayElement.IsComplete)
+                            splitTokens[i] = arrayElement.ArrayName;
+                        else if (arrayElement.Indices.Count > 0 && !string.IsNullOrWhiteSpace(arrayElement.Indices[arrayElement.Indices.Count - 1]))
+                            splitTokens[i] = arrayElement.Indices[arrayElement.Indices.Count - 1];
                     }
 
                     // Take care of packages, classes, and methods
                     if (tmpClass != null && i == 2)
                     {
-                        if (tmpClass.Methods.TryGetValue(splitTokens[i], out tmpMethod))
+                        if (tmpClass.Methods.TryGetValue(splitTokens[i].ToLower(), out tmpMethod))
                         {
                             applicableToSpan = currentSnapshot.CreateTrackingSpan
                                         (
@@ -131,7 +136,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                     }
                     if (tmpPackage != null && i == 1)
                     {
-                        if (tmpPackage.Classes.TryGetValue(splitTokens[i], out tmpClass))
+                        if (tmpPackage.Classes.TryGetValue(splitTokens[i].ToLower(), out tmpClass))
                         {
                             applicableToSpan = currentSnapshot.CreateTrackingSpan
                                         (
@@ -141,7 +146,14 @@ namespace VSGenero.EditorExtensions.Intellisense
                     }
                     if (i == 0)
                     {
-                        if (GeneroSingletons.LanguageSettings.Packages.TryGetValue(splitTokens[i], out tmpPackage))
+                        if (GeneroSingletons.LanguageSettings.Packages.TryGetValue(splitTokens[i].ToLower(), out tmpPackage))
+                        {
+                            applicableToSpan = currentSnapshot.CreateTrackingSpan
+                                        (
+                                            textSpan.Start.Position, splitTokens[i].Length, SpanTrackingMode.EdgeInclusive
+                                        );
+                        }
+                        else if (GeneroSingletons.LanguageSettings.NativeClasses.TryGetValue(splitTokens[i].ToLower(), out tmpSysClass))
                         {
                             applicableToSpan = currentSnapshot.CreateTrackingSpan
                                         (
@@ -166,45 +178,22 @@ namespace VSGenero.EditorExtensions.Intellisense
                             {
                                 if (funcDef != null)
                                 {
-                                    if (funcDef.Variables.TryGetValue(splitTokens[i], out tempDef) ||
-                                        funcDef.Constants.TryGetValue(splitTokens[i], out constantDef) ||
-                                        funcDef.Types.TryGetValue(splitTokens[i], out typeDef))
-                                    {
-                                        context = "local";
-                                    }
+                                    TryGetFunctionElement(splitTokens[i], funcDef, ref tempDef, ref constantDef, ref typeDef, ref context);
                                 }
                                 if (tempDef == null)
                                 {
-                                    if (!fpm.ModuleContents.ModuleVariables.TryGetValue(splitTokens[i], out tempDef) &&
-                                        !fpm.ModuleContents.ModuleConstants.TryGetValue(splitTokens[i], out constantDef) &&
-                                        !fpm.ModuleContents.ModuleTypes.TryGetValue(splitTokens[i], out typeDef))
+                                    if (!TryGetModuleOrGlobalElement(splitTokens[i], fpm, programContents, ref tempDef, ref constantDef, ref typeDef, ref context))
                                     {
-                                        if ((fpm.ModuleContents.GlobalVariables.TryGetValue(splitTokens[i], out tempDef) ||
-                                            (programContents != null && programContents.GlobalVariables.TryGetValue(splitTokens[i], out tempDef))) ||
-                                            (fpm.ModuleContents.GlobalConstants.TryGetValue(splitTokens[i], out constantDef) ||
-                                            (programContents != null && programContents.GlobalConstants.TryGetValue(splitTokens[i], out constantDef))) ||
-                                            (fpm.ModuleContents.GlobalTypes.TryGetValue(splitTokens[i], out typeDef) ||
-                                            (programContents != null && programContents.GlobalTypes.TryGetValue(splitTokens[i], out typeDef))))
+                                        int recordElementPos = extent.Span.Start.Position;
+                                        // Could be hovering over a record variable's child element in the definition
+                                        var owningRecordVar = fpm.ModuleContents.ModuleVariables.FirstOrDefault(x =>
+                                                x.Value.IsRecordType &&
+                                                x.Value.RecordElements.Any(
+                                                    y => y.Value.Position == recordElementPos));
+                                        if (!owningRecordVar.Equals(default(KeyValuePair<string, VariableDefinition>)))
                                         {
-                                            context = "global";
+                                            tempDef = owningRecordVar.Value.RecordElements[splitTokens[i]];
                                         }
-                                        else
-                                        {
-                                            int recordElementPos = extent.Span.Start.Position;
-                                            // Could be hovering over a record variable's child element in the definition
-                                            var owningRecordVar = fpm.ModuleContents.ModuleVariables.FirstOrDefault(x =>
-                                                    x.Value.IsRecordType &&
-                                                    x.Value.RecordElements.Any(
-                                                        y => y.Value.Position == recordElementPos));
-                                            if (!owningRecordVar.Equals(default(KeyValuePair<string, VariableDefinition>)))
-                                            {
-                                                tempDef = owningRecordVar.Value.RecordElements[splitTokens[i]];
-                                            }
-                                        }
-                                    }
-                                    else
-                                    {
-                                        context = "module";
                                     }
                                 }
                                 if (tempDef != null)
@@ -303,6 +292,20 @@ namespace VSGenero.EditorExtensions.Intellisense
                                             }
                                         }
                                     }
+                                    else if (tempDef.ArrayType != ArrayType.None)
+                                    {
+                                        // could be hovering over an array method
+                                        if (GeneroSingletons.LanguageSettings.NativeClasses.TryGetValue("array", out tmpSysClass))
+                                        {
+                                            if (tmpSysClass.Functions.TryGetValue(splitTokens[i].ToLower(), out tmpSysClassFunction))
+                                            {
+                                                applicableToSpan = currentSnapshot.CreateTrackingSpan
+                                                (
+                                                    textSpan.Start.Position, splitTokens[i].Length, SpanTrackingMode.EdgeInclusive
+                                                );
+                                            }
+                                        }
+                                    }
                                     else if (tempDef.IsRecordType)  // possibly could go many levels deep...in theory the logic here should work.
                                     {
                                         // look for splitTokens[i] within the record's element variables
@@ -316,11 +319,30 @@ namespace VSGenero.EditorExtensions.Intellisense
                                                     textSpan.Start.Position, splitTokens[i].Length, SpanTrackingMode.EdgeInclusive
                                                 );
                                         }
+                                        else
+                                        {
+                                            // could be hovering over an indexer of an array
+                                            if (funcDef != null)
+                                            {
+                                                TryGetFunctionElement(splitTokens[i], funcDef, ref tempDef, ref constantDef, ref typeDef, ref context);
+                                            }
+                                            if (tempDef == null)
+                                            {
+                                                TryGetModuleOrGlobalElement(splitTokens[i], fpm, programContents, ref tempDef, ref constantDef, ref typeDef, ref context);
+                                            }
+                                            if (tempDef != null)
+                                            {
+                                                applicableToSpan = currentSnapshot.CreateTrackingSpan
+                                                (
+                                                    textSpan.Start.Position, splitTokens[i].Length, SpanTrackingMode.EdgeInclusive
+                                                );
+                                            }
+                                        }
                                     }
                                     else if (IntellisenseExtensions.IsClassInstance(tempDef.Type, out generoClass))
                                     {
                                         // find the function
-                                        if (generoClass.Methods.TryGetValue(splitTokens[i], out tmpMethod))
+                                        if (generoClass.Methods.TryGetValue(splitTokens[i].ToLower(), out tmpMethod))
                                         {
                                             applicableToSpan = currentSnapshot.CreateTrackingSpan
                                                 (
@@ -330,6 +352,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                                     }
                                     else if (tempDef != null)
                                     {
+                                        GeneroClass tempClass;
                                         // check to see if the tempDef is a type that has record elements
                                         if ((funcDef != null && funcDef.Types.TryGetValue(tempDef.Type, out typeDef)) ||
                                            fpm.ModuleContents.GlobalTypes.TryGetValue(tempDef.Type, out typeDef) ||
@@ -346,6 +369,16 @@ namespace VSGenero.EditorExtensions.Intellisense
                                                     );
                                             }
                                         }
+                                        else if (GeneroSingletons.LanguageSettings.NativeClasses.TryGetValue(tempDef.Type.ToLower(), out tmpSysClass))
+                                        {
+                                            if (tmpSysClass.Functions.TryGetValue(splitTokens[i].ToLower(), out tmpSysClassFunction))
+                                            {
+                                                applicableToSpan = currentSnapshot.CreateTrackingSpan
+                                                (
+                                                    textSpan.Start.Position, splitTokens[i].Length, SpanTrackingMode.EdgeInclusive
+                                                );
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -354,9 +387,17 @@ namespace VSGenero.EditorExtensions.Intellisense
                 }
 
                 // Now let's see what we have
-                if (tmpMethod != null)
+                if (tmpSysClassFunction != null)
+                {
+                    qiContent.Add(tmpSysClassFunction.GetIntellisenseText());   // TODO: this is still using the GeneroClassMethod extension method...need to change.
+                }
+                else if (tmpMethod != null)
                 {
                     qiContent.Add(tmpMethod.GetIntellisenseText());
+                }
+                else if (tmpSysClass != null)
+                {
+                    qiContent.Add(tmpSysClass.GetIntellisenseText());
                 }
                 else if (tmpClass != null)
                 {
@@ -399,6 +440,50 @@ namespace VSGenero.EditorExtensions.Intellisense
                     qiContent.Add(funcDef.GetIntellisenseText());
                 }
             }
+        }
+
+        private bool TryGetFunctionElement(string token, FunctionDefinition funcDef, ref VariableDefinition varDef,
+                                           ref ConstantDefinition constantDef, ref TypeDefinition typeDef,
+                                            ref string context)
+        {
+            if (funcDef.Variables.TryGetValue(token, out varDef) ||
+                funcDef.Constants.TryGetValue(token, out constantDef) ||
+                funcDef.Types.TryGetValue(token, out typeDef))
+            {
+                context = "local";
+                return true;
+            }
+            return false;
+        }
+
+        private bool TryGetModuleOrGlobalElement(string token, GeneroFileParserManager fpm,
+                                                GeneroModuleContents programContents,
+                                                ref VariableDefinition varDef,
+                                                ref ConstantDefinition constantDef,
+                                                ref TypeDefinition typeDef,
+                                                ref string context)
+        {
+            if (!fpm.ModuleContents.ModuleVariables.TryGetValue(token, out varDef) &&
+                                        !fpm.ModuleContents.ModuleConstants.TryGetValue(token, out constantDef) &&
+                                        !fpm.ModuleContents.ModuleTypes.TryGetValue(token, out typeDef))
+            {
+                if ((fpm.ModuleContents.GlobalVariables.TryGetValue(token, out varDef) ||
+                    (programContents != null && programContents.GlobalVariables.TryGetValue(token, out varDef))) ||
+                    (fpm.ModuleContents.GlobalConstants.TryGetValue(token, out constantDef) ||
+                    (programContents != null && programContents.GlobalConstants.TryGetValue(token, out constantDef))) ||
+                    (fpm.ModuleContents.GlobalTypes.TryGetValue(token, out typeDef) ||
+                    (programContents != null && programContents.GlobalTypes.TryGetValue(token, out typeDef))))
+                {
+                    context = "global";
+                    return true;
+                }
+            }
+            else
+            {
+                context = "module";
+                return true;
+            }
+            return false;
         }
 
         private bool m_isDisposed;

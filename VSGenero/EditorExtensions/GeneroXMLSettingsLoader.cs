@@ -42,6 +42,10 @@ namespace VSGenero.EditorExtensions
         public int Position { get; set; }
     }
 
+    public class GeneroSystemClassFunction : GeneroClassMethod
+    {
+    }
+
     public class GeneroClassMethod : GeneroComponentBase
     {
         public string ParentClass { get; set; }
@@ -75,75 +79,17 @@ namespace VSGenero.EditorExtensions
                 return _returns;
             }
         }
-
-        private string _description;
-        public override string Description
-        {
-            get
-            {
-                // ([returns]) [methodName]([params])
-                // [description]
-                StringBuilder sb = new StringBuilder();
-                int total = Returns.Count;
-                int i = 0;
-                if (total > 1)
-                {
-                    sb.Append("(");
-                }
-                if (total == 0)
-                {
-                    sb.Append("void");
-                }
-                else
-                {
-                    foreach (var ret in Returns)
-                    {
-                        sb.Append(ret.Value.Type);
-                        if (i + 1 < total)
-                        {
-                            sb.Append(", ");
-                        }
-                        i++;
-                    }
-                }
-                if (total > 1)
-                {
-                    sb.Append(")");
-                }
-                sb.Append(" ");
-
-                sb.Append(Name);
-                sb.Append("(");
-                total = Parameters.Count;
-                i = 0;
-                foreach (var param in Parameters.Values.OrderBy(x => x.Position))
-                {
-                    sb.Append(param.Type + " " + param.Name);
-                    if (i + 1 < total)
-                    {
-                        sb.Append(", ");
-                    }
-                    i++;
-                }
-                sb.Append(")");
-                if (!string.IsNullOrWhiteSpace(_description))
-                {
-                    sb.Append("\n");
-                    sb.Append(_description);
-                }
-                return sb.ToString();
-            }
-            set
-            {
-                _description = value;
-            }
-        }
     }
 
     public class GeneroClass : GeneroComponentBase
     {
         public string ParentPackage { get; set; }
         public bool IsStatic { get; set; }
+
+        public GeneroClass(Dictionary<string, GeneroClassMethod> methods)
+        {
+            _methods = methods;
+        }
 
         private Dictionary<string, GeneroClassMethod> _methods;
         public Dictionary<string, GeneroClassMethod> Methods
@@ -154,6 +100,25 @@ namespace VSGenero.EditorExtensions
                     _methods = new Dictionary<string, GeneroClassMethod>();
                 return _methods;
             }
+        }
+    }
+
+    public class GeneroSystemClass : GeneroClass
+    {
+        private Dictionary<string, GeneroSystemClassFunction> _functions;
+        public Dictionary<string, GeneroSystemClassFunction> Functions
+        {
+            get
+            {
+                if (_functions == null)
+                    _functions = new Dictionary<string, GeneroSystemClassFunction>();
+                return _functions;
+            }
+        }
+
+        public GeneroSystemClass(Dictionary<string, GeneroSystemClassFunction> functions) : base(null)
+        {
+            _functions = functions;
         }
     }
 
@@ -208,6 +173,24 @@ namespace VSGenero.EditorExtensions
             }
         }
 
+        private Dictionary<string, GeneroSystemClass> _nativeClasses;
+        public Dictionary<string, GeneroSystemClass> NativeClasses
+        {
+            get
+            {
+                return _nativeClasses;
+            }
+        }
+
+        private Dictionary<string, GeneroSystemClassFunction> _nativeMethods;
+        public Dictionary<string, GeneroSystemClassFunction> NativeMethods
+        {
+            get
+            {
+                return _nativeMethods;
+            }
+        }
+
         public Genero4GL_XMLSettingsLoader() :
             base(Assembly.GetAssembly(typeof(Genero4GL_XMLSettingsLoader)).GetManifestResourceStream(@"VSGenero.Genero4GL.xml"))
         {
@@ -219,6 +202,9 @@ namespace VSGenero.EditorExtensions
             LoadDataTypes();
             _packages = new Dictionary<string, GeneroPackage>();
             LoadPackages();
+            _nativeClasses = new Dictionary<string, GeneroSystemClass>();
+            _nativeMethods = new Dictionary<string, GeneroSystemClassFunction>();
+            LoadNativeClassesAndMethods();
         }
 
         private void LoadKeywordMap()
@@ -268,6 +254,56 @@ namespace VSGenero.EditorExtensions
             }
         }
 
+        private void LoadNativeClassesAndMethods()
+        {
+            foreach (var element in GetElementsAtPath("//gns:Genero4GL/gns:Parsing/gns:Functions/gns:Context"))
+            {
+                string context = (string)element.Attribute("name");
+                Dictionary<string, GeneroSystemClassFunction> methods = new Dictionary<string, GeneroSystemClassFunction>();
+                foreach (var contextMethod in element.XPathSelectElements("gns:Function", _nsManager))
+                {
+                    GeneroSystemClassFunction newMethod = new GeneroSystemClassFunction();
+                    newMethod.Name = (string)contextMethod.Attribute("name");
+                    newMethod.Description = (string)contextMethod.Attribute("description");
+                    newMethod.ParentClass = context;
+                    newMethod.Scope = GeneroSystemClassFunction.GeneroClassScope.Instance;
+
+                    int position = 0;
+                    foreach (var paramElement in contextMethod.XPathSelectElement("gns:Parameters", _nsManager)
+                                                                  .XPathSelectElements("gns:Parameter", _nsManager))
+                    {
+                        GeneroClassMethodParameter newParam = new GeneroClassMethodParameter();
+                        newParam.Name = (string)paramElement.Attribute("name");
+                        newParam.Type = (string)paramElement.Attribute("type");
+                        newParam.Position = position++;
+                        newMethod.Parameters.Add(newParam.Name.ToLower(), newParam);
+                    }
+
+                    position = 0;
+                    foreach (var returnElement in contextMethod.XPathSelectElement("gns:Returns", _nsManager)
+                                                                   .XPathSelectElements("gns:Return", _nsManager))
+                    {
+                        GeneroClassMethodReturn newReturn = new GeneroClassMethodReturn();
+                        newReturn.Name = (string)returnElement.Attribute("name");
+                        newReturn.Type = (string)returnElement.Attribute("type");
+                        newReturn.Position = position++;
+                        newMethod.Returns.Add(newReturn.Name.ToLower(), newReturn);
+                    }
+
+                    methods.Add(newMethod.Name.ToLower(), newMethod);
+                }
+
+                if (context.Equals("system", StringComparison.OrdinalIgnoreCase))
+                {
+                    _nativeMethods = methods;
+                }
+                else
+                {
+                    _nativeClasses.Add(context.ToLower(), new GeneroSystemClass(methods) { Name = context });
+                }
+            }
+        }
+
         private void LoadPackages()
         {
             foreach (var element in GetElementsAtPath("//gns:Genero4GL/gns:Parsing/gns:Packages/gns:Package"))
@@ -282,7 +318,7 @@ namespace VSGenero.EditorExtensions
                 foreach (var classElement in element.XPathSelectElement("gns:Classes", _nsManager)
                                                     .XPathSelectElements("gns:Class", _nsManager))
                 {
-                    GeneroClass newClass = new GeneroClass();
+                    GeneroClass newClass = new GeneroClass(null);
                     newClass.ParentPackage = newPackage.Name;
                     newClass.Name = (string)classElement.Attribute("name");
                     newClass.IsStatic = (bool)classElement.Attribute("isStatic");
@@ -305,7 +341,7 @@ namespace VSGenero.EditorExtensions
                             newParam.Name = (string)paramElement.Attribute("name");
                             newParam.Type = (string)paramElement.Attribute("type");
                             newParam.Position = position++;
-                            newMethod.Parameters.Add(newParam.Name, newParam);
+                            newMethod.Parameters.Add(newParam.Name.ToLower(), newParam);
                         }
 
                         position = 0;
@@ -316,16 +352,16 @@ namespace VSGenero.EditorExtensions
                             newReturn.Name = (string)returnElement.Attribute("name");
                             newReturn.Type = (string)returnElement.Attribute("type");
                             newReturn.Position = position++;
-                            newMethod.Returns.Add(newReturn.Name, newReturn);
+                            newMethod.Returns.Add(newReturn.Name.ToLower(), newReturn);
                         }
 
-                        newClass.Methods.Add(newMethod.Name, newMethod);
+                        newClass.Methods.Add(newMethod.Name.ToLower(), newMethod);
                     }
 
-                    newPackage.Classes.Add(newClass.Name, newClass);
+                    newPackage.Classes.Add(newClass.Name.ToLower(), newClass);
                 }
 
-                Packages.Add(newPackage.Name, newPackage);
+                Packages.Add(newPackage.Name.ToLower(), newPackage);
             }
         }
     }

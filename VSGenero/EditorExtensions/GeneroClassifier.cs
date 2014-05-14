@@ -92,6 +92,7 @@ namespace VSGenero.EditorExtensions
             _4glTags[GeneroTokenType.String] = BuildTag(typeService, PredefinedClassificationTypeNames.String, GeneroTokenType.String, _classificationTypes);
             _4glTags[GeneroTokenType.Symbol] = BuildTag(typeService, PredefinedClassificationTypeNames.Operator, GeneroTokenType.Symbol, _classificationTypes);
             _4glTags[GeneroTokenType.Comment] = BuildTag(typeService, PredefinedClassificationTypeNames.Comment, GeneroTokenType.Comment, _classificationTypes);
+            _4glTags[GeneroTokenType.Number] = BuildTag(typeService, PredefinedClassificationTypeNames.Number, GeneroTokenType.Number, _classificationTypes);
             _4glTags[GeneroTokenType.MultiLineComment] = BuildTag(typeService, PredefinedClassificationTypeNames.Comment, GeneroTokenType.MultiLineComment, _multiLineClassificationTypes);
             _4glTags[GeneroTokenType.MultiLineString] = BuildTag(typeService, PredefinedClassificationTypeNames.String, GeneroTokenType.MultiLineString, _multiLineClassificationTypes);
         }

@@ -346,11 +346,11 @@ namespace VSGenero.EditorExtensions.Intellisense
                 GeneroPackage tmpPackage = null;
                 GeneroClass tmpClass = null;
                 GeneroClassMethod tmpMethod = null;
-                if (GeneroSingletons.LanguageSettings.Packages.TryGetValue(splitTokens[0], out tmpPackage))
+                if (GeneroSingletons.LanguageSettings.Packages.TryGetValue(splitTokens[0].ToLower(), out tmpPackage))
                 {
-                    if (tmpPackage.Classes.TryGetValue(splitTokens[1], out tmpClass))
+                    if (tmpPackage.Classes.TryGetValue(splitTokens[1].ToLower(), out tmpClass))
                     {
-                        if (tmpClass.Methods.TryGetValue(splitTokens[2], out tmpMethod))
+                        if (tmpClass.Methods.TryGetValue(splitTokens[2].ToLower(), out tmpMethod))
                         {
                             string methodSig = tmpMethod.Description;
                             return GetSignature(methodSig, textBuffer, span);

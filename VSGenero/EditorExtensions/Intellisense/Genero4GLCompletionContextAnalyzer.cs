@@ -196,6 +196,12 @@ namespace VSGenero.EditorExtensions.Intellisense
             string[] memberCompletionTokens = memberAccessName.Split(new[] { '.' });
             if (memberCompletionTokens.Length == 1)
             {
+                ArrayElement arrayElement = null;
+                if ((arrayElement = IntellisenseExtensions.GetArrayElement(memberAccessName)) != null)
+                {
+                    memberAccessName = arrayElement.ArrayName;
+                }
+
                 VariableDefinition varDef = null;
                 // look for the member name in 1) locals, 2) module, 3) globals
                 if (currentFunction != null)
@@ -219,7 +225,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                     {
                         foreach (var ele in varDef.RecordElements)
                         {
-                            var comp = new MemberCompletion(ele.Value.Name, ele.Value.Name, "(record variable) " + ele.Value.Type + " " + ele.Value.Name,
+                            var comp = new MemberCompletion(ele.Value.Name, ele.Value.Name, ele.Value.GetIntellisenseText("record"),
                                 _glyphService.GetGlyph(StandardGlyphGroup.GlyphGroupField, StandardGlyphItem.GlyphItemInternal), null);
                             memberCompletionList.Add(comp);
                         }

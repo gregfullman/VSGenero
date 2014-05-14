@@ -425,6 +425,100 @@
           <Returns></Returns>
         </Function>
       </Context>
+      <Context name="string">
+        <Function name="append" description="Returns a new string made by adding part to the end of the current string.">
+          <Parameters>
+            <Parameter name="part" type="string"/>
+          </Parameters>
+          <Returns>
+            <Return name="result" type="string"/>
+          </Returns>
+        </Function>
+        <Function name="equals" description="Returns TRUE if the string passed as parameters matches the current string. If one of the strings is NULL the method returns FALSE.">
+          <Parameters>
+            <Parameter name="source" type="string"/>
+          </Parameters>
+          <Returns>
+            <Return name="result" type="integer"/>
+          </Returns>
+        </Function>
+        <Function name="equalsIgnoreCase" description="Returns TRUE if the string passed as parameters matches the current string, ignoring character case. If one of the strings is NULL the method returns FALSE.">
+          <Parameters>
+            <Parameter name="source" type="string"/>
+          </Parameters>
+          <Returns>
+            <Return name="result" type="integer"/>
+          </Returns>
+        </Function>
+        <Function name="getCharAt" description="Returns the character at the position pos (starts at 1). The unit for character positions depend on the length semantics. In BLS, the method returns NULL if pos does not match a valid character-byte position in the current string.">
+          <Parameters>
+            <Parameter name="pos" type="integer"/>
+          </Parameters>
+          <Returns>
+            <Return name="result" type="string"/>
+          </Returns>
+        </Function>
+        <Function name="getIndexOf" description="Returns the position of the substring part in the current string, starting from position spos. The unit for character positions depend on the length semantics used. Returns zero if the substring was not found. Returns -1 if string is NULL.">
+          <Parameters>
+            <Parameter name="part" type="string"/>
+            <Parameter name="spos" type="integer"/>
+          </Parameters>
+          <Returns>
+            <Return name="result" type="integer"/>
+          </Returns>
+        </Function>
+        <Function name="getLength" description="Returns the lenfth of the string, including trailing blanks (Note that the LENGTH() built-in function ignores trailing blanks). The unit for character length depend on the length semantics used.">
+          <Parameters>
+          </Parameters>
+          <Returns>
+            <Return name="result" type="integer"/>
+          </Returns>
+        </Function>
+        <Function name="subString" description="Returns the substring starting at position spos and ending at epos. The unit for character positions depend on the length semantics used. In BLS, returns NULL if the positions do not delimit a valid substring in the current string.">
+          <Parameters>
+            <Parameter name="spos" type="integer"/>
+            <Parameter name="epos" type="integer"/>
+          </Parameters>
+          <Returns>
+            <Return name="result" type="string"/>
+          </Returns>
+        </Function>
+        <Function name="toLowerCase" description="Converts the current string to lowercase. Returns NULL if the string is null.">
+          <Parameters>
+          </Parameters>
+          <Returns>
+            <Return name="result" type="string"/>
+          </Returns>
+        </Function>
+        <Function name="toUpperCase" description="Converts the current string to uppercase. Returns NULL if the string is null.">
+          <Parameters>
+          </Parameters>
+          <Returns>
+            <Return name="result" type="string"/>
+          </Returns>
+        </Function>
+        <Function name="trim" description="Removes white space characters from the beginning and end of the current string. Returns NULL if the string is null.">
+          <Parameters>
+          </Parameters>
+          <Returns>
+            <Return name="result" type="string"/>
+          </Returns>
+        </Function>
+        <Function name="trimLeft" description="Removes white space characters from the beginning of the current string. Returns NULL if the string is null.">
+          <Parameters>
+          </Parameters>
+          <Returns>
+            <Return name="result" type="string"/>
+          </Returns>
+        </Function>
+        <Function name="trimRight" description="Removes white space characters from the end of the current string. Returns NULL if the string is null.">
+          <Parameters>
+          </Parameters>
+          <Returns>
+            <Return name="result" type="string"/>
+          </Returns>
+        </Function>
+      </Context>
       <Context name="system">
         <Function name="arg_val" description="Returns a command line argument by position.">
           <Parameters>
