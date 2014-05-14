@@ -106,7 +106,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             return sb.ToString();
         }
 
-        private static string GetVariableIntellisenseText(VariableDefinition varDef)
+        private static string GetVariableIntellisenseText(VariableDefinition varDef, VariableDefinition parentDef = null)
         {
             StringBuilder sb = new StringBuilder();
             if (varDef.ArrayType == ArrayType.Static)
@@ -130,18 +130,20 @@ namespace VSGenero.EditorExtensions.Intellisense
                 sb.Append(varDef.Type);
                 sb.Append(" ");
             }
+            if (parentDef != null)
+                sb.Append(string.Format("{0}.", parentDef.Name));
             sb.Append(varDef.Name);
             return sb.ToString();
         }
 
-        internal static string GetIntellisenseText(this VariableDefinition varDef, string context = null)
+        internal static string GetIntellisenseText(this VariableDefinition varDef, string context = null, VariableDefinition parent = null)
         {
             StringBuilder sb = new StringBuilder();
             if (context != null)
             {
                 sb.Append(string.Format("({0} variable) ", context));
             }
-            sb.Append(GetVariableIntellisenseText(varDef));
+            sb.Append(GetVariableIntellisenseText(varDef, parent));
             return sb.ToString();
         }
 
@@ -412,8 +414,8 @@ namespace VSGenero.EditorExtensions.Intellisense
                 GeneroTokenType tokType = revParser.GetTokenType(tagSpan.Tag.ClassificationType);
                 if (tagSpan.Span.End.Position <= currPosition)
                 {
-                    if (!isMemberAccess &&
-                        (tokType == GeneroTokenType.Symbol && tokenText == "."))
+                    if (tokType == GeneroTokenType.Symbol &&
+                        ((!isMemberAccess && tokenText == ".") || tokenText == "[" || tokenText == "]"))
                     {
                         lastTokenType = GeneroTokenType.Symbol;
                         isMemberAccess = true;
@@ -444,6 +446,10 @@ namespace VSGenero.EditorExtensions.Intellisense
                             {
                                 break;
                             }
+                        }
+                        else if (tokType == GeneroTokenType.Symbol)
+                        {
+                            break;
                         }
                         else
                         {
@@ -697,6 +703,50 @@ namespace VSGenero.EditorExtensions.Intellisense
                 }
             }
             return isClass;
+        }
+
+        public static ArrayElement GetArrayElement(string text)
+        {
+            if (text == null) return null;
+            // parse assuming the form:
+            // array_name[index1{,index2,...}]
+            string[] tokens = text.Split(new[] { '[', ',', ']' });
+
+            ArrayElement ae = new ArrayElement();
+            for (int i = 0; i < tokens.Length; i++)
+            {
+                if (!string.IsNullOrWhiteSpace(tokens[i]))
+                {
+                    if (i == 0)
+                    {
+                        ae.ArrayName = tokens[i];
+                        ae.Dimension = 0;
+                    }
+                    else
+                    {
+                        ae.Dimension++;
+                        ae.Indices.Add(tokens[i]);
+                    }
+                }
+            }
+            return ae;
+        }
+    }
+
+    public class ArrayElement
+    {
+        public string ArrayName { get; set; }
+        public int Dimension { get; set; }
+
+        private List<string> _indices;
+        public List<string> Indices
+        {
+            get
+            {
+                if (_indices == null)
+                    _indices = new List<string>();
+                return _indices;
+            }
         }
     }
 

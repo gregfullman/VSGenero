@@ -100,6 +100,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                 GeneroClass tmpClass = null;
                 GeneroClassMethod tmpMethod = null;
                 VariableDefinition tempDef = null;
+                VariableDefinition parentDef = null;
                 FunctionDefinition funcDef = null;
                 CursorPreparation cursorPrep = null;
                 TempTableDefinition tempTableDef = null;
@@ -110,6 +111,13 @@ namespace VSGenero.EditorExtensions.Intellisense
                 GeneroTableColumn columnOrRecordField = null;
                 for (int i = 0; i < splitTokens.Length; i++)
                 {
+                    ArrayElement arrayElement = null;
+                    if ((arrayElement = IntellisenseExtensions.GetArrayElement(splitTokens[i])) != null)
+                    {
+                        // for now, just replace
+                        splitTokens[i] = arrayElement.ArrayName;
+                    }
+
                     // Take care of packages, classes, and methods
                     if (tmpClass != null && i == 2)
                     {
@@ -301,6 +309,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                                         VariableDefinition tempRecDef;
                                         if (tempDef.RecordElements.TryGetValue(splitTokens[i], out tempRecDef))
                                         {
+                                            parentDef = tempDef;
                                             tempDef = tempRecDef;
                                             applicableToSpan = currentSnapshot.CreateTrackingSpan
                                                 (
@@ -329,6 +338,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                                             VariableDefinition tempRecDef;
                                             if (typeDef.RecordElements.TryGetValue(splitTokens[i], out tempRecDef))
                                             {
+                                                parentDef = tempDef;
                                                 tempDef = tempRecDef;
                                                 applicableToSpan = currentSnapshot.CreateTrackingSpan
                                                     (
@@ -362,7 +372,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                 }
                 else if (tempDef != null)
                 {
-                    qiContent.Add(tempDef.GetIntellisenseText(context));
+                    qiContent.Add(tempDef.GetIntellisenseText(context, parentDef));
                 }
                 else if (constantDef != null)
                 {
