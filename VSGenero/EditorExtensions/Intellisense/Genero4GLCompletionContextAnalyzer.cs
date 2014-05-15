@@ -106,21 +106,24 @@ namespace VSGenero.EditorExtensions.Intellisense
                                     (function.Value.Private ? StandardGlyphItem.GlyphItemPrivate : StandardGlyphItem.GlyphItemPublic)),
                                 null);
                 comp.Properties.AddProperty("system", false);
-                if (isDefiniteFunctionCall && !function.Value.Report)
-                {
-                    functionsOnly.Add(comp);
-                }
-                else if (isDefiniteReportCall && function.Value.Report)
+                if (isDefiniteReportCall && function.Value.Report)
                 {
                     reportsOnly.Add(comp);
                 }
                 else
+                //if (isDefiniteFunctionCall && !function.Value.Report)
                 {
-                    others.Add(comp);
+                    functionsOnly.Add(comp);
                 }
             }
 
-            if (isDefiniteFunctionCall)
+            //if (isDefiniteFunctionCall)
+            //{
+            if (isDefiniteReportCall)
+            {
+                return reportsOnly;
+            }
+            else
             {
                 if (_publicFunctionProvider != null)
                 {
@@ -132,10 +135,17 @@ namespace VSGenero.EditorExtensions.Intellisense
                     }
                 }
 
+                foreach (var sysFunc in GeneroSingletons.LanguageSettings.NativeMethods)
+                {
+                    var comp = new MemberCompletion(sysFunc.Value.Name, sysFunc.Value.Name, sysFunc.Value.GetIntellisenseText(),
+                                       _glyphService.GetGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPublic), null);
+                    functionsOnly.Add(comp);
+                }
+
                 // add Genero packages, since their classes have functions too
                 foreach (var packageName in GeneroSingletons.LanguageSettings.Packages)
                 {
-                    var comp = new MemberCompletion(packageName.Key, packageName.Key, packageName.Value.Description,
+                    var comp = new MemberCompletion(packageName.Value.Name, packageName.Value.Name, packageName.Value.GetIntellisenseText(),
                                         _glyphService.GetGlyph(StandardGlyphGroup.GlyphGroupClass, StandardGlyphItem.GlyphItemPublic), null);
                     functionsOnly.Add(comp);
                 }
@@ -144,7 +154,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                 // look for variables that are instances of classes with instance methods
                 foreach (var sysVar in GeneroSingletons.SystemVariables.Where(x => IntellisenseExtensions.IsClassInstance(x.Value.Type, out dummy) && !dummy.IsStatic))
                 {
-                    var comp = new MemberCompletion(sysVar.Key, sysVar.Key, sysVar.Value.GetIntellisenseText("system"),
+                    var comp = new MemberCompletion(sysVar.Value.Name, sysVar.Value.Name, sysVar.Value.GetIntellisenseText("system"),
                                     _glyphService.GetGlyph(StandardGlyphGroup.GlyphGroupVariable, StandardGlyphItem.GlyphItemPublic), null);
                     comp.Properties.AddProperty("system", false);
                     functionsOnly.Add(comp);
@@ -152,7 +162,7 @@ namespace VSGenero.EditorExtensions.Intellisense
 
                 foreach (var globalVar in moduleContents.GlobalVariables.Where(x => IntellisenseExtensions.IsClassInstance(x.Value.Type, out dummy) && !dummy.IsStatic))
                 {
-                    var comp = new MemberCompletion(globalVar.Key, globalVar.Key, globalVar.Value.GetIntellisenseText("global"),
+                    var comp = new MemberCompletion(globalVar.Value.Name, globalVar.Value.Name, globalVar.Value.GetIntellisenseText("global"),
                                     _glyphService.GetGlyph(StandardGlyphGroup.GlyphGroupVariable, StandardGlyphItem.GlyphItemPublic), null);
                     comp.Properties.AddProperty("system", false);
                     functionsOnly.Add(comp);
@@ -161,7 +171,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                 // add the module variables
                 foreach (var moduleVar in moduleContents.ModuleVariables.Where(x => IntellisenseExtensions.IsClassInstance(x.Value.Type, out dummy) && !dummy.IsStatic))
                 {
-                    var comp = new MemberCompletion(moduleVar.Key, moduleVar.Key, moduleVar.Value.GetIntellisenseText("module"),
+                    var comp = new MemberCompletion(moduleVar.Value.Name, moduleVar.Value.Name, moduleVar.Value.GetIntellisenseText("module"),
                                     _glyphService.GetGlyph(StandardGlyphGroup.GlyphGroupVariable, StandardGlyphItem.GlyphItemInternal), null);
                     comp.Properties.AddProperty("system", false);
                     functionsOnly.Add(comp);
@@ -171,7 +181,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                 {
                     foreach (var functionVar in currentFunction.Variables.Where(x => IntellisenseExtensions.IsClassInstance(x.Value.Type, out dummy) && !dummy.IsStatic))
                     {
-                        var comp = new MemberCompletion(functionVar.Key, functionVar.Key, functionVar.Value.GetIntellisenseText("local"),
+                        var comp = new MemberCompletion(functionVar.Value.Name, functionVar.Value.Name, functionVar.Value.GetIntellisenseText("local"),
                                         _glyphService.GetGlyph(StandardGlyphGroup.GlyphGroupVariable, StandardGlyphItem.GlyphItemPrivate), null);
                         comp.Properties.AddProperty("system", false);
                         functionsOnly.Add(comp);
@@ -179,49 +189,105 @@ namespace VSGenero.EditorExtensions.Intellisense
                 }
                 return functionsOnly;
             }
-            else if (isDefiniteReportCall)
-            {
-                return reportsOnly;
-            }
-            else
-            {
-                // this should never happen...but just in case
-                return others;
-            }
         }
 
         private List<MemberCompletion> GetMemberAccessCompletions(string memberAccessName, FunctionDefinition currentFunction, GeneroModuleContents moduleContents)
         {
             List<MemberCompletion> memberCompletionList = new List<MemberCompletion>();
             string[] memberCompletionTokens = memberAccessName.Split(new[] { '.' });
-            if (memberCompletionTokens.Length == 1)
+
+            // handle member access with a depth greater than one
+            GeneroPackage tmpPackage = null;
+            GeneroClass tmpClass = null;
+            GeneroClassMethod tmpMethod = null;
+            VariableDefinition varDef = null;
+            for (int i = 0; i < memberCompletionTokens.Length; i++)
             {
                 ArrayElement arrayElement = null;
-                if ((arrayElement = IntellisenseExtensions.GetArrayElement(memberAccessName)) != null)
+                if ((arrayElement = IntellisenseExtensions.GetArrayElement(memberCompletionTokens[i])) != null)
                 {
-                    memberAccessName = arrayElement.ArrayName;
+                    if (arrayElement.IsComplete)
+                        memberCompletionTokens[i] = arrayElement.ArrayName;
+                    else if (arrayElement.Indices.Count > 0 && !string.IsNullOrWhiteSpace(arrayElement.Indices[arrayElement.Indices.Count - 1]))
+                        memberCompletionTokens[i] = arrayElement.Indices[arrayElement.Indices.Count - 1];
                 }
 
-                VariableDefinition varDef = null;
-                // look for the member name in 1) locals, 2) module, 3) globals
-                if (currentFunction != null)
+                if (tmpPackage == null && i == 0)   // TODO: not sure if the index is needed
                 {
-                    if (!currentFunction.Variables.TryGetValue(memberAccessName, out varDef))
+                    if (GeneroSingletons.LanguageSettings.Packages.TryGetValue(memberCompletionTokens[i].ToLower(), out tmpPackage))
                     {
-                        // look in module variables
-                        if (!moduleContents.ModuleVariables.TryGetValue(memberAccessName, out varDef))
+                        if (i + 1 == memberCompletionTokens.Length && tmpPackage.Classes.Count > 0)
                         {
-                            if (!moduleContents.GlobalVariables.TryGetValue(memberAccessName, out varDef))
+                            foreach (var packageClass in tmpPackage.Classes)
                             {
-                                GeneroSingletons.SystemVariables.TryGetValue(memberAccessName, out varDef);
+                                var comp = new MemberCompletion(packageClass.Value.Name, packageClass.Value.Name, packageClass.Value.GetIntellisenseText(),
+                                        _glyphService.GetGlyph(StandardGlyphGroup.GlyphGroupClass, StandardGlyphItem.GlyphItemPublic), null);
+                                memberCompletionList.Add(comp);
+                            }
+                            break;
+                        }
+                    }
+                }
+                else if (tmpPackage != null && tmpClass == null && i == 1)
+                {
+                    if (tmpPackage.Classes.TryGetValue(memberCompletionTokens[i].ToLower(), out tmpClass))
+                    {
+                        if (i + 1 == memberCompletionTokens.Length && tmpClass.Methods.Count > 0)
+                        {
+                            foreach (var classMethod in tmpClass.Methods)
+                            {
+                                if (classMethod.Value.Scope == GeneroClassMethod.GeneroClassScope.Static)
+                                {
+                                    var comp = new MemberCompletion(classMethod.Value.Name, classMethod.Value.Name, classMethod.Value.GetIntellisenseText(),
+                                            _glyphService.GetGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPublic), null);
+                                    memberCompletionList.Add(comp);
+                                }
+                            }
+                            break;
+                        }
+                    }
+                }
+
+                if (i == 0)
+                {
+                    // look for the member name in 1) locals, 2) module, 3) globals
+                    if (currentFunction != null)
+                    {
+                        if (!currentFunction.Variables.TryGetValue(memberCompletionTokens[i], out varDef))
+                        {
+                            // look in module variables
+                            if (!moduleContents.ModuleVariables.TryGetValue(memberCompletionTokens[i], out varDef))
+                            {
+                                if (!moduleContents.GlobalVariables.TryGetValue(memberCompletionTokens[i], out varDef))
+                                {
+                                    GeneroSingletons.SystemVariables.TryGetValue(memberCompletionTokens[i], out varDef);
+                                }
                             }
                         }
                     }
                 }
+                else
+                {
+                    // look for the current token within the current varDef's record children
+                    if (varDef != null)
+                    {
+                        if (varDef.RecordElements.Count > 0)
+                        {
+                            VariableDefinition tempRecDef;
+                            if (varDef.RecordElements.TryGetValue(memberCompletionTokens[i], out tempRecDef))
+                            {
+                                varDef = tempRecDef;
+                            }
+                        }
+                    }
+                }
+
                 if (varDef != null)
                 {
                     // see if we have any child members to access
-                    if (varDef.RecordElements.Count > 0)
+                    if (i + 1 == memberCompletionTokens.Length &&
+                        varDef.RecordElements.Count > 0 &&
+                        (varDef.ArrayType == ArrayType.None || (arrayElement != null && arrayElement.IsComplete)))
                     {
                         foreach (var ele in varDef.RecordElements)
                         {
@@ -229,8 +295,27 @@ namespace VSGenero.EditorExtensions.Intellisense
                                 _glyphService.GetGlyph(StandardGlyphGroup.GlyphGroupField, StandardGlyphItem.GlyphItemInternal), null);
                             memberCompletionList.Add(comp);
                         }
+                        break;
                     }
-                    else if (varDef.IsMimicType)
+                    else if (i + 1 == memberCompletionTokens.Length && varDef.ArrayType != ArrayType.None && !arrayElement.IsComplete)
+                    {
+                        // we want to display the array functions
+                        GeneroSystemClass arrayClass;
+                        if (GeneroSingletons.LanguageSettings.NativeClasses.TryGetValue("array", out arrayClass))
+                        {
+                            foreach (var classFunction in arrayClass.Functions)
+                            {
+                                if (classFunction.Value.Scope == GeneroClassMethod.GeneroClassScope.Instance)
+                                {
+                                    var comp = new MemberCompletion(classFunction.Value.Name, classFunction.Value.Name, classFunction.Value.GetIntellisenseText(),
+                                            _glyphService.GetGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPublic), null);
+                                    memberCompletionList.Add(comp);
+                                }
+                            }
+                            break;
+                        }
+                    }
+                    else if (i + 1 == memberCompletionTokens.Length && varDef.IsMimicType)
                     {
                         // attempt to get the table's columns
                         var comp = new MemberCompletion("*", "*", "All columns",
@@ -247,74 +332,41 @@ namespace VSGenero.EditorExtensions.Intellisense
                                         _glyphService.GetGlyph(StandardGlyphGroup.GlyphGroupField, StandardGlyphItem.GlyphItemInternal), null);
                                     memberCompletionList.Add(comp);
                                 }
+                                break;
                             }
                         }
                     }
-                    else
+                    else if (i + 1 == memberCompletionTokens.Length)
                     {
                         GeneroClass potentialClass;
+                        GeneroSystemClass sysClass;
                         if (IntellisenseExtensions.IsClassInstance(varDef.Type, out potentialClass))
                         {
                             foreach (var classMethod in potentialClass.Methods)
                             {
                                 if (classMethod.Value.Scope == GeneroClassMethod.GeneroClassScope.Instance)
                                 {
-                                    var comp = new MemberCompletion(classMethod.Key, classMethod.Key, classMethod.Value.Description,
+                                    var comp = new MemberCompletion(classMethod.Value.Name, classMethod.Value.Name, classMethod.Value.GetIntellisenseText(),
                                             _glyphService.GetGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPublic), null);
                                     memberCompletionList.Add(comp);
                                 }
                             }
+                            break;
                         }
-                    }
-                }
-            }
-
-            // handle member access with a depth greater than one
-            GeneroPackage tmpPackage = null;
-            GeneroClass tmpClass = null;
-            GeneroClassMethod tmpMethod = null;
-            for (int i = 0; i < memberCompletionTokens.Length; i++)
-            {
-                if (tmpPackage == null && i == 0)   // TODO: not sure if the index is needed
-                {
-                    if (GeneroSingletons.LanguageSettings.Packages.TryGetValue(memberCompletionTokens[i], out tmpPackage))
-                    {
-                        if (i + 1 == memberCompletionTokens.Length && tmpPackage.Classes.Count > 0)
+                        else if (GeneroSingletons.LanguageSettings.NativeClasses.TryGetValue(varDef.Type, out sysClass))
                         {
-                            foreach (var packageClass in tmpPackage.Classes)
+                            foreach (var classFunction in sysClass.Functions)
                             {
-                                var comp = new MemberCompletion(packageClass.Key, packageClass.Key, packageClass.Value.Description,
-                                        _glyphService.GetGlyph(StandardGlyphGroup.GlyphGroupClass, StandardGlyphItem.GlyphItemPublic), null);
-                                memberCompletionList.Add(comp);
-                            }
-                        }
-                    }
-                }
-                else if (tmpPackage != null && tmpClass == null && i == 1)
-                {
-                    if (tmpPackage.Classes.TryGetValue(memberCompletionTokens[i], out tmpClass))
-                    {
-                        if (i + 1 == memberCompletionTokens.Length && tmpClass.Methods.Count > 0)
-                        {
-                            foreach (var classMethod in tmpClass.Methods)
-                            {
-                                if (classMethod.Value.Scope == GeneroClassMethod.GeneroClassScope.Static)
+                                if (classFunction.Value.Scope == GeneroClassMethod.GeneroClassScope.Instance)
                                 {
-                                    var comp = new MemberCompletion(classMethod.Key, classMethod.Key, classMethod.Value.Description,
+                                    var comp = new MemberCompletion(classFunction.Value.Name, classFunction.Value.Name, classFunction.Value.GetIntellisenseText(),
                                             _glyphService.GetGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPublic), null);
                                     memberCompletionList.Add(comp);
                                 }
                             }
+                            break;
                         }
                     }
-                }
-                //else if (tmpPackage != null && tmpClass != null && tmpClass == null && i == 2)
-                //{
-
-                //}
-                else
-                {
-                    break;
                 }
             }
 

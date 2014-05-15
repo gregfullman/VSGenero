@@ -64,6 +64,7 @@
       <Keyword value="Cache" name="cache"/>
       <Keyword value="Call" name="call"/>
       <Keyword value="Case" name="case"/>
+      <Keyword value="Cast" name="cast"/>
       <Keyword value="Change" name="change"/>
       <Keyword value="Char" name="char"/>
       <Keyword value="Character" name="character"/>
@@ -171,6 +172,7 @@
       <Keyword value="Initialize" name="initialize"/>
       <Keyword value="Input" name="input"/>
       <Keyword value="Insert" name="insert"/>
+      <Keyword value="InstanceOf" name="instanceof"/>
       <Keyword value="Instructions" name="instructions"/>
       <Keyword value="Into" name="into"/>
       <Keyword value="Int" name="int"/>
@@ -180,7 +182,6 @@
       <Keyword value="Interval" name="interval"/>
       <Keyword value="Invisible" name="invisible"/>
       <Keyword value="Is" name="is"/>
-      <Keyword value="Isnull" name="isnull"/>
       <Keyword value="Isolation" name="isolation"/>
       <Keyword value="Join" name="join"/>
       <Keyword value="Key" name="key"/>
@@ -736,7 +737,274 @@
           <Returns>
           </Returns>
         </Function>
-        <!-- TODO: pick up with fgl_drawbox-->
+        <Function name="fgl_drawbox" description="Draws a rectangle in the current window.">
+          <Parameters>
+            <Parameter name="height" type="integer"/>
+            <Parameter name="width" type="integer"/>
+            <Parameter name="line" type="integer"/>
+            <Parameter name="column" type="integer"/>
+            <Parameter name="color" type="integer"/>
+          </Parameters>
+          <Returns>
+          </Returns>
+        </Function>
+        <Function name="fgl_drawline" description="Draws a line in the current window (TUI and traditional mode).">
+          <Parameters>
+            <Parameter name="column" type="integer"/>
+            <Parameter name="line" type="integer"/>
+            <Parameter name="width" type="integer"/>
+            <Parameter name="type" type="char(1)"/>
+            <Parameter name="color" type="integer"/>
+          </Parameters>
+          <Returns>
+          </Returns>
+        </Function>
+        <Function name="fgl_getenv" description="Returns the value of the environment variable.">
+          <Parameters>
+            <Parameter name="variable" type="string"/>
+          </Parameters>
+          <Returns>
+            <Return name="result" type="string"/>
+          </Returns>
+        </Function>
+        <Function name="fgl_getfile" description="Transfers a file from the front end workstation to the application server machine.">
+          <Parameters>
+            <Parameter name="src" type="string"/>
+            <Parameter name="dest" type="string"/>
+          </Parameters>
+          <Returns>
+          </Returns>
+        </Function>
+        <Function name="fgl_gethelp" description="Returns the help text according to its identifier by reading the current help file.">
+          <Parameters>
+            <Parameter name="help-id" type="integer"/>
+          </Parameters>
+          <Returns>
+            <Return name="result" type="string"/>
+          </Returns>
+        </Function>
+        <Function name="fgl_getkey" description="Waits for a keystroke and returns the key number.">
+          <Parameters>
+          </Parameters>
+          <Returns>
+            <Return name="keynum" type="integer"/>
+          </Returns>
+        </Function>
+        <Function name="fgl_getkeylabel" description="Returns the default label associated to a key.">
+          <Parameters>
+            <Parameter name="keyname" type="string"/>
+          </Parameters>
+          <Returns>
+            <Return name="result" type="string"/>
+          </Returns>
+        </Function>
+        <Function name="fgl_getpid" description="Returns the system process identifier.">
+          <Parameters>
+          </Parameters>
+          <Returns>
+            <Return name="result" type="integer"/>
+          </Returns>
+        </Function>
+        <Function name="fgl_getresource" description="Returns the value of an FGLPROFILE entry.">
+          <Parameters>
+            <Parameter name="name" type="string"/>
+          </Parameters>
+          <Returns>
+            <Return name="result" type="string"/>
+          </Returns>
+        </Function>
+        <Function name="fgl_getversion" description="Returns the build number of the runtime system.">
+          <Parameters>
+          </Parameters>
+          <Returns>
+            <Return name="result" type="string"/>
+          </Returns>
+        </Function>
+        <Function name="fgl_getwin_height" description="Returns the number of rows of the current window.">
+          <Parameters>
+          </Parameters>
+          <Returns>
+            <Return name="result" type="integer"/>
+          </Returns>
+        </Function>
+        <Function name="fgl_getwin_width" description="Returns the width of the current window as a number of columns.">
+          <Parameters>
+          </Parameters>
+          <Returns>
+            <Return name="result" type="integer"/>
+          </Returns>
+        </Function>
+        <Function name="fgl_getwin_x" description="Returns the horizontal position of the current window.">
+          <Parameters>
+          </Parameters>
+          <Returns>
+            <Return name="result" type="integer"/>
+          </Returns>
+        </Function>
+        <Function name="fgl_getwin_y" description="Returns the vertical position of the current window.">
+          <Parameters>
+          </Parameters>
+          <Returns>
+            <Return name="result" type="integer"/>
+          </Returns>
+        </Function>
+        <Function name="fgl_keyval" description="Returns the key code of a logical or physical key.">
+          <Parameters>
+            <Parameter name="string" type="string"/>
+          </Parameters>
+          <Returns>
+            <Return name="result" type="integer"/>
+          </Returns>
+        </Function>
+        <Function name="fgl_lastkey" description="Returns the key code corresponding to the logical key that the user most recently typed in the form.">
+          <Parameters>
+          </Parameters>
+          <Returns>
+            <Return name="result" type="integer"/>
+          </Returns>
+        </Function>
+        <Function name="fgl_putfile" description="Transfers a file from the application server machine to the front end workstation.">
+          <Parameters>
+            <Parameter name="src" type="string"/>
+            <Parameter name="dest" type="string"/>
+          </Parameters>
+          <Returns>
+          </Returns>
+        </Function>
+        <Function name="fgl_report_print_binary_file" description="Prints a file containing binary data during a report.">
+          <Parameters>
+            <Parameter name="filename" type="string"/>
+          </Parameters>
+          <Returns>
+          </Returns>
+        </Function>
+        <Function name="fgl_report_set_document_handler" description="Redirects the next report to an XML document handler.">
+          <Parameters>
+            <Parameter name="handler" type="om.SaxDocumentHandler"/>
+          </Parameters>
+          <Returns>
+          </Returns>
+        </Function>
+        <Function name="fgl_scr_size" description="Returns the size of the specified screen array in the current form.">
+          <Parameters>
+            <Parameter name="screen-array" type="string"/>
+          </Parameters>
+          <Returns>
+            <Return name="result" type="integer"/>
+          </Returns>
+        </Function>
+        <Function name="fgl_set_arr_curr" description="Moves to a specific row in a record list.">
+          <Parameters>
+            <Parameter name="row" type="integer"/>
+          </Parameters>
+          <Returns>
+          </Returns>
+        </Function>
+        <Function name="fgl_setenv" description="Sets the value of an environment variable.">
+          <Parameters>
+            <Parameter name="variable" type="string"/>
+            <Parameter name="value" type="string"/>
+          </Parameters>
+          <Returns>
+          </Returns>
+        </Function>
+        <Function name="fgl_setkeylabel" description="Sets the default label associated to a key.">
+          <Parameters>
+            <Parameter name="keyname" type="string"/>
+            <Parameter name="label" type="string"/>
+          </Parameters>
+          <Returns>
+          </Returns>
+        </Function>
+        <Function name="fgl_setsize" description="Sets the size of the main application window.">
+          <Parameters>
+            <Parameter name="height" type="integer"/>
+            <Parameter name="width" type="integer"/>
+          </Parameters>
+          <Returns>
+          </Returns>
+        </Function>
+        <Function name="fgl_settitle" description="Sets the title of the current application window.">
+          <Parameters>
+            <Parameter name="label" type="string"/>
+          </Parameters>
+          <Returns>
+          </Returns>
+        </Function>
+        <Function name="fgl_system" description="Runs a command on the application server.">
+          <Parameters>
+            <Parameter name="command" type="string"/>
+          </Parameters>
+          <Returns>
+          </Returns>
+        </Function>
+        <Function name="fgl_width" description="Returns the number of columns needed to represent the printed version of the expression.">
+          <Parameters>
+            <Parameter name="expression" type="string"/>
+          </Parameters>
+          <Returns>
+            <Return name="result" type="integer"/>
+          </Returns>
+        </Function>
+        <Function name="fgl_window_getoption" description="Returns attributes of the current window.">
+          <Parameters>
+            <Parameter name="attribute" type="string"/>
+          </Parameters>
+          <Returns>
+            <Return name="result" type="string"/>
+          </Returns>
+        </Function>
+        <Function name="length" description="Returns the number of the character string passed as parameter.">
+          <Parameters>
+            <Parameter name="expression" type="string"/>
+          </Parameters>
+          <Returns>
+            <Return name="result" type="integer"/>
+          </Returns>
+        </Function>
+        <Function name="num_args" description="Returns the number of program arguments.">
+          <Parameters>
+          </Parameters>
+          <Returns>
+            <Return name="result" type="integer"/>
+          </Returns>
+        </Function>
+        <Function name="scr_line" description="Returns the index of the current row in the screen array.">
+          <Parameters>
+          </Parameters>
+          <Returns>
+            <Return name="result" type="integer"/>
+          </Returns>
+        </Function>
+        <Function name="set_count" description="Defines the number of rows containing explicit data in a static array used by the next dialog.">
+          <Parameters>
+            <Parameter name="nbrows" type="integer"/>
+          </Parameters>
+          <Returns>
+          </Returns>
+        </Function>
+        <Function name="show_help" description="Displays a runtime help text.">
+          <Parameters>
+            <Parameter name="helpnum" type="integer"/>
+          </Parameters>
+          <Returns>
+          </Returns>
+        </Function>
+        <Function name="startlog" description="Initializes error logging and opens the error log file passed as the parameter.">
+          <Parameters>
+            <Parameter name="filename" type="string"/>
+          </Parameters>
+          <Returns>
+          </Returns>
+        </Function>
+        <Function name="upshift" description="Converts a string to uppercase.">
+          <Parameters>
+            <Parameter name="source" type="string"/>
+          </Parameters>
+          <Returns>
+            <Return name="result" type="string"/>
+          </Returns>
+        </Function>
       </Context>
     </Functions>
     <Packages>

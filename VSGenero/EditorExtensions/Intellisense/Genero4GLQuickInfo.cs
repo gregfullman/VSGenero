@@ -110,6 +110,8 @@ namespace VSGenero.EditorExtensions.Intellisense
                 TypeDefinition typeDef = null;
                 string publicFunctionQuickInfo = null;
                 string context = null;
+                string finalMatchType = null;
+                bool continueMatching = true;
                 GeneroTableColumn columnOrRecordField = null;
                 for (int i = 0; i < splitTokens.Length; i++)
                 {
@@ -132,6 +134,11 @@ namespace VSGenero.EditorExtensions.Intellisense
                                         (
                                             textSpan.Start.Position, splitTokens[i].Length, SpanTrackingMode.EdgeInclusive
                                         );
+                            if (i + 1 == splitTokens.Length)
+                            {
+                                continueMatching = false;
+                                finalMatchType = "tmpMethod";
+                            }
                         }
                     }
                     if (tmpPackage != null && i == 1)
@@ -142,6 +149,11 @@ namespace VSGenero.EditorExtensions.Intellisense
                                         (
                                             textSpan.Start.Position, splitTokens[i].Length, SpanTrackingMode.EdgeInclusive
                                         );
+                            if (i + 1 == splitTokens.Length)
+                            {
+                                continueMatching = false;
+                                finalMatchType = "tmpClass";
+                            }
                         }
                     }
                     if (i == 0)
@@ -152,6 +164,11 @@ namespace VSGenero.EditorExtensions.Intellisense
                                         (
                                             textSpan.Start.Position, splitTokens[i].Length, SpanTrackingMode.EdgeInclusive
                                         );
+                            if (i + 1 == splitTokens.Length)
+                            {
+                                continueMatching = false;
+                                finalMatchType = "tmpPackage";
+                            }
                         }
                         else if (GeneroSingletons.LanguageSettings.NativeClasses.TryGetValue(splitTokens[i].ToLower(), out tmpSysClass))
                         {
@@ -159,6 +176,11 @@ namespace VSGenero.EditorExtensions.Intellisense
                                         (
                                             textSpan.Start.Position, splitTokens[i].Length, SpanTrackingMode.EdgeInclusive
                                         );
+                            if (i + 1 == splitTokens.Length)
+                            {
+                                continueMatching = false;
+                                finalMatchType = "tmpSysClass";
+                            }
                         }
                     }
 
@@ -202,6 +224,11 @@ namespace VSGenero.EditorExtensions.Intellisense
                                         (
                                             textSpan.Start.Position, tempDef.Name.Length, SpanTrackingMode.EdgeInclusive
                                         );
+                                    if (i + 1 == splitTokens.Length)
+                                    {
+                                        continueMatching = false;
+                                        finalMatchType = "tempDef";
+                                    }
                                 }
                                 else if (constantDef != null)
                                 {
@@ -209,6 +236,11 @@ namespace VSGenero.EditorExtensions.Intellisense
                                         (
                                             textSpan.Start.Position, constantDef.Name.Length, SpanTrackingMode.EdgeInclusive
                                         );
+                                    if (i + 1 == splitTokens.Length)
+                                    {
+                                        continueMatching = false;
+                                        finalMatchType = "constantDef";
+                                    }
                                 }
                                 else if (typeDef != null)
                                 {
@@ -216,6 +248,11 @@ namespace VSGenero.EditorExtensions.Intellisense
                                         (
                                             textSpan.Start.Position, typeDef.Name.Length, SpanTrackingMode.EdgeInclusive
                                         );
+                                    if (i + 1 == splitTokens.Length)
+                                    {
+                                        continueMatching = false;
+                                        finalMatchType = "typeDef";
+                                    }
                                 }
                                 if (tempDef == null && constantDef == null && typeDef == null)
                                 {
@@ -230,6 +267,11 @@ namespace VSGenero.EditorExtensions.Intellisense
                                                 (
                                                     textSpan.Start.Position, functionName.Length, SpanTrackingMode.EdgeInclusive
                                                 );
+                                        if (i + 1 == splitTokens.Length)
+                                        {
+                                            continueMatching = false;
+                                            finalMatchType = "funcDef";
+                                        }
                                     }
                                     else
                                     {
@@ -242,6 +284,25 @@ namespace VSGenero.EditorExtensions.Intellisense
                                                         (
                                                             textSpan.Start.Position, splitTokens[i].Length, SpanTrackingMode.EdgeInclusive
                                                         );
+                                                if (i + 1 == splitTokens.Length)
+                                                {
+                                                    continueMatching = false;
+                                                    finalMatchType = "publicFunctionQuickInfo";
+                                                }
+                                            }
+                                        }
+
+                                        // look for a system function
+                                        if (GeneroSingletons.LanguageSettings.NativeMethods.TryGetValue(splitTokens[i], out tmpSysClassFunction))
+                                        {
+                                            applicableToSpan = currentSnapshot.CreateTrackingSpan
+                                                        (
+                                                            textSpan.Start.Position, splitTokens[i].Length, SpanTrackingMode.EdgeInclusive
+                                                        );
+                                            if (i + 1 == splitTokens.Length)
+                                            {
+                                                continueMatching = false;
+                                                finalMatchType = "tmpSysClassFunction";
                                             }
                                         }
 
@@ -259,6 +320,11 @@ namespace VSGenero.EditorExtensions.Intellisense
                                                 (
                                                     textSpan.Start.Position, searchName.Length, SpanTrackingMode.EdgeInclusive
                                                 );
+                                            if (i + 1 == splitTokens.Length)
+                                            {
+                                                continueMatching = false;
+                                                finalMatchType = "cursorPrep";
+                                            }
                                         }
 
                                         if (fpm.ModuleContents.TempTables.TryGetValue(searchName, out tempTableDef))
@@ -267,6 +333,11 @@ namespace VSGenero.EditorExtensions.Intellisense
                                                 (
                                                     textSpan.Start.Position, searchName.Length, SpanTrackingMode.EdgeInclusive
                                                 );
+                                            if (i + 1 == splitTokens.Length)
+                                            {
+                                                continueMatching = false;
+                                                finalMatchType = "tempTableDef";
+                                            }
                                         }
                                     }
                                 }
@@ -289,10 +360,15 @@ namespace VSGenero.EditorExtensions.Intellisense
                                                 (
                                                     textSpan.Start.Position, splitTokens[i].Length, SpanTrackingMode.EdgeInclusive
                                                 );
+                                                if (i + 1 == splitTokens.Length)
+                                                {
+                                                    continueMatching = false;
+                                                    finalMatchType = "columnOrRecordField";
+                                                }
                                             }
                                         }
                                     }
-                                    else if (tempDef.ArrayType != ArrayType.None)
+                                    if (continueMatching && tempDef.ArrayType != ArrayType.None)
                                     {
                                         // could be hovering over an array method
                                         if (GeneroSingletons.LanguageSettings.NativeClasses.TryGetValue("array", out tmpSysClass))
@@ -303,10 +379,15 @@ namespace VSGenero.EditorExtensions.Intellisense
                                                 (
                                                     textSpan.Start.Position, splitTokens[i].Length, SpanTrackingMode.EdgeInclusive
                                                 );
+                                                if (i + 1 == splitTokens.Length)
+                                                {
+                                                    continueMatching = false;
+                                                    finalMatchType = "tmpSysClassFunction";
+                                                }
                                             }
                                         }
                                     }
-                                    else if (tempDef.IsRecordType)  // possibly could go many levels deep...in theory the logic here should work.
+                                    if (continueMatching && tempDef.IsRecordType)  // possibly could go many levels deep...in theory the logic here should work.
                                     {
                                         // look for splitTokens[i] within the record's element variables
                                         VariableDefinition tempRecDef;
@@ -318,6 +399,11 @@ namespace VSGenero.EditorExtensions.Intellisense
                                                 (
                                                     textSpan.Start.Position, splitTokens[i].Length, SpanTrackingMode.EdgeInclusive
                                                 );
+                                            if (i + 1 == splitTokens.Length)
+                                            {
+                                                continueMatching = false;
+                                                finalMatchType = "tempDef";
+                                            }
                                         }
                                         else
                                         {
@@ -336,10 +422,15 @@ namespace VSGenero.EditorExtensions.Intellisense
                                                 (
                                                     textSpan.Start.Position, splitTokens[i].Length, SpanTrackingMode.EdgeInclusive
                                                 );
+                                                if (i + 1 == splitTokens.Length)
+                                                {
+                                                    continueMatching = false;
+                                                    finalMatchType = "tempDef";
+                                                }
                                             }
                                         }
                                     }
-                                    else if (IntellisenseExtensions.IsClassInstance(tempDef.Type, out generoClass))
+                                    if (continueMatching && IntellisenseExtensions.IsClassInstance(tempDef.Type, out generoClass))
                                     {
                                         // find the function
                                         if (generoClass.Methods.TryGetValue(splitTokens[i].ToLower(), out tmpMethod))
@@ -348,9 +439,14 @@ namespace VSGenero.EditorExtensions.Intellisense
                                                 (
                                                     textSpan.Start.Position, splitTokens[i].Length, SpanTrackingMode.EdgeInclusive
                                                 );
+                                            if (i + 1 == splitTokens.Length)
+                                            {
+                                                continueMatching = false;
+                                                finalMatchType = "tmpMethod";
+                                            }
                                         }
                                     }
-                                    else if (tempDef != null)
+                                    if (continueMatching && tempDef != null)
                                     {
                                         GeneroClass tempClass;
                                         // check to see if the tempDef is a type that has record elements
@@ -367,9 +463,14 @@ namespace VSGenero.EditorExtensions.Intellisense
                                                     (
                                                         textSpan.Start.Position, splitTokens[i].Length, SpanTrackingMode.EdgeInclusive
                                                     );
+                                                if (i + 1 == splitTokens.Length)
+                                                {
+                                                    continueMatching = false;
+                                                    finalMatchType = "tempDef";
+                                                }
                                             }
                                         }
-                                        else if (GeneroSingletons.LanguageSettings.NativeClasses.TryGetValue(tempDef.Type.ToLower(), out tmpSysClass))
+                                        if (continueMatching && GeneroSingletons.LanguageSettings.NativeClasses.TryGetValue(tempDef.Type.ToLower(), out tmpSysClass))
                                         {
                                             if (tmpSysClass.Functions.TryGetValue(splitTokens[i].ToLower(), out tmpSysClassFunction))
                                             {
@@ -377,6 +478,11 @@ namespace VSGenero.EditorExtensions.Intellisense
                                                 (
                                                     textSpan.Start.Position, splitTokens[i].Length, SpanTrackingMode.EdgeInclusive
                                                 );
+                                                if (i + 1 == splitTokens.Length)
+                                                {
+                                                    continueMatching = false;
+                                                    finalMatchType = "tmpSysClassFunction";
+                                                }
                                             }
                                         }
                                     }
@@ -387,55 +493,55 @@ namespace VSGenero.EditorExtensions.Intellisense
                 }
 
                 // Now let's see what we have
-                if (tmpSysClassFunction != null)
+                if (tmpSysClassFunction != null && finalMatchType == "tmpSysClassFunction")
                 {
                     qiContent.Add(tmpSysClassFunction.GetIntellisenseText());   // TODO: this is still using the GeneroClassMethod extension method...need to change.
                 }
-                else if (tmpMethod != null)
+                else if (tmpMethod != null && finalMatchType == "tmpMethod")
                 {
                     qiContent.Add(tmpMethod.GetIntellisenseText());
                 }
-                else if (tmpSysClass != null)
+                else if (tmpSysClass != null && finalMatchType == "tmpSysClass")
                 {
                     qiContent.Add(tmpSysClass.GetIntellisenseText());
                 }
-                else if (tmpClass != null)
+                else if (tmpClass != null && finalMatchType == "tmpClass")
                 {
                     qiContent.Add(tmpClass.GetIntellisenseText());
                 }
-                else if (tmpPackage != null)
+                else if (tmpPackage != null && finalMatchType == "tmpPackage")
                 {
                     qiContent.Add(tmpPackage.GetIntellisenseText());
                 }
-                else if (columnOrRecordField != null)
+                else if (columnOrRecordField != null && finalMatchType == "columnOrRecordField")
                 {
                     qiContent.Add(columnOrRecordField.Type + " " + (tempDef.MimicTypeTable ?? "") + "." + columnOrRecordField.Name);
                 }
-                else if (tempDef != null)
+                else if (tempDef != null && finalMatchType == "tempDef")
                 {
                     qiContent.Add(tempDef.GetIntellisenseText(context, parentDef));
                 }
-                else if (constantDef != null)
+                else if (constantDef != null && finalMatchType == "constantDef")
                 {
                     qiContent.Add(constantDef.GetIntellisenseText(context));
                 }
-                else if (typeDef != null)
+                else if (typeDef != null && finalMatchType == "typeDef")
                 {
                     qiContent.Add(typeDef.GetIntellisenseText(context));
                 }
-                else if (cursorPrep != null)
+                else if (cursorPrep != null && finalMatchType == "cursorPrep")
                 {
                     qiContent.Add(cursorPrep.GetIntellisenseText());
                 }
-                else if (tempTableDef != null)
+                else if (tempTableDef != null && finalMatchType == "tempTableDef")
                 {
                     qiContent.Add("(temp table) " + tempTableDef.Name);
                 }
-                else if (publicFunctionQuickInfo != null)
+                else if (publicFunctionQuickInfo != null && finalMatchType == "publicFunctionQuickInfo")
                 {
                     qiContent.Add(publicFunctionQuickInfo);
                 }
-                else if (funcDef != null)
+                else if (funcDef != null && finalMatchType == "funcDef")
                 {
                     qiContent.Add(funcDef.GetIntellisenseText());
                 }
@@ -450,6 +556,16 @@ namespace VSGenero.EditorExtensions.Intellisense
                 funcDef.Constants.TryGetValue(token, out constantDef) ||
                 funcDef.Types.TryGetValue(token, out typeDef))
             {
+                if (varDef != null)
+                {
+                    // see if the variable is a parameter into the function
+                    string varName = varDef.Name;
+                    if (funcDef.Parameters.Any(x => x.Equals(varName, StringComparison.OrdinalIgnoreCase)))
+                    {
+                        context = "parameter";
+                        return true;
+                    }
+                }
                 context = "local";
                 return true;
             }

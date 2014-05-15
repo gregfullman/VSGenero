@@ -169,7 +169,17 @@ namespace VSGenero.EditorExtensions.Intellisense
             StringBuilder sb = new StringBuilder();
             if (context != null)
             {
-                sb.Append(string.Format("({0} variable) ", context));
+                if (context != "parameter")
+                {
+                    sb.AppendFormat("({0} ", context);
+                    if (parent != null)
+                        sb.Append("record ");
+                    sb.Append("variable) ");
+                }
+                else
+                {
+                    sb.Append("(parameter) ");
+                }
             }
             sb.Append(GetVariableIntellisenseText(varDef, parent));
             return sb.ToString();

@@ -352,7 +352,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                     {
                         if (tmpClass.Methods.TryGetValue(splitTokens[2].ToLower(), out tmpMethod))
                         {
-                            string methodSig = tmpMethod.Description;
+                            string methodSig = tmpMethod.GetIntellisenseText();
                             return GetSignature(methodSig, textBuffer, span);
                         }
                     }
@@ -386,7 +386,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                         GeneroClassMethod classMethod;
                         if (generoClass.Methods.TryGetValue(splitTokens[1], out classMethod))
                         {
-                            string methodSig = classMethod.Description;
+                            string methodSig = classMethod.GetIntellisenseText();
                             return GetSignature(methodSig, textBuffer, span);
                         }
                     }
@@ -410,6 +410,12 @@ namespace VSGenero.EditorExtensions.Intellisense
                         {
                             return GetSignature(methodSig, textBuffer, span);
                         }
+                    }
+
+                    GeneroSystemClassFunction sysClassFunc;
+                    if (GeneroSingletons.LanguageSettings.NativeMethods.TryGetValue(functionName, out sysClassFunc))
+                    {
+                        return GetSignature(sysClassFunc.GetIntellisenseText(), textBuffer, span);
                     }
                 }
             }
