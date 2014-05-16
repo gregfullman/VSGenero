@@ -27,6 +27,58 @@ namespace VSGenero.EditorExtensions.Intellisense
 {
     public static class IntellisenseExtensions
     {
+        private static IEnumerable<string> SplitToLines(string stringToSplit, int maximumLineLength)
+        {
+            var words = stringToSplit.Split(' ').Concat(new[] { "" });
+            return
+                words
+                    .Skip(1)
+                    .Aggregate(
+                        words.Take(1).ToList(),
+                        (a, w) =>
+                        {
+                            var last = a.Last();
+                            while (last.Length > maximumLineLength)
+                            {
+                                a[a.Count() - 1] = last.Substring(0, maximumLineLength);
+                                last = last.Substring(maximumLineLength);
+                                a.Add(last);
+                            }
+                            var test = last + " " + w;
+                            if (test.Length > maximumLineLength)
+                            {
+                                a.Add(w);
+                            }
+                            else
+                            {
+                                a[a.Count() - 1] = test;
+                            }
+                            return a;
+                        });
+        }
+
+        private static string GetFormattedDescription(string description)
+        {
+            int maxLength = 80;
+            if (description.Length < maxLength)
+            {
+                return description;
+            }
+            else
+            {
+                StringBuilder sb = new StringBuilder();
+                var lineList = SplitToLines(description, maxLength).ToList();
+                for (int i = 0; i < lineList.Count; i++)
+                {
+                    sb.Append(lineList[i]);
+                    if (i + 1 < lineList.Count)
+                        sb.Append("\n");
+                }
+                    
+                return sb.ToString();
+            }
+        }
+
         internal static string GetIntellisenseText(this GeneroOperator oper)
         {
             StringBuilder sb = new StringBuilder();
@@ -34,7 +86,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             sb.AppendFormat("{0} {1}", oper.ReturnValue, oper.GetSignature());
 
             if(!string.IsNullOrWhiteSpace(oper.Description))
-                sb.AppendFormat("\n{0}", oper.Description);
+                sb.AppendFormat("\n{0}", GetFormattedDescription(oper.Description));
             return sb.ToString();
         }
 
@@ -131,7 +183,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             sb.AppendFormat("(package) {0}", generoPackage.Name);
             if (!string.IsNullOrWhiteSpace(generoPackage.Description))
             {
-                sb.AppendFormat("\n{0}", generoPackage.Description);
+                sb.AppendFormat("\n{0}", GetFormattedDescription(generoPackage.Description));
             }
             return sb.ToString();
         }
@@ -142,7 +194,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             sb.AppendFormat("(class) {0}.{1}", generoClass.ParentPackage, generoClass.Name);
             if (!string.IsNullOrWhiteSpace(generoClass.Description))
             {
-                sb.AppendFormat("\n{0}", generoClass.Description);
+                sb.AppendFormat("\n{0}", GetFormattedDescription(generoClass.Description));
             }
             return sb.ToString();
         }
@@ -153,7 +205,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             sb.AppendFormat("(native class) {0}", generoSysClass.Name);
             if (!string.IsNullOrWhiteSpace(generoSysClass.Description))
             {
-                sb.AppendFormat("\n{0}", generoSysClass.Description);
+                sb.AppendFormat("\n{0}", GetFormattedDescription(generoSysClass.Description));
             }
             return sb.ToString();
         }
@@ -201,7 +253,7 @@ namespace VSGenero.EditorExtensions.Intellisense
 
             if (!string.IsNullOrWhiteSpace(classMethod.Description))
             {
-                sb.AppendFormat("\n{0}", classMethod.Description);
+                sb.AppendFormat("\n{0}", GetFormattedDescription(classMethod.Description));
             }
 
             return sb.ToString();

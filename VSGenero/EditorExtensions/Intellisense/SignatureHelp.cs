@@ -385,9 +385,20 @@ namespace VSGenero.EditorExtensions.Intellisense
                     {
                         // find the function
                         GeneroClassMethod classMethod;
-                        if (generoClass.Methods.TryGetValue(splitTokens[1], out classMethod))
+                        if (generoClass.Methods.TryGetValue(splitTokens[1].ToLower(), out classMethod))
                         {
                             string methodSig = classMethod.GetIntellisenseText();
+                            return GetSignature(methodSig, textBuffer, span);
+                        }
+                    }
+
+                    GeneroSystemClass sysClass;
+                    if (GeneroSingletons.LanguageSettings.NativeClasses.TryGetValue(varDef.Type, out sysClass))
+                    {
+                        GeneroSystemClassFunction sysClassFunc;
+                        if(sysClass.Functions.TryGetValue(splitTokens[1].ToLower(), out sysClassFunc))
+                        {
+                            string methodSig = sysClassFunc.GetIntellisenseText();
                             return GetSignature(methodSig, textBuffer, span);
                         }
                     }
