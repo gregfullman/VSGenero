@@ -164,6 +164,7 @@
       <Keyword value="Hold" name="hold"/>
       <Keyword value="Hour" name="hour"/>
       <Keyword value="If" name="if"/>
+      <Keyword value="Iif" name="iif"/>
       <Keyword value="In" name="in"/>
       <Keyword value="Inner" name="inner"/>
       <Keyword value="Index" name="index"/>
@@ -199,6 +200,7 @@
       <Keyword value="Lock" name="lock"/>
       <Keyword value="Log" name="log"/>
       <Keyword value="Long" name="long"/>
+      <Keyword value="Lstr" name="lstr"/>
       <Keyword value="Magenta" name="magenta"/>
       <Keyword value="Matches" name="matches"/>
       <Keyword value="Menu" name="menu"/>
@@ -282,6 +284,7 @@
       <Keyword value="Skip" name="skip"/>
       <Keyword value="Select" name="select"/>
       <Keyword value="Set" name="set"/>
+      <Keyword value="Sfmt" name="sfmt"/>
       <Keyword value="Share" name="share"/>
       <Keyword value="Show" name="show"/>
       <Keyword value="Size" name="size"/>
@@ -292,6 +295,8 @@
       <Keyword value="Spaces" name="spaces"/>
       <Keyword value="Sql" name="sql"/>
       <Keyword value="Sqlerror" name="sqlerror"/>
+      <Keyword value="SqlErrMessage" name="sqlerrmessage"/>
+      <Keyword value="SqlState" name="sqlstate"/>
       <Keyword value="Sqlwarning" name="sqlwarning"/>
       <Keyword value="Start" name="start"/>
       <Keyword value="Stability" name="stability"/>
@@ -1007,6 +1012,119 @@
         </Function>
       </Context>
     </Functions>
+    <Operators>
+      <Operator name="nvl" desc="Returns the second parameter if the first argument evaluates to NULL.">
+        <Operands>
+          <Operand name="main-expr" type="expression"/>
+          <Operand name="subst-expr" type="expression"/>
+        </Operands>
+        <Value type="expression"/>
+      </Operator>
+      <Operator name="iif" desc="Returns the second or third parameter according to the boolean expression given as first argument.">
+        <Operands>
+          <Operand name="bool-expr" type="expression"/>
+          <Operand name="true-expr" type="expression"/>
+          <Operand name="false-expr" type="expression"/>
+        </Operands>
+        <Value type="expression"/>
+      </Operator>
+      <Operator name="ascii" desc="Produces an ASCII character.">
+        <Operands>
+          <Operand name="int-expr" type="integer"/>
+        </Operands>
+        <Value type="char(1)"/>
+      </Operator>
+      <Operator name="ord" desc="Returns the code point of a character in the current locale.">
+        <Operands>
+          <Operand name="source" type="string"/>
+        </Operands>
+        <Value type="integer"/>
+      </Operator>
+      <Operator name="lstr" desc="Returns a localized string.">
+        <Operands>
+          <Operand name="source" type="string"/>
+        </Operands>
+        <Value type="integer"/>
+      </Operator>
+      <Operator name="sfmt" desc="Replaces place holders (%n) in a string with values.">
+        <Operands>
+          <Operand name="str-expr" type="string"/>
+        </Operands>
+        <MultiParams name="param" type="expression"/>
+        <Value type="string"/>
+      </Operator>
+      <Operator name="extend" desc="Adjusts a date time value according to the qualifier.">
+        <Operands>
+          <Operand name="dt-expr" type="expression"/>
+          <Operand name="qual" type="qualifier"/>
+        </Operands>
+        <Value type="datetime"/>
+      </Operator>
+      <Operator name="date" desc="Converts an expression to a DATE value.">
+        <Operands>
+          <Operand name="expr" type="expression"/>
+        </Operands>
+        <Value type="date"/>
+      </Operator>
+      <Operator name="time" desc="Returns a time part of the date time expression.">
+        <Operands>
+          <Operand name="expr" type="expression"/>
+        </Operands>
+        <Value type="time"/>
+      </Operator>
+      <Operator name="year" desc="Extracts the year of a date time expression.">
+        <Operands>
+          <Operand name="expr" type="expression"/>
+        </Operands>
+        <Value type="integer"/>
+      </Operator>
+      <Operator name="month" desc="Extracts the month of a date time expression.">
+        <Operands>
+          <Operand name="expr" type="expression"/>
+        </Operands>
+        <Value type="integer"/>
+      </Operator>
+      <Operator name="day" desc="Extracts the day of a date time expression.">
+        <Operands>
+          <Operand name="expr" type="expression"/>
+        </Operands>
+        <Value type="integer"/>
+      </Operator>
+      <Operator name="weekday" desc="Returns a positive whole number between 0 and 6 corresponding to the day of the week implied by its operand.">
+        <Operands>
+          <Operand name="expr" type="expression"/>
+        </Operands>
+        <Value type="integer"/>
+      </Operator>
+      <Operator name="mdy" desc="Creates a date from month, day and year units.">
+        <Operands>
+          <Operand name="month" type="integer"/>
+          <Operand name="day" type="integer"/>
+          <Operand name="year" type="integer"/>
+        </Operands>
+        <Value type="date"/>
+      </Operator>
+      <Operator name="get_fldbuf" desc="Returns as character strings the current values of the specified fields.">
+        <Operands>
+          <Operand name="field" type="formvar"/>
+        </Operands>
+        <MultiParams name="field" type="formvar"/>
+        <Value type="context-dependent"/>
+      </Operator>
+      <Operator name="infield" desc="Checks for the current screen field.">
+        <Operands>
+          <Operand name="field" type="formvar"/>
+        </Operands>
+        <Value type="boolean"/>
+      </Operator>
+      <Operator name="field_touched" desc="Checks if fields were modified during the dialog execution.">
+        <Operands>
+          <Operand name="field" type="formvar"/>
+        </Operands>
+        <MultiParams name="field" type="formvar"/>
+        <Value type="boolean"/>
+      </Operator>
+    </Operators>
     <Packages>
       <Package name="base" type="builtin">
         <Classes>
@@ -2694,7 +2812,6 @@
           </Class>
         </Classes>
       </Package>
-      <!-- http://pic.dhe.ibm.com/infocenter/idshelp/v117/topic/com.ibm.gen_busug.doc/c_fgl_section_extension_packages.htm -->
       <Package name="util" type="extension">
         <Classes>
           <Class name="DateTime" isStatic="true">
@@ -3369,7 +3486,7 @@
                   <Return name="result" type="integer"/>
                 </Returns>
               </Method>
-              <Method name="rename" desc="Creates a new file by copying an existing file." scope="static">
+              <Method name="copy" desc="Creates a new file by copying an existing file." scope="static">
                 <Parameters>
                   <Parameter name="source" type="string"/>
                   <Parameter name="dest" type="string"/>
@@ -3598,8 +3715,816 @@
               </Method>
             </Methods>
           </Class>
+          <Class name="WebServiceEngine" isStatic="true">
+            <Methods>
+              <Method name="RegisterService" desc="Registers a service in the engine." scope="static">
+                <Parameters>
+                  <Parameter name="service" type="com.WebService"/>
+                </Parameters>
+                <Returns></Returns>
+              </Method>
+              <Method name="Start" desc="Starts the Web Service engine." scope="static">
+                <Parameters>
+                </Parameters>
+                <Returns></Returns>
+              </Method>
+              <Method name="ProcessServices" desc="Specifies the wait period for an HTTP input request, to process an operation of one of the registered Web Services." scope="static">
+                <Parameters>
+                  <Parameter name="timeout" type="integer"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="GetHTTPServiceRequest" desc="Get a handle for an incoming HTTP service request." scope="static">
+                <Parameters>
+                  <Parameter name="timeout" type="integer"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="com.HTTPServiceRequest"/>
+                </Returns>
+              </Method>
+              <Method name="HandleRequest" desc="Get a handle for an incoming HTTP service request." scope="static">
+                <Parameters>
+                  <Parameter name="timeout" type="integer"/>
+                  <Parameter name="status" type="integer"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="com.HTTPServiceRequest"/>
+                </Returns>
+              </Method>
+              <Method name="SetFaultCode" desc="Get a handle for an incoming HTTP service request." scope="static">
+                <Parameters>
+                  <Parameter name="code" type="string"/>
+                  <Parameter name="code_ns" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="SetFaultString" desc="Defines the description of a SOAP Fault." scope="static">
+                <Parameters>
+                  <Parameter name="desc" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="SetFaultDetail" desc="Defines the published SOAP Fault." scope="static">
+                <Parameters>
+                  <Parameter name="fault" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="SetOption" desc="Sets an option for the Web Service engine." scope="static">
+                <Parameters>
+                  <Parameter name="option" type="string"/>
+                  <Parameter name="value" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="GetOption" desc="Returns the value of a Web Service engine option." scope="static">
+                <Parameters>
+                  <Parameter name="option" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+            </Methods>
+          </Class>
+          <Class name="HTTPServiceRequest" isStatic="false">
+            <Methods>
+              <Method name="getURL" desc="Returns the URL of the HTTP service request." scope="instance">
+                <Parameters></Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="getMethod" desc="Returns the HTTP method of the service request." scope="instance">
+                <Parameters></Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="getRequestVersion" desc="Returns the HTTP version of the service request." scope="instance">
+                <Parameters></Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="hasRequestKeepConnection" desc="Returns TRUE if the connection remains after sending a response." scope="instance">
+                <Parameters></Parameters>
+                <Returns>
+                  <Return name="result" type="boolean"/>
+                </Returns>
+              </Method>
+              <Method name="getRequestHeader" desc="Returns the request header name." scope="instance">
+                <Parameters></Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="getRequestHeaderCount" desc="Returns number of request headers." scope="instance">
+                <Parameters></Parameters>
+                <Returns>
+                  <Return name="result" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="getRequestHeaderName" desc="Returns a request header name by position." scope="instance">
+                <Parameters>
+                  <Parameter name="index" type="integer"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="getRequestHeaderValue" desc="Returns a request header value by position." scope="instance">
+                <Parameters>
+                  <Parameter name="index" type="integer"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="readFromEncodedRequest" desc="Returns the string of a GET request with UTF-8 conversion option." scope="instance">
+                <Parameters>
+                  <Parameter name="utf8" type="boolean"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="readDataRequest" desc="Returns the body of a request into a BYTE." scope="instance">
+                <Parameters></Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="readTextRequest" desc="Returns the request body as a plain string." scope="instance">
+                <Parameters></Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="readXmlRequest" desc="Returns the request body as an XML document." scope="instance">
+                <Parameters></Parameters>
+                <Returns>
+                  <Return name="result" type="xml.DomDocument"/>
+                </Returns>
+              </Method>
+              <Method name="beginXmlRequest" desc="Starts an HTTP streaming request." scope="instance">
+                <Parameters></Parameters>
+                <Returns>
+                  <Return name="reader" type="xml.StaxReader"/>
+                </Returns>
+              </Method>
+              <Method name="endXmlRequest" desc="Terminates an HTTP streaming request." scope="instance">
+                <Parameters>
+                  <Parameter name="reader" type="xml.StaxReader"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="setResponseCharset" desc="Defines the HTTP response character set." scope="instance">
+                <Parameters>
+                  <Parameter name="charset" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="setResponseVersion" desc="Defines the HTTP response version." scope="instance">
+                <Parameters>
+                  <Parameter name="version" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="setResponseHeader" desc="Defines a header for the HTTP response." scope="instance">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                  <Parameter name="value" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="sendDataResponse" desc="Sends an HTTP response with data of a BYTE variable." scope="instance">
+                <Parameters>
+                  <Parameter name="code" type="integer"/>
+                  <Parameter name="desc" type="string"/>
+                  <Parameter name="data" type="byte"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="sendTextResponse" desc="Sends an HTTP response with data from a plain string." scope="instance">
+                <Parameters>
+                  <Parameter name="code" type="integer"/>
+                  <Parameter name="desc" type="string"/>
+                  <Parameter name="data" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="sendXmlResponse" desc="Sends an HTTP response with data from a XML document object." scope="instance">
+                <Parameters>
+                  <Parameter name="code" type="integer"/>
+                  <Parameter name="desc" type="string"/>
+                  <Parameter name="data" type="xml.DomDocument"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="sendResponse" desc="Sends an HTTP response without body." scope="instance">
+                <Parameters>
+                  <Parameter name="code" type="integer"/>
+                  <Parameter name="desc" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="beginXmlResponse" desc="Starts an HTTP streaming response." scope="instance">
+                <Parameters>
+                  <Parameter name="code" type="integer"/>
+                  <Parameter name="desc" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="writer" type="xml.StaxWriter"/>
+                </Returns>
+              </Method>
+              <Method name="endXmlResponse" desc="Terminates an HTTP streaming response." scope="instance">
+                <Parameters>
+                  <Parameter name="writer" type="xml.StaxWriter"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="getRequestMultipartType" desc="Returns the multipart type of an incoming request." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="type" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="getRequestPartCount" desc="Returns the number of additional multipart elements." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="num" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="getRequestPart" desc="Returns the HTTPPart object at the specified index position." scope="instance">
+                <Parameters>
+                  <Parameter name="idx" type="integer"/>
+                </Parameters>
+                <Returns>
+                  <Return name="part-object" type="com.HTTPPart"/>
+                </Returns>
+              </Method>
+              <Method name="getRequestPartFromContentID" desc="Returns the HTTPPart object of the given Content-ID value." scope="instance">
+                <Parameters>
+                  <Parameter name="id" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="part-object" type="com.HTTPPart"/>
+                </Returns>
+              </Method>
+              <Method name="setResponseMultipartType" desc="Sets HTTP response in multipart mode of given type." scope="instance">
+                <Parameters>
+                  <Parameter name="type" type="string"/>
+                  <Parameter name="start" type="string"/>
+                  <Parameter name="boundary" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="addResponsePart" desc="Adds a new part to the HTTP root part response." scope="instance">
+                <Parameters>
+                  <Parameter name="part-object" type="com.HTTPPart"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+            </Methods>
+          </Class>
+          <Class name="HTTPRequest" isStatic="false">
+            <Methods>
+              <Method name="Create" desc="Creates an new HTTPRequest object from a URL." scope="static">
+                <Parameters>
+                  <Parameter name="url" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="com.HTTPRequest"/>
+                </Returns>
+              </Method>
+              <Method name="setVersion" desc="Sets the HTTP version of the request." scope="instance">
+                <Parameters>
+                  <Parameter name="version" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="setMethod" desc="Sets the HTTP method of the request." scope="instance">
+                <Parameters>
+                  <Parameter name="method" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="setHeader" desc="Sets an HTTP header for the request." scope="instance">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                  <Parameter name="value" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="removeHeader" desc="Removes an HTTP header for the request according to a name." scope="instance">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="clearHeaders" desc="Removes all user-defined HTTP request headers." scope="instance">
+                <Parameters></Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="setCharset" desc="Defines the charset used when sending text or XML." scope="instance">
+                <Parameters>
+                  <Parameter name="charset" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="setAuthentication" desc="Defines the user login and password to authenticate to the server." scope="instance">
+                <Parameters>
+                  <Parameter name="login" type="string"/>
+                  <Parameter name="pass" type="string"/>
+                  <Parameter name="scheme" type="string"/>
+                  <Parameter name="realm" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="clearAuthentication" desc="Removes user-defined authentication." scope="instance">
+                <Parameters></Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="setKeepConnection" desc="Defines if connection is kept open if a new request occurs." scope="instance">
+                <Parameters>
+                  <Parameter name="keep" type="boolean"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="setTimeOut" desc="Defines the timeout for a reading or writing operation." scope="instance">
+                <Parameters>
+                  <Parameter name="timeout" type="integer"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="setConnectionTimeOut" desc="Defines the timeout for the establishment of the connection." scope="instance">
+                <Parameters>
+                  <Parameter name="timeout" type="integer"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="setMaximumResponseLength" desc="Defines the maximum size in Kbyte a response." scope="instance">
+                <Parameters>
+                  <Parameter name="length" type="integer"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="setAutoReply" desc="Defines the auto reply option for response methods." scope="instance">
+                <Parameters>
+                  <Parameter name="reply" type="boolean"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="doRequest" desc="Performs the HTTP request." scope="instance">
+                <Parameters></Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="doTextRequest" desc="Performs the request by sending an entire string at once." scope="instance">
+                <Parameters>
+                  <Parameter name="data" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="doXmlRequest" desc="Performs the request by sending an entire XML document at once." scope="instance">
+                <Parameters>
+                  <Parameter name="data" type="xml.DomDocument"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="doDataRequest" desc="Performs the request by sending binary data." scope="instance">
+                <Parameters>
+                  <Parameter name="data" type="byte"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="doFormEncodedRequest" desc="Performs an &quot;application/x-www-form-urlencoded forms&quot; encoded query." scope="instance">
+                <Parameters>
+                  <Parameter name="query" type="string"/>
+                  <Parameter name="utf8" type="boolean"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="beginXmlRequest" desc="Starts a streaming HTTP request." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="writer" type="xml.StaxWriter"/>
+                </Returns>
+              </Method>
+              <Method name="endXmlRequest" desc="Terminates a streaming HTTP request." scope="instance">
+                <Parameters>
+                  <Parameter name="writer" type="xml.StaxWriter"/>
+                </Parameters>
+                <Returns></Returns>
+              </Method>
+              <Method name="getResponse" desc="Returns the response produced by one of request methods." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="com.HTTPResponse"/>
+                </Returns>
+              </Method>
+              <Method name="getAsyncResponse" desc="Returns (asynchronously) the response produced by one of request methods." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="com.HTTPResponse"/>
+                </Returns>
+              </Method>
+              <Method name="setMultipartType" desc="Switch HTTPRequest in multipart mode of given type." scope="instance">
+                <Parameters>
+                  <Parameter name="type" type="string"/>
+                  <Parameter name="start" type="string"/>
+                  <Parameter name="boundary" type="string"/>
+                </Parameters>
+                <Returns></Returns>
+              </Method>
+              <Method name="addPart" desc="Adds a new part to the HTTP root part request." scope="instance">
+                <Parameters>
+                  <Parameter name="part" type="com.HTTPPart"/>
+                </Parameters>
+                <Returns></Returns>
+              </Method>
+            </Methods>
+          </Class>
+          <Class name="HTTPResponse" isStatic="false">
+            <Methods>
+              <Method name="getStatusCode" desc="Returns the HTTP status code." scope="instance">
+                <Parameters></Parameters>
+                <Returns>
+                  <Return name="result" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="getStatusDescription" desc="Returns the HTTP status description." scope="instance">
+                <Parameters></Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="beginXmlResponse" desc="Starts a streaming HTTP response." scope="instance">
+                <Parameters></Parameters>
+                <Returns>
+                  <Return name="writer" type="xml.StaxWriter"/>
+                </Returns>
+              </Method>
+              <Method name="endXmlResponse" desc="Performs the HTTP request." scope="instance">
+                <Parameters>
+                  <Parameter name="writer" type="xml.StaxWriter"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="getHeader" desc="Returns the value of the HTTP header name, or NULL if there is none." scope="instance">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="getHeaderCount" desc="Returns the number of headers." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="getHeaderName" desc="Returns the name of a header by position." scope="instance">
+                <Parameters>
+                  <Parameter name="index" type="integer"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="getHeaderValue" desc="Returns the value of a header by position." scope="instance">
+                <Parameters>
+                  <Parameter name="index" type="integer"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="getDataResponse" desc="Performs the HTTP request." scope="instance">
+                <Parameters>
+                  <Parameter name="data" type="byte"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="getTextResponse" desc="Returns an entire HTTP string as response from the server." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="data" type="string"/>
+                </Returns> 
+              </Method>
+              <Method name="getXmlResponse" desc="Returns an entire DOM document as HTTP response from the server." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="data" type="xml.DomDocument"/>
+                </Returns>
+              </Method>
+              <Method name="getMultipartType" desc="Returns whether a response is multipart or not, and the kind of multipart if any." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="getPartCount" desc="Returns the number of additional parts in the HTTP response." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="count" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="getPart" desc="Returns the HTTP part object at the specified index of the current HTTP response." scope="instance">
+                <Parameters>
+                  <Parameter name="index" type="integer"/>
+                </Parameters>
+                <Returns>
+                  <Return name="part-object" type="com.HTTPPart"/>
+                </Returns>
+              </Method>
+              <Method name="getPartFromContentID" desc="Returns the HTTP part object marked with the given Content-ID value as identifier, or NULL if none." scope="instance">
+                <Parameters>
+                  <Parameter name="id" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="part-object" type="com.HTTPPart"/>
+                </Returns>
+              </Method>
+            </Methods>
+          </Class>
+          <Class name="HTTPPart" isStatic="false">
+            <Methods>
+              <Method name="CreateFromString" desc="Creates a new HTTPPart object based on given string." scope="static">
+                <Parameters>
+                  <Parameter name="s" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="part-object" type="com.HTTPPart"/>
+                </Returns>
+              </Method>
+              <Method name="CreateFromDomDocument" desc="Creates a new HTTPPart object based on given XML document." scope="static">
+                <Parameters>
+                  <Parameter name="x" type="xml.DomDocument"/>
+                </Parameters>
+                <Returns>
+                  <Return name="part-object" type="com.HTTPPart"/>
+                </Returns>
+              </Method>
+              <Method name="CreateFromData" desc="Creates a new HTTPPart object based on given BYTE located in memory." scope="static">
+                <Parameters>
+                  <Parameter name="b" type="byte"/>
+                </Parameters>
+                <Returns>
+                  <Return name="part-object" type="com.HTTPPart"/>
+                </Returns>
+              </Method>
+              <Method name="CreateAttachment" desc="Creates a new HTTPPart object based on given filename located on disk." scope="static">
+                <Parameters>
+                  <Parameter name="filename" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="part-object" type="com.HTTPPart"/>
+                </Returns>
+              </Method>
+              <Method name="getContentAsString" desc="Returns the HTTP part as a string." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="str" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="getContentAsDomDocument" desc="Returns the HTTP part as a XML document." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="domDocument" type="xml.DomDocument"/>
+                </Returns>
+              </Method>
+              <Method name="getContentAsData" desc="Returns the HTTP part as a BYTE." scope="instance">
+                <Parameters>
+                  <Parameter name="b" type="byte"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="getAttachment" desc="Returns the temporary filename located on disk of the HTTP part." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="filename" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="setHeader" desc="Setter to handle HTTP multipart headers." scope="instance">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                  <Parameter name="value" type="string"/>
+                </Parameters> 
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="getHeader" desc="Setter to handle HTTP multipart headers." scope="instance">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="value" type="string"/>
+                </Returns>
+              </Method>
+            </Methods>
+          </Class>
+          <Class name="TCPRequest" isStatic="false">
+            <Methods>
+              <Method name="Create" desc="Creates a new TCP request object." scope="static">
+                <Parameters>
+                  <Parameter name="url" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="com.TCPRequest"/>
+                </Returns>
+              </Method>
+              <Method name="setTimeOut" desc="Defines the time out for read/write operations." scope="instance">
+                <Parameters>
+                  <Parameter name="seconds" type="integer"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="setConnectionTimeOut" desc="Defines the connection time out." scope="instance">
+                <Parameters>
+                  <Parameter name="seconds" type="integer"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="setMaximumResponseLength" desc="Defines the time out for read/write operations." scope="instance">
+                <Parameters>
+                  <Parameter name="length" type="integer"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="doRequest" desc="Performs a TCP request." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="doXmlRequest" desc="Performs a request with a DOM document." scope="instance">
+                <Parameters>
+                  <Parameter name="document" type="xml.DomDocument"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="doTextRequest" desc="Performs a request with a string." scope="instance">
+                <Parameters>
+                  <Parameter name="data" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="beginXmlRequest" desc="Starts a streaming XML request." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="writer" type="xml.StaxWriter"/>
+                </Returns>
+              </Method>
+              <Method name="endXmlRequest" desc="Terminates a streaming TCP request." scope="instance">
+                <Parameters>
+                  <Parameter name="writer" type="xml.StaxWriter"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="getResponse" desc="Returns the response after performing a TCP request." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="response" type="com.TCPResponse"/>
+                </Returns>
+              </Method>
+              <Method name="getAsyncResponse" desc="Returns the response after performing a TCP request, asynchronously." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="response" type="com.TCPResponse"/>
+                </Returns>
+              </Method>
+            </Methods>
+          </Class>
+          <Class name="TCPResponse" isStatic="false">
+            <Methods>
+              <Method name="beginXmlResponse" desc="Starts a streaming TCP response." scope="instance">
+                <Parameters></Parameters>
+                <Returns>
+                  <Return name="reader" type="xml.StaxReader"/>
+                </Returns>
+              </Method>
+              <Method name="endXmlResponse" desc="Ends a streaming TCP response." scope="instance">
+                <Parameters>
+                  <Parameter name="reader" type="xml.StaxReader"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="getXmlResponse" desc="Returns an entire DOM document as TCP response from the server." scope="instance">
+                <Parameters></Parameters>
+                <Returns>
+                  <Return name="doc" type="xml.DomDocument"/>
+                </Returns>
+              </Method>
+              <Method name="getTextResponse" desc="Returns a string as TCP response from the server." scope="instance">
+                <Parameters></Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+            </Methods>
+          </Class>
+          <Class name="Util" isStatic="true">
+            <Methods>
+              <Method name="CreateRandomString" desc="Creates a new random string for a given size (deprecated!)" scope="static">
+                <Parameters>
+                  <Parameter name="size" type="integer"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="CreateDigestString" desc="Creates a new Base64 digest string from a source and random string (deprecated!)." scope="static">
+                <Parameters>
+                  <Parameter name="source" type="string"/>
+                  <Parameter name="random" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="CreateUUIDString" desc="Creates an UUID string (deprecated!)" scope="static">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="UniqueApplicationInstance" desc="Creates a new random string (deprecated!)." scope="static">
+                <Parameters>
+                  <Parameter name="path" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="integer"/>
+                </Returns>
+              </Method>
+            </Methods>
+          </Class>
         </Classes>
       </Package>
+      <!-- http://pic.dhe.ibm.com/infocenter/idshelp/v117/topic/com.ibm.gen_busug.doc/c_fgl_section_extension_packages.htm -->
       <!--TODO: xml package-->
       <!--TODO: security package-->
     </Packages>

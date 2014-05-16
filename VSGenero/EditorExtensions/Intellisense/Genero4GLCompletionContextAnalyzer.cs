@@ -135,6 +135,13 @@ namespace VSGenero.EditorExtensions.Intellisense
                     }
                 }
 
+                foreach (var genOper in GeneroSingletons.LanguageSettings.NativeOperators)
+                {
+                    var comp = new MemberCompletion(genOper.Value.Name, genOper.Value.Name, genOper.Value.GetIntellisenseText(),
+                                       _glyphService.GetGlyph(StandardGlyphGroup.GlyphGroupOperator, StandardGlyphItem.GlyphItemPublic), null);
+                    functionsOnly.Add(comp);
+                }
+
                 foreach (var sysFunc in GeneroSingletons.LanguageSettings.NativeMethods)
                 {
                     var comp = new MemberCompletion(sysFunc.Value.Name, sysFunc.Value.Name, sysFunc.Value.GetIntellisenseText(),

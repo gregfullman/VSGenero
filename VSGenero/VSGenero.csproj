@@ -401,8 +401,19 @@
   <ItemGroup>
     <None Include="Resources\Images_32bit.bmp" />
   </ItemGroup>
+  <Choose>
+    <When Condition="'$(VisualStudioVersion)' &gt; '11.0'">
+      <ItemGroup>
+        <EmbeddedResource Include="Resources\completionset2013.bmp" />
+      </ItemGroup>
+    </When>
+    <Otherwise>
+      <ItemGroup>
+        <EmbeddedResource Include="Resources\completionset.bmp"/>
+      </ItemGroup>
+    </Otherwise>
+  </Choose>
   <ItemGroup>
-    <EmbeddedResource Include="Resources\completionset.bmp" />
     <EmbeddedResource Include="Genero4GL.xml">
       <SubType>Designer</SubType>
     </EmbeddedResource>

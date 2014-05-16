@@ -1822,7 +1822,7 @@ namespace VSGenero.EditorExtensions
                             {
                                 if (token.LowercaseText == "main")
                                 {
-                                    _currentFunctionDef = new FunctionDefinition { Main = true, Position = token.StartPosition, LineNumber = token.LineNumber, ColumnNumber = token.ColumnNumber };
+                                    _currentFunctionDef = new FunctionDefinition { Main = true, Name = "main", Position = token.StartPosition, LineNumber = token.LineNumber, ColumnNumber = token.ColumnNumber };
                                     _fss = FunctionSearchState.LookingForFunctionEnd;
                                     AdvanceToken(ref token, ref prevToken);
                                 }

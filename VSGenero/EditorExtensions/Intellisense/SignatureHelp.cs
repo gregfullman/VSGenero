@@ -175,6 +175,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             Locus = locus;
             Name = name;
             Signature = signature;
+            PrettyPrintedLocus = locus;
         }
     }
 
@@ -416,6 +417,12 @@ namespace VSGenero.EditorExtensions.Intellisense
                     if (GeneroSingletons.LanguageSettings.NativeMethods.TryGetValue(functionName, out sysClassFunc))
                     {
                         return GetSignature(sysClassFunc.GetIntellisenseText(), textBuffer, span);
+                    }
+
+                    GeneroOperator sysOperator;
+                    if (GeneroSingletons.LanguageSettings.NativeOperators.TryGetValue(functionName, out sysOperator))
+                    {
+                        return GetSignature(sysOperator.GetIntellisenseText(), textBuffer, span);
                     }
                 }
             }

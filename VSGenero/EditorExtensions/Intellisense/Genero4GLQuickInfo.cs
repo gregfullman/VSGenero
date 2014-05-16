@@ -108,6 +108,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                 TempTableDefinition tempTableDef = null;
                 ConstantDefinition constantDef = null;
                 TypeDefinition typeDef = null;
+                GeneroOperator generoOperator = null;
                 string publicFunctionQuickInfo = null;
                 string context = null;
                 string finalMatchType = null;
@@ -306,6 +307,19 @@ namespace VSGenero.EditorExtensions.Intellisense
                                             }
                                         }
 
+                                        if (GeneroSingletons.LanguageSettings.NativeOperators.TryGetValue(splitTokens[i], out generoOperator))
+                                        {
+                                            applicableToSpan = currentSnapshot.CreateTrackingSpan
+                                                        (
+                                                            textSpan.Start.Position, splitTokens[i].Length, SpanTrackingMode.EdgeInclusive
+                                                        );
+                                            if (i + 1 == splitTokens.Length)
+                                            {
+                                                continueMatching = false;
+                                                finalMatchType = "generoOperator";
+                                            }
+                                        }
+
                                         // look at the cursor definitions
                                         CursorDeclaration cursorDecl;
                                         string searchName = splitTokens[i];
@@ -497,6 +511,10 @@ namespace VSGenero.EditorExtensions.Intellisense
                 {
                     qiContent.Add(tmpSysClassFunction.GetIntellisenseText());   // TODO: this is still using the GeneroClassMethod extension method...need to change.
                 }
+                else if (generoOperator != null && finalMatchType == "generoOperator")
+                {
+                    qiContent.Add(generoOperator.GetIntellisenseText());
+                }
                 else if (tmpMethod != null && finalMatchType == "tmpMethod")
                 {
                     qiContent.Add(tmpMethod.GetIntellisenseText());
@@ -591,6 +609,11 @@ namespace VSGenero.EditorExtensions.Intellisense
                     (programContents != null && programContents.GlobalTypes.TryGetValue(token, out typeDef))))
                 {
                     context = "global";
+                    return true;
+                }
+                else if(GeneroSingletons.SystemVariables.TryGetValue(token, out varDef))
+                {
+                    context = "system";
                     return true;
                 }
             }

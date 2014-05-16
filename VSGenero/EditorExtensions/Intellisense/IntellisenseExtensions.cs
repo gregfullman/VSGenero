@@ -27,15 +27,42 @@ namespace VSGenero.EditorExtensions.Intellisense
 {
     public static class IntellisenseExtensions
     {
-        internal static string GetIntellisenseText(this FunctionDefinition funcDef)
+        internal static string GetIntellisenseText(this GeneroOperator oper)
         {
             StringBuilder sb = new StringBuilder();
-            if (funcDef.Private)
-                sb.Append("private ");
-            if (funcDef.Report)
-                sb.Append("report ");
-            else
-                sb.Append("function ");
+
+            sb.AppendFormat("{0} {1}", oper.ReturnValue, oper.GetSignature());
+
+            if(!string.IsNullOrWhiteSpace(oper.Description))
+                sb.AppendFormat("\n{0}", oper.Description);
+            return sb.ToString();
+        }
+
+        internal static string GetSignature(this GeneroOperator oper)
+        {
+            StringBuilder sb = new StringBuilder();
+
+            sb.AppendFormat("{0} (", oper.Name);
+            for (int i = 0; i < oper.Operands.Count; i++)
+            {
+                sb.Append(oper.Operands[i].Item1);
+                if (i + 1 < oper.Operands.Count)
+                {
+                    sb.Append(", ");
+                }
+            }
+            if (!string.IsNullOrWhiteSpace(oper.MultiParamType))
+            {
+                sb.AppendFormat(", {0}...", oper.MultiParamType);
+            }
+            sb.Append(")");
+
+            return sb.ToString();
+        }
+
+        internal static string GetSignature(this FunctionDefinition funcDef)
+        {
+            StringBuilder sb = new StringBuilder();
             sb.Append(funcDef.Name + "(");
             for (int i = 0; i < funcDef.Parameters.Count; i++)
             {
@@ -56,6 +83,45 @@ namespace VSGenero.EditorExtensions.Intellisense
                 }
             }
             sb.Append(")");
+            return sb.ToString();
+        }
+
+        internal static string GetIntellisenseText(this FunctionDefinition funcDef, bool includeReturns = true)
+        {
+            StringBuilder sb = new StringBuilder();
+            if (includeReturns)
+            {
+                if (funcDef.Returns.Count == 1)
+                {
+                    foreach (var ret in funcDef.Returns)
+                        sb.AppendFormat("{0} ", ret.Type);
+                }
+                else if (funcDef.Report)
+                {
+                    sb.Append("report ");
+                }
+                else
+                {
+                    sb.Append("void ");
+                }
+            }
+            sb.Append(funcDef.GetSignature());
+            if (includeReturns)
+            {
+                if (funcDef.Returns.Count > 1)
+                {
+                    sb.Append("\nReturns: ");
+
+                    for (int i = 0; i < funcDef.Returns.Count; i++)
+                    {
+                        sb.Append(funcDef.Returns[i].Type);
+                        if (i + 1 < funcDef.Returns.Count)
+                        {
+                            sb.Append(",\n");
+                        }
+                    }
+                }
+            }
             return sb.ToString();
         }
 
@@ -92,14 +158,9 @@ namespace VSGenero.EditorExtensions.Intellisense
             return sb.ToString();
         }
 
-        internal static string GetIntellisenseText(this GeneroClassMethod classMethod)
+        internal static string GetSignature(this GeneroClassMethod classMethod)
         {
             StringBuilder sb = new StringBuilder();
-            if (classMethod.Returns.Count == 1)
-            {
-                foreach (var ret in classMethod.Returns)
-                    sb.AppendFormat("{0} ", ret.Value.Type);
-            }
             sb.Append(classMethod.ParentClass + "." + classMethod.Name + "(");
             List<GeneroClassMethodParameter> sortedParams = classMethod.Parameters.Values.OrderBy(x => x.Position).ToList();
             for (int i = 0; i < sortedParams.Count; i++)
@@ -111,6 +172,18 @@ namespace VSGenero.EditorExtensions.Intellisense
                 }
             }
             sb.Append(")");
+            return sb.ToString();
+        }
+
+        internal static string GetIntellisenseText(this GeneroClassMethod classMethod)
+        {
+            StringBuilder sb = new StringBuilder();
+            if (classMethod.Returns.Count == 1)
+            {
+                foreach (var ret in classMethod.Returns)
+                    sb.AppendFormat("{0} ", ret.Value.Type);
+            }
+            sb.Append(classMethod.GetSignature());
             if (classMethod.Returns.Count > 1)
             {
                 sb.Append("\nReturns: ");

@@ -144,6 +144,23 @@ namespace VSGenero.EditorExtensions
         }
     }
 
+    public class GeneroOperator : GeneroComponentBase
+    {
+        public string MultiParamType { get; set; }
+        public string ReturnValue { get; set; }
+
+        private List<Tuple<string, string>> _operands;
+        public List<Tuple<string, string>> Operands
+        {
+            get
+            {
+                if (_operands == null)
+                    _operands = new List<Tuple<string, string>>();
+                return _operands;
+            }
+        }
+    }
+
     public class Genero4GL_XMLSettingsLoader : GeneroXMLSettingsLoader
     {
         private Dictionary<string, string> _symbolMap;
@@ -191,6 +208,15 @@ namespace VSGenero.EditorExtensions
             }
         }
 
+        private Dictionary<string, GeneroOperator> _nativeOperators;
+        public Dictionary<string, GeneroOperator> NativeOperators
+        {
+            get
+            {
+                return _nativeOperators;
+            }
+        }
+
         public Genero4GL_XMLSettingsLoader() :
             base(Assembly.GetAssembly(typeof(Genero4GL_XMLSettingsLoader)).GetManifestResourceStream(@"VSGenero.Genero4GL.xml"))
         {
@@ -205,6 +231,8 @@ namespace VSGenero.EditorExtensions
             _nativeClasses = new Dictionary<string, GeneroSystemClass>();
             _nativeMethods = new Dictionary<string, GeneroSystemClassFunction>();
             LoadNativeClassesAndMethods();
+            _nativeOperators = new Dictionary<string, GeneroOperator>();
+            LoadNativeOperators();
         }
 
         private void LoadKeywordMap()
@@ -251,6 +279,36 @@ namespace VSGenero.EditorExtensions
 
                     _dataTypeMap.Add(dt.Name, dt);
                 }
+            }
+        }
+
+        private void LoadNativeOperators()
+        {
+            foreach (var element in GetElementsAtPath("//gns:Genero4GL/gns:Parsing/gns:Operators/gns:Operator"))
+            {
+                GeneroOperator oper = new GeneroOperator();
+                oper.Name = (string)element.Attribute("name");
+                oper.Description = (string)element.Attribute("desc");
+
+                foreach (var operandElement in element.XPathSelectElement("gns:Operands", _nsManager)
+                                                                  .XPathSelectElements("gns:Operand", _nsManager))
+                {
+                    oper.Operands.Add(new Tuple<string, string>((string)operandElement.Attribute("name"), (string)operandElement.Attribute("type")));
+                }
+
+                var multiParamsElement = element.XPathSelectElement("gns:MultiParams", _nsManager);
+                if (multiParamsElement != null)
+                {
+                    oper.MultiParamType = (string)multiParamsElement.Attribute("type");
+                }
+
+                var valueElement = element.XPathSelectElement("gns:Value", _nsManager);
+                if (valueElement != null)
+                {
+                    oper.ReturnValue = (string)valueElement.Attribute("type");
+                }
+
+                NativeOperators.Add(oper.Name, oper);
             }
         }
 

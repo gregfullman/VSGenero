@@ -557,14 +557,7 @@ namespace VSGenero.Navigation
 
             public DropDownEntryInfo(FunctionDefinition def)
             {
-                if (def.Main)
-                {
-                    _name = "main";
-                }
-                else
-                {
-                    _name = def.GetIntellisenseText();
-                }
+                _name = def.GetIntellisenseText(false);
                 _start = def.Position;
                 _end = def.End;
             }
