@@ -3048,8 +3048,558 @@
           </Class>
         </Classes>
       </Package>
-      <!--TODO: os package-->
-      <!--TODO: com package-->
+      <Package name="os" type="extension">
+        <Classes>
+          <Class name="Path" isStatic="true">
+            <Methods>
+              <Method name="separator" desc="Returns the character used to separate path segments." scope="static">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="pathseparator" desc="Returns the character used in environment variables to separate path elements." scope="static">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="basename" desc="Returns the last element of a path." scope="static">
+                <Parameters>
+                  <Parameter name="filename" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="dirname" desc="Returns all components of a path excluding the last one." scope="static">
+                <Parameters>
+                  <Parameter name="filename" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="rootname" desc="Returns the file path without the file extension of the last element of the file path." scope="static">
+                <Parameters>
+                  <Parameter name="filename" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="join" desc="Joins two path segments adding the platform-dependent separator." scope="static">
+                <Parameters>
+                  <Parameter name="begin" type="string"/>
+                  <Parameter name="end" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="pathtype" desc="Checks if a path is a relative path or an absolute path." scope="static">
+                <Parameters>
+                  <Parameter name="path" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="fullpath" desc="Returns the canonical equivalent of a path." scope="static">
+                <Parameters>
+                  <Parameter name="path" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="exists" desc="Checks if a file exists." scope="static">
+                <Parameters>
+                  <Parameter name="fname" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="extension" desc="Returns the file extension." scope="static">
+                <Parameters>
+                  <Parameter name="fname" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="readable" desc="Checks if a file is readable." scope="static">
+                <Parameters>
+                  <Parameter name="fname" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="writable" desc="Checks if a file is writable." scope="static">
+                <Parameters>
+                  <Parameter name="fname" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="executable" desc="Checks if a file is executable." scope="static">
+                <Parameters>
+                  <Parameter name="fname" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="isfile" desc="Checks if a file is a regular file." scope="static">
+                <Parameters>
+                  <Parameter name="fname" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="boolean"/>
+                </Returns>
+              </Method>
+              <Method name="isdirectory" desc="Checks if a file is hidden." scope="static">
+                <Parameters>
+                  <Parameter name="fname" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="boolean"/>
+                </Returns>
+              </Method>
+              <Method name="islink" desc="Checks if a file is UNIX symbolic link." scope="static">
+                <Parameters>
+                  <Parameter name="fname" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="boolean"/>
+                </Returns>
+              </Method>
+              <Method name="isroot" desc="Checks if a file path is a root path." scope="static">
+                <Parameters>
+                  <Parameter name="fname" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="boolean"/>
+                </Returns>
+              </Method>
+              <Method name="type" desc="Returns the file type as a string." scope="static">
+                <Parameters>
+                  <Parameter name="fname" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="size" desc="Returns the size of a file." scope="static">
+                <Parameters>
+                  <Parameter name="fname" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="atime" desc="Returns the time of the last file access." scope="static">
+                <Parameters>
+                  <Parameter name="fname" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="chown" desc="Changes the UNIX owner and group of a file." scope="static">
+                <Parameters>
+                  <Parameter name="fname" type="string"/>
+                  <Parameter name="uid" type="integer"/>
+                  <Parameter name="gui" type="integer"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="uid" desc="Returns the UNIX user id of a file." scope="static">
+                <Parameters>
+                  <Parameter name="fname" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="id" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="gid" desc="Returns the UNIX group id of a file." scope="static">
+                <Parameters>
+                  <Parameter name="fname" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="id" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="rwx" desc="Returns the UNIX file permissions of a file." scope="static">
+                <Parameters>
+                  <Parameter name="fname" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="mode" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="chrwx" desc="Changes the UNIX permissions of a file." scope="static">
+                <Parameters>
+                  <Parameter name="fname" type="string"/>
+                  <Parameter name="mode" type="integer"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="mtime" desc="Returns the time of the last file modification." scope="static">
+                <Parameters>
+                  <Parameter name="fname" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="homedir" desc="Returns the path to the HOME directory of the current user." scope="static">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="homedir" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="rootdir" desc="Returns the root directory of the current working path." scope="static">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="rootdir" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="dirfmask" desc="Defines a filter mask for os.Path.diropen()." scope="static">
+                <Parameters>
+                  <Parameter name="mask" type="integer"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="dirsort" desc="Defines the sort criteria and sort order for os.Path.diropen()." scope="static">
+                <Parameters>
+                  <Parameter name="criteria" type="string"/>
+                  <Parameter name="order" type="integer"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="diropen" desc="Opens a directory and returns an integer handle to this directory." scope="static">
+                <Parameters>
+                  <Parameter name="dname" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="dirhandle" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="dirclose" desc="Closes the directory referenced by the directory opened by os.Path.diropen()." scope="static">
+                <Parameters>
+                  <Parameter name="dirhandle" type="integer"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="dirnext" desc="Reads the next entry in the directory opened with os.Path.diropen()." scope="static">
+                <Parameters>
+                  <Parameter name="dirhandle" type="integer"/>
+                </Parameters>
+                <Returns>
+                  <Return name="direntry" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="pwd" desc="Returns the current working directory." scope="static">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="chdir" desc="Changes the current working directory." scope="static">
+                <Parameters>
+                  <Parameter name="newdir" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="volumes" desc="Returns the available volumes." scope="static">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="volumes" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="chvolumes" desc="Changes the current working volume." scope="static">
+                <Parameters>
+                  <Parameter name="new" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="mkdir" desc="Creates a new directory." scope="static">
+                <Parameters>
+                  <Parameter name="dname" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="delete" desc="Deletes a file or a directory." scope="static">
+                <Parameters>
+                  <Parameter name="dname" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="rename" desc="Renames a file or a directory." scope="static">
+                <Parameters>
+                  <Parameter name="oldname" type="string"/>
+                  <Parameter name="newname" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="rename" desc="Creates a new file by copying an existing file." scope="static">
+                <Parameters>
+                  <Parameter name="source" type="string"/>
+                  <Parameter name="dest" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="integer"/>
+                </Returns>
+              </Method>
+            </Methods>
+          </Class>
+        </Classes>
+      </Package>
+      <Package name="com" type="extension">
+        <Classes>
+          <Class name="WebServices" isStatic="false">
+            <Methods>
+              <Method name="CreateWebService" desc="Creates a new object to implement a Web Service." scope="static">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                  <Parameter name="namespace" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="com.WebService"/>
+                </Returns>
+              </Method>
+              <Method name="CreateStatefulWebService" desc="Creates a new object to implement a stateful Web Service." scope="static">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                  <Parameter name="namespace" type="string"/>
+                  <Parameter name="state" type="state-type"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="com.WebService"/>
+                </Returns>
+              </Method>
+              <Method name="setComment" desc="Defines the comment for the Web Service object." scope="instance">
+                <Parameters>
+                  <Parameter name="comment" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="publishOperation" desc="Publishes a Web Operation." scope="instance">
+                <Parameters>
+                  <Parameter name="operation" type="com.WebOperation"/>
+                </Parameters>
+                <Returns>
+                  <Return name="role" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="saveWSDL" desc="Writes to a file the WSDL corresponding to the Web Service object." scope="instance">
+                <Parameters>
+                  <Parameter name="location" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="generateWSDL" desc="Creates a xml.DomDocument object with the WSDL corresponding to the Web Service object." scope="instance">
+                <Parameters>
+                  <Parameter name="location" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="xml.DomDocument"/>
+                </Returns>
+              </Method>
+              <Method name="createHeader" desc="Defines the header for the Web Service object." scope="instance">
+                <Parameters>
+                  <Parameter name="header" type="header-type"/>
+                  <Parameter name="encoded" type="boolean"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="createFault" desc="Creates a new object to implement a Web Service." scope="instance">
+                <Parameters>
+                  <Parameter name="fault" type="fault-type"/>
+                  <Parameter name="encoded" type="boolean"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="registerWSDLHandler" desc="Registers the function to be executed when a WSDL is generated." scope="instance">
+                <Parameters>
+                  <Parameter name="funcname" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="registerInputRequestHandler" desc="Registers the function to be executed on incoming SOAP requests." scope="instance">
+                <Parameters>
+                  <Parameter name="funcname" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="registerOutputRequestHandler" desc="Registers the function to be executed just before the SOAP response is forwarded to the client." scope="instance">
+                <Parameters>
+                  <Parameter name="funcname" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="registerInputHTTPVariable" desc="Registers the record variable for HTTP input." scope="instance">
+                <Parameters>
+                  <Parameter name="http-in" type="http-in-type"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="registerOutputHTTPVariable" desc="Registers the record variable for HTTP output." scope="instance">
+                <Parameters>
+                  <Parameter name="http-out" type="http-out-type"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="setFeature" desc="Defines a feature for the current Web Service object." scope="instance">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                  <Parameter name="value" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+            </Methods>
+          </Class>
+          <Class name="WebOperation" isStatic="false">
+            <Methods>
+              <Method name="CreateRPCStyle" desc="Creates a new Web Operation object with RPC style." scope="static">
+                <Parameters>
+                  <Parameter name="function" type="string"/>
+                  <Parameter name="operation" type="string"/>
+                  <Parameter name="input" type="record"/>
+                  <Parameter name="output" type="record"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="com.WebOperation"/>
+                </Returns>
+              </Method>
+              <Method name="CreateDOCStyle" desc="Creates a new Web Operation object with Document style." scope="static">
+                <Parameters>
+                  <Parameter name="function" type="string"/>
+                  <Parameter name="operation" type="string"/>
+                  <Parameter name="input" type="record"/>
+                  <Parameter name="output" type="record"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="com.WebOperation"/>
+                </Returns>
+              </Method>
+              <Method name="CreateOneWayRPCStyle" desc="Creates a new Web Operation object with One-Way RPC style." scope="static">
+                <Parameters>
+                  <Parameter name="function" type="string"/>
+                  <Parameter name="operation" type="string"/>
+                  <Parameter name="input" type="record"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="com.WebOperation"/>
+                </Returns>
+              </Method>
+              <Method name="CreateOneWayDOCStyle" desc="Creates a new Web Operation object with One-Way DOC style." scope="static">
+                <Parameters>
+                  <Parameter name="function" type="string"/>
+                  <Parameter name="operation" type="string"/>
+                  <Parameter name="input" type="record"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="com.WebOperation"/>
+                </Returns>
+              </Method>
+              <Method name="setInputEncoded" desc="Defines the encoding mechanism for Web Operation input parameters." scope="instance">
+                <Parameters>
+                  <Parameter name="encoded" type="boolean"/>
+                </Parameters>
+                <Returns></Returns>
+              </Method>
+              <Method name="setOutputEncoded" desc="Defines the encoding mechanism for Web Operation output parameters." scope="instance">
+                <Parameters>
+                  <Parameter name="encoded" type="boolean"/>
+                </Parameters>
+                <Returns></Returns>
+              </Method>
+              <Method name="addInputHeader" desc="Adds an input header for the current Web Operation definition." scope="instance">
+                <Parameters>
+                  <Parameter name="header" type="header-type"/>
+                </Parameters>
+                <Returns></Returns>
+              </Method>
+              <Method name="addOutputHeader" desc="Adds an output header for the current Web Operation definition." scope="instance">
+                <Parameters>
+                  <Parameter name="header" type="header-type"/>
+                </Parameters>
+                <Returns></Returns>
+              </Method>
+              <Method name="addFault" desc="Adds a fault to the current Web Operation definition." scope="instance">
+                <Parameters>
+                  <Parameter name="fault" type="fault-type"/>
+                  <Parameter name="vsaaction" type="string"/>
+                </Parameters>
+                <Returns></Returns>
+              </Method>
+              <Method name="setInputAction" desc="Sets the WS-Addressing action identifier of the input operation." scope="instance">
+                <Parameters>
+                  <Parameter name="indent" type="string"/>
+                </Parameters>
+                <Returns></Returns>
+              </Method>
+              <Method name="setOutputAction" desc="Sets the WS-Addressing action identifier of the output operation." scope="instance">
+                <Parameters>
+                  <Parameter name="indent" type="string"/>
+                </Parameters>
+                <Returns></Returns>
+              </Method>
+              <Method name="setComment" desc="Sets the comment for the Web Operation object." scope="instance">
+                <Parameters>
+                  <Parameter name="comment" type="string"/>
+                </Parameters>
+                <Returns></Returns>
+              </Method>
+              <Method name="initiateSession" desc="Defines the Web Operation as session initiator." scope="instance">
+                <Parameters>
+                  <Parameter name="initiator" type="boolean"/>
+                </Parameters>
+                <Returns></Returns>
+              </Method>
+            </Methods>
+          </Class>
+        </Classes>
+      </Package>
       <!--TODO: xml package-->
       <!--TODO: security package-->
     </Packages>
