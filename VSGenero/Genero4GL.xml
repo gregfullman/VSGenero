@@ -4255,7 +4255,7 @@
                 </Parameters>
                 <Returns>
                   <Return name="data" type="string"/>
-                </Returns> 
+                </Returns>
               </Method>
               <Method name="getXmlResponse" desc="Returns an entire DOM document as HTTP response from the server." scope="instance">
                 <Parameters>
@@ -4362,7 +4362,7 @@
                 <Parameters>
                   <Parameter name="name" type="string"/>
                   <Parameter name="value" type="string"/>
-                </Parameters> 
+                </Parameters>
                 <Returns>
                 </Returns>
               </Method>
@@ -4525,7 +4525,398 @@
         </Classes>
       </Package>
       <!-- http://pic.dhe.ibm.com/infocenter/idshelp/v117/topic/com.ibm.gen_busug.doc/c_fgl_section_extension_packages.htm -->
-      <!--TODO: xml package-->
+      <Package name="xml" type="extension">
+        <Classes>
+          <Class name="DomDocument" isStatic="false">
+            <Methods>
+              <Method name="create" desc="Constructor of an empty DomDocument object." scope="static">
+                <Parameters></Parameters>
+                <Returns>
+                  <Return name="object" type="xml.DomDocument"/>
+                </Returns>
+              </Method>
+              <Method name="createDocument" desc="Constructor of a DomDocument with an XML root element." scope="static">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="object" type="xml.DomDocument"/>
+                </Returns>
+              </Method>
+              <Method name="createDocumentNS" desc="Constructor of a DomDocument with a root namespace-qualified XML root element" scope="static">
+                <Parameters>
+                  <Parameter name="prefix" type="string"/>
+                  <Parameter name="name" type="string"/>
+                  <Parameter name="ns" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="object" type="xml.DomDocument"/>
+                </Returns>
+              </Method>
+              <Method name="getDocumentElement" desc="Returns the root XML Element DomNode object for this DomDocument object." scope="instance">
+                <Parameters></Parameters>
+                <Returns>
+                  <Return name="object" type="xml.DomNode"/>
+                </Returns>
+              </Method>
+              <Method name="getFirstDocumentNode" desc="Returns the first child DomNode object for a DomDocument object." scope="instance">
+                <Parameters></Parameters>
+                <Returns>
+                  <Return name="object" type="xml.DomNode"/>
+                </Returns>
+              </Method>
+              <Method name="getLastDocumentNode" desc="Returns the last child DomNode object for a DomDocument object." scope="instance">
+                <Parameters></Parameters>
+                <Returns>
+                  <Return name="object" type="xml.DomNode"/>
+                </Returns>
+              </Method>
+              <Method name="getDocumentNodesCount" desc="Returns the number of child DomNode objects for a DomDocument object." scope="instance">
+                <Parameters></Parameters>
+                <Returns>
+                  <Return name="count" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="getDocumentNodeItem" desc="Returns the child DomNode object at a given position for this DomDocument object." scope="instance">
+                <Parameters>
+                  <Parameter name="pos" type="integer"/>
+                </Parameters>
+                <Returns>
+                  <Return name="object" type="xml.DomNode"/>
+                </Returns>
+              </Method>
+              <Method name="getElementsByTagName" desc="Returns a DomNodeList object containing all XML Element DomNode objects with the same tag name in the entire document." scope="instance">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="object" type="xml.DomNodeList"/>
+                </Returns>
+              </Method>
+              <Method name="getElementsByTagNameNS" desc="Returns a DomNodeList object containing all namespace qualified XML Element DomNode objects with the same tag name and namespace in the entire document" scope="instance">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                  <Parameter name="ns" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="object" type="xml.DomNodeList"/>
+                </Returns>
+              </Method>
+              <Method name="selectByXPath" desc="Returns a DomNodeList object containing all DomNode objects matching an XPath 1.0 expression." scope="instance">
+                <Parameters>
+                  <Parameter name="expr" type="string"/>
+                  <Parameter name="nslist..." type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="list" type="xml.DomNodeList"/>
+                </Returns>
+              </Method>
+              <Method name="getElementById" desc="Returns the element that has an attribute of type ID with the given value" scope="instance">
+                <Parameters>
+                  <Parameter name="id" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="object" type="xml.DomNode"/>
+                </Returns>
+              </Method>
+              <Method name="importNode" desc="Imports a DomNode from a DomDocument object into its new context (attached to a DomDocument object)." scope="instance">
+                <Parameters>
+                  <Parameter name="node" type="xml.DomNode"/>
+                  <Parameter name="deep" type="integer"/>
+                </Parameters>
+                <Returns>
+                  <Return name="object" type="xml.DomNode"/>
+                </Returns>
+              </Method>
+              <Method name="clone" desc="Returns a copy of a DomDocument object." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="object" type="xml.DomDocument"/>
+                </Returns>
+              </Method>
+              <Method name="appendDocumentNode" desc="Adds a child DomNode object to the end of the DomNode children for this DomDocument object." scope="instance">
+                <Parameters>
+                  <Parameter name="node" type="xml.DomNode"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="prependDocumentNode" desc="Adds a child DomNode object to the beginning of the DomNode children for this DomDocument object." scope="instance">
+                <Parameters>
+                  <Parameter name="node" type="xml.DomNode"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="insertBeforeDocumentNode" desc="Inserts a child DomNode object before another child DomNode for this DomDocument object." scope="instance">
+                <Parameters>
+                  <Parameter name="node" type="xml.DomNode"/>
+                  <Parameter name="ref" type="xml.DomNode"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="insertAfterDocumentNode" desc="Inserts a child DomNode object after another child DomNode for this DomDocument object." scope="instance">
+                <Parameters>
+                  <Parameter name="node" type="xml.DomNode"/>
+                  <Parameter name="ref" type="xml.DomNode"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="removeDocumentNode" desc="Removes a child DomNode object from the DomNode children for this DomDocument object." scope="instance">
+                <Parameters>
+                  <Parameter name="node" type="xml.DomNode"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="declareNamespace" desc="Forces namespace declaration to an XML Element DomNode for a DomDocument object." scope="instance">
+                <Parameters>
+                  <Parameter name="node" type="xml.DomNode"/>
+                  <Parameter name="alias" type="string"/>
+                  <Parameter name="ns" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="createNode" desc="Creates an XML DomNode object from a string for a DomDocument object." scope="instance">
+                <Parameters>
+                  <Parameter name="str" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="object" type="xml.DomNode"/>
+                </Returns>
+              </Method>
+              <Method name="createElement" desc="Creates an XML Element DomNode object for a DomDocument object" scope="instance">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="object" type="xml.DomNode"/>
+                </Returns>
+              </Method>
+              <Method name="createElementNS" desc="Creates an XML namespace-qualified Element DomNode object for a DomDocument object." scope="instance">
+                <Parameters>
+                  <Parameter name="prefix" type="string"/>
+                  <Parameter name="name" type="string"/>
+                  <Parameter name="ns" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="object" type="xml.DomNode"/>
+                </Returns>
+              </Method>
+              <Method name="createAttribute" desc="Creates an XML Attribute DomNode object for a DomDocument object." scope="instance">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="object" type="xml.DomNode"/>
+                </Returns>
+              </Method>
+              <Method name="createAttributeNS" desc="Creates an XML namespace-qualified Attribute DomNode object for a DomDocument object." scope="instance">
+                <Parameters>
+                  <Parameter name="prefix" type="string"/>
+                  <Parameter name="name" type="string"/>
+                  <Parameter name="ns" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="object" type="xml.DomNode"/>
+                </Returns>
+              </Method>
+              <Method name="createTextNode" desc="Creates an XML Text DomNode object for a DomDocument object." scope="instance">
+                <Parameters>
+                  <Parameter name="text" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="object" type="xml.DomNode"/>
+                </Returns>
+              </Method>
+              <Method name="createComment" desc="Creates an XML Comment DomNode object for a DomDocument object." scope="instance">
+                <Parameters>
+                  <Parameter name="comment" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="object" type="xml.DomNode"/>
+                </Returns>
+              </Method>
+              <Method name="createCDATASection" desc="Creates an XML CData DomNode object for a DomDocument object." scope="instance">
+                <Parameters>
+                  <Parameter name="cdata" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="object" type="xml.DomNode"/>
+                </Returns>
+              </Method>
+              <Method name="createEntityReference" desc="Creates an XML EntityReference DomNode object for a DomDocument object" scope="instance">
+                <Parameters>
+                  <Parameter name="ref" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="object" type="xml.DomNode"/>
+                </Returns>
+              </Method>
+              <Method name="createProcessingInstruction" desc="Creates an XML Processing Instruction DomNode object for this DomDocument object." scope="instance">
+                <Parameters>
+                  <Parameter name="target" type="string"/>
+                  <Parameter name="data" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="object" type="xml.DomNode"/>
+                </Returns>
+              </Method>
+              <Method name="createDocumentType" desc="Creates an XML Document Type (DTD) DomNode object for a DomDocument object." scope="instance">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                  <Parameter name="publicID" type="string"/>
+                  <Parameter name="systemID" type="string"/>
+                  <Parameter name="internalDTD" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="object" type="xml.DomNode"/>
+                </Returns>
+              </Method>
+              <Method name="createDocumentFragment" desc="Creates an XML Document Fragment DomNode object for a DomDocument object." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="object" type="xml.DomNode"/>
+                </Returns>
+              </Method>
+              <Method name="normalize" desc="Normalizes the entire Document." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="load" desc="Loads an XML Document into a DomDocument object from a file or an URL." scope="instance">
+                <Parameters>
+                  <Parameter name="url" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="loadFromString" desc="Loads an XML Document into a DomDocument object from a string." scope="instance">
+                <Parameters>
+                  <Parameter name="str" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="loadFromPipe" desc="Loads an XML Document into a DomDocument object from a PIPE." scope="instance">
+                <Parameters>
+                  <Parameter name="cmd" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="save" desc="Saves a DomDocument object as an XML Document to a file or URL." scope="instance">
+                <Parameters>
+                  <Parameter name="url" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="saveToString" desc="Saves a DomDocument object as an XML Document to a string." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="saveToPipe" desc="Saves a DomDocument object as an XML Document to a PIPE." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="cmd" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="setFeature" desc="Sets a feature for a DomDocument object." scope="instance">
+                <Parameters>
+                  <Parameter name="feature" type="string"/>
+                  <Parameter name="value" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="getFeature" desc="Gets a feature for a DomDocument object." scope="instance">
+                <Parameters>
+                  <Parameter name="feature" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="getXmlVersion" desc="Returns the document version as defined in the XML document declaration." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="getXmlEncoding" desc="Returns the document encoding as defined in the XML document declaration." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="setXmlEncoding" desc="Sets the XML document encoding in the XML declaration." scope="instance">
+                <Parameters>
+                  <Parameter name="enc" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="isXmlStandalone" desc="Returns whether the XML standalone attribute is set in the XML declaration." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="setXmlStandalone" desc="Sets the XML standalone attribute in the XML declaration to yes or no in the XML declaration." scope="instance">
+                <Parameters>
+                  <Parameter name="alone" type="integer"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="validate" desc="Performs a DTD or XML Schema validation for a DomDocument object." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="validateOneElement" desc="Performs a DTD or XML Schema validation of an XML Element DomNode object." scope="instance">
+                <Parameters>
+                  <Parameter name="node" type="xml.DomNode"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="getErrorsCount" desc="Returns the number of errors encountered during the loading, saving or validation of an XML document." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="count" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="getErrorDescription" desc="Returns the error description at given position." scope="instance">
+                <Parameters>
+                  <Parameter name="pos" type="integer"/>
+                </Parameters>
+                <Returns>
+                  <Return name="desc" type="string"/>
+                </Returns>
+              </Method>
+            </Methods>
+          </Class>
+        </Classes>
+      </Package>
       <!--TODO: security package-->
     </Packages>
   </Parsing>
