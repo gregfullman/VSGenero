@@ -308,6 +308,7 @@
     <Compile Include="EditorExtensions\Intellisense\TextHighlighter.cs" />
     <Compile Include="EditorExtensions\Intellisense\TodoTag.cs" />
     <Compile Include="EditorExtensions\Genero4GLTextViewListener.cs" />
+    <Compile Include="Navigation\GeneroLibraryManager.cs" />
     <Compile Include="Navigation\IPublicFunctionNavigator.cs" />
     <Compile Include="Project\GeneroEditorFactory.cs" />
     <Compile Include="Project\GeneroProjectFactory.cs" />
@@ -409,7 +410,7 @@
     </When>
     <Otherwise>
       <ItemGroup>
-        <EmbeddedResource Include="Resources\completionset.bmp"/>
+        <EmbeddedResource Include="Resources\completionset.bmp" />
       </ItemGroup>
     </Otherwise>
   </Choose>

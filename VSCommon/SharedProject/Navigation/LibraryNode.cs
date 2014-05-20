@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudioTools.Navigation {
     /// <summary>
     /// Single node inside the tree of the libraries in the object browser or class view.
     /// </summary>
-    class LibraryNode : SimpleObjectList<LibraryNode>, IVsNavInfo, IVsNavInfoNode, ISimpleObject {
+    public class LibraryNode : SimpleObjectList<LibraryNode>, IVsNavInfo, IVsNavInfoNode, ISimpleObject {
         private string _name, _fullname;
         private readonly LibraryNode _parent;
         private LibraryNodeCapabilities _capabilities;
@@ -452,7 +452,7 @@ namespace Microsoft.VisualStudioTools.Navigation {
     /// Flags attribute is set so that it is possible to specify more than one value.
     /// </summary>
     [Flags()]
-    enum LibraryNodeType {
+    public enum LibraryNodeType {
         None = 0,
         Hierarchy = _LIB_LISTTYPE.LLT_HIERARCHY,
         Namespaces = _LIB_LISTTYPE.LLT_NAMESPACES,
@@ -475,7 +475,7 @@ namespace Microsoft.VisualStudioTools.Navigation {
     /// <summary>
     /// Visitor interface used to enumerate all <see cref="LibraryNode"/>s in the library.
     /// </summary>
-    interface ILibraryNodeVisitor {
+    public interface ILibraryNodeVisitor {
         /// <summary>
         /// Called on each node before any of its child nodes are visited.
         /// </summary>

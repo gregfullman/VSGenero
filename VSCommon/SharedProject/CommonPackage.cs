@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudioTools {
         #region Language-specific abstracts
 
         public abstract Type GetLibraryManagerType();
-        internal abstract LibraryManager CreateLibraryManager(CommonPackage package);
+        public abstract LibraryManager CreateLibraryManager(CommonPackage package);
         public abstract bool IsRecognizedFile(string filename);
 
         // TODO:
@@ -96,7 +96,7 @@ namespace Microsoft.VisualStudioTools {
             return null;
         }
 
-        internal void RegisterCommands(IEnumerable<Command> commands, Guid cmdSet) {
+        protected virtual void RegisterCommands(IEnumerable<Command> commands, Guid cmdSet) {
             OleMenuCommandService mcs = GetService(typeof(IMenuCommandService)) as OleMenuCommandService;
             if (null != mcs) {
                 lock (_commandsLock) {

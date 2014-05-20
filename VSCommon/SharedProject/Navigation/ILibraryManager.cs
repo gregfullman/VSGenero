@@ -21,10 +21,10 @@ namespace Microsoft.VisualStudioTools.Navigation {
     /// This interface defines the service that finds current language files inside a hierarchy
     /// and builds information to expose to the class view or object browser.
     /// </summary>    
-    internal interface ILibraryManager {
+    public interface ILibraryManager {
         void RegisterHierarchy(IVsHierarchy hierarchy);
         void UnregisterHierarchy(IVsHierarchy hierarchy);
         void RegisterLineChangeHandler(uint document, TextLineChangeEvent lineChanged, Action<IVsTextLines> onIdle);
     }
-    internal delegate void TextLineChangeEvent(object sender, TextLineChange[] changes, int last);
+    public delegate void TextLineChangeEvent(object sender, TextLineChange[] changes, int last);
 }

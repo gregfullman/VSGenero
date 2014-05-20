@@ -47,6 +47,7 @@ using Microsoft.VisualStudioTools.Navigation;
 using Microsoft.VisualStudioTools.Project;
 using NativeMethods = Microsoft.VisualStudioTools.Project.NativeMethods;
 using VSGenero.EditorExtensions;
+using System.IO;
 
 namespace VSGenero
 {
@@ -181,6 +182,24 @@ namespace VSGenero
                 buffer.Properties.AddProperty(typeof(GeneroFileParserManager), fpm);
             }
             return fpm;
+        }
+
+        public override Type GetLibraryManagerType()
+        {
+            return typeof(IGeneroLibraryManager);
+        }
+
+        public override bool IsRecognizedFile(string filename)
+        {
+            var ext = Path.GetExtension(filename);
+
+            return String.Equals(ext, VSGeneroConstants.FileExtension4GL, StringComparison.OrdinalIgnoreCase) ||
+                String.Equals(ext, VSGeneroConstants.FileExtensionPER, StringComparison.OrdinalIgnoreCase);
+        }
+
+        public override LibraryManager CreateLibraryManager(CommonPackage package)
+        {
+            return new GeneroLibraryManager((VSGeneroPackage)package);
         }
     }
 }

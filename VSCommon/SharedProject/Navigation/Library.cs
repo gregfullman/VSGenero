@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudioTools.Navigation {
     /// <summary>
     /// Implements a simple library that tracks project symbols, objects etc.
     /// </summary>
-    class Library : IVsSimpleLibrary2 {
+    public class Library : IVsSimpleLibrary2 {
         private Guid _guid;
         private _LIB_FLAGS2 _capabilities;
         private LibraryNode _root;

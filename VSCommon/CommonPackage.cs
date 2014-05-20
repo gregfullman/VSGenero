@@ -28,6 +28,7 @@ using System.Runtime.InteropServices;
 using EnvDTE80;
 using EnvDTE;
 using Microsoft.VisualStudioTools.Project;
+using Microsoft.VisualStudioTools;
 
 namespace Microsoft.VisualStudio.VSCommon
 {
@@ -70,7 +71,7 @@ namespace Microsoft.VisualStudio.VSCommon
         Yes
     }
 
-    public abstract class VSCommonPackage : Package, IVsInstalledProduct, IOleComponent
+    public abstract class VSCommonPackage : CommonPackage, IVsInstalledProduct, IOleComponent
     {
         protected static VSCommonPackage Instance;
         private uint _componentID;
@@ -114,7 +115,7 @@ namespace Microsoft.VisualStudio.VSCommon
             get { return _commands; }
         }
 
-        protected void RegisterCommands(IEnumerable<CommonCommand> commands, Guid cmdSet)
+        internal void RegisterCommands(IEnumerable<CommonCommand> commands, Guid cmdSet)
         {
             OleMenuCommandService mcs = GetService(typeof(IMenuCommandService)) as OleMenuCommandService;
             if (null != mcs)

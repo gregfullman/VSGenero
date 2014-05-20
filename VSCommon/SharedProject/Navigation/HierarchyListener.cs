@@ -41,7 +41,7 @@ namespace Microsoft.VisualStudioTools.Navigation {
         }
     }
 
-    internal abstract partial class LibraryManager : IDisposable, IVsRunningDocTableEvents {
+    public abstract partial class LibraryManager : IDisposable, IVsRunningDocTableEvents {
         internal class HierarchyListener : IVsHierarchyEvents, IDisposable {
             private IVsHierarchy _hierarchy;
             private uint _cookie;

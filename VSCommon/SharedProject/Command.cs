@@ -21,7 +21,7 @@ namespace Microsoft.VisualStudioTools {
     /// our commands are registered and available.  Then you need to subclass Command and at a new instance of
     /// the command in CommandTable.  PythonToolsPackage will then register the command on startup.
     /// </summary>
-    internal abstract class Command {
+    public abstract class Command {
         /// <summary>
         /// Provides the implementation of what should happen when the command is executed.
         /// 

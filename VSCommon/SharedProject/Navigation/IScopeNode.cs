@@ -16,7 +16,7 @@ using System.Collections.Generic;
 using Microsoft.VisualStudioTools.Parsing;
 
 namespace Microsoft.VisualStudioTools.Navigation {   
-    interface IScopeNode {
+    public interface IScopeNode {
         LibraryNodeType NodeType {
             get;
         }

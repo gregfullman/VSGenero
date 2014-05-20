@@ -33,7 +33,7 @@ namespace Microsoft.VisualStudioTools.Navigation {
     /// navigation tools (class view or object browser) from the source files inside a
     /// hierarchy.
     /// </summary>
-    internal abstract partial class LibraryManager : IDisposable, IVsRunningDocTableEvents {
+    public abstract partial class LibraryManager : IDisposable, IVsRunningDocTableEvents {
         private readonly CommonPackage/*!*/ _package;
         private readonly Dictionary<uint, TextLineEventListener> _documents;
         private readonly Dictionary<IVsHierarchy, HierarchyInfo> _hierarchies = new Dictionary<IVsHierarchy,HierarchyInfo>();
