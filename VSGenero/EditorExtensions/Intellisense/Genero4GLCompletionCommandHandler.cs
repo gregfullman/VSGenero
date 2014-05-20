@@ -109,6 +109,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                     //if the selection is fully selected, commit the current session 
                     if (m_session.SelectedCompletionSet.SelectionStatus.IsSelected)
                     {
+                        IntellisenseExtensions.LastCommittedCompletion = m_session.SelectedCompletionSet.SelectionStatus.Completion;
                         m_session.Commit();
                         //also, don't add the character to the buffer 
                         if(!_commitChars.Contains(typedChar))

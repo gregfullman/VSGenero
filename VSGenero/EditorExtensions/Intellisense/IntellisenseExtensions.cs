@@ -27,6 +27,13 @@ namespace VSGenero.EditorExtensions.Intellisense
 {
     public static class IntellisenseExtensions
     {
+        private static Completion _lastCommittedCompletion;
+        public static Completion LastCommittedCompletion
+        {
+            get { return _lastCommittedCompletion; }
+            set { _lastCommittedCompletion = value; }
+        }
+
         private static IEnumerable<string> SplitToLines(string stringToSplit, int maximumLineLength)
         {
             var words = stringToSplit.Split(' ').Concat(new[] { "" });

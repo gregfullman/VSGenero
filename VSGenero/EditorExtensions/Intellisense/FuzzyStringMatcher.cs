@@ -159,6 +159,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             return 0;
         }
 
+        const int LAST_USED_BONUS = 8;
         /// <summary>
         /// The reward for the first matching character.
         /// </summary>
@@ -207,6 +208,13 @@ namespace VSGenero.EditorExtensions.Intellisense
             int total = 0;
             int increment = BASE_REWARD + START_OF_WORD_BONUS;
             int y = 0;
+
+            if (IntellisenseExtensions.LastCommittedCompletion != null &&
+                IntellisenseExtensions.LastCommittedCompletion.DisplayText.StartsWith(pattern, StringComparison.OrdinalIgnoreCase) &&
+                IntellisenseExtensions.LastCommittedCompletion.DisplayText.Equals(text, StringComparison.OrdinalIgnoreCase))
+            {
+                increment += LAST_USED_BONUS;
+            }
 
             try
             {
