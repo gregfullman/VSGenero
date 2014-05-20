@@ -370,6 +370,14 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Content Include="VSGenero256.ico">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="VSGenero32.ico">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <None Include="app.config" />
     <None Include="Genero4GL.xsd">
       <SubType>Designer</SubType>

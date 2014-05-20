@@ -4,6 +4,8 @@
     <Identity Id="18274d18-91c9-420c-a121-2ffe4f920b4f" Version="0.7.5" Language="en-US" Publisher="Greg Fullman" />
     <DisplayName>VSGenero for VS2013</DisplayName>
     <Description>This is a Visual Studio plugin for the Genero BDL. It currently supports syntax highlighting and a list of functions with 4GL files.</Description>
+    <Icon>VSGenero32.ico</Icon>
+    <PreviewImage>VSGenero256.ico</PreviewImage>
   </Metadata>
   <Installation InstalledByMsi="false">
     <InstallationTarget Version="[12.0,13.0)" Id="Microsoft.VisualStudio.IntegratedShell" />
