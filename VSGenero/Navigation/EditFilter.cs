@@ -96,7 +96,7 @@ namespace VSGenero.Navigation
 
                 if (tokenFound)
                 {
-                    string tokenText = currentTok.TokenText;
+                    string tokenText = currentTok.TokenText.ToLower();
                     // ok, now the currentTok has the token the caret was on. Now find it!
                     GeneroFileParserManager fpm;
                     if (textView.TextBuffer.Properties.TryGetProperty<GeneroFileParserManager>(typeof(GeneroFileParserManager), out fpm))
@@ -119,7 +119,7 @@ namespace VSGenero.Navigation
                             if (fpm.ModuleContents.SqlCursors.TryGetValue(searchName, out cursorDecl))
                             {
                                 // TODO: will have to rework this a bit when we support other types of cursor declarations
-                                searchName = cursorDecl.PreparationVariable;
+                                searchName = cursorDecl.PreparationVariable.ToLower();
                             }
 
                             if (!fpm.ModuleContents.SqlPrepares.TryGetValue(searchName, out cursorPrep))

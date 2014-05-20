@@ -115,7 +115,7 @@ namespace Microsoft.VisualStudio.VSCommon
             get { return _commands; }
         }
 
-        internal void RegisterCommands(IEnumerable<CommonCommand> commands, Guid cmdSet)
+        public void RegisterCommands(IEnumerable<CommonCommand> commands, Guid cmdSet)
         {
             OleMenuCommandService mcs = GetService(typeof(IMenuCommandService)) as OleMenuCommandService;
             if (null != mcs)

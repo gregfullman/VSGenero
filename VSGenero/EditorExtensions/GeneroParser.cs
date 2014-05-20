@@ -289,25 +289,25 @@ namespace VSGenero.EditorExtensions
             // update the global variables dictionary
             foreach (var globalVarKvp in newModuleContents.GlobalVariables)
             {
-                _moduleContents.GlobalVariables.AddOrUpdate(globalVarKvp.Key, globalVarKvp.Value, (x, y) => globalVarKvp.Value);
+                _moduleContents.GlobalVariables.AddOrUpdate(globalVarKvp.Key.ToLower(), globalVarKvp.Value, (x, y) => globalVarKvp.Value);
             }
 
             // update the global constants dictionary
             foreach (var globalConst in newModuleContents.GlobalConstants)
             {
-                _moduleContents.GlobalConstants.AddOrUpdate(globalConst.Key, globalConst.Value, (x, y) => globalConst.Value);
+                _moduleContents.GlobalConstants.AddOrUpdate(globalConst.Key.ToLower(), globalConst.Value, (x, y) => globalConst.Value);
             }
 
             // update the global types dictionary
             foreach (var globalType in newModuleContents.GlobalTypes)
             {
-                _moduleContents.GlobalTypes.AddOrUpdate(globalType.Key, globalType.Value, (x, y) => globalType.Value);
+                _moduleContents.GlobalTypes.AddOrUpdate(globalType.Key.ToLower(), globalType.Value, (x, y) => globalType.Value);
             }
 
             // Update the module functions dictionary
             foreach (var programFuncKvp in newModuleContents.FunctionDefinitions.Where(x => !x.Value.Private))
             {
-                _moduleContents.FunctionDefinitions.AddOrUpdate(programFuncKvp.Key, programFuncKvp.Value, (x, y) => programFuncKvp.Value);
+                _moduleContents.FunctionDefinitions.AddOrUpdate(programFuncKvp.Key.ToLower(), programFuncKvp.Value, (x, y) => programFuncKvp.Value);
             }
         }
 
@@ -366,126 +366,126 @@ namespace VSGenero.EditorExtensions
 
             // Function definitions
             foreach (var rem in _moduleContents.FunctionDefinitions.Where(x => x.Value.ContainingFile == newContents.ContentFilename &&
-                                                                              !newContents.FunctionDefinitions.ContainsKey(x.Key)).ToList())
+                                                                              !newContents.FunctionDefinitions.ContainsKey(x.Key.ToLower())).ToList())
             {
                 FunctionDefinition temp;
-                _moduleContents.FunctionDefinitions.TryRemove(rem.Key, out temp);
+                _moduleContents.FunctionDefinitions.TryRemove(rem.Key.ToLower(), out temp);
             }
             foreach (var funcDef in newContents.FunctionDefinitions)
             {
-                _moduleContents.FunctionDefinitions.AddOrUpdate(funcDef.Key, funcDef.Value, (x, y) => funcDef.Value);
+                _moduleContents.FunctionDefinitions.AddOrUpdate(funcDef.Key.ToLower(), funcDef.Value, (x, y) => funcDef.Value);
             }
 
             // Global variables
             foreach (var rem in _moduleContents.GlobalVariables.Where(x => x.Value.ContainingFile == newContents.ContentFilename &&
-                                                                              !newContents.GlobalVariables.ContainsKey(x.Key)).ToList())
+                                                                              !newContents.GlobalVariables.ContainsKey(x.Key.ToLower())).ToList())
             {
                 VariableDefinition temp;
-                _moduleContents.GlobalVariables.TryRemove(rem.Key, out temp);
+                _moduleContents.GlobalVariables.TryRemove(rem.Key.ToLower(), out temp);
             }
             foreach (var globDef in newContents.GlobalVariables)
             {
-                _moduleContents.GlobalVariables.AddOrUpdate(globDef.Key, globDef.Value, (x, y) => globDef.Value);
+                _moduleContents.GlobalVariables.AddOrUpdate(globDef.Key.ToLower(), globDef.Value, (x, y) => globDef.Value);
             }
 
             // Module variables
             foreach (var rem in _moduleContents.ModuleVariables.Where(x => x.Value.ContainingFile == newContents.ContentFilename &&
-                                                                              !newContents.ModuleVariables.ContainsKey(x.Key)).ToList())
+                                                                              !newContents.ModuleVariables.ContainsKey(x.Key.ToLower())).ToList())
             {
                 VariableDefinition temp;
-                _moduleContents.ModuleVariables.TryRemove(rem.Key, out temp);
+                _moduleContents.ModuleVariables.TryRemove(rem.Key.ToLower(), out temp);
             }
             foreach (var modDef in newContents.ModuleVariables)
             {
-                _moduleContents.ModuleVariables.AddOrUpdate(modDef.Key, modDef.Value, (x, y) => modDef.Value);
+                _moduleContents.ModuleVariables.AddOrUpdate(modDef.Key.ToLower(), modDef.Value, (x, y) => modDef.Value);
             }
 
             // SQL cursors
             foreach (var rem in _moduleContents.SqlCursors.Where(x => x.Value.ContainingFile == newContents.ContentFilename).ToList())
             {
-                _moduleContents.SqlCursors.Remove(rem.Key);
+                _moduleContents.SqlCursors.Remove(rem.Key.ToLower());
             }
             foreach (var sqlCursor in newContents.SqlCursors)
             {
-                _moduleContents.SqlCursors.Add(sqlCursor.Key, sqlCursor.Value);
+                _moduleContents.SqlCursors.Add(sqlCursor.Key.ToLower(), sqlCursor.Value);
             }
 
             // SQL Prepares
             foreach (var rem in _moduleContents.SqlPrepares.Where(x => x.Value.ContainingFile == newContents.ContentFilename).ToList())
             {
-                _moduleContents.SqlPrepares.Remove(rem.Key);
+                _moduleContents.SqlPrepares.Remove(rem.Key.ToLower());
             }
             foreach (var sqlPrep in newContents.SqlPrepares)
             {
-                _moduleContents.SqlPrepares.Add(sqlPrep.Key, sqlPrep.Value);
+                _moduleContents.SqlPrepares.Add(sqlPrep.Key.ToLower(), sqlPrep.Value);
             }
 
             foreach (var systemVar in newContents.SystemVariables)
             {
-                if (!_moduleContents.SystemVariables.ContainsKey(systemVar.Key))
-                    _moduleContents.SystemVariables.Add(systemVar.Key, systemVar.Value);
+                if (!_moduleContents.SystemVariables.ContainsKey(systemVar.Key.ToLower()))
+                    _moduleContents.SystemVariables.Add(systemVar.Key.ToLower(), systemVar.Value);
                 else
-                    _moduleContents.SystemVariables[systemVar.Key] = systemVar.Value;
+                    _moduleContents.SystemVariables[systemVar.Key.ToLower()] = systemVar.Value;
             }
 
             // Temp tables
             foreach (var rem in _moduleContents.TempTables.Where(x => x.Value.ContainingFile == newContents.ContentFilename &&
-                                                                              !newContents.TempTables.ContainsKey(x.Key)).ToList())
+                                                                              !newContents.TempTables.ContainsKey(x.Key.ToLower())).ToList())
             {
                 TempTableDefinition temp;
-                _moduleContents.TempTables.TryRemove(rem.Key, out temp);
+                _moduleContents.TempTables.TryRemove(rem.Key.ToLower(), out temp);
             }
             foreach (var tempDef in newContents.TempTables)
             {
-                _moduleContents.TempTables.AddOrUpdate(tempDef.Key, tempDef.Value, (x, y) => tempDef.Value);
+                _moduleContents.TempTables.AddOrUpdate(tempDef.Key.ToLower(), tempDef.Value, (x, y) => tempDef.Value);
             }
 
             // Global Constant defs
             foreach (var rem in _moduleContents.GlobalConstants.Where(x => x.Value.ContainingFile == newContents.ContentFilename &&
-                                                                              !newContents.GlobalConstants.ContainsKey(x.Key)).ToList())
+                                                                              !newContents.GlobalConstants.ContainsKey(x.Key.ToLower())).ToList())
             {
                 ConstantDefinition temp;
-                _moduleContents.GlobalConstants.TryRemove(rem.Key, out temp);
+                _moduleContents.GlobalConstants.TryRemove(rem.Key.ToLower(), out temp);
             }
             foreach (var tempDef in newContents.GlobalConstants)
             {
-                _moduleContents.GlobalConstants.AddOrUpdate(tempDef.Key, tempDef.Value, (x, y) => tempDef.Value);
+                _moduleContents.GlobalConstants.AddOrUpdate(tempDef.Key.ToLower(), tempDef.Value, (x, y) => tempDef.Value);
             }
 
             // Global Type defs
             foreach (var rem in _moduleContents.GlobalTypes.Where(x => x.Value.ContainingFile == newContents.ContentFilename &&
-                                                                              !newContents.GlobalTypes.ContainsKey(x.Key)).ToList())
+                                                                              !newContents.GlobalTypes.ContainsKey(x.Key.ToLower())).ToList())
             {
                 TypeDefinition temp;
-                _moduleContents.GlobalTypes.TryRemove(rem.Key, out temp);
+                _moduleContents.GlobalTypes.TryRemove(rem.Key.ToLower(), out temp);
             }
             foreach (var tempDef in newContents.GlobalTypes)
             {
-                _moduleContents.GlobalTypes.AddOrUpdate(tempDef.Key, tempDef.Value, (x, y) => tempDef.Value);
+                _moduleContents.GlobalTypes.AddOrUpdate(tempDef.Key.ToLower(), tempDef.Value, (x, y) => tempDef.Value);
             }
 
             // Module Constant defs
             foreach (var rem in _moduleContents.ModuleConstants.Where(x => x.Value.ContainingFile == newContents.ContentFilename &&
-                                                                              !newContents.ModuleConstants.ContainsKey(x.Key)).ToList())
+                                                                              !newContents.ModuleConstants.ContainsKey(x.Key.ToLower())).ToList())
             {
                 ConstantDefinition temp;
-                _moduleContents.ModuleConstants.TryRemove(rem.Key, out temp);
+                _moduleContents.ModuleConstants.TryRemove(rem.Key.ToLower(), out temp);
             }
             foreach (var tempDef in newContents.ModuleConstants)
             {
-                _moduleContents.ModuleConstants.AddOrUpdate(tempDef.Key, tempDef.Value, (x, y) => tempDef.Value);
+                _moduleContents.ModuleConstants.AddOrUpdate(tempDef.Key.ToLower(), tempDef.Value, (x, y) => tempDef.Value);
             }
 
             // Module Type defs
             foreach (var rem in _moduleContents.ModuleTypes.Where(x => x.Value.ContainingFile == newContents.ContentFilename &&
-                                                                              !newContents.ModuleTypes.ContainsKey(x.Key)).ToList())
+                                                                              !newContents.ModuleTypes.ContainsKey(x.Key.ToLower())).ToList())
             {
                 TypeDefinition temp;
-                _moduleContents.ModuleTypes.TryRemove(rem.Key, out temp);
+                _moduleContents.ModuleTypes.TryRemove(rem.Key.ToLower(), out temp);
             }
             foreach (var tempDef in newContents.ModuleTypes)
             {
-                _moduleContents.ModuleTypes.AddOrUpdate(tempDef.Key, tempDef.Value, (x, y) => tempDef.Value);
+                _moduleContents.ModuleTypes.AddOrUpdate(tempDef.Key.ToLower(), tempDef.Value, (x, y) => tempDef.Value);
             }
         }
 
@@ -670,8 +670,8 @@ namespace VSGenero.EditorExtensions
             List<string> removeList = new List<string>();
             foreach (var global in _moduleContents.GlobalVariables)
             {
-                if (!existingGlobalVarsParsed.TryGetValue(global.Key, out temp))
-                    removeList.Add(global.Key);
+                if (!existingGlobalVarsParsed.TryGetValue(global.Key.ToLower(), out temp))
+                    removeList.Add(global.Key.ToLower());
                 else
                 {
                     if (string.IsNullOrWhiteSpace(global.Value.ContainingFile))
@@ -679,26 +679,26 @@ namespace VSGenero.EditorExtensions
                 }
             }
             foreach (var global in removeList)
-                _moduleContents.GlobalVariables.TryRemove(global, out remove);
+                _moduleContents.GlobalVariables.TryRemove(global.ToLower(), out remove);
 
             // Remove module variables
             removeList.Clear();
             foreach (var moduleVar in _moduleContents.ModuleVariables)
             {
-                if (!existingModuleVarsParsed.TryGetValue(moduleVar.Key, out temp))
-                    removeList.Add(moduleVar.Key);
+                if (!existingModuleVarsParsed.TryGetValue(moduleVar.Key.ToLower(), out temp))
+                    removeList.Add(moduleVar.Key.ToLower());
                 else
                     moduleVar.Value.ContainingFile = filename;
             }
             foreach (var moduleVar in removeList)
-                _moduleContents.ModuleVariables.TryRemove(moduleVar, out remove);
+                _moduleContents.ModuleVariables.TryRemove(moduleVar.ToLower(), out remove);
 
             // Remove functions
             removeList.Clear();
             foreach (var function in _moduleContents.FunctionDefinitions)
             {
-                if (!existingFunctionsParsed.TryGetValue(function.Key, out temp))
-                    removeList.Add(function.Key);
+                if (!existingFunctionsParsed.TryGetValue(function.Key.ToLower(), out temp))
+                    removeList.Add(function.Key.ToLower());
                 else
                 {
                     function.Value.ContainingFile = filename;
@@ -706,7 +706,7 @@ namespace VSGenero.EditorExtensions
             }
             FunctionDefinition removeFunc;
             foreach (var function in removeList)
-                _moduleContents.FunctionDefinitions.TryRemove(function, out removeFunc);
+                _moduleContents.FunctionDefinitions.TryRemove(function.ToLower(), out removeFunc);
 
             foreach (var cursorPrep in _moduleContents.SqlPrepares)
                 cursorPrep.Value.ContainingFile = filename;
@@ -993,7 +993,7 @@ namespace VSGenero.EditorExtensions
                                     searchState = VariableSearchState.LookingForTypeName;
                                 else
                                     searchState = VariableSearchState.LookingForDefineKeyword;
-                                scopeTypes.AddOrUpdate(currentTypeDef.Name, currentTypeDef, (x, y) => currentTypeDef);
+                                scopeTypes.AddOrUpdate(currentTypeDef.Name.ToLower(), currentTypeDef, (x, y) => currentTypeDef);
                             }
                             else
                             {
@@ -1039,7 +1039,7 @@ namespace VSGenero.EditorExtensions
                             else
                             {
                                 // add the current constant def to the scope given.
-                                scopeConstants.AddOrUpdate(currentConstantDef.Name, currentConstantDef, (x, y) => currentConstantDef);
+                                scopeConstants.AddOrUpdate(currentConstantDef.Name.ToLower(), currentConstantDef, (x, y) => currentConstantDef);
                                 AdvanceToken(ref token, ref prevToken);
                                 if (token.LowercaseText == ",")
                                 {
@@ -1491,7 +1491,7 @@ namespace VSGenero.EditorExtensions
                 // restore the current variable def
                 currentVariableDef = backup.Clone();
                 foreach (var element in elementList)
-                    currentVariableDef.RecordElements.AddOrUpdate(element.Key, element.Value, (x, y) => element.Value);
+                    currentVariableDef.RecordElements.AddOrUpdate(element.Key.ToLower(), element.Value, (x, y) => element.Value);
 
                 // the current token should be "record", so Advance past that
                 AdvanceToken(ref token, ref prevToken);
@@ -1741,14 +1741,14 @@ namespace VSGenero.EditorExtensions
         private void AddVariablesAndReset(ConcurrentDictionary<string, VariableDefinition> scope, ref VariableDefinition currentDef, List<VariableDefinition> buffer, Dictionary<string, int> parsed)
         {
             VariableDefinition tempDef = currentDef;    // Needed so we can do update in concurrent update lambda
-            scope.AddOrUpdate(currentDef.Name, currentDef, (x, y) => tempDef);
-            if (!parsed.ContainsKey(currentDef.Name))
-                parsed.Add(currentDef.Name, 1);
+            scope.AddOrUpdate(currentDef.Name.ToLower(), currentDef, (x, y) => tempDef);
+            if (!parsed.ContainsKey(currentDef.Name.ToLower()))
+                parsed.Add(currentDef.Name.ToLower(), 1);
             foreach (var vardef in buffer)
             {
-                scope.AddOrUpdate(vardef.Name, vardef, (x, y) => vardef);
-                if (!parsed.ContainsKey(vardef.Name))
-                    parsed.Add(vardef.Name, 1);
+                scope.AddOrUpdate(vardef.Name.ToLower(), vardef, (x, y) => vardef);
+                if (!parsed.ContainsKey(vardef.Name.ToLower()))
+                    parsed.Add(vardef.Name.ToLower(), 1);
             }
             ResetCurrentVariableAndBuffer(ref currentDef, buffer);
         }
@@ -2014,6 +2014,7 @@ namespace VSGenero.EditorExtensions
                                         string tempName = _currentFunctionDef.Name;
                                         if (tempName == null && _currentFunctionDef.Main)    // this is the main function
                                             tempName = "main";
+                                        tempName = tempName.ToLower();
                                         _moduleContents.FunctionDefinitions.AddOrUpdate(tempName, _currentFunctionDef,
                                             (x, y) =>
                                             {
@@ -2023,6 +2024,7 @@ namespace VSGenero.EditorExtensions
                                         string baseName = tempName;
                                         while (existingFunctionsParsed.ContainsKey(tempName))
                                             tempName = baseName + "_copy" + i++;
+                                        tempName = tempName.ToLower();
                                         existingFunctionsParsed.Add(tempName, 1);
                                         _currentFunctionDef = null;
                                         _fss = FunctionSearchState.LookingForFunctionStart;
@@ -2113,7 +2115,7 @@ namespace VSGenero.EditorExtensions
                                         bool valid = TryGetActualVariableType(ref token, ref prevToken, ref tableVss, ref column, dummyVarList);
                                         if (valid)
                                         {
-                                            ttd.Columns.AddOrUpdate(column.Name, column, (x, y) => column);
+                                            ttd.Columns.AddOrUpdate(column.Name.ToLower(), column, (x, y) => column);
                                             if (tableVss == VariableSearchState.LookingForDefineKeyword)
                                             {
                                                 // The table definition is done
@@ -2187,13 +2189,13 @@ namespace VSGenero.EditorExtensions
                         else if (token.TokenType == GeneroTokenType.Identifier)
                         {
                             CursorPreparation cp;
-                            if (_moduleContents.SqlPrepares.TryGetValue(token.TokenText, out cp))
+                            if (_moduleContents.SqlPrepares.TryGetValue(token.TokenText.ToLower(), out cp))
                             {
                                 cd.PreparationVariable = cp.Name;
                                 cd.Position = startingPosition;
                                 cd.LineNumber = startingLine;
                                 cd.ColumnNumber = startingColumn;
-                                _moduleContents.SqlCursors.Add(cd.Name, cd);
+                                _moduleContents.SqlCursors.Add(cd.Name.ToLower(), cd);
                             }
                         }
                         // 3) a sql block -> next token will be "sql"
@@ -2273,7 +2275,7 @@ namespace VSGenero.EditorExtensions
                         {
                             funcReturns.Add(new GeneroFunctionReturn { Type = "string" });
                         }
-                        else if (_currentFunctionDef.Variables.TryGetValue(retToken.TokenText, out varDef))
+                        else if (_currentFunctionDef.Variables.TryGetValue(retToken.TokenText.ToLower(), out varDef))
                         {
                             funcReturns.Add(new GeneroFunctionReturn { Name = varDef.Name, Type = varDef.Type });
                         }
@@ -2321,9 +2323,9 @@ namespace VSGenero.EditorExtensions
 
                             // check and make sure the variable actually exists
                             VariableDefinition prepareDef;
-                            if (_currentFunctionDef.Variables.TryGetValue(cp.StatementVariable, out prepareDef) ||
-                                _moduleContents.ModuleVariables.TryGetValue(cp.StatementVariable, out prepareDef) ||
-                                _moduleContents.GlobalVariables.TryGetValue(cp.StatementVariable, out prepareDef))
+                            if (_currentFunctionDef.Variables.TryGetValue(cp.StatementVariable.ToLower(), out prepareDef) ||
+                                _moduleContents.ModuleVariables.TryGetValue(cp.StatementVariable.ToLower(), out prepareDef) ||
+                                _moduleContents.GlobalVariables.TryGetValue(cp.StatementVariable.ToLower(), out prepareDef))
                             {
                                 // need to get the Statement variable's contents
                                 Stack<GeneroToken> prepareContents = new Stack<GeneroToken>();    // This will store possibly multiple lines' worth of prepare statement

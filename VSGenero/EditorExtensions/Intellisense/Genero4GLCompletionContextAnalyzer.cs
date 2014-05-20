@@ -261,14 +261,14 @@ namespace VSGenero.EditorExtensions.Intellisense
                     // look for the member name in 1) locals, 2) module, 3) globals
                     if (currentFunction != null)
                     {
-                        if (!currentFunction.Variables.TryGetValue(memberCompletionTokens[i], out varDef))
+                        if (!currentFunction.Variables.TryGetValue(memberCompletionTokens[i].ToLower(), out varDef))
                         {
                             // look in module variables
-                            if (!moduleContents.ModuleVariables.TryGetValue(memberCompletionTokens[i], out varDef))
+                            if (!moduleContents.ModuleVariables.TryGetValue(memberCompletionTokens[i].ToLower(), out varDef))
                             {
-                                if (!moduleContents.GlobalVariables.TryGetValue(memberCompletionTokens[i], out varDef))
+                                if (!moduleContents.GlobalVariables.TryGetValue(memberCompletionTokens[i].ToLower(), out varDef))
                                 {
-                                    GeneroSingletons.SystemVariables.TryGetValue(memberCompletionTokens[i], out varDef);
+                                    GeneroSingletons.SystemVariables.TryGetValue(memberCompletionTokens[i].ToLower(), out varDef);
                                 }
                             }
                         }
@@ -279,9 +279,9 @@ namespace VSGenero.EditorExtensions.Intellisense
                         if (varDef.ArrayType == ArrayType.None || (arrayElement != null && arrayElement.IsComplete))
                         {
                             // check for a type definition
-                            if (moduleContents.GlobalTypes.TryGetValue(varDef.Type, out typeDef) ||
-                                        moduleContents.ModuleTypes.TryGetValue(varDef.Type, out typeDef) ||
-                                        currentFunction.Types.TryGetValue(varDef.Type, out typeDef))
+                            if (moduleContents.GlobalTypes.TryGetValue(varDef.Type.ToLower(), out typeDef) ||
+                                        moduleContents.ModuleTypes.TryGetValue(varDef.Type.ToLower(), out typeDef) ||
+                                        currentFunction.Types.TryGetValue(varDef.Type.ToLower(), out typeDef))
                             {
                                 varDef = typeDef;
                             }
@@ -296,7 +296,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                         if (varDef.RecordElements.Count > 0)
                         {
                             VariableDefinition tempRecDef;
-                            if (varDef.RecordElements.TryGetValue(memberCompletionTokens[i], out tempRecDef))
+                            if (varDef.RecordElements.TryGetValue(memberCompletionTokens[i].ToLower(), out tempRecDef))
                             {
                                 varDef = tempRecDef;
                             }
@@ -431,7 +431,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             {
                 foreach (var functionVar in currentFunction.Variables)
                 {
-                    var comp = new MemberCompletion(functionVar.Key, functionVar.Key, functionVar.Value.GetIntellisenseText("local"),
+                    var comp = new MemberCompletion(functionVar.Value.Name, functionVar.Value.Name, functionVar.Value.GetIntellisenseText("local"),
                                     _glyphService.GetGlyph(StandardGlyphGroup.GlyphGroupVariable, StandardGlyphItem.GlyphItemPrivate), null);
                     comp.Properties.AddProperty("system", false);
                     completions.Add(comp);

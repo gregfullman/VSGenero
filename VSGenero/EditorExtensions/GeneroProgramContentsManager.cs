@@ -32,25 +32,25 @@ namespace VSGenero.EditorExtensions
             // update the global variables dictionary
             foreach (var globalVarKvp in newContents.GlobalVariables)
             {
-                gmc.GlobalVariables.AddOrUpdate(globalVarKvp.Key, globalVarKvp.Value, (x, y) => globalVarKvp.Value);
+                gmc.GlobalVariables.AddOrUpdate(globalVarKvp.Key.ToLower(), globalVarKvp.Value, (x, y) => globalVarKvp.Value);
             }
 
             // update the global constants dictionary
             foreach (var globalVarKvp in newContents.GlobalConstants)
             {
-                gmc.GlobalConstants.AddOrUpdate(globalVarKvp.Key, globalVarKvp.Value, (x, y) => globalVarKvp.Value);
+                gmc.GlobalConstants.AddOrUpdate(globalVarKvp.Key.ToLower(), globalVarKvp.Value, (x, y) => globalVarKvp.Value);
             }
 
             // update the global types dictionary
             foreach (var globalVarKvp in newContents.GlobalTypes)
             {
-                gmc.GlobalTypes.AddOrUpdate(globalVarKvp.Key, globalVarKvp.Value, (x, y) => globalVarKvp.Value);
+                gmc.GlobalTypes.AddOrUpdate(globalVarKvp.Key.ToLower(), globalVarKvp.Value, (x, y) => globalVarKvp.Value);
             }
 
             // Update the module functions dictionary
             foreach (var programFuncKvp in newContents.FunctionDefinitions.Where(x => !x.Value.Private))
             {
-                gmc.FunctionDefinitions.AddOrUpdate(programFuncKvp.Key, programFuncKvp.Value, (x, y) => programFuncKvp.Value);
+                gmc.FunctionDefinitions.AddOrUpdate(programFuncKvp.Key.ToLower(), programFuncKvp.Value, (x, y) => programFuncKvp.Value);
             }
 
             lock (_lock)

@@ -71,7 +71,7 @@ namespace VSGenero.EditorExtensions
             sqlcaElements.Add(new VariableDefinition { Name = "sqlawarn", Type = "char(7)" });
 
             foreach (var element in sqlcaElements)
-                sqlcaVarDef.RecordElements.AddOrUpdate(element.Name, element, ((x,y) => element));
+                sqlcaVarDef.RecordElements.AddOrUpdate(element.Name.ToLower(), element, ((x, y) => element));
             _systemVariables.Add(sqlcaVarDef.Name, sqlcaVarDef);
 
             // 2) Dialog

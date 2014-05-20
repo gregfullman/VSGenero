@@ -26,7 +26,7 @@ namespace VSGenero.Navigation
     /// and builds the informations to expose to the class view or object browser.
     /// </summary>
     [Guid(VSGeneroConstants.LibraryManagerServiceGuid)]
-    internal interface IGeneroLibraryManager : ILibraryManager {
+    public interface IGeneroLibraryManager : ILibraryManager {
     }
 
     /// <summary>
@@ -35,7 +35,7 @@ namespace VSGenero.Navigation
     /// hierarchy.
     /// </summary>
     [Guid(VSGeneroConstants.LibraryManagerGuid)]
-    internal class GeneroLibraryManager : LibraryManager, IGeneroLibraryManager
+    public class GeneroLibraryManager : LibraryManager, IGeneroLibraryManager
     {
         private readonly VSGeneroPackage/*!*/ _package;
 

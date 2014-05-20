@@ -28,8 +28,8 @@ namespace VSGenero
     {
         internal const string LanguageName4GL = "Genero4GL";
         internal const string LanguageNamePER = "GeneroPER";
-        internal const string FileExtension4GL = ".4gl";
-        internal const string FileExtensionPER = ".per";
+        public const string FileExtension4GL = ".4gl";
+        public const string FileExtensionPER = ".per";
         internal const string ProjectFileFilter = "Genero Project File (*.glproj)\n*.glproj\nAll Files (*.*)\n*.*\n";
 
         public const string ProjectFactoryGuid = "888888a0-9f3d-457c-b088-3a5042f75d53";

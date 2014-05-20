@@ -127,7 +127,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             {
                 // look for the parameter in the function (local) variables
                 VariableDefinition varDef;
-                if (funcDef.Variables.TryGetValue(funcDef.Parameters[i], out varDef))
+                if (funcDef.Variables.TryGetValue(funcDef.Parameters[i].ToLower(), out varDef))
                 {
                     // put the type of the parameter
                     sb.Append(varDef.GetIntellisenseText());
@@ -611,7 +611,8 @@ namespace VSGenero.EditorExtensions.Intellisense
                         {
                             // get the token type
                             if ((tokType == GeneroTokenType.Identifier ||
-                                    tokType == GeneroTokenType.Keyword) &&
+                                    tokType == GeneroTokenType.Keyword ||
+                                    tokType == GeneroTokenType.Number) &&
                                 lastTokenType == GeneroTokenType.Symbol)
                             {
                                 memberName = tokenText + memberName;

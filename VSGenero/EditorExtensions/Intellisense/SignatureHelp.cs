@@ -346,8 +346,8 @@ namespace VSGenero.EditorExtensions.Intellisense
             if (splitTokens.Length == 1)
             {
                 // get the function from the file parser in the subjectBuffer
-                if (fpm.ModuleContents.FunctionDefinitions.TryGetValue(functionName, out funcDef) ||
-                    (programContents != null && programContents.FunctionDefinitions.TryGetValue(functionName, out funcDef)))
+                if (fpm.ModuleContents.FunctionDefinitions.TryGetValue(functionName.ToLower(), out funcDef) ||
+                    (programContents != null && programContents.FunctionDefinitions.TryGetValue(functionName.ToLower(), out funcDef)))
                 {
                     string methodSig = funcDef.GetIntellisenseText();
                     return GetSignature(methodSig, textBuffer, span);
@@ -356,7 +356,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                 {
                     if (_provider.PublicFunctionProvider != null)
                     {
-                        var methodSig = _provider.PublicFunctionProvider.GetPublicFunctionSignature(functionName);
+                        var methodSig = _provider.PublicFunctionProvider.GetPublicFunctionSignature(functionName.ToLower());
                         if (methodSig != null)
                         {
                             return GetSignature(methodSig, textBuffer, span);
@@ -364,13 +364,13 @@ namespace VSGenero.EditorExtensions.Intellisense
                     }
 
                     GeneroSystemClassFunction sysClassFunc;
-                    if (GeneroSingletons.LanguageSettings.NativeMethods.TryGetValue(functionName, out sysClassFunc))
+                    if (GeneroSingletons.LanguageSettings.NativeMethods.TryGetValue(functionName.ToLower(), out sysClassFunc))
                     {
                         return GetSignature(sysClassFunc.GetIntellisenseText(), textBuffer, span);
                     }
 
                     GeneroOperator sysOperator;
-                    if (GeneroSingletons.LanguageSettings.NativeOperators.TryGetValue(functionName, out sysOperator))
+                    if (GeneroSingletons.LanguageSettings.NativeOperators.TryGetValue(functionName.ToLower(), out sysOperator))
                     {
                         return GetSignature(sysOperator.GetIntellisenseText(), textBuffer, span);
                     }
@@ -388,6 +388,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                 ArrayElement prevArrayElement = null;
                 for (int i = 0; i < splitTokens.Length; i++)
                 {
+                    string lowercase = splitTokens[i].ToLower();
                     if ((arrayElement = IntellisenseExtensions.GetArrayElement(splitTokens[i])) != null)
                     {
                         if (arrayElement.IsComplete)
@@ -398,21 +399,21 @@ namespace VSGenero.EditorExtensions.Intellisense
 
                     // look for a package
                     if (tmpPackage == null &&
-                       GeneroSingletons.LanguageSettings.Packages.TryGetValue(splitTokens[i].ToLower(), out tmpPackage))
+                       GeneroSingletons.LanguageSettings.Packages.TryGetValue(lowercase, out tmpPackage))
                     {
                         continue;
                     }
 
                     // look for a class
                     if (tmpPackage != null && tmpClass == null &&
-                       tmpPackage.Classes.TryGetValue(splitTokens[i].ToLower(), out tmpClass))
+                       tmpPackage.Classes.TryGetValue(lowercase, out tmpClass))
                     {
                         continue;
                     }
 
                     // look for a class method
                     if (tmpClass != null && tmpMethod == null &&
-                        tmpClass.Methods.TryGetValue(splitTokens[i].ToLower(), out tmpMethod))
+                        tmpClass.Methods.TryGetValue(lowercase, out tmpMethod))
                     {
                         string methodSig = tmpMethod.GetIntellisenseText();
                         return GetSignature(methodSig, textBuffer, span);
@@ -422,15 +423,15 @@ namespace VSGenero.EditorExtensions.Intellisense
                     {
                         if (funcDef != null)
                         {
-                            if (!funcDef.Variables.TryGetValue(splitTokens[i], out varDef))
+                            if (!funcDef.Variables.TryGetValue(lowercase, out varDef))
                             {
                                 // look in module variables
-                                if (!_moduleContents.ModuleVariables.TryGetValue(splitTokens[i], out varDef))
+                                if (!_moduleContents.ModuleVariables.TryGetValue(lowercase, out varDef))
                                 {
-                                    if (!_moduleContents.GlobalVariables.TryGetValue(splitTokens[i], out varDef) &&
-                                        (programContents != null && programContents.GlobalVariables.TryGetValue(splitTokens[i], out varDef)))
+                                    if (!_moduleContents.GlobalVariables.TryGetValue(lowercase, out varDef) &&
+                                        (programContents != null && programContents.GlobalVariables.TryGetValue(lowercase, out varDef)))
                                     {
-                                        GeneroSingletons.SystemVariables.TryGetValue(splitTokens[i], out varDef);
+                                        GeneroSingletons.SystemVariables.TryGetValue(lowercase, out varDef);
                                     }
                                 }
                             }
@@ -442,11 +443,11 @@ namespace VSGenero.EditorExtensions.Intellisense
                             {
                                 TypeDefinition typeDef;
                                 // check for a type definition
-                                if (_moduleContents.GlobalTypes.TryGetValue(varDef.Type, out typeDef) ||
-                                    (programContents != null && programContents.GlobalTypes.TryGetValue(varDef.Type, out typeDef)) ||
-                                    _moduleContents.ModuleTypes.TryGetValue(varDef.Type, out typeDef) ||
-                                    (programContents != null && programContents.ModuleTypes.TryGetValue(varDef.Type, out typeDef)) ||
-                                    funcDef.Types.TryGetValue(varDef.Type, out typeDef))
+                                if (_moduleContents.GlobalTypes.TryGetValue(varDef.Type.ToLower(), out typeDef) ||
+                                    (programContents != null && programContents.GlobalTypes.TryGetValue(varDef.Type.ToLower(), out typeDef)) ||
+                                    _moduleContents.ModuleTypes.TryGetValue(varDef.Type.ToLower(), out typeDef) ||
+                                    (programContents != null && programContents.ModuleTypes.TryGetValue(varDef.Type.ToLower(), out typeDef)) ||
+                                    funcDef.Types.TryGetValue(varDef.Type.ToLower(), out typeDef))
                                 {
                                     varDef = typeDef;
                                 }
@@ -457,14 +458,14 @@ namespace VSGenero.EditorExtensions.Intellisense
                     if (varDef != null)
                     {
                         if ((arrayElement == null || !arrayElement.IsComplete) &&
-                            !string.IsNullOrWhiteSpace(varDef.Type))
+                            (!string.IsNullOrWhiteSpace(varDef.Type) || varDef.ArrayType != ArrayType.None))
                         {
                             // get an extension or base class
                             GeneroClass generoClass = null;
                             if (IntellisenseExtensions.IsClassInstance(varDef.Type, out generoClass))
                             {
                                 GeneroClassMethod classMethod;
-                                if (generoClass.Methods.TryGetValue(splitTokens[i].ToLower(), out classMethod))
+                                if (generoClass.Methods.TryGetValue(lowercase, out classMethod))
                                 {
                                     string methodSig = classMethod.GetIntellisenseText();
                                     return GetSignature(methodSig, textBuffer, span);
@@ -475,7 +476,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                                 (arrayElement == null || !arrayElement.IsComplete) &&
                                  GeneroSingletons.LanguageSettings.NativeClasses.TryGetValue("array", out sysClass))
                             {
-                                if (sysClass.Functions.TryGetValue(splitTokens[i].ToLower(), out sysClassFunc))
+                                if (sysClass.Functions.TryGetValue(lowercase, out sysClassFunc))
                                 {
                                     string methodSig = sysClassFunc.GetIntellisenseText();
                                     return GetSignature(methodSig, textBuffer, span);
@@ -486,7 +487,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                             // get a system class
                             if (GeneroSingletons.LanguageSettings.NativeClasses.TryGetValue(varDef.Type, out sysClass))
                             {
-                                if (sysClass.Functions.TryGetValue(splitTokens[i].ToLower(), out sysClassFunc))
+                                if (sysClass.Functions.TryGetValue(lowercase, out sysClassFunc))
                                 {
                                     string methodSig = sysClassFunc.GetIntellisenseText();
                                     return GetSignature(methodSig, textBuffer, span);
@@ -499,7 +500,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                         if (varDef.RecordElements != null && varDef.RecordElements.Count > 0)
                         {
                             VariableDefinition tempVarDef;
-                            if (varDef.RecordElements.TryGetValue(splitTokens[i], out tempVarDef))
+                            if (varDef.RecordElements.TryGetValue(lowercase, out tempVarDef))
                                 varDef = tempVarDef;
                         }
                     }
