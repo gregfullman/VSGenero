@@ -831,6 +831,28 @@ namespace VSGenero.EditorExtensions
         private VariableDefinition _currentVariableDef;
         private List<VariableDefinition> _variableBuffer = new List<VariableDefinition>();  // This is used since more than one variable can be defined under a type
 
+        #region Statement Verification
+
+        internal GeneroParser()
+        {
+            _lexer = new GeneroLexer();
+        }
+
+        internal bool IsIncompleteVarConstTypeDefinitionStatement(string statement)
+        {
+            _lexer.StartLexing(0, statement);
+            GeneroToken token = null, prevToken = null;
+            _vss = VariableSearchState.LookingForDefineKeyword;
+            bool isIncomplete = TryParseVarConstTypeDefinitions(ref token, ref prevToken, ref _vss, _moduleContents.GlobalVariables, _moduleContents.GlobalTypes, _moduleContents.GlobalConstants, ref _currentVariableDef,
+                                                            _variableBuffer, existingGlobalVarsParsed, new[] { "function", "end", "define", "type", "constant" });
+            return isIncomplete;
+        }
+
+        #endregion
+
+        // TODO: need to have this function server two purposes.
+        // 1) Its original purpose, which is to collect var, type, and const defines
+        // 2) Its new additional purpose, which is to determine if a define statement is incomplete
         private bool TryParseVarConstTypeDefinitions(ref GeneroToken token,
                                                  ref GeneroToken prevToken,
                                                  ref VariableSearchState searchState,

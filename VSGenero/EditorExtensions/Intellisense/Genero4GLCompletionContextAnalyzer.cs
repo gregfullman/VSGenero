@@ -29,12 +29,13 @@ namespace VSGenero.EditorExtensions.Intellisense
             if (!IsWithinNonCompletionArea(session) &&
                 !IsNonCompletionText(applicableSpan, session))
             {
+                bool inDefineStatement = session.IsWithinDefineStatement();
                 FunctionDefinition currentFunction = IntellisenseExtensions.DetermineContainingFunction((session.TextView.Caret.Position.BufferPosition) - 1, fileParserManager);
                 string memberAccessName = null;
                 if (session.IsAttemptingMemberAccess(out memberAccessName))
                 {
                     isMemberCompletion = true;
-                    return GetMemberAccessCompletions(memberAccessName, currentFunction, moduleContents);
+                    return GetMemberAccessCompletions(memberAccessName, currentFunction, moduleContents, inDefineStatement);
                 }
 
                 bool isDefiniteFunctionCall = false;
@@ -49,7 +50,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                         applicableCompletions.AddRange(funcRptCompletions); // we want the other stuff too
                 }
 
-                if (session.IsWithinDefineStatement())
+                if (inDefineStatement)
                 {
                     // we want to have completions show up if we're typing the defined variable's type
                     var previousToken = session.GetPreviousToken();
@@ -61,8 +62,9 @@ namespace VSGenero.EditorExtensions.Intellisense
                         }
                         else
                         {
-                            // TODO: would like to be smarter about completion here...
+                            // would like to be smarter about completion here...
                             // like only showing types if in the midst of defining a variable
+                            applicableCompletions.AddRange(GetTypeCompletions(moduleContents, currentFunction));
                         }
                     }
                 }
@@ -198,7 +200,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             }
         }
 
-        private List<MemberCompletion> GetMemberAccessCompletions(string memberAccessName, FunctionDefinition currentFunction, GeneroModuleContents moduleContents)
+        private List<MemberCompletion> GetMemberAccessCompletions(string memberAccessName, FunctionDefinition currentFunction, GeneroModuleContents moduleContents, bool inDefineStatement)
         {
             List<MemberCompletion> memberCompletionList = new List<MemberCompletion>();
             string[] memberCompletionTokens = memberAccessName.Split(new[] { '.' });
@@ -395,6 +397,52 @@ namespace VSGenero.EditorExtensions.Intellisense
             return memberCompletionList;
         }
 
+        private List<MemberCompletion> GetTypeCompletions(GeneroModuleContents moduleContents, FunctionDefinition currentFunction)
+        {
+            List<MemberCompletion> completions = new List<MemberCompletion>();
+
+            // get the native data types
+            //foreach (var dataType in GeneroSingletons.LanguageSettings.DataTypeMap)
+            //{
+            //    // make sure the datatype is not actually a system class (i.e. array, string)
+            //    if(!GeneroSingletons.LanguageSettings.NativeClasses.ContainsKey(dataType.Key))
+            //    {
+            //        var comp = new MemberCompletion(dataType.Value.Name, dataType.Value.Name, dataType.Value.GetIntellisenseText(),
+            //                                _glyphService.GetGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPublic), null);
+            //        completions.Add(comp);
+            //    }
+            //}
+
+            foreach (var globalType in moduleContents.GlobalTypes)
+            {
+                var comp = new MemberCompletion(globalType.Value.Name, globalType.Value.Name, globalType.Value.GetIntellisenseText("global"),
+                                _glyphService.GetGlyph(StandardGlyphGroup.GlyphGroupVariable, StandardGlyphItem.GlyphItemPublic), null);
+                comp.Properties.AddProperty("system", false);
+                completions.Add(comp);
+            }
+
+            foreach (var moduleType in moduleContents.ModuleTypes)
+            {
+                var comp = new MemberCompletion(moduleType.Value.Name, moduleType.Value.Name, moduleType.Value.GetIntellisenseText("module"),
+                                _glyphService.GetGlyph(StandardGlyphGroup.GlyphGroupVariable, StandardGlyphItem.GlyphItemPublic), null);
+                comp.Properties.AddProperty("system", false);
+                completions.Add(comp);
+            }
+
+            if (currentFunction != null)
+            {
+                foreach (var functionType in currentFunction.Types)
+                {
+                    var comp = new MemberCompletion(functionType.Value.Name, functionType.Value.Name, functionType.Value.GetIntellisenseText("local"),
+                                    _glyphService.GetGlyph(StandardGlyphGroup.GlyphGroupVariable, StandardGlyphItem.GlyphItemPrivate), null);
+                    comp.Properties.AddProperty("system", false);
+                    completions.Add(comp);
+                }
+            }
+
+            return completions;
+        }
+
         private List<MemberCompletion> GetNormalCompletions(GeneroModuleContents moduleContents, FunctionDefinition currentFunction)
         {
             List<MemberCompletion> completions = new List<MemberCompletion>();
@@ -402,7 +450,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             // add system variables
             foreach (var sysVar in GeneroSingletons.SystemVariables)
             {
-                var comp = new MemberCompletion(sysVar.Key, sysVar.Key, sysVar.Value.GetIntellisenseText("system"),
+                var comp = new MemberCompletion(sysVar.Value.Name, sysVar.Value.Name, sysVar.Value.GetIntellisenseText("system"),
                                 _glyphService.GetGlyph(StandardGlyphGroup.GlyphGroupVariable, StandardGlyphItem.GlyphItemPublic), null);
                 comp.Properties.AddProperty("system", false);
                 completions.Add(comp);
@@ -411,7 +459,15 @@ namespace VSGenero.EditorExtensions.Intellisense
             // add global variables
             foreach (var globalVar in moduleContents.GlobalVariables)
             {
-                var comp = new MemberCompletion(globalVar.Key, globalVar.Key, globalVar.Value.GetIntellisenseText("global"),
+                var comp = new MemberCompletion(globalVar.Value.Name, globalVar.Value.Name, globalVar.Value.GetIntellisenseText("global"),
+                                _glyphService.GetGlyph(StandardGlyphGroup.GlyphGroupVariable, StandardGlyphItem.GlyphItemPublic), null);
+                comp.Properties.AddProperty("system", false);
+                completions.Add(comp);
+            }
+
+            foreach(var globalConst in moduleContents.GlobalConstants)
+            {
+                var comp = new MemberCompletion(globalConst.Value.Name, globalConst.Value.Name, globalConst.Value.GetIntellisenseText("global"),
                                 _glyphService.GetGlyph(StandardGlyphGroup.GlyphGroupVariable, StandardGlyphItem.GlyphItemPublic), null);
                 comp.Properties.AddProperty("system", false);
                 completions.Add(comp);
@@ -420,7 +476,15 @@ namespace VSGenero.EditorExtensions.Intellisense
             // add the module variables
             foreach (var moduleVar in moduleContents.ModuleVariables)
             {
-                var comp = new MemberCompletion(moduleVar.Key, moduleVar.Key, moduleVar.Value.GetIntellisenseText("module"),
+                var comp = new MemberCompletion(moduleVar.Value.Name, moduleVar.Value.Name, moduleVar.Value.GetIntellisenseText("module"),
+                                _glyphService.GetGlyph(StandardGlyphGroup.GlyphGroupVariable, StandardGlyphItem.GlyphItemInternal), null);
+                comp.Properties.AddProperty("system", false);
+                completions.Add(comp);
+            }
+
+            foreach (var moduleConst in moduleContents.ModuleConstants)
+            {
+                var comp = new MemberCompletion(moduleConst.Value.Name, moduleConst.Value.Name, moduleConst.Value.GetIntellisenseText("module"),
                                 _glyphService.GetGlyph(StandardGlyphGroup.GlyphGroupVariable, StandardGlyphItem.GlyphItemInternal), null);
                 comp.Properties.AddProperty("system", false);
                 completions.Add(comp);
@@ -432,6 +496,14 @@ namespace VSGenero.EditorExtensions.Intellisense
                 foreach (var functionVar in currentFunction.Variables)
                 {
                     var comp = new MemberCompletion(functionVar.Value.Name, functionVar.Value.Name, functionVar.Value.GetIntellisenseText("local"),
+                                    _glyphService.GetGlyph(StandardGlyphGroup.GlyphGroupVariable, StandardGlyphItem.GlyphItemPrivate), null);
+                    comp.Properties.AddProperty("system", false);
+                    completions.Add(comp);
+                }
+
+                foreach (var functionConst in currentFunction.Constants)
+                {
+                    var comp = new MemberCompletion(functionConst.Value.Name, functionConst.Value.Name, functionConst.Value.GetIntellisenseText("local"),
                                     _glyphService.GetGlyph(StandardGlyphGroup.GlyphGroupVariable, StandardGlyphItem.GlyphItemPrivate), null);
                     comp.Properties.AddProperty("system", false);
                     completions.Add(comp);

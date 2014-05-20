@@ -317,6 +317,21 @@ namespace VSGenero.EditorExtensions.Intellisense
             return sb.ToString();
         }
 
+        internal static string GetIntellisenseText(this DataType dataType, string context = null)
+        {
+            StringBuilder sb = new StringBuilder();
+            if (context != null)
+            {
+                sb.Append(string.Format("({0} type) ", context));
+            }
+            else
+            {
+                sb.Append("type ");
+            }
+            sb.Append(dataType.Name);
+            return sb.ToString();
+        }
+
         internal static string GetIntellisenseText(this ConstantDefinition constantDef, string context = null)
         {
             StringBuilder sb = new StringBuilder();
@@ -828,6 +843,8 @@ namespace VSGenero.EditorExtensions.Intellisense
             int currPosition = triggerPoint.Position;
             var revParser = EditorExtensions.GetReverseParser(triggerPoint, -1, true);
 
+            StringBuilder sb = new StringBuilder();
+            bool defineKeywordFound = false;
             foreach (var tagSpan in revParser)
             {
                 if (tagSpan == null)    // shouldn't ever happen
@@ -836,6 +853,8 @@ namespace VSGenero.EditorExtensions.Intellisense
                 {
                     GeneroTokenType tokenType = revParser.GetTokenType(tagSpan.Tag.ClassificationType);
                     string lowercaseText = tagSpan.Span.GetText().ToLower();
+                    sb.Insert(0, lowercaseText);
+
                     if (tokenType == GeneroTokenType.Keyword)
                     {
                         // check to see if it's a type or it's one of the keywords used in define statements
@@ -846,9 +865,21 @@ namespace VSGenero.EditorExtensions.Intellisense
                             continue;
                         }
 
-                        return (lowercaseText == "define");
+                        if(lowercaseText == "define")
+                        {
+                            defineKeywordFound = true;
+                        }
+                        break;
                     }
                 }
+            }
+
+            if(defineKeywordFound)
+            {
+                // TODO: now go through and determine whether the define statement is open or closed
+                // will somehow use the parser to accomplish this
+                GeneroParser defineParser = new GeneroParser();
+                return defineParser.IsIncompleteVarConstTypeDefinitionStatement(sb.ToString());
             }
 
             return false;
