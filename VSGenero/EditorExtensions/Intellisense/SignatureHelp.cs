@@ -330,7 +330,7 @@ namespace VSGenero.EditorExtensions.Intellisense
         {
             GeneroFileParserManager fpm = null;
             FunctionDefinition funcDef = null;
-            if(m_textBuffer.Properties.TryGetProperty(typeof(GeneroFileParserManager), out fpm))
+            if (m_textBuffer.Properties.TryGetProperty(typeof(GeneroFileParserManager), out fpm))
             {
                 _moduleContents = fpm.ModuleContents;
                 funcDef = IntellisenseExtensions.DetermineContainingFunction((session.TextView.Caret.Position.BufferPosition) - 1, fpm);
@@ -341,70 +341,9 @@ namespace VSGenero.EditorExtensions.Intellisense
 
             // see if we can split up the functionName by '.' chars. If so, we have a member access
             string[] splitTokens = functionName.Split(new[] { '.' });
-            if (splitTokens.Length == 3)
-            {
-                // we're calling a class static method
-                GeneroPackage tmpPackage = null;
-                GeneroClass tmpClass = null;
-                GeneroClassMethod tmpMethod = null;
-                if (GeneroSingletons.LanguageSettings.Packages.TryGetValue(splitTokens[0].ToLower(), out tmpPackage))
-                {
-                    if (tmpPackage.Classes.TryGetValue(splitTokens[1].ToLower(), out tmpClass))
-                    {
-                        if (tmpClass.Methods.TryGetValue(splitTokens[2].ToLower(), out tmpMethod))
-                        {
-                            string methodSig = tmpMethod.GetIntellisenseText();
-                            return GetSignature(methodSig, textBuffer, span);
-                        }
-                    }
-                }
-            }
-            else if (splitTokens.Length == 2)
-            {
-                // see if this is a class instance method
-                VariableDefinition varDef = null;
-                if (funcDef != null)
-                {
-                    if (!funcDef.Variables.TryGetValue(splitTokens[0], out varDef))
-                    {
-                        // look in module variables
-                        if (!_moduleContents.ModuleVariables.TryGetValue(splitTokens[0], out varDef))
-                        {
-                            if (!_moduleContents.GlobalVariables.TryGetValue(splitTokens[0], out varDef) &&
-                                (programContents != null && programContents.GlobalVariables.TryGetValue(splitTokens[0], out varDef)))
-                            {
-                                GeneroSingletons.SystemVariables.TryGetValue(splitTokens[0], out varDef);
-                            }
-                        }
-                    }
-                }
-                if (varDef != null)
-                {
-                    GeneroClass generoClass = null;
-                    if (IntellisenseExtensions.IsClassInstance(varDef.Type, out generoClass))
-                    {
-                        // find the function
-                        GeneroClassMethod classMethod;
-                        if (generoClass.Methods.TryGetValue(splitTokens[1].ToLower(), out classMethod))
-                        {
-                            string methodSig = classMethod.GetIntellisenseText();
-                            return GetSignature(methodSig, textBuffer, span);
-                        }
-                    }
 
-                    GeneroSystemClass sysClass;
-                    if (GeneroSingletons.LanguageSettings.NativeClasses.TryGetValue(varDef.Type, out sysClass))
-                    {
-                        GeneroSystemClassFunction sysClassFunc;
-                        if(sysClass.Functions.TryGetValue(splitTokens[1].ToLower(), out sysClassFunc))
-                        {
-                            string methodSig = sysClassFunc.GetIntellisenseText();
-                            return GetSignature(methodSig, textBuffer, span);
-                        }
-                    }
-                }
-            }
-            else
+            // no need to look for completions here
+            if (splitTokens.Length == 1)
             {
                 // get the function from the file parser in the subjectBuffer
                 if (fpm.ModuleContents.FunctionDefinitions.TryGetValue(functionName, out funcDef) ||
@@ -437,6 +376,136 @@ namespace VSGenero.EditorExtensions.Intellisense
                     }
                 }
             }
+            else
+            {
+                GeneroPackage tmpPackage = null;
+                GeneroClass tmpClass = null;
+                GeneroClassMethod tmpMethod = null;
+                VariableDefinition varDef = null;
+                GeneroSystemClass sysClass = null;
+                GeneroSystemClassFunction sysClassFunc = null;
+                ArrayElement arrayElement = null;
+                ArrayElement prevArrayElement = null;
+                for (int i = 0; i < splitTokens.Length; i++)
+                {
+                    if ((arrayElement = IntellisenseExtensions.GetArrayElement(splitTokens[i])) != null)
+                    {
+                        if (arrayElement.IsComplete)
+                            splitTokens[i] = arrayElement.ArrayName;
+                        else if (arrayElement.Indices.Count > 0 && !string.IsNullOrWhiteSpace(arrayElement.Indices[arrayElement.Indices.Count - 1]))
+                            splitTokens[i] = arrayElement.Indices[arrayElement.Indices.Count - 1];
+                    }
+
+                    // look for a package
+                    if (tmpPackage == null &&
+                       GeneroSingletons.LanguageSettings.Packages.TryGetValue(splitTokens[i].ToLower(), out tmpPackage))
+                    {
+                        continue;
+                    }
+
+                    // look for a class
+                    if (tmpPackage != null && tmpClass == null &&
+                       tmpPackage.Classes.TryGetValue(splitTokens[i].ToLower(), out tmpClass))
+                    {
+                        continue;
+                    }
+
+                    // look for a class method
+                    if (tmpClass != null && tmpMethod == null &&
+                        tmpClass.Methods.TryGetValue(splitTokens[i].ToLower(), out tmpMethod))
+                    {
+                        string methodSig = tmpMethod.GetIntellisenseText();
+                        return GetSignature(methodSig, textBuffer, span);
+                    }
+
+                    if (i == 0)
+                    {
+                        if (funcDef != null)
+                        {
+                            if (!funcDef.Variables.TryGetValue(splitTokens[i], out varDef))
+                            {
+                                // look in module variables
+                                if (!_moduleContents.ModuleVariables.TryGetValue(splitTokens[i], out varDef))
+                                {
+                                    if (!_moduleContents.GlobalVariables.TryGetValue(splitTokens[i], out varDef) &&
+                                        (programContents != null && programContents.GlobalVariables.TryGetValue(splitTokens[i], out varDef)))
+                                    {
+                                        GeneroSingletons.SystemVariables.TryGetValue(splitTokens[i], out varDef);
+                                    }
+                                }
+                            }
+                        }
+
+                        if (varDef != null)
+                        {
+                            if (varDef.ArrayType == ArrayType.None || (arrayElement != null && arrayElement.IsComplete))
+                            {
+                                TypeDefinition typeDef;
+                                // check for a type definition
+                                if (_moduleContents.GlobalTypes.TryGetValue(varDef.Type, out typeDef) ||
+                                    (programContents != null && programContents.GlobalTypes.TryGetValue(varDef.Type, out typeDef)) ||
+                                    _moduleContents.ModuleTypes.TryGetValue(varDef.Type, out typeDef) ||
+                                    (programContents != null && programContents.ModuleTypes.TryGetValue(varDef.Type, out typeDef)) ||
+                                    funcDef.Types.TryGetValue(varDef.Type, out typeDef))
+                                {
+                                    varDef = typeDef;
+                                }
+                            }
+                        }
+                    }
+                    
+                    if (varDef != null)
+                    {
+                        if ((arrayElement == null || !arrayElement.IsComplete) &&
+                            !string.IsNullOrWhiteSpace(varDef.Type))
+                        {
+                            // get an extension or base class
+                            GeneroClass generoClass = null;
+                            if (IntellisenseExtensions.IsClassInstance(varDef.Type, out generoClass))
+                            {
+                                GeneroClassMethod classMethod;
+                                if (generoClass.Methods.TryGetValue(splitTokens[i].ToLower(), out classMethod))
+                                {
+                                    string methodSig = classMethod.GetIntellisenseText();
+                                    return GetSignature(methodSig, textBuffer, span);
+                                }
+                            }
+
+                            if(varDef.ArrayType != ArrayType.None && 
+                                (arrayElement == null || !arrayElement.IsComplete) &&
+                                 GeneroSingletons.LanguageSettings.NativeClasses.TryGetValue("array", out sysClass))
+                            {
+                                if (sysClass.Functions.TryGetValue(splitTokens[i].ToLower(), out sysClassFunc))
+                                {
+                                    string methodSig = sysClassFunc.GetIntellisenseText();
+                                    return GetSignature(methodSig, textBuffer, span);
+                                }
+                            }
+
+
+                            // get a system class
+                            if (GeneroSingletons.LanguageSettings.NativeClasses.TryGetValue(varDef.Type, out sysClass))
+                            {
+                                if (sysClass.Functions.TryGetValue(splitTokens[i].ToLower(), out sysClassFunc))
+                                {
+                                    string methodSig = sysClassFunc.GetIntellisenseText();
+                                    return GetSignature(methodSig, textBuffer, span);
+                                }
+                            }
+                        }
+
+                        prevArrayElement = arrayElement;
+                        // could be a record child, so set the varDef for the next pass
+                        if (varDef.RecordElements != null && varDef.RecordElements.Count > 0)
+                        {
+                            VariableDefinition tempVarDef;
+                            if (varDef.RecordElements.TryGetValue(splitTokens[i], out tempVarDef))
+                                varDef = tempVarDef;
+                        }
+                    }
+                }
+            }
+
             return null;
         }
 

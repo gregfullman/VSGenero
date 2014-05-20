@@ -208,6 +208,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             GeneroClass tmpClass = null;
             GeneroClassMethod tmpMethod = null;
             VariableDefinition varDef = null;
+            TypeDefinition typeDef = null;
             for (int i = 0; i < memberCompletionTokens.Length; i++)
             {
                 ArrayElement arrayElement = null;
@@ -272,6 +273,20 @@ namespace VSGenero.EditorExtensions.Intellisense
                             }
                         }
                     }
+
+                    if (varDef != null)
+                    {
+                        if (varDef.ArrayType == ArrayType.None || (arrayElement != null && arrayElement.IsComplete))
+                        {
+                            // check for a type definition
+                            if (moduleContents.GlobalTypes.TryGetValue(varDef.Type, out typeDef) ||
+                                        moduleContents.ModuleTypes.TryGetValue(varDef.Type, out typeDef) ||
+                                        currentFunction.Types.TryGetValue(varDef.Type, out typeDef))
+                            {
+                                varDef = typeDef;
+                            }
+                        }
+                    }
                 }
                 else
                 {
@@ -304,7 +319,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                         }
                         break;
                     }
-                    else if (i + 1 == memberCompletionTokens.Length && varDef.ArrayType != ArrayType.None && !arrayElement.IsComplete)
+                    else if (i + 1 == memberCompletionTokens.Length && varDef.ArrayType != ArrayType.None && (arrayElement == null || !arrayElement.IsComplete))
                     {
                         // we want to display the array functions
                         GeneroSystemClass arrayClass;
@@ -360,7 +375,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                             }
                             break;
                         }
-                        else if (GeneroSingletons.LanguageSettings.NativeClasses.TryGetValue(varDef.Type, out sysClass))
+                        else if (GeneroSingletons.LanguageSettings.NativeClasses.TryGetValue(varDef.Type.ToLower(), out sysClass))
                         {
                             foreach (var classFunction in sysClass.Functions)
                             {

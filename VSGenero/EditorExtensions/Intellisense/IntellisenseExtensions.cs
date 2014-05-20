@@ -675,12 +675,13 @@ namespace VSGenero.EditorExtensions.Intellisense
                 GeneroTokenType tokType = revParser.GetTokenType(tagSpan.Tag.ClassificationType);
                 if (tagSpan.Span.End.Position <= currPosition)
                 {
+                    string spanText = tagSpan.Span.GetText();
                     if (!isMemberAccess &&
                         (tokType == GeneroTokenType.Identifier || tokType == GeneroTokenType.Keyword))
                     {
                         lastTokenType = GeneroTokenType.Keyword;
                         isMemberAccess = true;
-                        memberName = tagSpan.Span.GetText();
+                        memberName = spanText;
                         applicableSpan = tagSpan.Span;
                     }
                     else
@@ -689,17 +690,25 @@ namespace VSGenero.EditorExtensions.Intellisense
                         {
                             // get the token type
                             if ((tokType == GeneroTokenType.Identifier ||
-                                    tokType == GeneroTokenType.Keyword) &&
+                                    tokType == GeneroTokenType.Keyword ||
+                                    tokType == GeneroTokenType.Number) &&
                                 lastTokenType == GeneroTokenType.Symbol)
                             {
-                                memberName = tagSpan.Span.GetText() + memberName;
+                                memberName = spanText + memberName;
                                 lastTokenType = GeneroTokenType.Keyword;
                                 continue;
                             }
-                            else if ((tokType == GeneroTokenType.Symbol && tagSpan.Span.GetText() == ".") &&
+                            else if ((tokType == GeneroTokenType.Symbol && spanText == ".") &&
                                     lastTokenType == GeneroTokenType.Keyword)
                             {
-                                memberName = tagSpan.Span.GetText() + memberName;
+                                memberName = spanText + memberName;
+                                lastTokenType = GeneroTokenType.Symbol;
+                                continue;
+                            }
+                            else if (tokType == GeneroTokenType.Symbol && (spanText == "[" || spanText == "]"))
+                            {
+                                // get these regardless
+                                memberName = spanText + memberName;
                                 lastTokenType = GeneroTokenType.Symbol;
                                 continue;
                             }
@@ -895,6 +904,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             // array_name[index1{,index2,...}]
             //string[] tokens = text.Split(new[] { '[', ',', ']' });
 
+            // TODO: ensure that nothing contained within the square brackets messes with the element result
             ArrayElement ae = new ArrayElement();
             int dimensions = 1;
             bool hitOpenBracket = false;
@@ -926,6 +936,8 @@ namespace VSGenero.EditorExtensions.Intellisense
                         break;
                 }
             }
+            if (!hitOpenBracket && !hitClosedBracket)
+                return null;
 
             ae.ArrayName = arrayName;
             ae.Indices.Add(currentIndex);
