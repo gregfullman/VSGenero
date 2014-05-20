@@ -444,7 +444,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                                             }
                                         }
                                     }
-                                    if (continueMatching && IntellisenseExtensions.IsClassInstance(tempDef.Type, out generoClass))
+                                    if (continueMatching &&  tempDef != null && IntellisenseExtensions.IsClassInstance(tempDef.Type, out generoClass))
                                     {
                                         // find the function
                                         if (generoClass.Methods.TryGetValue(splitTokens[i].ToLower(), out tmpMethod))

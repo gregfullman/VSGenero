@@ -34,9 +34,9 @@ namespace VSGenero.Project
 
         public override ProjectNode CreateProject()
         {
-            // TODO: this is probably what's causing the exception on shutdown in ProjectPackage.cs
-            ProjectNode pn = null; 
-            return pn;
+            GeneroProjectNode project = new GeneroProjectNode((GeneroProjectPackage)Package);
+            project.SetSite((IOleServiceProvider)((IServiceProvider)Package).GetService(typeof(IOleServiceProvider)));
+            return project;
         }
     }
 }

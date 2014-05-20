@@ -20,7 +20,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 namespace Microsoft.VisualStudioTools.Project {
 
     [ComVisible(true)]
-    internal class CommonProjectConfig : ProjectConfig {
+    public class CommonProjectConfig : ProjectConfig {
         private readonly CommonProjectNode/*!*/ _project;
 
         public CommonProjectConfig(CommonProjectNode/*!*/ project, string configuration)
