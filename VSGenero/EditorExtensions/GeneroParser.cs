@@ -789,7 +789,7 @@ namespace VSGenero.EditorExtensions
             {
                 // now use the general variable definition consumer
                 ret = TryParseVarConstTypeDefinitions(ref token, ref prevToken, ref _vss, _moduleContents.ModuleVariables, _moduleContents.ModuleTypes, _moduleContents.ModuleConstants, ref _currentVariableDef,
-                                                  _variableBuffer, existingModuleVarsParsed, new[] { "function", "define", "type", "constant" });
+                                                  _variableBuffer, existingModuleVarsParsed, new[] { "main", "function", "define", "type", "constant" });
             }
             return ret;
         }

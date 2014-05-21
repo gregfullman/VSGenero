@@ -40,6 +40,7 @@ using OleConstants = Microsoft.VisualStudio.OLE.Interop.Constants;
 using Task = System.Threading.Tasks.Task;
 using VsCommands2K = Microsoft.VisualStudio.VSConstants.VSStd2KCmdID;
 using VsMenus = Microsoft.VisualStudioTools.Project.VsMenus;
+using VSGenero.Navigation;
 
 namespace VSGenero.Project
 {
@@ -80,7 +81,7 @@ namespace VSGenero.Project
 
         public override Type GetLibraryManagerType()
         {
-            return typeof(ILibraryManager);     // TODO: need to create an implementation of ILibraryManager
+            return typeof(IGeneroLibraryManager);     // TODO: need to create an implementation of ILibraryManager
         }
 
         public override IProjectLauncher GetLauncher()
