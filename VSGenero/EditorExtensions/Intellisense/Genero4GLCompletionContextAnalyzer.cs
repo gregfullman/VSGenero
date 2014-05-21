@@ -35,7 +35,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                 if (session.IsAttemptingMemberAccess(out memberAccessName))
                 {
                     isMemberCompletion = true;
-                    return GetMemberAccessCompletions(memberAccessName, currentFunction, moduleContents, inDefineStatement);
+                    return GetMemberAccessCompletions(memberAccessName, currentFunction, moduleContents, fileParserManager, inDefineStatement);
                 }
 
                 bool isDefiniteFunctionCall = false;
@@ -64,12 +64,12 @@ namespace VSGenero.EditorExtensions.Intellisense
                         {
                             // would like to be smarter about completion here...
                             // like only showing types if in the midst of defining a variable
-                            applicableCompletions.AddRange(GetTypeCompletions(moduleContents, currentFunction));
+                            applicableCompletions.AddRange(GetTypeCompletions(moduleContents, currentFunction, fileParserManager));
                         }
                     }
                 }
 
-                applicableCompletions.AddRange(GetNormalCompletions(moduleContents, currentFunction));
+                applicableCompletions.AddRange(GetNormalCompletions(moduleContents, currentFunction, fileParserManager));
             }
 
             return applicableCompletions;
@@ -200,7 +200,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             }
         }
 
-        private List<MemberCompletion> GetMemberAccessCompletions(string memberAccessName, FunctionDefinition currentFunction, GeneroModuleContents moduleContents, bool inDefineStatement)
+        private List<MemberCompletion> GetMemberAccessCompletions(string memberAccessName, FunctionDefinition currentFunction, GeneroModuleContents moduleContents, GeneroFileParserManager fileParserManager, bool inDefineStatement)
         {
             List<MemberCompletion> memberCompletionList = new List<MemberCompletion>();
             string[] memberCompletionTokens = memberAccessName.Split(new[] { '.' });
@@ -266,7 +266,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                         if (!currentFunction.Variables.TryGetValue(memberCompletionTokens[i].ToLower(), out varDef))
                         {
                             // look in module variables
-                            if (!moduleContents.ModuleVariables.TryGetValue(memberCompletionTokens[i].ToLower(), out varDef))
+                            if (!fileParserManager.ModuleContents.ModuleVariables.TryGetValue(memberCompletionTokens[i].ToLower(), out varDef))
                             {
                                 if (!moduleContents.GlobalVariables.TryGetValue(memberCompletionTokens[i].ToLower(), out varDef))
                                 {
@@ -282,7 +282,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                         {
                             // check for a type definition
                             if (moduleContents.GlobalTypes.TryGetValue(varDef.Type.ToLower(), out typeDef) ||
-                                        moduleContents.ModuleTypes.TryGetValue(varDef.Type.ToLower(), out typeDef) ||
+                                        fileParserManager.ModuleContents.ModuleTypes.TryGetValue(varDef.Type.ToLower(), out typeDef) ||
                                         currentFunction.Types.TryGetValue(varDef.Type.ToLower(), out typeDef))
                             {
                                 varDef = typeDef;
@@ -397,7 +397,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             return memberCompletionList;
         }
 
-        private List<MemberCompletion> GetTypeCompletions(GeneroModuleContents moduleContents, FunctionDefinition currentFunction)
+        private List<MemberCompletion> GetTypeCompletions(GeneroModuleContents moduleContents, FunctionDefinition currentFunction, GeneroFileParserManager fileParserManager)
         {
             List<MemberCompletion> completions = new List<MemberCompletion>();
 
@@ -421,7 +421,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                 completions.Add(comp);
             }
 
-            foreach (var moduleType in moduleContents.ModuleTypes)
+            foreach (var moduleType in fileParserManager.ModuleContents.ModuleTypes)
             {
                 var comp = new MemberCompletion(moduleType.Value.Name, moduleType.Value.Name, moduleType.Value.GetIntellisenseText("module"),
                                 _glyphService.GetGlyph(StandardGlyphGroup.GlyphGroupVariable, StandardGlyphItem.GlyphItemPublic), null);
@@ -443,7 +443,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             return completions;
         }
 
-        private List<MemberCompletion> GetNormalCompletions(GeneroModuleContents moduleContents, FunctionDefinition currentFunction)
+        private List<MemberCompletion> GetNormalCompletions(GeneroModuleContents moduleContents, FunctionDefinition currentFunction, GeneroFileParserManager fileParserManager)
         {
             List<MemberCompletion> completions = new List<MemberCompletion>();
 
@@ -474,7 +474,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             }
 
             // add the module variables
-            foreach (var moduleVar in moduleContents.ModuleVariables)
+            foreach (var moduleVar in fileParserManager.ModuleContents.ModuleVariables)
             {
                 var comp = new MemberCompletion(moduleVar.Value.Name, moduleVar.Value.Name, moduleVar.Value.GetIntellisenseText("module"),
                                 _glyphService.GetGlyph(StandardGlyphGroup.GlyphGroupVariable, StandardGlyphItem.GlyphItemInternal), null);
@@ -482,7 +482,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                 completions.Add(comp);
             }
 
-            foreach (var moduleConst in moduleContents.ModuleConstants)
+            foreach (var moduleConst in fileParserManager.ModuleContents.ModuleConstants)
             {
                 var comp = new MemberCompletion(moduleConst.Value.Name, moduleConst.Value.Name, moduleConst.Value.GetIntellisenseText("module"),
                                 _glyphService.GetGlyph(StandardGlyphGroup.GlyphGroupVariable, StandardGlyphItem.GlyphItemInternal), null);
