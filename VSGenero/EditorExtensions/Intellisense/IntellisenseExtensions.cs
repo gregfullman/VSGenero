@@ -843,17 +843,20 @@ namespace VSGenero.EditorExtensions.Intellisense
             int currPosition = triggerPoint.Position;
             var revParser = EditorExtensions.GetReverseParser(triggerPoint, -1, true);
 
-            StringBuilder sb = new StringBuilder();
             bool defineKeywordFound = false;
+            int spanStart = -1;
+            int spanEnd = -1;
             foreach (var tagSpan in revParser)
             {
                 if (tagSpan == null)    // shouldn't ever happen
                     break;
                 if (tagSpan.Span.End.Position < currPosition)   // we're in tokens prior to where we are
                 {
+                    if (spanEnd < 0)
+                        spanEnd = tagSpan.Span.End.Position;
                     GeneroTokenType tokenType = revParser.GetTokenType(tagSpan.Tag.ClassificationType);
                     string lowercaseText = tagSpan.Span.GetText().ToLower();
-                    sb.Insert(0, lowercaseText);
+                    spanStart = tagSpan.Span.Start.Position;
 
                     if (tokenType == GeneroTokenType.Keyword)
                     {
@@ -876,10 +879,11 @@ namespace VSGenero.EditorExtensions.Intellisense
 
             if(defineKeywordFound)
             {
+                SnapshotSpan span = new SnapshotSpan(triggerPoint.Snapshot, spanStart, spanEnd - spanStart);
                 // TODO: now go through and determine whether the define statement is open or closed
                 // will somehow use the parser to accomplish this
                 GeneroParser defineParser = new GeneroParser();
-                return defineParser.IsIncompleteVarConstTypeDefinitionStatement(sb.ToString());
+                return defineParser.IsIncompleteVarConstTypeDefinitionStatement(span.GetText());
             }
 
             return false;

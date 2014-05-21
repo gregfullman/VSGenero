@@ -833,19 +833,19 @@ namespace VSGenero.EditorExtensions
 
         #region Statement Verification
 
-        internal GeneroParser()
+        internal GeneroParser() : this(null, null)
         {
-            _lexer = new GeneroLexer();
         }
 
         internal bool IsIncompleteVarConstTypeDefinitionStatement(string statement)
         {
             _lexer.StartLexing(0, statement);
             GeneroToken token = null, prevToken = null;
+            AdvanceToken(ref token, ref prevToken);
             _vss = VariableSearchState.LookingForDefineKeyword;
-            bool isIncomplete = TryParseVarConstTypeDefinitions(ref token, ref prevToken, ref _vss, _moduleContents.GlobalVariables, _moduleContents.GlobalTypes, _moduleContents.GlobalConstants, ref _currentVariableDef,
+            bool isComplete = TryParseVarConstTypeDefinitions(ref token, ref prevToken, ref _vss, _moduleContents.GlobalVariables, _moduleContents.GlobalTypes, _moduleContents.GlobalConstants, ref _currentVariableDef,
                                                             _variableBuffer, existingGlobalVarsParsed, new[] { "function", "end", "define", "type", "constant" });
-            return isIncomplete;
+            return !isComplete;
         }
 
         #endregion
