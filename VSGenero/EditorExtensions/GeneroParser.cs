@@ -581,9 +581,14 @@ namespace VSGenero.EditorExtensions
         {
             ITextBuffer buffer = e.Argument as ITextBuffer;
             _currentBuffer = buffer;
+            string currentFile = _currentBuffer.GetFilePath();
+            if (!currentFile.EndsWith(".4gl"))
+            {
+                e.Cancel = true;
+                return;
+            }
             _lexer.StartLexing(0, buffer.CurrentSnapshot.GetText());
             GeneroToken token = null, prevToken = null;
-            string currentFile = _currentBuffer.GetFilePath();
             _fss = FunctionSearchState.LookingForFunctionStart;
             _gss = GlobalsSearchState.LookingForGlobalsKeyword;
             _vss = VariableSearchState.LookingForDefineKeyword;
