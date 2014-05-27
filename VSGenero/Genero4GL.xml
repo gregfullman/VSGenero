@@ -4915,6 +4915,977 @@
               </Method>
             </Methods>
           </Class>
+          <Class name="DomNode" isStatic="false">
+            <Methods>
+              <Method name="getParentNode" desc="Returns the parent DomNode object for this DomNode object.">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="object" type="xml.DomNode"/>
+                </Returns>
+              </Method>
+              <Method name="getFirstChild" desc="Returns the first child DomNode object for this XML Element DomNode object.">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="object" type="xml.DomNode"/>
+                </Returns>
+              </Method>
+              <Method name="getFirstChildElement" desc="Returns the first XML Element child DomNode object for this DomNode object.">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="object" type="xml.DomNode"/>
+                </Returns>
+              </Method>
+              <Method name="getLastChild" desc="Returns the last child DomNode object for a XML Element DomNode object.">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="object" type="xml.DomNode"/>
+                </Returns>
+              </Method>
+              <Method name="getLastChildElement" desc="Returns the last child XML element DomNode object for this DomNode object.">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="object" type="xml.DomNode"/>
+                </Returns>
+              </Method>
+              <Method name="getNextSibling" desc="Returns the DomNode object immediately following a DomNode object.">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="object" type="xml.DomNode"/>
+                </Returns>
+              </Method>
+              <Method name="getNextSiblingElement" desc="Returns the XML Element DomNode object immediately following a DomNode object.">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="object" type="xml.DomNode"/>
+                </Returns>
+              </Method>
+              <Method name="getPreviousSibling" desc="Returns the DomNode object immediately preceding a DomNode object.">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="object" type="xml.DomNode"/>
+                </Returns>
+              </Method>
+              <Method name="getOwnerDocument" desc="Returns the DomDocument object containing this DomNode object.">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="object" type="xml.DomDocument"/>
+                </Returns>
+              </Method>
+              <Method name="hasChildNodes" desc="Returns TRUE if a node has child nodes.">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="flag" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="getChildrenCount" desc="Returns the number of child DomNode objects for a DomNode object.">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="count" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="getChildNodeItem" desc="Returns the child DomNode object at a given position for a DomNode object.">
+                <Parameters>
+                  <Parameter name="pos" type="integer"/>
+                </Parameters>
+                <Returns>
+                  <Return name="object" type="xml.DomNode"/>
+                </Returns>
+              </Method>
+              <Method name="prependChildElement" desc="Creates and adds a child XML Element node to the beginning of the list of child nodes for this XML Element DomNode object.">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="object" type="xml.DomNode"/>
+                </Returns>
+              </Method>
+              <Method name="prependChildElementNS" desc="Creates and adds a child namespace-qualified XML Element node to the beginning of the list of child nodes for an XML Element DomNode object.">
+                <Parameters>
+                  <Parameter name="prefix" type="string"/>
+                  <Parameter name="name" type="string"/>
+                  <Parameter name="ns" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="object" type="xml.DomNode"/>
+                </Returns>
+              </Method>
+              <Method name="addPreviousSibling" desc="Adds a DomNode object as the previous sibling of a DomNode object.">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="node" type="xml.DomNode"/>
+                </Returns>
+              </Method>
+              <Method name="addNextSibling" desc="Adds a DomNode object as the next sibling of a DomNode object.">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="node" type="xml.DomNode"/>
+                </Returns>
+              </Method>
+              <Method name="prependChild" desc="Adds a child DomNode object to the beginning of the child list for a DomNode object.">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="node" type="xml.DomNode"/>
+                </Returns>
+              </Method>
+              <Method name="appendChild" desc="Adds a child DomNode object to the end of the child list for a DomNode object">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="node" type="xml.DomNode"/>
+                </Returns>
+              </Method>
+              <Method name="insertBeforeChild" desc="Inserts a DomNode object before an existing child DomNode object.">
+                <Parameters>
+                  <Parameter name="node" type="xml.DomNode"/>
+                  <Parameter name="ref" type="xml.DomNode"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="insertAfterChild" desc="Inserts a DomNode object after an existing child DomNode object.">
+                <Parameters>
+                  <Parameter name="node" type="xml.DomNode"/>
+                  <Parameter name="ref" type="xml.DomNode"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="removeChild" desc="Removes a child DomNode object from the list of child DomNode objects.">
+                <Parameters>
+                  <Parameter name="node" type="xml.DomNode"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="removeAllChildren" desc="Removes all child DomNode objects from a DomNode object.">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="appendChildElement" desc="Creates and adds a child XML Element node to the end of the list of child nodes for an XML Element DomNode object.">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="object" type="xml.DomNode"/>
+                </Returns>
+              </Method>
+              <Method name="appendChildElementNS" desc="Creates and adds a child namespace qualified XML Element node to the end of the list of child nodes for an XML Element DomNode object.">
+                <Parameters>
+                  <Parameter name="prefix" type="string"/>
+                  <Parameter name="name" type="string"/>
+                  <Parameter name="ns" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="object" type="xml.DomNode"/>
+                </Returns>
+              </Method>
+              <Method name="clone" desc="Returns a duplicate DomNode object of a node.">
+                <Parameters>
+                  <Parameter name="deep" type="integer"/>
+                </Parameters>
+                <Returns>
+                  <Return name="object" type="xml.DomNode"/>
+                </Returns>
+              </Method>
+              <Method name="getNodeType" desc="Gets the XML type for this DomNode object.">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="str" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="getLocalName" desc="Gets the local name for a DomNode object.">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="str" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="getNodeName" desc="Gets the name for a DomNode object.">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="str" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="getNodeValue" desc="Gets the value for a DomNode object.">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="str" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="getNamespaceURI" desc="Returns the namespace URI for a DomNode object.">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="str" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="getPrefix" desc="Returns the prefix for a DomNode object.">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="str" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="isAttached" desc="Returns whether the node is attached to the XML document.">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="num" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="setNodeValue" desc="Sets the node value for a DomNode object.">
+                <Parameters>
+                  <Parameter name="val" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="setPrefix" desc="Sets the prefix for a DomNode object.">
+                <Parameters>
+                  <Parameter name="prefix" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="toString" desc="Returns a string representation of a DomNode object.">
+                <Parameters>
+                  <Parameter name="str" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="hasAttribute" desc="Checks whether an XML Element DomNode object has the XML Attribute specified by a specified name.">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="flag" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="hasAttributeNS" desc="Checks whether a namespace qualified XML Attribute of a given name is carried by an XML Element DomNode object.">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                  <Parameter name="ns" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="flag" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="getAttributeNode" desc="Returns an XML Attribute DomNode object for an XML Element DomNode object">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="object" type="xml.DomNode"/>
+                </Returns>
+              </Method>
+              <Method name="getAttributeNodeNS" desc="Returns a namespace-qualified XML Attribute DomNode object for an XML Element DomNode object">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                  <Parameter name="ns" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="object" type="xml.DomNode"/>
+                </Returns>
+              </Method>
+              <Method name="setAttributeNode" desc="Sets (or resets) an XML Attribute DomNode object to an XML Element DomNode object.">
+                <Parameters>
+                  <Parameter name="node" type="xml.DomNode"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="setAttributeNodeNS" desc="Sets (or resets) a namespace-qualified XML Attribute DomNode object to an XML Element DomNode object.">
+                <Parameters>
+                  <Parameter name="node" type="xml.DomNode"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="getAttribute" desc="Returns the value of an XML Attribute for an XML Element DomNode object">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="value" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="getAttributeNS" desc="Returns the value of a namespace qualified XML Attribute for an XML Element DomNode object">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                  <Parameter name="ns" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="value" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="setAttribute" desc="Sets (or resets) an XML Attribute for an XML Element DomNode object.">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                  <Parameter name="value" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="setAttributeNS" desc="Sets (or resets) a namespace-qualified XML Attribute for an XML Element DomNode object.">
+                <Parameters>
+                  <Parameter name="prefix" type="string"/>
+                  <Parameter name="name" type="string"/>
+                  <Parameter name="ns" type="string"/>
+                  <Parameter name="value" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="setIdAttribute" desc="Declare (or undeclare) the XML Attribute of given name to be of type ID.">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                  <Parameter name="isId" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="setIdAttributeNS" desc="Declare (or undeclare) the namespace-qualified XML Attribute of given name and namespace to be of type ID.">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                  <Parameter name="ns" type="string"/>
+                  <Parameter name="isId" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="removeAttribute" desc="Removes an XML Attribute for an XML Element DomNode object.">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="removeAttributeNS" desc="Removes a namespace qualified XML Attribute for an XML Element DomNode object">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                  <Parameter name="ns" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="hasAttributes" desc="Identifies whether a node has XML Attribute nodes.">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="flag" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="getArributesCount" desc="Returns the number of XML Attribute DomNode objects on this XML Element DomNode object.">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="num" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="getAttributeNodeItem" desc="Returns the XML Attribute DomNode object at a given position on this XML Element DomNode object.">
+                <Parameters>
+                  <Parameter name="pos" type="integer"/>
+                </Parameters>
+                <Returns>
+                  <Return name="object" type="xml.DomNode"/>
+                </Returns>
+              </Method>
+              <Method name="selectByXPath" desc="Returns a DomNodeList object containing all DomNode objects matching an XPath 1.0 expression.">
+                <Parameters>
+                  <Parameter name="expr" type="string"/>
+                  <Parameter name="NamespacesList..." type="nsList"/>
+                </Parameters>
+                <Returns>
+                  <Return name="list" type="xml.DomNodeList"/>
+                </Returns>
+              </Method>
+              <Method name="getElementsByTagName" desc="Returns a DomNodeList object containing all XML Element DomNode objects with the same tag name.">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="list" type="xml.DomNodeList"/>
+                </Returns>
+              </Method>
+              <Method name="getElementsByTagNameNS" desc="Returns a DomNodeList object containing all namespace-qualified XML Element DomNode objects with the same tag name and namespace.">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                  <Parameter name="ns" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="list" type="xml.DomNodeList"/>
+                </Returns>
+              </Method>
+              <Method name="isDefaultNamespace" desc="Checks whether the specified namespace URI is the default namespace.">
+                <Parameters>
+                  <Parameter name="ns" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="flag" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="lookupNamespaceURI" desc="Looks up the namespace URI associated to a prefix, starting from a specified node.">
+                <Parameters>
+                  <Parameter name="prefix" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="ns" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="lookupPrefix" desc="Looks up the prefix associated to a namespace URI, starting from the specified node.">
+                <Parameters>
+                  <Parameter name="ns" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="prefix" type="string"/>
+                </Returns>
+              </Method>
+            </Methods>
+          </Class>
+          <Class name="DomNodeList" isStatic="false">
+            <Methods>
+              <Method name="getCount" desc="Returns the number of DomNode objects in a DomNodeList object." scope="instance">
+                <Parameters></Parameters>
+                <Returns>
+                  <Return name="num" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="getItem" desc="Returns the DomNode object at a given position in a DomNodeList object." scope="instance">
+                <Parameters>
+                  <Parameter name="pos" type="integer"/>
+                </Parameters>
+                <Returns>
+                  <Return name="object" type="xml.DomNode"/>
+                </Returns>
+              </Method>
+            </Methods>
+          </Class>
+          <Class name="StaxWriter" isStatic="false">
+            <Methods>
+              <Method name="create" desc="Constructor of a StaxWriter object." scope="static">
+                <Parameters></Parameters>
+                <Returns>
+                  <Return name="object" type="xml.StaxWriter"/>
+                </Returns>
+              </Method>
+              <Method name="setFeature" desc="Sets a feature of a StaxWriter object." scope="instance">
+                <Parameters>
+                  <Parameter name="feature" type="string"/>
+                  <Parameter name="value" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="getFeature" desc="Gets a feature of a StaxWriter object." scope="instance">
+                <Parameters>
+                  <Parameter name="feature" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="str" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="writeTo" desc="Sets the output stream of the StaxWriter object to a file or an URL, and starts the streaming." scope="instance">
+                <Parameters>
+                  <Parameter name="url" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="writeToDocument" desc="Sets the output stream of the StaxWriter object to an xml.DomDocument object, and starts the streaming." scope="instance">
+                <Parameters>
+                  <Parameter name="doc" type="xml.DomDocument"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="writeToText" desc="Sets the output stream of the StaxWriter object to a TEXT large object, and starts the streaming." scope="instance">
+                <Parameters>
+                  <Parameter name="txt" type="text"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="writeToPipe" desc="Sets the output stream of the StaxWriter object to a PIPE, and starts the streaming." scope="instance">
+                <Parameters>
+                  <Parameter name="cmd" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="close" desc="Closes the StaxWriter streaming, and releases all associated resources." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="startDocument" desc="Writes an XML declaration to the StaxWriter stream." scope="instance">
+                <Parameters>
+                  <Parameter name="encoding" type="string"/>
+                  <Parameter name="version" type="string"/>
+                  <Parameter name="standalone" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="endDocument" desc="Closes any open tags and writes corresponding end tags." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="dtd" desc="Writes a DTD to the StaxWriter stream." scope="instance">
+                <Parameters>
+                  <Parameter name="data" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="setPrefix" desc="Binds a namespace URI to a prefix." scope="instance">
+                <Parameters>
+                  <Parameter name="prefix" type="string"/>
+                  <Parameter name="ns" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="setDefaultNamespace" desc="Binds a namespace URI to the default namespace." scope="instance">
+                <Parameters>
+                  <Parameter name="defaultNS" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="declareNamespace" desc="Binds a namespace URI to a prefix, and forces the output of the XML namespace definition to the StaxWriter stream." scope="instance">
+                <Parameters>
+                  <Parameter name="prefix" type="string"/>
+                  <Parameter name="ns" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="declareDefaultNamespace" desc="Binds a namespace URI to the default namespace, and forces the output of the default XML namespace definition to the StaxWriter stream." scope="instance">
+                <Parameters>
+                  <Parameter name="defaultNS" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="startElement" desc="Writes an XML start element to the StaxWriter stream." scope="instance">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="emptyElement" desc="Writes an empty XML element to the StaxWriter stream." scope="instance">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="startElementNS" desc="Writes a namespace-qualified XML start element to the StaxWriter stream." scope="instance">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                  <Parameter name="ns" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="emptyElementNS" desc="Writes an empty namespace qualified XML element to the StaxWriter stream." scope="instance">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                  <Parameter name="ns" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="endElement" desc="Writes an end tag to the StaxWriter stream relying on the internal state to determine the prefix and local name of the last START_ELEMENT." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="attribute" desc="Writes an XML attribute to the StaxWriter stream." scope="instance">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                  <Parameter name="value" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="attribute" desc="Writes an XML namespace qualified attribute to the StaxWriter stream." scope="instance">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                  <Parameter name="ns" type="string"/>
+                  <Parameter name="value" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="processingInstruction" desc="Writes an XML ProcessingInstruction to the StaxWriter stream" scope="instance">
+                <Parameters>
+                  <Parameter name="target" type="string"/>
+                  <Parameter name="data" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="comment" desc="Writes an XML comment to the StaxWriter stream." scope="instance">
+                <Parameters>
+                  <Parameter name="data" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="characters" desc="Writes an XML text to the StaxWriter stream." scope="instance">
+                <Parameters>
+                  <Parameter name="text" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="cdata" desc="Writes an XML CData to the StaxWriter stream." scope="instance">
+                <Parameters>
+                  <Parameter name="data" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="entityRef" desc="Writes an XML EntityReference to the StaxWriter stream." scope="instance">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+            </Methods>
+          </Class>
+          <Class name="StaxReader" isStatic="false">
+            <Methods>
+              <Method name="Create" desc="Constructor of a StaxReader object." scope="static">
+                <Parameters></Parameters>
+                <Returns>
+                  <Return name="object" type="xml.StaxReader"/>
+                </Returns>
+              </Method>
+              <Method name="setFeature" desc="Sets a feature of a StaxReader object." scope="instance">
+                <Parameters>
+                  <Parameter name="feature" type="string"/>
+                  <Parameter name="value" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="getFeature" desc="Gets a feature of a StaxReader object." scope="instance">
+                <Parameters>
+                  <Parameter name="feature" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="str" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="readFrom" desc="Sets the input stream of the StaxReader object to a file or an URL and starts the streaming" scope="instance">
+                <Parameters>
+                  <Parameter name="url" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="readFromDocument" desc="Sets the input stream of the StaxReader object to a DomDocument object and starts the streaming" scope="instance">
+                <Parameters>
+                  <Parameter name="doc" type="xml.DomDocument"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="readFromText" desc="Sets the input stream of the StaxReader object to a TEXT large object and starts the streaming." scope="instance">
+                <Parameters>
+                  <Parameter name="txt" type="text"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="readFromPipe" desc="Sets the input stream of the StaxReader object to a PIPE and starts the streaming." scope="instance">
+                <Parameters>
+                  <Parameter name="cmd" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="close" desc="Closes the StaxReader streaming and releases all associated resources." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="getEventType" desc="Returns a string that indicates the type of event the cursor of the StaxReader object is pointing to." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="eventtype" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="hasName" desc="Checks whether the StaxReader cursor points to a node with a name." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="flag" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="hasText" desc="Checks whether the StaxReader cursor points to a node with a text value." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="flag" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="isEmptyElement" desc="Checks whether the StaxReader cursor points to an empty element node." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="flag" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="isStartElement" desc="Checks whether the StaxReader cursor points to a start element node." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="flag" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="isEndElement" desc="Checks whether the StaxReader cursor points to an end element node." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="flag" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="isCharacters" desc="Checks whether the StaxReader cursor points to a text node." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="flag" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="isIgnorableWhitespace" desc="Checks whether the StaxReader cursor points to ignorable whitespace." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="flag" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="getEncoding" desc="Returns the document encoding defined in the XML Document declaration, or NULL." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="docenc" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="getVersion" desc="Returns the document version defined in the XML Document declaration, or NULL." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="version" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="isStandalone" desc="Checks whether the document standalone attribute defined in the XML Document declaration is set to yes." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="flag" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="standaloneSet" desc="Checks whether the document standalone attribute is defined in the XML Document declaration." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="flag" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="getPrefix" desc="Returns the prefix of the current XML node, or NULL." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="prefix" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="getLocalName" desc="Returns the local name of the current XML node, or NULL." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="localname" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="getName" desc="Returns the qualified name of the current XML node, or NULL." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="name" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="getNamespace" desc="Returns the namespace URI of the current XML node, or NULL." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="nsuri" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="getText" desc="Returns as a string the value of the current XML node, or NULL." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="value" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="getPITarget" desc="Returns the target part of an XML ProcessingInstruction node, or NULL." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="target" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="getPIData" desc="Returns the data part of an XML ProcessingInstruction node, or NULL." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="data" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="getAttributeCount" desc="Returns the number of XML attributes defined on the current XML node, or zero." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="num" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="getAttributeLocalName" desc="Returns the local name of an XML attribute defined at a given position on the current XML node, or NULL." scope="instance">
+                <Parameters>
+                  <Parameter name="pos" type="integer"/>
+                </Parameters>
+                <Returns>
+                  <Return name="localname" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="getAttributeNamespace" desc="Returns the namespace URI of an XML attribute defined at a given position on the current XML node, or NULL." scope="instance">
+                <Parameters>
+                  <Parameter name="pos" type="integer"/>
+                </Parameters>
+                <Returns>
+                  <Return name="nsuri" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="getAttributePrefix" desc="Returns the prefix of an XML attribute defined at a given position on the current XML node, or NULL." scope="instance">
+                <Parameters>
+                  <Parameter name="pos" type="integer"/>
+                </Parameters>
+                <Returns>
+                  <Return name="prefix" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="getAttributeValue" desc="Returns the value of an XML attribute defined at a given position on the current XML node, or NULL." scope="instance">
+                <Parameters>
+                  <Parameter name="pos" type="integer"/>
+                </Parameters>
+                <Returns>
+                  <Return name="value" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="findAttributeValue" desc="Returns the value of an XML attribute of a given name and/or namespace on the current XML node, or NULL." scope="instance">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                  <Parameter name="ns" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="value" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="lookupNamespace" desc="Looks up the namespace URI associated with a given prefix starting from the current XML node the StaxReader cursor is pointing to." scope="instance">
+                <Parameters>
+                  <Parameter name="prefix" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="nsuri" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="lookupPrefix" desc="Looks up the prefix associated with a given namespace URI, starting from the current XML node the StaxReader cursor is pointing to." scope="instance">
+                <Parameters>
+                  <Parameter name="ns" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="prefix" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="getNamespaceCount" desc="Returns the number of namespace declarations defined on the current XML node, or zero." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="num" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="getNamespacePrefix" desc="Returns the prefix of a namespace declaration defined at a given position on the current XML node, or NULL." scope="instance">
+                <Parameters>
+                  <Parameter name="pos" type="integer"/>
+                </Parameters>
+                <Returns>
+                  <Return name="prefix" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="getNamespaceURI" desc="Returns the URI of a namespace declaration defined at a given position on the current XML node, or NULL." scope="instance">
+                <Parameters>
+                  <Parameter name="pos" type="integer"/>
+                </Parameters>
+                <Returns>
+                  <Return name="nsuri" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="hasNext" desc="Checks whether the StaxReader cursor can be moved to a XML node next to it." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="flag" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="next" desc="Moves the StaxReader cursor to the next XML node." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="nextTag" desc="Moves the StaxReader cursor to the next XML open or end tag" scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="nextSibling" desc="Moves the StaxReader cursor to the immediate next sibling XML Element of the current node, skipping all its child nodes." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+            </Methods>
+          </Class>
         </Classes>
       </Package>
       <!--TODO: security package-->
