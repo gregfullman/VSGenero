@@ -2242,7 +2242,11 @@ namespace VSGenero.EditorExtensions
                         // The next token(s) will be one or more strings which comprise a string expression for the cursor
                         if (token.TokenType == GeneroTokenType.String)
                         {
-
+                            cd.StaticSqlStatement = token.TokenText.Trim(new[] { '"' });
+                            cd.Position = startingPosition;
+                            cd.LineNumber = startingLine;
+                            cd.ColumnNumber = startingColumn;
+                            _moduleContents.SqlCursors.Add(cd.Name.ToLower(), cd);
                         }
                         else
                         {

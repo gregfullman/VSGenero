@@ -39,6 +39,7 @@ namespace VSGenero.EditorExtensions
     public class CursorDeclaration : GeneroLanguageItemDefinition
     {
         public string PreparationVariable { get; set; }
+        public string StaticSqlStatement { get; set; }
 
         private List<string> _options;
         public List<string> Options
