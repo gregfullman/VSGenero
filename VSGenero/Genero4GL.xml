@@ -5534,7 +5534,7 @@
                 <Returns>
                 </Returns>
               </Method>
-              <Method name="attribute" desc="Writes an XML namespace qualified attribute to the StaxWriter stream." scope="instance">
+              <Method name="attributeNS" desc="Writes an XML namespace qualified attribute to the StaxWriter stream." scope="instance">
                 <Parameters>
                   <Parameter name="name" type="string"/>
                   <Parameter name="ns" type="string"/>
