@@ -838,7 +838,8 @@ namespace VSGenero.EditorExtensions
 
         #region Statement Verification
 
-        internal GeneroParser() : this(null, null)
+        internal GeneroParser()
+            : this(null, null)
         {
         }
 
@@ -1014,7 +1015,7 @@ namespace VSGenero.EditorExtensions
                                                    ref dummyVarList,
                                                    dummyScopeVars, dummyVarsCollected, advanceBlacklist))
                             {
-                                foreach(var scopeVar in dummyScopeVars)     // there should only be one
+                                foreach (var scopeVar in dummyScopeVars)     // there should only be one
                                     currentTypeDef.CloneContents(scopeVar.Value);
                                 if (typeVss == VariableSearchState.LookingForVariableName)
                                     searchState = VariableSearchState.LookingForTypeName;
@@ -2004,7 +2005,7 @@ namespace VSGenero.EditorExtensions
                             TryParseCursorDeclaration(ref token, ref prevToken);
 
                             if (_currentFunctionDef.Returns.Count == 0)
-                                TryParseReturnStatement(ref token, ref prevToken);
+                                TryParseReturnStatement(ref token, ref prevToken, new[] { "else", "end", "create", "define" }); // TODO: there are probably more keywords we shouldn't advance past
 
                             if (token.TokenType == GeneroTokenType.Keyword)
                             {
@@ -2257,7 +2258,7 @@ namespace VSGenero.EditorExtensions
             return true;
         }
 
-        private bool TryParseReturnStatement(ref GeneroToken token, ref GeneroToken prevToken)
+        private bool TryParseReturnStatement(ref GeneroToken token, ref GeneroToken prevToken, string[] advanceBlacklist)
         {
             bool validReturnFound = false;
             if (token.LowercaseText == "return")
@@ -2268,7 +2269,8 @@ namespace VSGenero.EditorExtensions
                 bool checkCollectedReturns = false;
                 AdvanceToken(ref token, ref prevToken);
 
-                while (token.TokenType != GeneroTokenType.Unknown)
+                while (token.TokenType != GeneroTokenType.Unknown &&
+                       !advanceBlacklist.Contains(token.LowercaseText))
                 {
                     if (token.LowercaseText != ",")
                     {
@@ -2341,6 +2343,7 @@ namespace VSGenero.EditorExtensions
                     if (token.LowercaseText == "from")
                     {
                         AdvanceToken(ref token, ref prevToken);
+                        // TODO: there are a lot of other different constructs for cursor preparation.
                         if (token.TokenType == GeneroTokenType.Identifier)
                         {
                             cp.StatementVariable = token.TokenText;
@@ -2348,86 +2351,79 @@ namespace VSGenero.EditorExtensions
                             cp.LineNumber = startingLine;
                             cp.ColumnNumber = startingColumn;
 
-                            // check and make sure the variable actually exists
-                            VariableDefinition prepareDef;
-                            if (_currentFunctionDef.Variables.TryGetValue(cp.StatementVariable.ToLower(), out prepareDef) ||
-                                _moduleContents.ModuleVariables.TryGetValue(cp.StatementVariable.ToLower(), out prepareDef) ||
-                                _moduleContents.GlobalVariables.TryGetValue(cp.StatementVariable.ToLower(), out prepareDef))
+                            // need to get the Statement variable's contents
+                            Stack<GeneroToken> prepareContents = new Stack<GeneroToken>();    // This will store possibly multiple lines' worth of prepare statement
+                            Stack<GeneroToken> lineContents = new Stack<GeneroToken>();
+                            GeneroLexer tempLexer = new GeneroLexer();
+                            int prepareLineNumber = _currentBuffer.CurrentSnapshot.GetLineNumberFromPosition(startingPosition);
+                            bool prepareVariableFound = false;
+                            while (!prepareVariableFound)
                             {
-                                // need to get the Statement variable's contents
-                                Stack<GeneroToken> prepareContents = new Stack<GeneroToken>();    // This will store possibly multiple lines' worth of prepare statement
-                                Stack<GeneroToken> lineContents = new Stack<GeneroToken>();
-                                GeneroLexer tempLexer = new GeneroLexer();
-                                int prepareLineNumber = _currentBuffer.CurrentSnapshot.GetLineNumberFromPosition(startingPosition);
-                                bool prepareVariableFound = false;
-                                while (!prepareVariableFound)
+                                if (prepareLineNumber > 0)
+                                    prepareLineNumber--;
+                                if (prepareLineNumber < _currentFunctionDef.LineNumber)
                                 {
-                                    if (prepareLineNumber > 0)
-                                        prepareLineNumber--;
-                                    if (prepareLineNumber < _currentFunctionDef.LineNumber)
-                                    {
-                                        // we can't gather information on a cursor whose sql text is not set within the current function.
-                                        // set the cursor statement in the prepare
-                                        cp.CursorStatement = "";
-                                        _moduleContents.SqlPrepares.Add(cp.Name, cp);
-                                        return true;
-                                    }
-                                    var textSnapshotLine = _currentBuffer.CurrentSnapshot.GetLineFromLineNumber(prepareLineNumber);
-                                    tempLexer.StartLexing(0, textSnapshotLine.GetText());
-                                    GeneroToken currToken = null;
-                                    lineContents.Clear();
-                                    while ((currToken = tempLexer.NextToken()).TokenType != GeneroTokenType.Unknown &&
-                                          currToken.TokenType != GeneroTokenType.Eof)
-                                    {
-                                        if (currToken.LowercaseText == "let")
-                                        {
-                                            var letTok = tempLexer.Lookahead(1);
-                                            if (letTok != null && letTok.TokenText == cp.StatementVariable)
-                                                prepareVariableFound = true;
-                                        }
-                                        lineContents.Push(currToken);
-                                    }
-                                    while (lineContents.Count > 0)
-                                        prepareContents.Push(lineContents.Pop());
+                                    // we can't gather information on a cursor whose sql text is not set within the current function.
+                                    // set the cursor statement in the prepare
+                                    cp.CursorStatement = "";
+                                    _moduleContents.SqlPrepares.Add(cp.Name, cp);
+                                    return true;
                                 }
-
-                                // Now we need to start popping off the stack, and grab the contiguous string literal after the assignment
-                                GeneroToken tempTok;
-                                List<string> prepareStringPieces = new List<string>();
-                                bool collect = false;
-                                while (prepareContents.Count > 0)
+                                var textSnapshotLine = _currentBuffer.CurrentSnapshot.GetLineFromLineNumber(prepareLineNumber);
+                                tempLexer.StartLexing(0, textSnapshotLine.GetText());
+                                GeneroToken currToken = null;
+                                lineContents.Clear();
+                                while ((currToken = tempLexer.NextToken()).TokenType != GeneroTokenType.Unknown &&
+                                      currToken.TokenType != GeneroTokenType.Eof)
                                 {
-                                    tempTok = prepareContents.Pop();
-                                    if (tempTok.TokenText == "=")
-                                        collect = true;
-                                    else
+                                    if (currToken.LowercaseText == "let")
                                     {
-                                        if (collect)
-                                        {
-                                            if (tempTok.TokenType == GeneroTokenType.String)
-                                            {
-                                                prepareStringPieces.Add(tempTok.TokenText);
-                                            }
-                                            else if (tempTok.TokenType != GeneroTokenType.Comment && tempTok.TokenText != ",")
-                                            {
-                                                break;
-                                            }
-                                        }
+                                        var letTok = tempLexer.Lookahead(1);
+                                        if (letTok != null && letTok.TokenText == cp.StatementVariable)
+                                            prepareVariableFound = true;
                                     }
+                                    lineContents.Push(currToken);
                                 }
-
-                                // now we need to put the prepareStringPieces together
-                                string cursorStatement = "";
-                                foreach (var cursorPiece in prepareStringPieces)
-                                {
-                                    cursorStatement += cursorPiece.Replace("\"", "");
-                                }
-
-                                // set the cursor statement in the prepare
-                                cp.CursorStatement = cursorStatement;
-
-                                _moduleContents.SqlPrepares.Add(cp.Name, cp);
+                                while (lineContents.Count > 0)
+                                    prepareContents.Push(lineContents.Pop());
                             }
+
+                            // Now we need to start popping off the stack, and grab the contiguous string literal after the assignment
+                            GeneroToken tempTok;
+                            List<string> prepareStringPieces = new List<string>();
+                            bool collect = false;
+                            while (prepareContents.Count > 0)
+                            {
+                                tempTok = prepareContents.Pop();
+                                if (tempTok.TokenText == "=")
+                                    collect = true;
+                                else
+                                {
+                                    if (collect)
+                                    {
+                                        if (tempTok.TokenType == GeneroTokenType.String)
+                                        {
+                                            prepareStringPieces.Add(tempTok.TokenText);
+                                        }
+                                        else if (tempTok.TokenType != GeneroTokenType.Comment && tempTok.TokenText != ",")
+                                        {
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+
+                            // now we need to put the prepareStringPieces together
+                            string cursorStatement = "";
+                            foreach (var cursorPiece in prepareStringPieces)
+                            {
+                                cursorStatement += cursorPiece.Replace("\"", "");
+                            }
+
+                            // set the cursor statement in the prepare
+                            cp.CursorStatement = cursorStatement;
+
+                            _moduleContents.SqlPrepares.Add(cp.Name, cp);
                         }
                     }
                 }
