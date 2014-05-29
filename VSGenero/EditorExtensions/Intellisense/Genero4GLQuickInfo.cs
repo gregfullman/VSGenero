@@ -105,6 +105,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                 VariableDefinition parentDef = null;
                 FunctionDefinition funcDef = null;
                 CursorPreparation cursorPrep = null;
+                CursorDeclaration cursorDecl = null;
                 TempTableDefinition tempTableDef = null;
                 ConstantDefinition constantDef = null;
                 TypeDefinition typeDef = null;
@@ -321,18 +322,35 @@ namespace VSGenero.EditorExtensions.Intellisense
                                         }
 
                                         // look at the cursor definitions
-                                        CursorDeclaration cursorDecl;
                                         string searchName = splitTokens[i].ToLower();
+                                        bool getPrep = true;
                                         if (fpm.ModuleContents.SqlCursors.TryGetValue(searchName, out cursorDecl))
                                         {
                                             // TODO: will have to rework this a bit when we support other types of cursor declarations
-                                            searchName = cursorDecl.PreparationVariable.ToLower();
+                                            if (string.IsNullOrWhiteSpace(cursorDecl.PreparationVariable) &&
+                                                !string.IsNullOrWhiteSpace(cursorDecl.StaticSqlStatement))
+                                            {
+                                                getPrep = false;
+                                                applicableToSpan = currentSnapshot.CreateTrackingSpan
+                                                (
+                                                    textSpan.Start.Position, searchName.Length, SpanTrackingMode.EdgeInclusive
+                                                );
+                                                if (i + 1 == splitTokens.Length)
+                                                {
+                                                    continueMatching = false;
+                                                    finalMatchType = "cursorDecl";
+                                                }
+                                            }
+                                            else
+                                            {
+                                                searchName = cursorDecl.PreparationVariable.ToLower();
+                                            }
                                         }
-                                        if (fpm.ModuleContents.SqlPrepares.TryGetValue(searchName, out cursorPrep))
+                                        if (getPrep && fpm.ModuleContents.SqlPrepares.TryGetValue(searchName, out cursorPrep))
                                         {
                                             applicableToSpan = currentSnapshot.CreateTrackingSpan
                                                 (
-                                                    textSpan.Start.Position, searchName.Length, SpanTrackingMode.EdgeInclusive
+                                                    textSpan.Start.Position, splitTokens[i].Length, SpanTrackingMode.EdgeInclusive
                                                 );
                                             if (i + 1 == splitTokens.Length)
                                             {
@@ -550,6 +568,10 @@ namespace VSGenero.EditorExtensions.Intellisense
                 else if (cursorPrep != null && finalMatchType == "cursorPrep")
                 {
                     qiContent.Add(cursorPrep.GetIntellisenseText());
+                }
+                else if(cursorDecl != null && finalMatchType == "cursorDecl")
+                {
+                    qiContent.Add(cursorDecl.GetIntellisenseText());
                 }
                 else if (tempTableDef != null && finalMatchType == "tempTableDef")
                 {

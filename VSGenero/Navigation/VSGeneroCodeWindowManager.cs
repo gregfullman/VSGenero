@@ -29,6 +29,7 @@ using VSGenero.EditorExtensions;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.VSCommon;
 using System.ComponentModel.Composition;
+using System.IO;
 
 namespace VSGenero.Navigation
 {
@@ -235,9 +236,23 @@ namespace VSGenero.Navigation
 
                     if (instancesOpen == 0)
                     {
+                        string filePath = _textBuffer.GetFilePath();
+                        // remove the file parser manager for the buffer
                         if (_textBuffer.Properties.ContainsProperty(typeof(GeneroFileParserManager)))
                         {
                             _textBuffer.Properties.RemoveProperty(typeof(GeneroFileParserManager));
+                        }
+                        // remove the buffer from the global buffer dictionary
+                        if (VSGeneroPackage.BufferDictionary.ContainsKey(filePath))
+                        {
+                            VSGeneroPackage.BufferDictionary.Remove(filePath);
+                        }
+                        
+                        // check to see if any of the other program files are open. If not, we should remove the program contents from the global manager
+                        string parentPath = Path.GetDirectoryName(filePath);
+                        if (!Directory.GetFiles(parentPath).Any(x => VSGeneroPackage.BufferDictionary.ContainsKey(x)))
+                        {
+                            VSGeneroPackage.Instance.ProgramContentsManager.Programs.Remove(_textBuffer.GetProgram());
                         }
                     }
                 }

@@ -2347,13 +2347,14 @@ namespace VSGenero.EditorExtensions
                     if (token.LowercaseText == "from")
                     {
                         AdvanceToken(ref token, ref prevToken);
+                        cp.Position = startingPosition;
+                        cp.LineNumber = startingLine;
+                        cp.ColumnNumber = startingColumn;
+
                         // TODO: there are a lot of other different constructs for cursor preparation.
                         if (token.TokenType == GeneroTokenType.Identifier)
                         {
                             cp.StatementVariable = token.TokenText;
-                            cp.Position = startingPosition;
-                            cp.LineNumber = startingLine;
-                            cp.ColumnNumber = startingColumn;
 
                             // need to get the Statement variable's contents
                             Stack<GeneroToken> prepareContents = new Stack<GeneroToken>();    // This will store possibly multiple lines' worth of prepare statement
@@ -2394,6 +2395,7 @@ namespace VSGenero.EditorExtensions
 
                             // Now we need to start popping off the stack, and grab the contiguous string literal after the assignment
                             GeneroToken tempTok;
+                            GeneroToken prevTempTok = null;
                             List<string> prepareStringPieces = new List<string>();
                             bool collect = false;
                             while (prepareContents.Count > 0)
@@ -2409,12 +2411,30 @@ namespace VSGenero.EditorExtensions
                                         {
                                             prepareStringPieces.Add(tempTok.TokenText);
                                         }
+                                        else if ((tempTok.TokenType == GeneroTokenType.Keyword || tempTok.TokenType == GeneroTokenType.Identifier) &&
+                                                (prevTempTok.TokenText == "," || prevTempTok.TokenType == GeneroTokenType.Keyword || prevTempTok.TokenType == GeneroTokenType.Identifier))
+                                        {
+                                            if (prevTempTok.TokenText == ",")
+                                                prepareStringPieces.Add(", [");   // put the comma back in there
+                                            else
+                                                prepareStringPieces.Add(" ");
+                                            prepareStringPieces.Add(tempTok.TokenText);
+                                        }
+                                        else if (tempTok.TokenText == "," && (prevTempTok.TokenType == GeneroTokenType.Keyword || prevTempTok.TokenType == GeneroTokenType.Identifier))
+                                        {
+                                            prepareStringPieces.Add("], ");
+                                        }
                                         else if (tempTok.TokenType != GeneroTokenType.Comment && tempTok.TokenText != ",")
                                         {
                                             break;
                                         }
+                                        prevTempTok = tempTok;
                                     }
                                 }
+                            }
+                            if (prevTempTok != null && (prevTempTok.TokenType == GeneroTokenType.Identifier || prevTempTok.TokenType == GeneroTokenType.Keyword))
+                            {
+                                prepareStringPieces.Add("]");
                             }
 
                             // now we need to put the prepareStringPieces together
@@ -2427,6 +2447,31 @@ namespace VSGenero.EditorExtensions
                             // set the cursor statement in the prepare
                             cp.CursorStatement = cursorStatement;
 
+                            _moduleContents.SqlPrepares.Add(cp.Name, cp);
+                        }
+                        else if(token.TokenType == GeneroTokenType.String)
+                        {
+                            char[] quote = new[] {'"'};
+                            StringBuilder sb = new StringBuilder();
+                            sb.Append(token.TokenText.Trim(quote));
+                            var nextToken = _lexer.Lookahead(1);
+                            while(nextToken.TokenType == GeneroTokenType.Symbol &&
+                                  nextToken.LowercaseText == ",")
+                            {
+                                AdvanceToken(ref token, ref prevToken); // advance to the comma
+                                AdvanceToken(ref token, ref prevToken); // advance to the next token (should be a string literal)
+                                if(token.TokenType == GeneroTokenType.String)
+                                {
+                                    sb.Append(" ");
+                                    sb.Append(token.TokenText.Trim(quote));
+                                    nextToken = _lexer.Lookahead(1);
+                                }
+                                else
+                                {
+                                    break;
+                                }
+                            }
+                            cp.CursorStatement = sb.ToString();
                             _moduleContents.SqlPrepares.Add(cp.Name, cp);
                         }
                     }

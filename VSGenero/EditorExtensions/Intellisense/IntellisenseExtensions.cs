@@ -366,6 +366,21 @@ namespace VSGenero.EditorExtensions.Intellisense
             return sb.ToString();
         }
 
+        internal static string GetIntellisenseText(this CursorDeclaration cursorDecl)
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine("cursor:");
+            sb.AppendLine();
+            if (!string.IsNullOrWhiteSpace(cursorDecl.StaticSqlStatement))
+            {
+                foreach (var splitLine in IntelligentSplit(cursorDecl.StaticSqlStatement, 40))
+                {
+                    sb.AppendLine(splitLine);
+                }
+            }
+            return sb.ToString();
+        }
+
         internal static IEnumerable<string> IntelligentSplit(string stringToSplit, int maxLineLength)
         {
             int charCount = 0;
@@ -928,6 +943,15 @@ namespace VSGenero.EditorExtensions.Intellisense
                     {
                         isClass = true;
                     }
+                }
+            }
+            else if (tokens.Length == 1)
+            {
+                GeneroSystemClass sysClass;
+                if (GeneroSingletons.LanguageSettings.NativeClasses.TryGetValue(tokens[0].ToLower(), out sysClass))
+                {
+                    isClass = true;
+                    classType = sysClass;
                 }
             }
             return isClass;
