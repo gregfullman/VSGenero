@@ -2412,7 +2412,7 @@ namespace VSGenero.EditorExtensions
                                             prepareStringPieces.Add(tempTok.TokenText);
                                         }
                                         else if ((tempTok.TokenType == GeneroTokenType.Keyword || tempTok.TokenType == GeneroTokenType.Identifier) &&
-                                                (prevTempTok.TokenText == "," || prevTempTok.TokenType == GeneroTokenType.Keyword || prevTempTok.TokenType == GeneroTokenType.Identifier))
+                                                (prevTempTok != null && (prevTempTok.TokenText == "," || prevTempTok.TokenType == GeneroTokenType.Keyword || prevTempTok.TokenType == GeneroTokenType.Identifier)))
                                         {
                                             if (prevTempTok.TokenText == ",")
                                                 prepareStringPieces.Add(", [");   // put the comma back in there
