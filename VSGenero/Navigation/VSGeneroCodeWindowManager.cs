@@ -50,7 +50,9 @@ namespace VSGenero.Navigation
             {
                 string filename = _textBuffer.GetFilePath();
                 if (!VSGeneroPackage.BufferDictionary.ContainsKey(filename))
-                    VSGeneroPackage.BufferDictionary.Add(filename, _textBuffer);
+                    VSGeneroPackage.BufferDictionary.Add(filename, new TextBufferOpenStatus { Buffer = _textBuffer, IsOpen = true });
+                else
+                    VSGeneroPackage.BufferDictionary[filename].IsOpen = true;
             }
             VSGeneroPackage.Instance.OnIdle += OnIdle;
         }
@@ -238,21 +240,30 @@ namespace VSGenero.Navigation
                     {
                         string filePath = _textBuffer.GetFilePath();
                         // remove the file parser manager for the buffer
-                        if (_textBuffer.Properties.ContainsProperty(typeof(GeneroFileParserManager)))
-                        {
-                            _textBuffer.Properties.RemoveProperty(typeof(GeneroFileParserManager));
-                        }
+                        //if (_textBuffer.Properties.ContainsProperty(typeof(GeneroFileParserManager)))
+                        //{
+                        //    _textBuffer.Properties.RemoveProperty(typeof(GeneroFileParserManager));
+                        //}
+                        VSGeneroPackage.Instance.RemoveBufferFileParserManager(_textBuffer);
                         // remove the buffer from the global buffer dictionary
                         if (VSGeneroPackage.BufferDictionary.ContainsKey(filePath))
                         {
                             VSGeneroPackage.BufferDictionary.Remove(filePath);
                         }
-                        
+
                         // check to see if any of the other program files are open. If not, we should remove the program contents from the global manager
+                        // see if there are any buffers open in the same directory
                         string parentPath = Path.GetDirectoryName(filePath);
-                        if (!Directory.GetFiles(parentPath).Any(x => VSGeneroPackage.BufferDictionary.ContainsKey(x)))
+                        if (!Directory.GetFiles(parentPath).Any(x => VSGeneroPackage.BufferDictionary.ContainsKey(x) && VSGeneroPackage.BufferDictionary[x].IsOpen))
                         {
                             VSGeneroPackage.Instance.ProgramContentsManager.Programs.Remove(_textBuffer.GetProgram());
+                            
+                            // remove any buffers that aren't open (they were loaded into the buffer dictionary via background parser
+                            foreach (var unopenedBuffer in VSGeneroPackage.BufferDictionary.Keys.Where(x => x.StartsWith(parentPath)).ToList())
+                            {
+                                VSGeneroPackage.Instance.RemoveBufferFileParserManager(VSGeneroPackage.BufferDictionary[unopenedBuffer].Buffer);
+                                VSGeneroPackage.BufferDictionary.Remove(unopenedBuffer);
+                            }
                         }
                     }
                 }

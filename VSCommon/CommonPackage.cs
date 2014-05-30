@@ -71,6 +71,12 @@ namespace Microsoft.VisualStudio.VSCommon
         Yes
     }
 
+    public class TextBufferOpenStatus
+    {
+        public ITextBuffer Buffer { get; set; }
+        public bool IsOpen { get; set; }
+    }
+
     public abstract class VSCommonPackage : CommonPackage, IVsInstalledProduct, IOleComponent
     {
         protected static VSCommonPackage Instance;
@@ -332,13 +338,13 @@ namespace Microsoft.VisualStudio.VSCommon
             viewAdapter.CenterLines(line, 1);
         }
 
-        private static Dictionary<string, ITextBuffer> _bufferDictionary = new Dictionary<string, ITextBuffer>();
-        public static Dictionary<string, ITextBuffer> BufferDictionary
+        private static Dictionary<string, TextBufferOpenStatus> _bufferDictionary = new Dictionary<string, TextBufferOpenStatus>();
+        public static Dictionary<string, TextBufferOpenStatus> BufferDictionary
         {
             get
             {
                 if (_bufferDictionary == null)
-                    _bufferDictionary = new Dictionary<string, ITextBuffer>();
+                    _bufferDictionary = new Dictionary<string, TextBufferOpenStatus>();
                 return _bufferDictionary;
             }
         }
@@ -358,22 +364,24 @@ namespace Microsoft.VisualStudio.VSCommon
                 var adapter = ComponentModel.GetService<IVsEditorAdaptersFactoryService>();
                 var textBuffer = adapter.GetDocumentBuffer(lines);
                 if (!BufferDictionary.ContainsKey(filename))
-                    BufferDictionary.Add(filename, textBuffer);
+                    BufferDictionary.Add(filename, new TextBufferOpenStatus { Buffer = textBuffer, IsOpen = true });
+                else
+                    BufferDictionary[filename].IsOpen = true;
                 return textBuffer;
             }
             else
             {
-                ITextBuffer retBuffer = null;
-                if (!BufferDictionary.TryGetValue(filename, out retBuffer))
+                TextBufferOpenStatus bufferOpen;
+                if (!BufferDictionary.TryGetValue(filename, out bufferOpen))
                 {
                     ITextDocumentFactoryService documentFactory = ComponentModel.GetService<ITextDocumentFactoryService>();
                     IContentTypeRegistryService contentRegistry = ComponentModel.GetService<IContentTypeRegistryService>();
                     ITextDocument textDoc = documentFactory.CreateAndLoadTextDocument(filename, contentRegistry.GetContentType(contentType));
                     if (!BufferDictionary.ContainsKey(filename))
-                        BufferDictionary.Add(filename, textDoc.TextBuffer);
+                        BufferDictionary.Add(filename, new TextBufferOpenStatus { Buffer = textDoc.TextBuffer, IsOpen = false });
                     return textDoc.TextBuffer;
                 }
-                return retBuffer;
+                return bufferOpen.Buffer;
             }
         }
 

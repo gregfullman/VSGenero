@@ -561,9 +561,9 @@ namespace VSGenero.EditorExtensions
             _primarySibling = primarySibling;
         }
 
-        private Dictionary<string, int> existingGlobalVarsParsed = new Dictionary<string, int>();
-        private Dictionary<string, int> existingModuleVarsParsed = new Dictionary<string, int>();
-        private Dictionary<string, int> existingFunctionsParsed = new Dictionary<string, int>();
+        private Dictionary<string, string> existingGlobalVarsParsed = new Dictionary<string, string>();
+        private Dictionary<string, string> existingModuleVarsParsed = new Dictionary<string, string>();
+        private Dictionary<string, string> existingFunctionsParsed = new Dictionary<string, string>();
 
         private void ClearParsedVariables()
         {
@@ -669,7 +669,7 @@ namespace VSGenero.EditorExtensions
         private void DiscardUnparsedVariablesAndFunctions(string filename)
         {
             VariableDefinition remove;
-            int temp;
+            string temp;
 
             // Remove globals
             List<string> removeList = new List<string>();
@@ -679,8 +679,13 @@ namespace VSGenero.EditorExtensions
                     removeList.Add(global.Key.ToLower());
                 else
                 {
-                    if (string.IsNullOrWhiteSpace(global.Value.ContainingFile))
-                        global.Value.ContainingFile = filename;
+                    if (temp != global.Value.Type)
+                        removeList.Add(global.Key.ToLower());
+                    else
+                    {
+                        if (string.IsNullOrWhiteSpace(global.Value.ContainingFile))
+                            global.Value.ContainingFile = filename;
+                    }
                 }
             }
             foreach (var global in removeList)
@@ -867,7 +872,7 @@ namespace VSGenero.EditorExtensions
                                                  ConcurrentDictionary<string, ConstantDefinition> scopeConstants,
                                                  ref VariableDefinition currentVariableDef,
                                                  List<VariableDefinition> variableBuffer,
-                                                 Dictionary<string, int> variablesCollected,
+                                                 Dictionary<string, string> variablesCollected,
                                                  string[] advanceBlacklist = null)
         {
             ConstantDefinition currentConstantDef = null;
@@ -1007,7 +1012,7 @@ namespace VSGenero.EditorExtensions
                             dummyVarDef.CloneContents(currentTypeDef);
                             List<VariableDefinition> dummyVarList = new List<VariableDefinition>();
                             ConcurrentDictionary<string, VariableDefinition> dummyScopeVars = new ConcurrentDictionary<string, VariableDefinition>();
-                            Dictionary<string, int> dummyVarsCollected = new Dictionary<string, int>();
+                            Dictionary<string, string> dummyVarsCollected = new Dictionary<string, string>();
                             if (GetVariableType(ref token,
                                                    ref prevToken,
                                                    ref typeVss,
@@ -1088,7 +1093,7 @@ namespace VSGenero.EditorExtensions
 
         private bool GetConstantValue(ref GeneroToken token, ref GeneroToken prevToken, ref ConstantDefinition constantDef)
         {
-            if (token.TokenType == GeneroTokenType.String || token.TokenType == GeneroTokenType.Number)
+            if (token.TokenType == GeneroTokenType.String || token.TokenType == GeneroTokenType.Number || token.TokenType == GeneroTokenType.Keyword)
             {
                 constantDef.Value = token.TokenText;
                 return true;
@@ -1224,7 +1229,7 @@ namespace VSGenero.EditorExtensions
                                                     ref VariableDefinition currentVariableDef,
                                                     ref List<VariableDefinition> variableBuffer,
                                                     ConcurrentDictionary<string, VariableDefinition> scope,
-                                                    Dictionary<string, int> variablesCollected,
+                                                    Dictionary<string, string> variablesCollected,
                                                     string[] advanceBlacklist = null)
         {
             VariableSearchState returnState = VariableSearchState.LookingForVariableName;
@@ -1505,7 +1510,7 @@ namespace VSGenero.EditorExtensions
             ConcurrentDictionary<string, ConstantDefinition> dummyConstList = new ConcurrentDictionary<string, ConstantDefinition>();
             ConcurrentDictionary<string, TypeDefinition> dummyTypeList = new ConcurrentDictionary<string, TypeDefinition>();
 
-            Dictionary<string, int> temp = new Dictionary<string, int>();
+            Dictionary<string, string> temp = new Dictionary<string, string>();
             bool valid = TryParseVarConstTypeDefinitions(ref token, ref prevToken, ref recordVss, elementList, dummyTypeList, dummyConstList, ref recordCurrentVariableDef, recordVariableBuffer, temp);
 
             if (!valid)
@@ -1766,17 +1771,17 @@ namespace VSGenero.EditorExtensions
             }
         }
 
-        private void AddVariablesAndReset(ConcurrentDictionary<string, VariableDefinition> scope, ref VariableDefinition currentDef, List<VariableDefinition> buffer, Dictionary<string, int> parsed)
+        private void AddVariablesAndReset(ConcurrentDictionary<string, VariableDefinition> scope, ref VariableDefinition currentDef, List<VariableDefinition> buffer, Dictionary<string, string> parsed)
         {
             VariableDefinition tempDef = currentDef;    // Needed so we can do update in concurrent update lambda
             scope.AddOrUpdate(currentDef.Name.ToLower(), currentDef, (x, y) => tempDef);
             if (!parsed.ContainsKey(currentDef.Name.ToLower()))
-                parsed.Add(currentDef.Name.ToLower(), 1);
+                parsed.Add(currentDef.Name.ToLower(), currentDef.Type);
             foreach (var vardef in buffer)
             {
                 scope.AddOrUpdate(vardef.Name.ToLower(), vardef, (x, y) => vardef);
                 if (!parsed.ContainsKey(vardef.Name.ToLower()))
-                    parsed.Add(vardef.Name.ToLower(), 1);
+                    parsed.Add(vardef.Name.ToLower(), currentDef.Type);
             }
             ResetCurrentVariableAndBuffer(ref currentDef, buffer);
         }
@@ -1991,7 +1996,7 @@ namespace VSGenero.EditorExtensions
                             if (_vss == VariableSearchState.LookingForDefineKeyword)
                             {
                                 // TODO: not sure if we want to do anything with the return value
-                                Dictionary<string, int> temp = new Dictionary<string, int>();
+                                Dictionary<string, string> temp = new Dictionary<string, string>();
                                 bool defFound = TryParseVarConstTypeDefinitions(ref token, ref prevToken, ref _vss, _currentFunctionDef.Variables, _currentFunctionDef.Types, _currentFunctionDef.Constants, ref _currentVariableDef, _variableBuffer, temp, new[] { "end", "define", "type", "constant" });
                                 if (defFound)
                                 {
@@ -2053,7 +2058,7 @@ namespace VSGenero.EditorExtensions
                                         while (existingFunctionsParsed.ContainsKey(tempName))
                                             tempName = baseName + "_copy" + i++;
                                         tempName = tempName.ToLower();
-                                        existingFunctionsParsed.Add(tempName, 1);
+                                        existingFunctionsParsed.Add(tempName, "");
                                         _currentFunctionDef = null;
                                         _fss = FunctionSearchState.LookingForFunctionStart;
                                         AdvanceToken(ref token, ref prevToken);

@@ -184,6 +184,19 @@ namespace VSGenero
             return fpm;
         }
 
+        public void RemoveBufferFileParserManager(ITextBuffer buffer)
+        {
+            GeneroFileParserManager fpm;
+            if (buffer.Properties.TryGetProperty(typeof(GeneroFileParserManager), out fpm))
+            {
+                fpm.CancelParsing();
+                string filename = buffer.GetFilePath();
+                if (VSGeneroPackage.Instance.BufferFileParserManagers.ContainsKey(filename))
+                    VSGeneroPackage.Instance.BufferFileParserManagers.Remove(filename);
+                buffer.Properties.RemoveProperty(typeof(GeneroFileParserManager));
+            }
+        }
+
         public override Type GetLibraryManagerType()
         {
             return typeof(IGeneroLibraryManager);
