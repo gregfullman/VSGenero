@@ -155,6 +155,17 @@ namespace VSGenero.Navigation
             }
         }
 
+        private void ForceTopLevelRefresh()
+        {
+            if (_dropDownBar != null && _topLevelEntries != null)
+            {
+                for (int i = 0; i < _topLevelEntries.Count; i++)
+                {
+                    _dropDownBar.RefreshCombo(TopLevelComboBoxId, i);
+                }
+            }
+        }
+
         private void FindActiveTopLevelComboSelection(int newPosition, ReadOnlyCollection<DropDownEntryInfo> topLevel)
         {
             if (_dropDownBar == null)
@@ -234,16 +245,32 @@ namespace VSGenero.Navigation
             return VSConstants.S_OK;
         }
 
-        private void CalculateTopLevelEntries()
+        private bool CalculateTopLevelEntries()
         {
+            bool forceRefresh = false;
             // intialize the top level entries with a transform from function defs to drop down entries
             if (_moduleContents != null)
             {
                 string bufferFilename = _textView.TextBuffer.GetFilePath();
                 var list = _moduleContents.FunctionDefinitions.Where(y => y.Value.ContainingFile == bufferFilename).Select(x => new DropDownEntryInfo(x.Value)).ToList();
                 list.Sort(DropDownEntryInfo.CompareEntryInfo);
+                forceRefresh = DifferencesExist(_topLevelEntries, list);
                 _topLevelEntries = new ReadOnlyCollection<DropDownEntryInfo>(list);
             }
+            return forceRefresh;
+        }
+
+        private bool DifferencesExist(IList<DropDownEntryInfo> oldList, IList<DropDownEntryInfo> newList)
+        {
+            if (oldList.Count != newList.Count)
+                return true;
+
+            foreach(var item in oldList)
+            {
+                if (!newList.Any((x) => x.Name == item.Name))
+                    return true;
+            }
+            return false;
         }
 
         private void CalculateNestedEntries()
@@ -445,7 +472,8 @@ namespace VSGenero.Navigation
             else
             {
                 // at least update the function list
-                CalculateTopLevelEntries();
+                if (CalculateTopLevelEntries())
+                    ForceTopLevelRefresh();
                 CaretPositionChanged(this, new CaretPositionChangedEventArgs(null, _textView.Caret.Position, _textView.Caret.Position));
             }
         }
@@ -465,7 +493,8 @@ namespace VSGenero.Navigation
         private void ForceFunctionListUpdate(GeneroFileParserManager fpm)
         {
             _moduleContents = fpm.ModuleContents;
-            CalculateTopLevelEntries();
+            if (CalculateTopLevelEntries())
+                ForceTopLevelRefresh();
             CaretPositionChanged(this, new CaretPositionChangedEventArgs(null, _textView.Caret.Position, _textView.Caret.Position));
         }
 

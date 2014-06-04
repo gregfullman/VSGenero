@@ -235,14 +235,22 @@ namespace VSGenero.EditorExtensions
                         // skip the escaped character
                         IncrementCurrentPosition();
                     }
+                    // TODO: at some point it would be nice to support multi-line strings...but not yet
+                    if (_source[_currentPosition] == '\r' || _source[_currentPosition] == '\n')
+                        break;
                     IncrementCurrentPosition();
                 }
                 if (_currentPosition < _source.Length)
                     IncrementCurrentPosition();
                 // if there's nothing beyond the string, we need to decrease the current position so we don't throw an exception
                 while (_currentPosition > _source.Length)
-                    IncrementCurrentPosition();
-                string temp = _source.Substring(_tokenStart, _currentPosition - _tokenStart);
+                {
+                    _currentPosition--;
+                }
+
+                string temp = "";
+                if(_currentPosition >= _tokenStart)
+                    temp = _source.Substring(_tokenStart, _currentPosition - _tokenStart);
                 retToken = new GeneroToken(temp,
                                            _tokenStart,
                                            _currentPosition,

@@ -56,7 +56,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                     var previousToken = session.GetPreviousToken();
                     if (previousToken != null)
                     {
-                        if (previousToken.Item1 == "define" || previousToken.Item1 == ",")
+                        if (previousToken.Item1 == "define" || previousToken.Item1 == "constant" || previousToken.Item1 == "type" || previousToken.Item1 == ",")
                         {
                             return new List<MemberCompletion>();
                         }
@@ -103,7 +103,7 @@ namespace VSGenero.EditorExtensions.Intellisense
 
             foreach (var function in moduleContents.FunctionDefinitions)
             {
-                var comp = new MemberCompletion(function.Key, function.Key, function.Value.GetIntellisenseText(),
+                var comp = new MemberCompletion(function.Value.Name, function.Value.Name, function.Value.GetIntellisenseText(),
                                 _glyphService.GetGlyph(StandardGlyphGroup.GlyphGroupMethod,
                                     (function.Value.Private ? StandardGlyphItem.GlyphItemPrivate : StandardGlyphItem.GlyphItemPublic)),
                                 null);
@@ -151,16 +151,15 @@ namespace VSGenero.EditorExtensions.Intellisense
                     functionsOnly.Add(comp);
                 }
 
-                // add Genero packages, since their classes have functions too
-                foreach (var packageName in GeneroSingletons.LanguageSettings.Packages)
-                {
-                    var comp = new MemberCompletion(packageName.Value.Name, packageName.Value.Name, packageName.Value.GetIntellisenseText(),
-                                        _glyphService.GetGlyph(StandardGlyphGroup.GlyphGroupClass, StandardGlyphItem.GlyphItemPublic), null);
-                    functionsOnly.Add(comp);
-                }
-
                 if (isDefiniteFunctionCall)
                 {
+                    // add Genero packages, since their classes have functions too
+                    foreach (var packageName in GeneroSingletons.LanguageSettings.Packages)
+                    {
+                        var comp = new MemberCompletion(packageName.Value.Name, packageName.Value.Name, packageName.Value.GetIntellisenseText(),
+                                            _glyphService.GetGlyph(StandardGlyphGroup.GlyphGroupClass, StandardGlyphItem.GlyphItemPublic), null);
+                        functionsOnly.Add(comp);
+                    }
 
                     GeneroClass dummy;
                     // look for variables that are instances of classes with instance methods

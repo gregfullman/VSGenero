@@ -117,7 +117,15 @@ namespace VSGenero.EditorExtensions
             //get the current char and the previous char
             // TODO: instead of just grabbing the current character, let's grab the current token
             // So for grabbing the current token, there are 
-            char currentText = currentChar.GetChar();
+            char currentText;
+            try
+            {
+                currentText = currentChar.GetChar();
+            }
+            catch(ArgumentOutOfRangeException aoore)
+            {
+                yield break;
+            }
             SnapshotPoint lastChar = currentChar == 0 ? currentChar : currentChar - 1; //if currentChar is 0 (beginning of buffer), don't move it back
             char lastText = lastChar.GetChar();
             SnapshotSpan pairSpan = new SnapshotSpan();

@@ -70,6 +70,7 @@
       <Keyword value="Char" name="char"/>
       <Keyword value="Character" name="character"/>
       <Keyword value="CharLength" name="char_length"/>
+      <Keyword value="Catch" name="catch"/>
       <Keyword value="Check" name="check"/>
       <Keyword value="Clear" name="clear"/>
       <Keyword value="Clipped" name="clipped"/>
@@ -166,6 +167,7 @@
       <Keyword value="Hour" name="hour"/>
       <Keyword value="If" name="if"/>
       <Keyword value="Iif" name="iif"/>
+      <Keyword value="Import" name="import"/>
       <Keyword value="In" name="in"/>
       <Keyword value="Inner" name="inner"/>
       <Keyword value="Index" name="index"/>
@@ -257,6 +259,7 @@
       <Keyword value="Private" name="private"/>
       <Keyword value="Program" name="program"/>
       <Keyword value="Prompt" name="prompt"/>
+      <Keyword value="Public" name="public"/>
       <Keyword value="Put" name="put"/>
       <Keyword value="Quit" name="quit"/>
       <Keyword value="Quit_Flag" name="quit_flag"/>
@@ -320,7 +323,9 @@
       <Keyword value="Top" name="top"/>
       <Keyword value="Trailer" name="trailer"/>
       <Keyword value="True" name="true"/>
+      <Keyword value="Try" name="try"/>
       <Keyword value="Type" name="type"/>
+      <Keyword value="Unbuffered" name="unbuffered"/>
       <Keyword value="Unconstrained" name="unconstrained"/>
       <Keyword value="Underline" name="underline"/>
       <Keyword value="Union" name="union"/>
@@ -349,6 +354,7 @@
       <Keyword value="Window" name="window"/>
       <Keyword value="Wordwrap" name="wordwrap"/>
       <Keyword value="Work" name="work"/>
+      <Keyword value="Wrap" name="wrap"/>
       <Keyword value="Year" name="year"/>
       <Keyword value="Yellow" name="yellow"/>
       <Keyword value="Layout" name="layout"/>

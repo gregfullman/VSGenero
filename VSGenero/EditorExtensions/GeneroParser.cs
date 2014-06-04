@@ -588,7 +588,8 @@ namespace VSGenero.EditorExtensions
                 return;
             }
             _lexer.StartLexing(0, buffer.CurrentSnapshot.GetText());
-            GeneroToken token = null, prevToken = null;
+            GeneroToken token = new GeneroToken("", 0, 0, GeneroTokenType.Unknown, 0, 0);
+            GeneroToken prevToken = new GeneroToken("", 0, 0, GeneroTokenType.Unknown, 0, 0);
             _fss = FunctionSearchState.LookingForFunctionStart;
             _gss = GlobalsSearchState.LookingForGlobalsKeyword;
             _vss = VariableSearchState.LookingForDefineKeyword;
@@ -773,8 +774,9 @@ namespace VSGenero.EditorExtensions
                     else
                     {
                         // now use the general variable definition consumer
+                        bool isIncomplete;
                         ret = TryParseVarConstTypeDefinitions(ref token, ref prevToken, ref _vss, _moduleContents.GlobalVariables, _moduleContents.GlobalTypes, _moduleContents.GlobalConstants, ref _currentVariableDef,
-                                                            _variableBuffer, existingGlobalVarsParsed, new[] { "end", "define", "type", "constant" });
+                                                            _variableBuffer, existingGlobalVarsParsed, out isIncomplete, new[] { "end", "define", "type", "constant" });
                         // TODO: need to consume "end" and "global"
                     }
 
@@ -797,9 +799,10 @@ namespace VSGenero.EditorExtensions
             if (_fss == FunctionSearchState.LookingForFunctionStart &&
                 _vss == VariableSearchState.LookingForDefineKeyword)
             {
+                bool isIncomplete;
                 // now use the general variable definition consumer
                 ret = TryParseVarConstTypeDefinitions(ref token, ref prevToken, ref _vss, _moduleContents.ModuleVariables, _moduleContents.ModuleTypes, _moduleContents.ModuleConstants, ref _currentVariableDef,
-                                                  _variableBuffer, existingModuleVarsParsed, new[] { "main", "function", "define", "type", "constant" });
+                                                  _variableBuffer, existingModuleVarsParsed, out isIncomplete, new[] { "main", "function", "define", "type", "constant" });
             }
             return ret;
         }
@@ -854,9 +857,10 @@ namespace VSGenero.EditorExtensions
             GeneroToken token = null, prevToken = null;
             AdvanceToken(ref token, ref prevToken);
             _vss = VariableSearchState.LookingForDefineKeyword;
-            bool isComplete = TryParseVarConstTypeDefinitions(ref token, ref prevToken, ref _vss, _moduleContents.GlobalVariables, _moduleContents.GlobalTypes, _moduleContents.GlobalConstants, ref _currentVariableDef,
-                                                            _variableBuffer, existingGlobalVarsParsed, new[] { "function", "end", "define", "type", "constant" });
-            return !isComplete;
+            bool isIncomplete;
+            bool valid = TryParseVarConstTypeDefinitions(ref token, ref prevToken, ref _vss, _moduleContents.GlobalVariables, _moduleContents.GlobalTypes, _moduleContents.GlobalConstants, ref _currentVariableDef,
+                                                            _variableBuffer, existingGlobalVarsParsed, out isIncomplete, new[] { "function", "end", "define", "type", "constant" });
+            return isIncomplete;
         }
 
         #endregion
@@ -873,8 +877,11 @@ namespace VSGenero.EditorExtensions
                                                  ref VariableDefinition currentVariableDef,
                                                  List<VariableDefinition> variableBuffer,
                                                  Dictionary<string, string> variablesCollected,
+                                                 out bool isIncomplete,
                                                  string[] advanceBlacklist = null)
         {
+            
+            isIncomplete = false;
             ConstantDefinition currentConstantDef = null;
             TypeDefinition currentTypeDef = null;
 
@@ -889,19 +896,21 @@ namespace VSGenero.EditorExtensions
                             // if we hit the define keyword, that's the start of one or more variable definitions
                             if (token.LowercaseText == "define")
                             {
+                                isIncomplete = false;
                                 ResetCurrentVariable(ref currentVariableDef);
                                 searchState = VariableSearchState.LookingForVariableName;
-
                                 // go to the next token
                                 AdvanceToken(ref token, ref prevToken);
                             }
                             else if (token.LowercaseText == "constant")
                             {
+                                isIncomplete = false;
                                 searchState = VariableSearchState.LookingForConstName;
                                 AdvanceToken(ref token, ref prevToken);
                             }
                             else if (token.LowercaseText == "type")
                             {
+                                isIncomplete = false;
                                 searchState = VariableSearchState.LookingForTypeName;
                                 AdvanceToken(ref token, ref prevToken);
                             }
@@ -928,6 +937,7 @@ namespace VSGenero.EditorExtensions
                             }
                             else
                             {
+                                isIncomplete = true;
                                 // give up. If we don't have a variable name, there's not much we can do
                                 ResetCurrentVariableAndBuffer(ref currentVariableDef, variableBuffer);
                                 searchState = VariableSearchState.LookingForDefineKeyword;
@@ -953,6 +963,7 @@ namespace VSGenero.EditorExtensions
                             }
                             else
                             {
+                                isIncomplete = true;
                                 // give up. If we don't have a variable name, there's not much we can do
                                 currentTypeDef = null;
                                 searchState = VariableSearchState.LookingForDefineKeyword;
@@ -976,6 +987,7 @@ namespace VSGenero.EditorExtensions
                             }
                             else
                             {
+                                isIncomplete = true;
                                 currentConstantDef = null;
                                 searchState = VariableSearchState.LookingForDefineKeyword;
                             }
@@ -1001,6 +1013,7 @@ namespace VSGenero.EditorExtensions
                                                    ref currentVariableDef,
                                                    ref variableBuffer,
                                                    scopeVariables, variablesCollected, advanceBlacklist);
+                                isIncomplete = false;
                             }
 
                         }
@@ -1027,9 +1040,11 @@ namespace VSGenero.EditorExtensions
                                 else
                                     searchState = VariableSearchState.LookingForDefineKeyword;
                                 scopeTypes.AddOrUpdate(currentTypeDef.Name.ToLower(), currentTypeDef, (x, y) => currentTypeDef);
+                                isIncomplete = false;
                             }
                             else
                             {
+                                isIncomplete = true;
                                 currentTypeDef = null;
                                 searchState = VariableSearchState.LookingForDefineKeyword;
                             }
@@ -1045,6 +1060,7 @@ namespace VSGenero.EditorExtensions
                                 // a type was specified for the constant
                                 if (!TryGetActualVariableType(ref token, ref prevToken, ref tempVss, ref dummyVar, dummyList))
                                 {
+                                    isIncomplete = true;
                                     currentConstantDef = null;
                                     searchState = VariableSearchState.LookingForDefineKeyword;
                                 }
@@ -1056,6 +1072,7 @@ namespace VSGenero.EditorExtensions
 
                             if (token.LowercaseText != "=")
                             {
+                                isIncomplete = true;
                                 currentConstantDef = null;
                                 searchState = VariableSearchState.LookingForDefineKeyword;
                             }
@@ -1064,8 +1081,16 @@ namespace VSGenero.EditorExtensions
                                 AdvanceToken(ref token, ref prevToken);
                             }
 
+                            if(currentConstantDef == null)
+                            {
+                                valid = false;
+                                isIncomplete = true;
+                                break;
+                            }
+
                             if (!GetConstantValue(ref token, ref prevToken, ref currentConstantDef))
                             {
+                                isIncomplete = true;
                                 currentConstantDef = null;
                                 searchState = VariableSearchState.LookingForDefineKeyword;
                             }
@@ -1083,6 +1108,7 @@ namespace VSGenero.EditorExtensions
                                 {
                                     searchState = VariableSearchState.LookingForDefineKeyword;
                                 }
+                                isIncomplete = false;
                             }
                         }
                         break;
@@ -1509,9 +1535,9 @@ namespace VSGenero.EditorExtensions
             ConcurrentDictionary<string, VariableDefinition> elementList = new ConcurrentDictionary<string, VariableDefinition>();
             ConcurrentDictionary<string, ConstantDefinition> dummyConstList = new ConcurrentDictionary<string, ConstantDefinition>();
             ConcurrentDictionary<string, TypeDefinition> dummyTypeList = new ConcurrentDictionary<string, TypeDefinition>();
-
+            bool isIncomplete;
             Dictionary<string, string> temp = new Dictionary<string, string>();
-            bool valid = TryParseVarConstTypeDefinitions(ref token, ref prevToken, ref recordVss, elementList, dummyTypeList, dummyConstList, ref recordCurrentVariableDef, recordVariableBuffer, temp);
+            bool valid = TryParseVarConstTypeDefinitions(ref token, ref prevToken, ref recordVss, elementList, dummyTypeList, dummyConstList, ref recordCurrentVariableDef, recordVariableBuffer, temp, out isIncomplete);
 
             if (!valid)
             {
@@ -1997,7 +2023,10 @@ namespace VSGenero.EditorExtensions
                             {
                                 // TODO: not sure if we want to do anything with the return value
                                 Dictionary<string, string> temp = new Dictionary<string, string>();
-                                bool defFound = TryParseVarConstTypeDefinitions(ref token, ref prevToken, ref _vss, _currentFunctionDef.Variables, _currentFunctionDef.Types, _currentFunctionDef.Constants, ref _currentVariableDef, _variableBuffer, temp, new[] { "end", "define", "type", "constant" });
+                                bool isIncomplete;
+                                bool defFound = TryParseVarConstTypeDefinitions(ref token, ref prevToken, ref _vss, _currentFunctionDef.Variables, 
+                                                                                _currentFunctionDef.Types, _currentFunctionDef.Constants, ref _currentVariableDef,
+                                                                                _variableBuffer, temp, out isIncomplete, new[] { "end", "define", "type", "constant" });
                                 if (defFound)
                                 {
                                     break;

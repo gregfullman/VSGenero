@@ -237,6 +237,10 @@ namespace VSGenero.EditorExtensions.Intellisense
         internal static string GetIntellisenseText(this GeneroClassMethod classMethod)
         {
             StringBuilder sb = new StringBuilder();
+            if(classMethod.Returns.Count == 0)
+            {
+                sb.Append("void ");
+            }
             if (classMethod.Returns.Count == 1)
             {
                 foreach (var ret in classMethod.Returns)
@@ -883,7 +887,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                             continue;
                         }
 
-                        if(lowercaseText == "define")
+                        if(lowercaseText == "define" || lowercaseText == "constant" || lowercaseText == "type")
                         {
                             defineKeywordFound = true;
                         }
