@@ -620,31 +620,34 @@ namespace VSGenero.EditorExtensions.Intellisense
                                                 ref TypeDefinition typeDef,
                                                 ref string context)
         {
-            string lowercase = token.ToLower();
-            if (!fpm.ModuleContents.ModuleVariables.TryGetValue(lowercase, out varDef) &&
-                                        !fpm.ModuleContents.ModuleConstants.TryGetValue(lowercase, out constantDef) &&
-                                        !fpm.ModuleContents.ModuleTypes.TryGetValue(lowercase, out typeDef))
+            if (fpm.ModuleContents != null)
             {
-                if ((fpm.ModuleContents.GlobalVariables.TryGetValue(lowercase, out varDef) ||
-                    (programContents != null && programContents.GlobalVariables.TryGetValue(lowercase, out varDef))) ||
-                    (fpm.ModuleContents.GlobalConstants.TryGetValue(lowercase, out constantDef) ||
-                    (programContents != null && programContents.GlobalConstants.TryGetValue(lowercase, out constantDef))) ||
-                    (fpm.ModuleContents.GlobalTypes.TryGetValue(lowercase, out typeDef) ||
-                    (programContents != null && programContents.GlobalTypes.TryGetValue(lowercase, out typeDef))))
+                string lowercase = token.ToLower();
+                if (!fpm.ModuleContents.ModuleVariables.TryGetValue(lowercase, out varDef) &&
+                                            !fpm.ModuleContents.ModuleConstants.TryGetValue(lowercase, out constantDef) &&
+                                            !fpm.ModuleContents.ModuleTypes.TryGetValue(lowercase, out typeDef))
                 {
-                    context = "global";
+                    if ((fpm.ModuleContents.GlobalVariables.TryGetValue(lowercase, out varDef) ||
+                        (programContents != null && programContents.GlobalVariables.TryGetValue(lowercase, out varDef))) ||
+                        (fpm.ModuleContents.GlobalConstants.TryGetValue(lowercase, out constantDef) ||
+                        (programContents != null && programContents.GlobalConstants.TryGetValue(lowercase, out constantDef))) ||
+                        (fpm.ModuleContents.GlobalTypes.TryGetValue(lowercase, out typeDef) ||
+                        (programContents != null && programContents.GlobalTypes.TryGetValue(lowercase, out typeDef))))
+                    {
+                        context = "global";
+                        return true;
+                    }
+                    else if (GeneroSingletons.SystemVariables.TryGetValue(lowercase, out varDef))
+                    {
+                        context = "system";
+                        return true;
+                    }
+                }
+                else
+                {
+                    context = "module";
                     return true;
                 }
-                else if (GeneroSingletons.SystemVariables.TryGetValue(lowercase, out varDef))
-                {
-                    context = "system";
-                    return true;
-                }
-            }
-            else
-            {
-                context = "module";
-                return true;
             }
             return false;
         }
