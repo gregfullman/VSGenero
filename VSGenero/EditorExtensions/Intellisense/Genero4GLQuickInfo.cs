@@ -192,7 +192,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                     {
                         // check globals and module variables first
                         var fpm = m_subjectBuffer.Properties.GetProperty(typeof(GeneroFileParserManager)) as GeneroFileParserManager;
-                        if (fpm != null)
+                        if (fpm != null && fpm.ModuleContents != null)
                         {
                             GeneroModuleContents programContents;
                             VSGeneroPackage.Instance.ProgramContentsManager.Programs.TryGetValue(m_subjectBuffer.GetProgram(), out programContents);
@@ -444,7 +444,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                                             {
                                                 TryGetFunctionElement(splitTokens[i], funcDef, ref tempDef, ref constantDef, ref typeDef, ref context);
                                             }
-                                            if (tempDef == null)
+                                            if (tempDef == null && fpm != null && fpm.ModuleContents != null)
                                             {
                                                 TryGetModuleOrGlobalElement(splitTokens[i], fpm, programContents, ref tempDef, ref constantDef, ref typeDef, ref context);
                                             }
@@ -462,7 +462,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                                             }
                                         }
                                     }
-                                    if (continueMatching &&  tempDef != null && IntellisenseExtensions.IsClassInstance(tempDef.Type, out generoClass))
+                                    if (continueMatching && tempDef != null && IntellisenseExtensions.IsClassInstance(tempDef.Type, out generoClass))
                                     {
                                         // find the function
                                         if (generoClass.Methods.TryGetValue(splitTokens[i].ToLower(), out tmpMethod))
@@ -478,7 +478,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                                             }
                                         }
                                     }
-                                    if (continueMatching && tempDef != null)
+                                    if (continueMatching && tempDef != null && fpm != null && fpm.ModuleContents != null)
                                     {
                                         GeneroClass tempClass;
                                         // check to see if the tempDef is a type that has record elements
@@ -569,7 +569,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                 {
                     qiContent.Add(cursorPrep.GetIntellisenseText());
                 }
-                else if(cursorDecl != null && finalMatchType == "cursorDecl")
+                else if (cursorDecl != null && finalMatchType == "cursorDecl")
                 {
                     qiContent.Add(cursorDecl.GetIntellisenseText());
                 }
@@ -620,34 +620,31 @@ namespace VSGenero.EditorExtensions.Intellisense
                                                 ref TypeDefinition typeDef,
                                                 ref string context)
         {
-            if (fpm.ModuleContents != null)
+            string lowercase = token.ToLower();
+            if (!fpm.ModuleContents.ModuleVariables.TryGetValue(lowercase, out varDef) &&
+                                        !fpm.ModuleContents.ModuleConstants.TryGetValue(lowercase, out constantDef) &&
+                                        !fpm.ModuleContents.ModuleTypes.TryGetValue(lowercase, out typeDef))
             {
-                string lowercase = token.ToLower();
-                if (!fpm.ModuleContents.ModuleVariables.TryGetValue(lowercase, out varDef) &&
-                                            !fpm.ModuleContents.ModuleConstants.TryGetValue(lowercase, out constantDef) &&
-                                            !fpm.ModuleContents.ModuleTypes.TryGetValue(lowercase, out typeDef))
+                if ((fpm.ModuleContents.GlobalVariables.TryGetValue(lowercase, out varDef) ||
+                    (programContents != null && programContents.GlobalVariables.TryGetValue(lowercase, out varDef))) ||
+                    (fpm.ModuleContents.GlobalConstants.TryGetValue(lowercase, out constantDef) ||
+                    (programContents != null && programContents.GlobalConstants.TryGetValue(lowercase, out constantDef))) ||
+                    (fpm.ModuleContents.GlobalTypes.TryGetValue(lowercase, out typeDef) ||
+                    (programContents != null && programContents.GlobalTypes.TryGetValue(lowercase, out typeDef))))
                 {
-                    if ((fpm.ModuleContents.GlobalVariables.TryGetValue(lowercase, out varDef) ||
-                        (programContents != null && programContents.GlobalVariables.TryGetValue(lowercase, out varDef))) ||
-                        (fpm.ModuleContents.GlobalConstants.TryGetValue(lowercase, out constantDef) ||
-                        (programContents != null && programContents.GlobalConstants.TryGetValue(lowercase, out constantDef))) ||
-                        (fpm.ModuleContents.GlobalTypes.TryGetValue(lowercase, out typeDef) ||
-                        (programContents != null && programContents.GlobalTypes.TryGetValue(lowercase, out typeDef))))
-                    {
-                        context = "global";
-                        return true;
-                    }
-                    else if (GeneroSingletons.SystemVariables.TryGetValue(lowercase, out varDef))
-                    {
-                        context = "system";
-                        return true;
-                    }
-                }
-                else
-                {
-                    context = "module";
+                    context = "global";
                     return true;
                 }
+                else if (GeneroSingletons.SystemVariables.TryGetValue(lowercase, out varDef))
+                {
+                    context = "system";
+                    return true;
+                }
+            }
+            else
+            {
+                context = "module";
+                return true;
             }
             return false;
         }
