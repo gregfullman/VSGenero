@@ -48,7 +48,7 @@ namespace VSGenero.EditorExtensions
             }
 
             // Update the module functions dictionary
-            foreach (var programFuncKvp in newContents.FunctionDefinitions.Where(x => !x.Value.Private))
+            foreach (var programFuncKvp in newContents.FunctionDefinitions)
             {
                 gmc.FunctionDefinitions.AddOrUpdate(programFuncKvp.Key.ToLower(), programFuncKvp.Value, (x, y) => programFuncKvp.Value);
             }

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.VSCommon;
 
 namespace VSGenero.EditorExtensions.Intellisense
 {
@@ -42,7 +43,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                 bool isDefiniteReportCall = false;
                 if (session.IsPotentialFunctionCall(out isDefiniteFunctionCall, out isDefiniteReportCall))
                 {
-                    var funcRptCompletions = GetFunctionCallCompletions(isDefiniteFunctionCall, isDefiniteReportCall, moduleContents, currentFunction);
+                    var funcRptCompletions = GetFunctionCallCompletions(session, isDefiniteFunctionCall, isDefiniteReportCall, moduleContents, currentFunction);
                     isDefiniteFunctionOrReportCall = isDefiniteFunctionCall || isDefiniteReportCall;
                     if (isDefiniteFunctionOrReportCall)
                         return funcRptCompletions;  // we only want to use the retrieved completions
@@ -95,13 +96,13 @@ namespace VSGenero.EditorExtensions.Intellisense
             return false;
         }
 
-        private List<MemberCompletion> GetFunctionCallCompletions(bool isDefiniteFunctionCall, bool isDefiniteReportCall, GeneroModuleContents moduleContents, FunctionDefinition currentFunction)
+        private List<MemberCompletion> GetFunctionCallCompletions(ICompletionSession session, bool isDefiniteFunctionCall, bool isDefiniteReportCall, GeneroModuleContents moduleContents, FunctionDefinition currentFunction)
         {
             List<MemberCompletion> functionsOnly = new List<MemberCompletion>();
             List<MemberCompletion> reportsOnly = new List<MemberCompletion>();
             List<MemberCompletion> others = new List<MemberCompletion>();
 
-            foreach (var function in moduleContents.FunctionDefinitions)
+            foreach (var function in moduleContents.FunctionDefinitions.Where(x => !x.Value.Private || (x.Value.Private && session.TextView.TextBuffer.GetFilePath() == x.Value.ContainingFile)))
             {
                 var comp = new MemberCompletion(function.Value.Name, function.Value.Name, function.Value.GetIntellisenseText(),
                                 _glyphService.GetGlyph(StandardGlyphGroup.GlyphGroupMethod,

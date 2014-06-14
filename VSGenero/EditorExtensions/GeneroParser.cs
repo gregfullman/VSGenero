@@ -305,7 +305,7 @@ namespace VSGenero.EditorExtensions
             }
 
             // Update the module functions dictionary
-            foreach (var programFuncKvp in newModuleContents.FunctionDefinitions.Where(x => !x.Value.Private))
+            foreach (var programFuncKvp in newModuleContents.FunctionDefinitions)
             {
                 _moduleContents.FunctionDefinitions.AddOrUpdate(programFuncKvp.Key.ToLower(), programFuncKvp.Value, (x, y) => programFuncKvp.Value);
             }
