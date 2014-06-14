@@ -230,7 +230,8 @@ namespace VSGenero.EditorExtensions
                         (doubleQuote && _source[_currentPosition] != '"') ||
                         (singleQuote && _source[_currentPosition] != '\'')))
                 {
-                    if (_source[_currentPosition] == '\\')
+                    if (_source[_currentPosition] == '\\' &&
+                        _currentPosition + 1 < _source.Length)
                     {
                         // skip the escaped character
                         IncrementCurrentPosition();
