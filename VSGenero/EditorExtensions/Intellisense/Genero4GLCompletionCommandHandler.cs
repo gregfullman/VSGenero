@@ -66,7 +66,7 @@ namespace VSGenero.EditorExtensions.Intellisense
         private Genero4GLCompletionHandlerProvider m_provider;
         private ICompletionSession m_session;
         private ISignatureHelpSession _sigHelpSession;
-        private readonly char[] _commitChars = { ' ', '.', ',', '(' };
+        private readonly char[] _commitChars = { ' ', '.', ',', '(', '[', ']'};
 
         internal Genero4GLCompletionCommandHandler(IVsTextView textViewAdapter, ITextView textView, Genero4GLCompletionHandlerProvider provider)
         {
