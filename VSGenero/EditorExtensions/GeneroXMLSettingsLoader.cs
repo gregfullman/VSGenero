@@ -239,7 +239,9 @@ namespace VSGenero.EditorExtensions
         {
             foreach(var element in GetElementsAtPath("//gns:Genero4GL/gns:Lexing/gns:Keywords/gns:Keyword"))
             {
-                _keywordMap.Add((string)element.Attribute("name"), (string)element.Attribute("value"));
+                var name = (string)element.Attribute("name");
+                if(!_keywordMap.ContainsKey(name))
+                    _keywordMap.Add(name, (string)element.Attribute("value"));
             }
         }
 
@@ -247,7 +249,9 @@ namespace VSGenero.EditorExtensions
         {
             foreach (var element in GetElementsAtPath("//gns:Genero4GL/gns:Lexing/gns:Symbols/gns:Symbol"))
             {
-                _symbolMap.Add((string)element.Attribute("name"), (string)element.Attribute("value"));
+                var name = (string)element.Attribute("name");
+                if (!_symbolMap.ContainsKey(name))
+                    _symbolMap.Add(name, (string)element.Attribute("value"));
             }
         }
 
@@ -276,8 +280,8 @@ namespace VSGenero.EditorExtensions
                 {
                     dt.DimensionRequired = dimReq;
                     dt.RangeRequired = rangeReq;
-
-                    _dataTypeMap.Add(dt.Name, dt);
+                    if(!_dataTypeMap.ContainsKey(dt.Name))
+                        _dataTypeMap.Add(dt.Name, dt);
                 }
             }
         }
@@ -308,7 +312,8 @@ namespace VSGenero.EditorExtensions
                     oper.ReturnValue = (string)valueElement.Attribute("type");
                 }
 
-                NativeOperators.Add(oper.Name, oper);
+                if (!NativeOperators.ContainsKey(oper.Name))
+                    NativeOperators.Add(oper.Name, oper);
             }
         }
 
@@ -334,7 +339,9 @@ namespace VSGenero.EditorExtensions
                         newParam.Name = (string)paramElement.Attribute("name");
                         newParam.Type = (string)paramElement.Attribute("type");
                         newParam.Position = position++;
-                        newMethod.Parameters.Add(newParam.Name.ToLower(), newParam);
+                        var lowName = newParam.Name.ToLower();
+                        if(!newMethod.Parameters.ContainsKey(lowName))
+                            newMethod.Parameters.Add(lowName, newParam);
                     }
 
                     position = 0;
@@ -345,10 +352,14 @@ namespace VSGenero.EditorExtensions
                         newReturn.Name = (string)returnElement.Attribute("name");
                         newReturn.Type = (string)returnElement.Attribute("type");
                         newReturn.Position = position++;
-                        newMethod.Returns.Add(newReturn.Name.ToLower(), newReturn);
+                        var lowName = newReturn.Name.ToLower();
+                        if (!newMethod.Returns.ContainsKey(lowName))
+                            newMethod.Returns.Add(lowName, newReturn);
                     }
 
-                    methods.Add(newMethod.Name.ToLower(), newMethod);
+                    var lowerName = newMethod.Name.ToLower();
+                    if(!methods.ContainsKey(lowerName))
+                        methods.Add(lowerName, newMethod);
                 }
 
                 if (context.Equals("system", StringComparison.OrdinalIgnoreCase))
@@ -399,7 +410,9 @@ namespace VSGenero.EditorExtensions
                             newParam.Name = (string)paramElement.Attribute("name");
                             newParam.Type = (string)paramElement.Attribute("type");
                             newParam.Position = position++;
-                            newMethod.Parameters.Add(newParam.Name.ToLower(), newParam);
+                            var lowName = newParam.Name.ToLower();
+                            if(!newMethod.Parameters.ContainsKey(lowName))
+                                newMethod.Parameters.Add(lowName, newParam);
                         }
 
                         position = 0;
@@ -410,16 +423,22 @@ namespace VSGenero.EditorExtensions
                             newReturn.Name = (string)returnElement.Attribute("name");
                             newReturn.Type = (string)returnElement.Attribute("type");
                             newReturn.Position = position++;
-                            newMethod.Returns.Add(newReturn.Name.ToLower(), newReturn);
+                            var lowName = newReturn.Name.ToLower();
+                            if (!newMethod.Returns.ContainsKey(lowName))
+                                newMethod.Returns.Add(newReturn.Name.ToLower(), newReturn);
                         }
 
                         newClass.Methods.Add(newMethod.Name.ToLower(), newMethod);
                     }
 
-                    newPackage.Classes.Add(newClass.Name.ToLower(), newClass);
+                    var lName = newClass.Name.ToLower();
+                    if(!newPackage.Classes.ContainsKey(lName))
+                        newPackage.Classes.Add(lName, newClass);
                 }
 
-                Packages.Add(newPackage.Name.ToLower(), newPackage);
+                var loName = newPackage.Name.ToLower();
+                if (!Packages.ContainsKey(loName))
+                    Packages.Add(loName, newPackage);
             }
         }
     }

@@ -2257,7 +2257,8 @@ namespace VSGenero.EditorExtensions
                                 cd.Position = startingPosition;
                                 cd.LineNumber = startingLine;
                                 cd.ColumnNumber = startingColumn;
-                                _moduleContents.SqlCursors.Add(cd.Name.ToLower(), cd);
+                                if (!_moduleContents.SqlCursors.ContainsKey(cd.Name.ToLower()))
+                                    _moduleContents.SqlCursors.Add(cd.Name.ToLower(), cd);
                             }
                         }
                         // 3) a sql block -> next token will be "sql"
@@ -2280,7 +2281,8 @@ namespace VSGenero.EditorExtensions
                             cd.Position = startingPosition;
                             cd.LineNumber = startingLine;
                             cd.ColumnNumber = startingColumn;
-                            _moduleContents.SqlCursors.Add(cd.Name.ToLower(), cd);
+                            if (!_moduleContents.SqlCursors.ContainsKey(cd.Name.ToLower()))
+                                _moduleContents.SqlCursors.Add(cd.Name.ToLower(), cd);
                         }
                         else
                         {
@@ -2405,7 +2407,8 @@ namespace VSGenero.EditorExtensions
                                     // we can't gather information on a cursor whose sql text is not set within the current function.
                                     // set the cursor statement in the prepare
                                     cp.CursorStatement = "";
-                                    _moduleContents.SqlPrepares.Add(cp.Name, cp);
+                                    if (!_moduleContents.SqlPrepares.ContainsKey(cp.Name))
+                                        _moduleContents.SqlPrepares.Add(cp.Name, cp);
                                     return true;
                                 }
                                 var textSnapshotLine = _currentBuffer.CurrentSnapshot.GetLineFromLineNumber(prepareLineNumber);
@@ -2481,7 +2484,8 @@ namespace VSGenero.EditorExtensions
                             // set the cursor statement in the prepare
                             cp.CursorStatement = cursorStatement;
 
-                            _moduleContents.SqlPrepares.Add(cp.Name, cp);
+                            if (!_moduleContents.SqlPrepares.ContainsKey(cp.Name))
+                                _moduleContents.SqlPrepares.Add(cp.Name, cp);
                         }
                         else if(token.TokenType == GeneroTokenType.String)
                         {
@@ -2506,7 +2510,8 @@ namespace VSGenero.EditorExtensions
                                 }
                             }
                             cp.CursorStatement = sb.ToString();
-                            _moduleContents.SqlPrepares.Add(cp.Name, cp);
+                            if (!_moduleContents.SqlPrepares.ContainsKey(cp.Name))
+                                _moduleContents.SqlPrepares.Add(cp.Name, cp);
                         }
                     }
                 }
