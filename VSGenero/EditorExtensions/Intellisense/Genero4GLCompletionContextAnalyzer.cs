@@ -316,6 +316,11 @@ namespace VSGenero.EditorExtensions.Intellisense
                                 varDef = tempRecDef;
                             }
                         }
+                        else 
+                        {
+                            // we don't want autocomplete to come up when it shouldn't
+                            varDef = null;
+                        }
                     }
                 }
 
