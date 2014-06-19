@@ -276,6 +276,10 @@
     <Compile Include="CommonExtensions.cs" />
     <Compile Include="CommonPackage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Utilities\ExceptionForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Utilities\ExceptionForm.Designer.cs" />
     <Compile Include="Utilities\SynchronizationContextRegister.cs" />
     <Compile Include="Utilities\SynchronizingObject.cs" />
     <Compile Include="SharedProject\AllFilesProjectElement.cs" />

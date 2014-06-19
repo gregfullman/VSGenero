@@ -102,6 +102,15 @@ namespace VSGenero
     [Guid(GuidList.guidVSGeneroPkgString)]
     public sealed class VSGeneroPackage : VSCommonPackage
     {
+        private Genero4GLLanguagePreferences _langPrefs;
+        internal Genero4GLLanguagePreferences LangPrefs
+        {
+            get
+            {
+                return _langPrefs;
+            }
+        }
+
         public new static VSGeneroPackage Instance;
 
         public VSGeneroPackage() : base()
@@ -138,6 +147,18 @@ namespace VSGenero
             ((IServiceContainer)this).AddService(langService4GL.GetType(), langService4GL, true);
             var langServicePER = new VSGeneroPERLanguageInfo(this);
             ((IServiceContainer)this).AddService(langServicePER.GetType(), langServicePER, true);
+
+            IVsTextManager textMgr = (IVsTextManager)Instance.GetService(typeof(SVsTextManager));
+            var langPrefs = new LANGPREFERENCES[1];
+            langPrefs[0].guidLang = typeof(VSGenero4GLLanguageInfo).GUID;
+            int result = textMgr.GetUserPreferences(null, null, langPrefs, null);
+            _langPrefs = new Genero4GLLanguagePreferences(langPrefs[0]);
+
+            Guid guid = typeof(IVsTextManagerEvents2).GUID;
+            IConnectionPoint connectionPoint;
+            ((IConnectionPointContainer)textMgr).FindConnectionPoint(ref guid, out connectionPoint);
+            uint cookie;
+            connectionPoint.Advise(_langPrefs, out cookie);
 
             // TODO: not sure if this is needed...need to test
             DTE dte = (DTE)GetService(typeof(DTE));

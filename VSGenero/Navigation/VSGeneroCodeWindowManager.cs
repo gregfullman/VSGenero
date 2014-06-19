@@ -73,7 +73,10 @@ namespace VSGenero.Navigation
                 ((IVsCodeWindowEvents)this).OnNewView(textView);
             }
 
-            return AddDropDownBar();
+            if(VSGeneroPackage.Instance.LangPrefs.NavigationBar)
+                return AddDropDownBar();
+
+            return VSConstants.S_OK;
         }
 
         private int AddDropDownBar()
@@ -323,6 +326,21 @@ namespace VSGenero.Navigation
                             editFilter.DoIdle(e.ComponentManager);
                         }
                     }
+                }
+            }
+        }
+
+        public static void ToggleNavigationBar(bool fEnable)
+        {
+            foreach (var window in _windows)
+            {
+                if (fEnable)
+                {
+                    ErrorHandler.ThrowOnFailure(window.AddDropDownBar());
+                }
+                else
+                {
+                    ErrorHandler.ThrowOnFailure(window.RemoveDropDownBar());
                 }
             }
         }

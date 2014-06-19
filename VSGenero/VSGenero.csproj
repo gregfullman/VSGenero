@@ -134,6 +134,7 @@
     <Reference Include="Microsoft.Build.Framework" />
     <Reference Include="Microsoft.Build.Utilities.v4.0" />
     <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Microsoft.VisualStudio.TextManager.Interop.8.0, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
     <Reference Include="Microsoft.Web.XmlTransform">
       <HintPath>..\packages\Microsoft.Web.Xdt.1.0.0\lib\net40\Microsoft.Web.XmlTransform.dll</HintPath>
     </Reference>
@@ -308,6 +309,7 @@
     <Compile Include="EditorExtensions\Intellisense\TextHighlighter.cs" />
     <Compile Include="EditorExtensions\Intellisense\TodoTag.cs" />
     <Compile Include="EditorExtensions\Genero4GLTextViewListener.cs" />
+    <Compile Include="Genero4GLLanguagePreferences.cs" />
     <Compile Include="Navigation\GeneroLibraryManager.cs" />
     <Compile Include="Navigation\IPublicFunctionNavigator.cs" />
     <Compile Include="Project\GeneroEditorFactory.cs" />
