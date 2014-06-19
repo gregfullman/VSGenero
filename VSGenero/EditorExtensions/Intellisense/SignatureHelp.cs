@@ -462,7 +462,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                         {
                             // get an extension or base class
                             GeneroClass generoClass = null;
-                            if (IntellisenseExtensions.IsClassInstance(varDef.Type, out generoClass))
+                            if (IntellisenseExtensions.IsClassInstance(varDef, out generoClass))
                             {
                                 GeneroClassMethod classMethod;
                                 if (generoClass.Methods.TryGetValue(lowercase, out classMethod))

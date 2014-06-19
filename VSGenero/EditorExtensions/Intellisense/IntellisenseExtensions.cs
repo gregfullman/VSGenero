@@ -930,32 +930,48 @@ namespace VSGenero.EditorExtensions.Intellisense
             return ret;
         }
 
-        public static bool IsClassInstance(string type, out GeneroClass classType)
+        public static bool IsClassInstance(VariableDefinition varDef, out GeneroClass classType)
         {
             bool isClass = false;
             classType = null;
-            if (string.IsNullOrWhiteSpace(type))
-                return isClass;
-            string[] tokens = type.Split(new[] { '.' });
-            // a class consists of a package name and a class name
-            if (tokens.Length == 2)
+            var type = varDef.Type;
+            if (!string.IsNullOrWhiteSpace(type))
             {
-                GeneroPackage package;
-                if (GeneroSingletons.LanguageSettings.Packages.TryGetValue(tokens[0].ToLower(), out package))
+                string[] tokens = type.Split(new[] { '.' });
+                // a class consists of a package name and a class name
+                if (tokens.Length == 2)
                 {
-                    if (package.Classes.TryGetValue(tokens[1].ToLower(), out classType))
+                    GeneroPackage package;
+                    if (GeneroSingletons.LanguageSettings.Packages.TryGetValue(tokens[0].ToLower(), out package))
+                    {
+                        if (package.Classes.TryGetValue(tokens[1].ToLower(), out classType))
+                        {
+                            isClass = true;
+                        }
+                    }
+                }
+                else if (tokens.Length == 1)
+                {
+                    GeneroSystemClass sysClass;
+                    if (GeneroSingletons.LanguageSettings.NativeClasses.TryGetValue(tokens[0].ToLower(), out sysClass))
                     {
                         isClass = true;
+                        classType = sysClass;
                     }
                 }
             }
-            else if (tokens.Length == 1)
+
+            if (!isClass)
             {
-                GeneroSystemClass sysClass;
-                if (GeneroSingletons.LanguageSettings.NativeClasses.TryGetValue(tokens[0].ToLower(), out sysClass))
+                // check a few more things
+                if (varDef.ArrayType != ArrayType.None)
                 {
-                    isClass = true;
-                    classType = sysClass;
+                    GeneroSystemClass sysClass;
+                    if (GeneroSingletons.LanguageSettings.NativeClasses.TryGetValue("array", out sysClass))
+                    {
+                        isClass = true;
+                        classType = sysClass;
+                    }
                 }
             }
             return isClass;

@@ -43,7 +43,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                 bool isDefiniteReportCall = false;
                 if (session.IsPotentialFunctionCall(out isDefiniteFunctionCall, out isDefiniteReportCall))
                 {
-                    var funcRptCompletions = GetFunctionCallCompletions(session, isDefiniteFunctionCall, isDefiniteReportCall, moduleContents, currentFunction);
+                    var funcRptCompletions = GetFunctionCallCompletions(session, isDefiniteFunctionCall, isDefiniteReportCall, moduleContents, currentFunction, fileParserManager);
                     isDefiniteFunctionOrReportCall = isDefiniteFunctionCall || isDefiniteReportCall;
                     if (isDefiniteFunctionOrReportCall)
                         return funcRptCompletions;  // we only want to use the retrieved completions
@@ -96,7 +96,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             return false;
         }
 
-        private List<MemberCompletion> GetFunctionCallCompletions(ICompletionSession session, bool isDefiniteFunctionCall, bool isDefiniteReportCall, GeneroModuleContents moduleContents, FunctionDefinition currentFunction)
+        private List<MemberCompletion> GetFunctionCallCompletions(ICompletionSession session, bool isDefiniteFunctionCall, bool isDefiniteReportCall, GeneroModuleContents moduleContents, FunctionDefinition currentFunction, GeneroFileParserManager fileParserManager)
         {
             List<MemberCompletion> functionsOnly = new List<MemberCompletion>();
             List<MemberCompletion> reportsOnly = new List<MemberCompletion>();
@@ -164,7 +164,7 @@ namespace VSGenero.EditorExtensions.Intellisense
 
                     GeneroClass dummy;
                     // look for variables that are instances of classes with instance methods
-                    foreach (var sysVar in GeneroSingletons.SystemVariables.Where(x => IntellisenseExtensions.IsClassInstance(x.Value.Type, out dummy) && !dummy.IsStatic))
+                    foreach (var sysVar in GeneroSingletons.SystemVariables.Where(x => IntellisenseExtensions.IsClassInstance(x.Value, out dummy) && !dummy.IsStatic))
                     {
                         var comp = new MemberCompletion(sysVar.Value.Name, sysVar.Value.Name, sysVar.Value.GetIntellisenseText("system"),
                                         _glyphService.GetGlyph(StandardGlyphGroup.GlyphGroupVariable, StandardGlyphItem.GlyphItemPublic), null);
@@ -172,7 +172,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                         functionsOnly.Add(comp);
                     }
 
-                    foreach (var globalVar in moduleContents.GlobalVariables.Where(x => IntellisenseExtensions.IsClassInstance(x.Value.Type, out dummy) && !dummy.IsStatic))
+                    foreach (var globalVar in moduleContents.GlobalVariables.Where(x => IntellisenseExtensions.IsClassInstance(x.Value, out dummy) && !dummy.IsStatic))
                     {
                         var comp = new MemberCompletion(globalVar.Value.Name, globalVar.Value.Name, globalVar.Value.GetIntellisenseText("global"),
                                         _glyphService.GetGlyph(StandardGlyphGroup.GlyphGroupVariable, StandardGlyphItem.GlyphItemPublic), null);
@@ -181,7 +181,16 @@ namespace VSGenero.EditorExtensions.Intellisense
                     }
 
                     // add the module variables
-                    foreach (var moduleVar in moduleContents.ModuleVariables.Where(x => IntellisenseExtensions.IsClassInstance(x.Value.Type, out dummy) && !dummy.IsStatic))
+                    foreach (var moduleVar in moduleContents.ModuleVariables.Where(x => IntellisenseExtensions.IsClassInstance(x.Value, out dummy) && !dummy.IsStatic))
+                    {
+                        var comp = new MemberCompletion(moduleVar.Value.Name, moduleVar.Value.Name, moduleVar.Value.GetIntellisenseText("module"),
+                                        _glyphService.GetGlyph(StandardGlyphGroup.GlyphGroupVariable, StandardGlyphItem.GlyphItemInternal), null);
+                        comp.Properties.AddProperty("system", false);
+                        functionsOnly.Add(comp);
+                    }
+
+                    // get the module variables from the fpm too
+                    foreach (var moduleVar in fileParserManager.ModuleContents.ModuleVariables.Where(x => IntellisenseExtensions.IsClassInstance(x.Value, out dummy) && !dummy.IsStatic))
                     {
                         var comp = new MemberCompletion(moduleVar.Value.Name, moduleVar.Value.Name, moduleVar.Value.GetIntellisenseText("module"),
                                         _glyphService.GetGlyph(StandardGlyphGroup.GlyphGroupVariable, StandardGlyphItem.GlyphItemInternal), null);
@@ -191,7 +200,7 @@ namespace VSGenero.EditorExtensions.Intellisense
 
                     if (currentFunction != null)
                     {
-                        foreach (var functionVar in currentFunction.Variables.Where(x => IntellisenseExtensions.IsClassInstance(x.Value.Type, out dummy) && !dummy.IsStatic))
+                        foreach (var functionVar in currentFunction.Variables.Where(x => IntellisenseExtensions.IsClassInstance(x.Value, out dummy) && !dummy.IsStatic))
                         {
                             var comp = new MemberCompletion(functionVar.Value.Name, functionVar.Value.Name, functionVar.Value.GetIntellisenseText("local"),
                                             _glyphService.GetGlyph(StandardGlyphGroup.GlyphGroupVariable, StandardGlyphItem.GlyphItemPrivate), null);
@@ -368,7 +377,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                     {
                         GeneroClass potentialClass;
                         GeneroSystemClass sysClass;
-                        if (IntellisenseExtensions.IsClassInstance(varDef.Type, out potentialClass))
+                        if (IntellisenseExtensions.IsClassInstance(varDef, out potentialClass))
                         {
                             foreach (var classMethod in potentialClass.Methods)
                             {

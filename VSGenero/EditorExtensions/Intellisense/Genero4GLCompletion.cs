@@ -109,7 +109,10 @@ namespace VSGenero.EditorExtensions.Intellisense
                         List<MemberCompletion> completionListToUse = null;
                         if (isMemberCompletion)
                         {
-                            applicableSpan = GetApplicableSpan(session, m_textBuffer);
+                            var spanText = applicableSpan.GetText(session.TextView.TextSnapshot);
+                            // if we're at the start of a member completion, we want the span to be empty so the string matcher isn't trying to match on a string that starts with "."
+                            if(spanText == ".")
+                                applicableSpan = GetApplicableSpan(session, m_textBuffer);
                             completionListToUse = contextCompletions;
                         }
                         else
