@@ -429,7 +429,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                                 if (!_moduleContents.ModuleVariables.TryGetValue(lowercase, out varDef))
                                 {
                                     if (!_moduleContents.GlobalVariables.TryGetValue(lowercase, out varDef) &&
-                                        (programContents != null && programContents.GlobalVariables.TryGetValue(lowercase, out varDef)))
+                                        (programContents != null && !programContents.GlobalVariables.TryGetValue(lowercase, out varDef)))
                                     {
                                         GeneroSingletons.SystemVariables.TryGetValue(lowercase, out varDef);
                                     }
