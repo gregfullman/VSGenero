@@ -66,7 +66,6 @@ namespace VSGenero.EditorExtensions.Intellisense
         private Genero4GLCompletionHandlerProvider m_provider;
         private ICompletionSession m_session;
         private ISignatureHelpSession _sigHelpSession;
-        private readonly char[] _commitChars = { ' ', '.', ',', '(', '[', ']'};
 
         internal Genero4GLCompletionCommandHandler(IVsTextView textViewAdapter, ITextView textView, Genero4GLCompletionHandlerProvider provider)
         {
@@ -98,10 +97,9 @@ namespace VSGenero.EditorExtensions.Intellisense
             }
 
             //check for a commit character 
-            if (nCmdID == (uint)VSConstants.VSStd2KCmdID.RETURN
-                || nCmdID == (uint)VSConstants.VSStd2KCmdID.TAB
-                || (char.IsWhiteSpace(typedChar) || 
-                    (char.IsPunctuation(typedChar) && typedChar != '_')))   // don't want to commit on '_'
+            if ((nCmdID == (uint)VSConstants.VSStd2KCmdID.RETURN && VSGeneroPackage.Instance.IntellisenseOptionsPage.EnterCommitsIntellisense) ||
+                ((nCmdID == (uint)VSConstants.VSStd2KCmdID.TAB || char.IsWhiteSpace(typedChar)) && VSGeneroPackage.Instance.IntellisenseOptionsPage.SpaceCommitsIntellisense) ||
+                VSGeneroPackage.Instance.IntellisenseOptionsPage.CompletionCommittedBy.Contains(typedChar))
             {
                 //check for a a selection 
                 if (m_session != null && !m_session.IsDismissed)
@@ -112,7 +110,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                         IntellisenseExtensions.LastCommittedCompletion = m_session.SelectedCompletionSet.SelectionStatus.Completion;
                         m_session.Commit();
                         //also, don't add the character to the buffer 
-                        if(!_commitChars.Contains(typedChar))
+                        if(nCmdID == (uint)VSConstants.VSStd2KCmdID.RETURN && !VSGeneroPackage.Instance.IntellisenseOptionsPage.AddNewLineAtEndOfFullyTypedWord)
                             return VSConstants.S_OK;
                     }
                     else

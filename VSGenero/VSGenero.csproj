@@ -312,6 +312,18 @@
     <Compile Include="Genero4GLLanguagePreferences.cs" />
     <Compile Include="Navigation\GeneroLibraryManager.cs" />
     <Compile Include="Navigation\IPublicFunctionNavigator.cs" />
+    <Compile Include="Options\Genero4GLIntellisenseOptionsControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Options\Genero4GLIntellisenseOptionsControl.Designer.cs">
+      <DependentUpon>Genero4GLIntellisenseOptionsControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Options\Genero4GLIntellisenseOptionsPage.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Options\GeneroDialogPage.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Project\GeneroEditorFactory.cs" />
     <Compile Include="Project\GeneroProjectFactory.cs" />
     <Compile Include="Project\GeneroProjectNode.cs" />
@@ -345,6 +357,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Options\Genero4GLIntellisenseOptionsControl.resx">
+      <DependentUpon>Genero4GLIntellisenseOptionsControl.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>

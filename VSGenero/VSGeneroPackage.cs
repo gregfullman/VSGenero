@@ -48,6 +48,7 @@ using Microsoft.VisualStudioTools.Project;
 using NativeMethods = Microsoft.VisualStudioTools.Project.NativeMethods;
 using VSGenero.EditorExtensions;
 using System.IO;
+using VSGenero.Options;
 
 namespace VSGenero
 {
@@ -96,6 +97,7 @@ namespace VSGenero
                             EnableAdvancedMembersOption = true,
                             ShowDropDownOptions = true)]
     [ProvideLanguageExtension(typeof(VSGeneroPERLanguageInfo), VSGeneroConstants.FileExtensionPER)]
+    [ProvideLanguageEditorOptionPage(typeof(Genero4GLIntellisenseOptionsPage), VSGeneroConstants.LanguageName4GL, "", "Intellisense", "113")]
     // This causes the package to autoload when Visual Studio starts (guid for UICONTEXT_NoSolution)
     [ProvideAutoLoad("{adfc4e64-0397-11d1-9f4e-00a0c911004f}")]
 
@@ -112,6 +114,14 @@ namespace VSGenero
         }
 
         public new static VSGeneroPackage Instance;
+
+        public Genero4GLIntellisenseOptionsPage IntellisenseOptionsPage
+        {
+            get
+            {
+                return (Genero4GLIntellisenseOptionsPage)GetDialogPage(typeof(Genero4GLIntellisenseOptionsPage));
+            }
+        }
 
         public VSGeneroPackage() : base()
         {

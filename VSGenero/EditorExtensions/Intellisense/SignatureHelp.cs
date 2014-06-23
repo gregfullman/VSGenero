@@ -354,6 +354,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                 }
                 else
                 {
+                    
                     if (_provider.PublicFunctionProvider != null)
                     {
                         var methodSig = _provider.PublicFunctionProvider.GetPublicFunctionSignature(functionName.ToLower());
