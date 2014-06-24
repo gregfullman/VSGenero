@@ -57,6 +57,12 @@ namespace VSGenero
                 {
                     VSGeneroCodeWindowManager.ToggleNavigationBar(_preferences.fDropdownBar != 0);
                 }
+
+                if(VSGeneroPackage.Instance.AdvancedOptions4GLPage.ShowFunctionParametersChanged)
+                {
+                    VSGeneroCodeWindowManager.RefreshNavigationBar();
+                    VSGeneroPackage.Instance.AdvancedOptions4GLPage.SetChangesApplied();
+                }
             }
             return VSConstants.S_OK;
         }

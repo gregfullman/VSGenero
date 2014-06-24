@@ -98,6 +98,7 @@ namespace VSGenero
                             ShowDropDownOptions = true)]
     [ProvideLanguageExtension(typeof(VSGeneroPERLanguageInfo), VSGeneroConstants.FileExtensionPER)]
     [ProvideLanguageEditorOptionPage(typeof(Genero4GLIntellisenseOptionsPage), VSGeneroConstants.LanguageName4GL, "", "Intellisense", "113")]
+    [ProvideLanguageEditorOptionPage(typeof(Genero4GLAdvancedOptionsPage), VSGeneroConstants.LanguageName4GL, "", "Advanced", "114")]
     // This causes the package to autoload when Visual Studio starts (guid for UICONTEXT_NoSolution)
     [ProvideAutoLoad("{adfc4e64-0397-11d1-9f4e-00a0c911004f}")]
 
@@ -115,11 +116,19 @@ namespace VSGenero
 
         public new static VSGeneroPackage Instance;
 
-        public Genero4GLIntellisenseOptionsPage IntellisenseOptionsPage
+        public Genero4GLIntellisenseOptionsPage IntellisenseOptions4GLPage
         {
             get
             {
                 return (Genero4GLIntellisenseOptionsPage)GetDialogPage(typeof(Genero4GLIntellisenseOptionsPage));
+            }
+        }
+
+        public Genero4GLAdvancedOptionsPage AdvancedOptions4GLPage
+        {
+            get
+            {
+                return (Genero4GLAdvancedOptionsPage)GetDialogPage(typeof(Genero4GLAdvancedOptionsPage));
             }
         }
 

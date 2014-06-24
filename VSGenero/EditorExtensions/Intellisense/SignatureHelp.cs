@@ -179,101 +179,6 @@ namespace VSGenero.EditorExtensions.Intellisense
         }
     }
 
-    internal sealed class SignatureHelpCommandHandler : IOleCommandTarget
-    {
-        IOleCommandTarget m_nextCommandHandler;
-        ITextView m_textView;
-        ISignatureHelpBroker m_broker;
-        ISignatureHelpSession m_session;
-        ITextStructureNavigator m_navigator;
-
-        internal SignatureHelpCommandHandler(IVsTextView textViewAdapter, ITextView textView, ITextStructureNavigator nav, ISignatureHelpBroker broker)
-        {
-            this.m_textView = textView;
-            this.m_broker = broker;
-            this.m_navigator = nav;
-
-            //add this to the filter chain
-            textViewAdapter.AddCommandFilter(this, out m_nextCommandHandler);
-        }
-
-        public int Exec(ref Guid pguidCmdGroup, uint nCmdID, uint nCmdexecopt, IntPtr pvaIn, IntPtr pvaOut)
-        {
-            char typedChar = char.MinValue;
-
-            if (pguidCmdGroup == VSConstants.VSStd2K && nCmdID == (uint)VSConstants.VSStd2KCmdID.TYPECHAR)
-            {
-                typedChar = (char)(ushort)Marshal.GetObjectForNativeVariant(pvaIn);
-                if (typedChar.Equals('('))
-                {
-                    //move the point back so it's in the preceding word
-                    //SnapshotPoint point = m_textView.Caret.Position.BufferPosition - 1;
-                    //TextExtent extent = m_navigator.GetExtentOfWord(point);
-                    //string word = extent.Span.GetText();
-                    m_session = m_broker.TriggerSignatureHelp(m_textView);
-
-                }
-                else if (typedChar.Equals(')') && m_session != null)
-                {
-                    m_session.Dismiss();
-                    m_session = null;
-                }
-            }
-            else if (nCmdID == (uint)VSConstants.VSStd2KCmdID.BACKSPACE   //redo the filter if there is a deletion
-                || nCmdID == (uint)VSConstants.VSStd2KCmdID.DELETE)
-            {
-                if (m_session != null && !m_session.IsDismissed)
-                {
-                    m_session.Dismiss();
-                    m_session = null;
-                }
-            }
-            return m_nextCommandHandler.Exec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
-        }
-
-        public int QueryStatus(ref Guid pguidCmdGroup, uint cCmds, OLECMD[] prgCmds, IntPtr pCmdText)
-        {
-            return m_nextCommandHandler.QueryStatus(ref pguidCmdGroup, cCmds, prgCmds, pCmdText);
-        }
-    }
-
-    [Export(typeof(IVsTextViewCreationListener))]
-    [Name("Genero 4GL Signature Help controller")]
-    [TextViewRole(PredefinedTextViewRoles.Editable)]
-    [ContentType(VSGeneroConstants.ContentType4GL)]
-    internal class SignatureHelpCommandProvider : IVsTextViewCreationListener
-    {
-        //[Import]
-        //internal IVsEditorAdaptersFactoryService AdapterService;
-
-        internal readonly IVsEditorAdaptersFactoryService _adaptersFactory;
-
-        [ImportingConstructor]
-        public SignatureHelpCommandProvider(IVsEditorAdaptersFactoryService adaptersFactory)
-        {
-            _adaptersFactory = adaptersFactory;
-        }
-
-        [Import]
-        internal ITextStructureNavigatorSelectorService NavigatorService { get; set; }
-
-        [Import]
-        internal ISignatureHelpBroker SignatureHelpBroker;
-
-        public void VsTextViewCreated(IVsTextView textViewAdapter)
-        {
-            ITextView textView = _adaptersFactory.GetWpfTextView(textViewAdapter);
-            if (textView == null)
-                return;
-
-            textView.Properties.GetOrCreateSingletonProperty(
-                 () => new SignatureHelpCommandHandler(textViewAdapter,
-                    textView,
-                    NavigatorService.GetTextStructureNavigator(textView.TextBuffer),
-                    SignatureHelpBroker));
-        }
-    }
-
     [Export(typeof(ISignatureHelpSourceProvider))]
     [Name("Signature Help source")]
     [Order(Before = "default")]
@@ -349,15 +254,14 @@ namespace VSGenero.EditorExtensions.Intellisense
                 if (fpm.ModuleContents.FunctionDefinitions.TryGetValue(functionName.ToLower(), out funcDef) ||
                     (programContents != null && programContents.FunctionDefinitions.TryGetValue(functionName.ToLower(), out funcDef)))
                 {
-                    string methodSig = funcDef.GetIntellisenseText();
-                    return GetSignature(methodSig, textBuffer, span);
+                    return GetSignature(funcDef.GetSignatureInfo(), textBuffer, span);
                 }
                 else
                 {
                     
                     if (_provider.PublicFunctionProvider != null)
                     {
-                        var methodSig = _provider.PublicFunctionProvider.GetPublicFunctionSignature(functionName.ToLower());
+                        var methodSig = _provider.PublicFunctionProvider.GetPublicFunctionSignatureInfo(functionName.ToLower());
                         if (methodSig != null)
                         {
                             return GetSignature(methodSig, textBuffer, span);
@@ -367,13 +271,13 @@ namespace VSGenero.EditorExtensions.Intellisense
                     GeneroSystemClassFunction sysClassFunc;
                     if (GeneroSingletons.LanguageSettings.NativeMethods.TryGetValue(functionName.ToLower(), out sysClassFunc))
                     {
-                        return GetSignature(sysClassFunc.GetIntellisenseText(), textBuffer, span);
+                        return GetSignature(sysClassFunc.GetSignatureInfo(), textBuffer, span);
                     }
 
                     GeneroOperator sysOperator;
                     if (GeneroSingletons.LanguageSettings.NativeOperators.TryGetValue(functionName.ToLower(), out sysOperator))
                     {
-                        return GetSignature(sysOperator.GetIntellisenseText(), textBuffer, span);
+                        return GetSignature(sysOperator.GetSignatureInfo(), textBuffer, span);
                     }
                 }
             }
@@ -416,8 +320,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                     if (tmpClass != null && tmpMethod == null &&
                         tmpClass.Methods.TryGetValue(lowercase, out tmpMethod))
                     {
-                        string methodSig = tmpMethod.GetIntellisenseText();
-                        return GetSignature(methodSig, textBuffer, span);
+                        return GetSignature(tmpMethod.GetSignatureInfo(), textBuffer, span);
                     }
 
                     if (i == 0)
@@ -468,8 +371,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                                 GeneroClassMethod classMethod;
                                 if (generoClass.Methods.TryGetValue(lowercase, out classMethod))
                                 {
-                                    string methodSig = classMethod.GetIntellisenseText();
-                                    return GetSignature(methodSig, textBuffer, span);
+                                    return GetSignature(classMethod.GetSignatureInfo(), textBuffer, span);
                                 }
                             }
 
@@ -479,8 +381,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                             {
                                 if (sysClass.Functions.TryGetValue(lowercase, out sysClassFunc))
                                 {
-                                    string methodSig = sysClassFunc.GetIntellisenseText();
-                                    return GetSignature(methodSig, textBuffer, span);
+                                    return GetSignature(sysClassFunc.GetSignatureInfo(), textBuffer, span);
                                 }
                             }
 
@@ -490,8 +391,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                             {
                                 if (sysClass.Functions.TryGetValue(lowercase, out sysClassFunc))
                                 {
-                                    string methodSig = sysClassFunc.GetIntellisenseText();
-                                    return GetSignature(methodSig, textBuffer, span);
+                                    return GetSignature(sysClassFunc.GetSignatureInfo(), textBuffer, span);
                                 }
                             }
                         }
@@ -511,29 +411,25 @@ namespace VSGenero.EditorExtensions.Intellisense
             return null;
         }
 
-        private ISignature GetSignature(string methodSignature, ITextBuffer textBuffer, ITrackingSpan span)
+        private ISignature GetSignature(FunctionSignatureInfo functionSignature, ITextBuffer textBuffer, ITrackingSpan span)
         {
-            string[] pars = methodSignature.Split(new char[] { '(', ',', ')' });
-            GeneroFunctionSignature sig = new GeneroFunctionSignature(textBuffer, methodSignature, "", null);
+            string sigText = functionSignature.GetSignatureText(true, true, true);
+            GeneroFunctionSignature sig = new GeneroFunctionSignature(textBuffer, sigText, "", null);
             textBuffer.Changed += new EventHandler<TextContentChangedEventArgs>(sig.OnSubjectBufferChanged);
 
             //find the parameters in the method signature (expect methodname(one, two) 
             List<IParameter> paramList = new List<IParameter>();
             int locusSearchStart = 0;
-            for (int i = 1; i < pars.Length; i++)
+            foreach (var param in functionSignature.Parameters)
             {
-                string param = pars[i].Trim();
-
-                if (string.IsNullOrEmpty(param))
-                    continue;
-
+                var paramStr = param.ToString();
                 //find where this parameter is located in the method signature 
-                int locusStart = methodSignature.IndexOf(param, locusSearchStart);
+                int locusStart = sigText.IndexOf(paramStr, locusSearchStart);
                 if (locusStart >= 0)
                 {
-                    Span locus = new Span(locusStart, param.Length);
-                    locusSearchStart = locusStart + param.Length;
-                    paramList.Add(new GeneroFunctionParameter("", locus, param, sig));
+                    Span locus = new Span(locusStart, paramStr.Length);
+                    locusSearchStart = locusStart + paramStr.Length;
+                    paramList.Add(new GeneroFunctionParameter("", locus, paramStr, sig));
                 }
             }
             sig.Parameters = new ReadOnlyCollection<IParameter>(paramList);
@@ -548,9 +444,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             {
                 ITrackingSpan applicableToSpan = session.Signatures[0].ApplicableToSpan;
                 string text = applicableToSpan.GetText(applicableToSpan.TextBuffer.CurrentSnapshot);
-
-                if (text.Trim().Equals("add"))  //get only "add"  
-                    return session.Signatures[0];
+                return session.Signatures.First(x => x.Content.Contains(text));
             }
             return null;
         }

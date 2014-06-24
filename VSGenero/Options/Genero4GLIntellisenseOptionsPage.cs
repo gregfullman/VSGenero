@@ -73,6 +73,9 @@ namespace VSGenero.Options
             _enterCommitsIntellisense = true;
             _addNewLineAtEndOfFullyTypedWord = false;
             _completionCommittedBy = _defaultCompletionChars;
+            _spaceCommitsIntellisense = true;
+            _showCompletionList = true;
+            _preSelectMRU = true;
         }
         
         private const string CompletionCommittedBySetting = "CompletionCommittedBy";

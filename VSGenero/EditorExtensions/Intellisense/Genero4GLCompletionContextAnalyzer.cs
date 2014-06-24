@@ -104,7 +104,7 @@ namespace VSGenero.EditorExtensions.Intellisense
 
             foreach (var function in moduleContents.FunctionDefinitions.Where(x => !x.Value.Private || (x.Value.Private && session.TextView.TextBuffer.GetFilePath() == x.Value.ContainingFile)))
             {
-                var comp = new MemberCompletion(function.Value.Name, function.Value.Name, function.Value.GetIntellisenseText(),
+                var comp = new MemberCompletion(function.Value.Name, function.Value.Name, function.Value.GetIntellisenseText(true, true, true),
                                 _glyphService.GetGlyph(StandardGlyphGroup.GlyphGroupMethod,
                                     (function.Value.Private ? StandardGlyphItem.GlyphItemPrivate : StandardGlyphItem.GlyphItemPublic)),
                                 null);

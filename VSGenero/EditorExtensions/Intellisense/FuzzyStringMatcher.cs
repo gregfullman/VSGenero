@@ -16,6 +16,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
+using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace VSGenero.EditorExtensions.Intellisense
@@ -209,11 +210,15 @@ namespace VSGenero.EditorExtensions.Intellisense
             int increment = BASE_REWARD + START_OF_WORD_BONUS;
             int y = 0;
 
-            if (IntellisenseExtensions.LastCommittedCompletion != null &&
-                IntellisenseExtensions.LastCommittedCompletion.DisplayText.StartsWith(pattern, StringComparison.OrdinalIgnoreCase) &&
-                IntellisenseExtensions.LastCommittedCompletion.DisplayText.Equals(text, StringComparison.OrdinalIgnoreCase))
+            if (VSGeneroPackage.Instance.IntellisenseOptions4GLPage.PreSelectMRU)
             {
-                increment += LAST_USED_BONUS;
+                var potentiallyMRU = IntellisenseExtensions.LastCommittedCompletions.FirstOrDefault(x =>
+                                                                           x.DisplayText.StartsWith(pattern, StringComparison.OrdinalIgnoreCase) &&
+                                                                           x.DisplayText.Equals(text, StringComparison.OrdinalIgnoreCase));
+                if (potentiallyMRU != null)
+                {
+                    increment += LAST_USED_BONUS;
+                }
             }
 
             try

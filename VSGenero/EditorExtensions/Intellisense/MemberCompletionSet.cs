@@ -111,6 +111,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             }
 
             var text = ApplicableTo.GetText(ApplicableTo.TextBuffer.CurrentSnapshot);
+            text = text.Trim();
             if (text.Length > 0)
             {
                 bool anyVisible = false;

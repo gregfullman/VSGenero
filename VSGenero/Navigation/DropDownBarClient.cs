@@ -492,10 +492,18 @@ namespace VSGenero.Navigation
 
         private void ForceFunctionListUpdate(GeneroFileParserManager fpm)
         {
-            _moduleContents = fpm.ModuleContents;
+            if (fpm != null)
+            {
+                _moduleContents = fpm.ModuleContents;
+            }
             if (CalculateTopLevelEntries())
                 ForceTopLevelRefresh();
             CaretPositionChanged(this, new CaretPositionChangedEventArgs(null, _textView.Caret.Position, _textView.Caret.Position));
+        }
+
+        public void ForceRefresh()
+        {
+            ForceFunctionListUpdate(null);
         }
 
         /// <summary>
@@ -586,7 +594,8 @@ namespace VSGenero.Navigation
 
             public DropDownEntryInfo(FunctionDefinition def)
             {
-                _name = def.GetIntellisenseText(false);
+                // TODO: need to make getting the parameters optional
+                _name = def.GetIntellisenseText(false, VSGeneroPackage.Instance.AdvancedOptions4GLPage.ShowFunctionParametersInList, false);
                 _start = def.Position;
                 _end = def.End;
             }

@@ -293,6 +293,8 @@
     <Compile Include="EditorExtensions\GeneroClassifier.cs" />
     <Compile Include="EditorExtensions\GeneroXMLSettingsLoader.cs" />
     <Compile Include="EditorExtensions\IGenero4GLTextViewChangedListener.cs" />
+    <Compile Include="EditorExtensions\Intellisense\Genero4GLIntellisenseController.cs" />
+    <Compile Include="EditorExtensions\Intellisense\Genero4GLIntellisenseControllerProvider.cs" />
     <Compile Include="EditorExtensions\IProgram4GLFileProvider.cs" />
     <Compile Include="EditorExtensions\Intellisense\Genero4GLCompletion.cs" />
     <Compile Include="EditorExtensions\Intellisense\Genero4GLCompletionCommandHandler.cs" />
@@ -312,6 +314,15 @@
     <Compile Include="Genero4GLLanguagePreferences.cs" />
     <Compile Include="Navigation\GeneroLibraryManager.cs" />
     <Compile Include="Navigation\IPublicFunctionNavigator.cs" />
+    <Compile Include="Options\Genero4GLAdvancedOptionsControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Options\Genero4GLAdvancedOptionsControl.Designer.cs">
+      <DependentUpon>Genero4GLAdvancedOptionsControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Options\Genero4GLAdvancedOptionsPage.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Options\Genero4GLIntellisenseOptionsControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -357,6 +368,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Options\Genero4GLAdvancedOptionsControl.resx">
+      <DependentUpon>Genero4GLAdvancedOptionsControl.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Options\Genero4GLIntellisenseOptionsControl.resx">
       <DependentUpon>Genero4GLIntellisenseOptionsControl.cs</DependentUpon>
     </EmbeddedResource>

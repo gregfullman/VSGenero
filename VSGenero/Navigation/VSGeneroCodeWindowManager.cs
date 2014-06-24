@@ -79,6 +79,14 @@ namespace VSGenero.Navigation
             return VSConstants.S_OK;
         }
 
+        private void RefreshDropDownBar()
+        {
+            if(_client != null)
+            {
+                _client.ForceRefresh();
+            }
+        }
+
         private int AddDropDownBar()
         {
             var cpc = (IConnectionPointContainer)_window;
@@ -342,6 +350,14 @@ namespace VSGenero.Navigation
                 {
                     ErrorHandler.ThrowOnFailure(window.RemoveDropDownBar());
                 }
+            }
+        }
+
+        public static void RefreshNavigationBar()
+        {
+            foreach (var window in _windows)
+            {
+                window.RefreshDropDownBar();
             }
         }
     }

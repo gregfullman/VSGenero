@@ -15,42 +15,42 @@ namespace VSGenero.Options
         public Genero4GLIntellisenseOptionsControl()
         {
             InitializeComponent();
-            checkBoxCompletionList.Checked = VSGeneroPackage.Instance.IntellisenseOptionsPage.ShowCompletionList;
-            checkBoxEnterCommits.Checked = VSGeneroPackage.Instance.IntellisenseOptionsPage.EnterCommitsIntellisense;
-            checkBoxNewLineOnFullyTypedWord.Checked = VSGeneroPackage.Instance.IntellisenseOptionsPage.AddNewLineAtEndOfFullyTypedWord;
-            checkBoxPreselectMRU.Checked = VSGeneroPackage.Instance.IntellisenseOptionsPage.PreSelectMRU;
-            checkBoxSpacebarCommits.Checked = VSGeneroPackage.Instance.IntellisenseOptionsPage.SpaceCommitsIntellisense;
-            textBoxCommitChars.Text = VSGeneroPackage.Instance.IntellisenseOptionsPage.CompletionCommittedBy;
+            checkBoxCompletionList.Checked = VSGeneroPackage.Instance.IntellisenseOptions4GLPage.ShowCompletionList;
+            checkBoxEnterCommits.Checked = VSGeneroPackage.Instance.IntellisenseOptions4GLPage.EnterCommitsIntellisense;
+            checkBoxNewLineOnFullyTypedWord.Checked = VSGeneroPackage.Instance.IntellisenseOptions4GLPage.AddNewLineAtEndOfFullyTypedWord;
+            checkBoxPreselectMRU.Checked = VSGeneroPackage.Instance.IntellisenseOptions4GLPage.PreSelectMRU;
+            checkBoxSpacebarCommits.Checked = VSGeneroPackage.Instance.IntellisenseOptions4GLPage.SpaceCommitsIntellisense;
+            textBoxCommitChars.Text = VSGeneroPackage.Instance.IntellisenseOptions4GLPage.CompletionCommittedBy;
         }
 
         private void checkBoxCompletionList_CheckedChanged(object sender, EventArgs e)
         {
-            VSGeneroPackage.Instance.IntellisenseOptionsPage.ShowCompletionList = checkBoxCompletionList.Checked;
+            VSGeneroPackage.Instance.IntellisenseOptions4GLPage.ShowCompletionList = checkBoxCompletionList.Checked;
         }
 
         private void checkBoxSpacebarCommits_CheckedChanged(object sender, EventArgs e)
         {
-            VSGeneroPackage.Instance.IntellisenseOptionsPage.SpaceCommitsIntellisense = checkBoxSpacebarCommits.Checked;
+            VSGeneroPackage.Instance.IntellisenseOptions4GLPage.SpaceCommitsIntellisense = checkBoxSpacebarCommits.Checked;
         }
 
         private void checkBoxEnterCommits_CheckedChanged(object sender, EventArgs e)
         {
-            VSGeneroPackage.Instance.IntellisenseOptionsPage.EnterCommitsIntellisense = checkBoxEnterCommits.Checked;
+            VSGeneroPackage.Instance.IntellisenseOptions4GLPage.EnterCommitsIntellisense = checkBoxEnterCommits.Checked;
         }
 
         private void checkBoxNewLineOnFullyTypedWord_CheckedChanged(object sender, EventArgs e)
         {
-            VSGeneroPackage.Instance.IntellisenseOptionsPage.AddNewLineAtEndOfFullyTypedWord = checkBoxNewLineOnFullyTypedWord.Checked;
+            VSGeneroPackage.Instance.IntellisenseOptions4GLPage.AddNewLineAtEndOfFullyTypedWord = checkBoxNewLineOnFullyTypedWord.Checked;
         }
 
         private void checkBoxPreselectMRU_CheckedChanged(object sender, EventArgs e)
         {
-            VSGeneroPackage.Instance.IntellisenseOptionsPage.PreSelectMRU = checkBoxPreselectMRU.Checked;
+            VSGeneroPackage.Instance.IntellisenseOptions4GLPage.PreSelectMRU = checkBoxPreselectMRU.Checked;
         }
 
         private void textBoxCommitChars_TextChanged(object sender, EventArgs e)
         {
-            VSGeneroPackage.Instance.IntellisenseOptionsPage.CompletionCommittedBy = textBoxCommitChars.Text;
+            VSGeneroPackage.Instance.IntellisenseOptions4GLPage.CompletionCommittedBy = textBoxCommitChars.Text;
         }
     }
 }

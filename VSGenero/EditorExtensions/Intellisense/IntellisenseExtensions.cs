@@ -27,13 +27,19 @@ namespace VSGenero.EditorExtensions.Intellisense
 {
     public static class IntellisenseExtensions
     {
-        private static Completion _lastCommittedCompletion;
-        public static Completion LastCommittedCompletion
+        // This list holds MRU completions for pre-selection of auto-complete list.
+        private static List<Completion> _lastCommittedCompletions;
+        public static List<Completion> LastCommittedCompletions
         {
-            get { return _lastCommittedCompletion; }
-            set { _lastCommittedCompletion = value; }
+            get
+            {
+                if (_lastCommittedCompletions == null)
+                    _lastCommittedCompletions = new List<Completion>();
+                return _lastCommittedCompletions;
+            }
         }
 
+        // Utility function for splitting text into lines with a maximum length.
         private static IEnumerable<string> SplitToLines(string stringToSplit, int maximumLineLength)
         {
             var words = stringToSplit.Split(' ').Concat(new[] { "" });
@@ -64,6 +70,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                         });
         }
 
+        // Utility function to format a description.
         private static string GetFormattedDescription(string description)
         {
             int maxLength = 80;
@@ -86,103 +93,116 @@ namespace VSGenero.EditorExtensions.Intellisense
             }
         }
 
+        #region GeneroOperator
+
         internal static string GetIntellisenseText(this GeneroOperator oper)
         {
-            StringBuilder sb = new StringBuilder();
-
-            sb.AppendFormat("{0} {1}", oper.ReturnValue, oper.GetSignature());
-
-            if(!string.IsNullOrWhiteSpace(oper.Description))
-                sb.AppendFormat("\n{0}", GetFormattedDescription(oper.Description));
-            return sb.ToString();
+            return oper.GetSignatureInfo().GetSignatureText(true, true, true);
         }
 
-        internal static string GetSignature(this GeneroOperator oper)
+        internal static FunctionSignatureInfo GetSignatureInfo(this GeneroOperator oper)
         {
-            StringBuilder sb = new StringBuilder();
-
-            sb.AppendFormat("{0} (", oper.Name);
-            for (int i = 0; i < oper.Operands.Count; i++)
+            FunctionSignatureInfo fsi = new FunctionSignatureInfo();
+            fsi.Name = oper.Name;
+            foreach(var param in oper.Operands)
             {
-                sb.Append(oper.Operands[i].Item1);
-                if (i + 1 < oper.Operands.Count)
+                fsi.Parameters.Add(new FunctionSignatureParamInfo
                 {
-                    sb.Append(", ");
-                }
+                    Name = param.Item1,
+                    Type = param.Item2,
+                    Description = ""
+                });
             }
             if (!string.IsNullOrWhiteSpace(oper.MultiParamType))
             {
-                sb.AppendFormat(", {0}...", oper.MultiParamType);
+                fsi.Parameters.Add(new FunctionSignatureParamInfo
+                    {
+                        Name = "",
+                        Type = oper.MultiParamType + "...",
+                        Description = ""
+                    });
             }
-            sb.Append(")");
 
-            return sb.ToString();
+            fsi.Returns.Add(new FunctionSignatureReturnInfo
+                {
+                    Name = oper.ReturnValue,
+                    Type = "",
+                    Description = ""
+                });
+
+            return fsi;
         }
 
-        internal static string GetSignature(this FunctionDefinition funcDef)
+        #endregion
+
+        #region FunctionDefinition
+
+        internal static FunctionSignatureInfo GetSignatureInfo(this FunctionDefinition funcDef)
         {
-            StringBuilder sb = new StringBuilder();
-            sb.Append(funcDef.Name + "(");
-            for (int i = 0; i < funcDef.Parameters.Count; i++)
+            FunctionSignatureInfo fsi = new FunctionSignatureInfo();
+            fsi.Name = funcDef.Name;
+            fsi.Description = "";
+            foreach(var param in funcDef.Parameters)
             {
                 // look for the parameter in the function (local) variables
                 VariableDefinition varDef;
-                if (funcDef.Variables.TryGetValue(funcDef.Parameters[i].ToLower(), out varDef))
+                if (funcDef.Variables.TryGetValue(param.ToLower(), out varDef))
                 {
-                    // put the type of the parameter
-                    sb.Append(varDef.GetIntellisenseText());
-                }
-                else
-                {
-                    sb.Append(funcDef.Parameters[i]);
-                }
-                if (i + 1 < funcDef.Parameters.Count)
-                {
-                    sb.Append(", ");
-                }
-            }
-            sb.Append(")");
-            return sb.ToString();
-        }
-
-        internal static string GetIntellisenseText(this FunctionDefinition funcDef, bool includeReturns = true)
-        {
-            StringBuilder sb = new StringBuilder();
-            if (includeReturns)
-            {
-                if (funcDef.Returns.Count == 1)
-                {
-                    foreach (var ret in funcDef.Returns)
-                        sb.AppendFormat("{0} ", ret.Type);
-                }
-                else if (funcDef.Report)
-                {
-                    sb.Append("report ");
-                }
-                else
-                {
-                    sb.Append("void ");
-                }
-            }
-            sb.Append(funcDef.GetSignature());
-            if (includeReturns)
-            {
-                if (funcDef.Returns.Count > 1)
-                {
-                    sb.Append("\nReturns: ");
-
-                    for (int i = 0; i < funcDef.Returns.Count; i++)
+                    fsi.Parameters.Add(new FunctionSignatureParamInfo
                     {
-                        sb.Append(funcDef.Returns[i].Type);
-                        if (i + 1 < funcDef.Returns.Count)
+                        Name = varDef.Name,
+                        Type = GetVariableType(varDef),
+                        Description = ""
+                    });
+                }
+                else
+                {
+                    fsi.Parameters.Add(new FunctionSignatureParamInfo { Name = param });
+                }
+            }
+
+            if (funcDef.Report)
+            {
+                fsi.Returns.Add(new FunctionSignatureReturnInfo
+                    {
+                        Type = "report",
+                        Name = "",
+                        Description = ""
+                    });
+            }
+            else
+            {
+                foreach (var ret in funcDef.Returns)
+                {
+                    // look for the parameter in the function (local) variables
+                    VariableDefinition varDef;
+                    if (funcDef.Variables.TryGetValue(ret.Name.ToLower(), out varDef))
+                    {
+                        fsi.Returns.Add(new FunctionSignatureReturnInfo
                         {
-                            sb.Append(",\n");
-                        }
+                            Name = varDef.Name,
+                            Type = GetVariableType(varDef),
+                            Description = ""
+                        });
+                    }
+                    else
+                    {
+                        fsi.Returns.Add(new FunctionSignatureReturnInfo { Name = ret.Name });
                     }
                 }
             }
-            return sb.ToString();
+            return fsi;
         }
+
+        internal static string GetIntellisenseText(this FunctionDefinition funcDef, bool includeReturns, bool includeParams, bool includeDesc)
+        {
+            var funcSigInfo = funcDef.GetSignatureInfo();
+            return funcSigInfo.GetSignatureText(includeReturns, includeParams, includeDesc);
+        }
+
+        #endregion
+
+        #region GeneroPackage
 
         internal static string GetIntellisenseText(this GeneroPackage generoPackage)
         {
@@ -195,6 +215,10 @@ namespace VSGenero.EditorExtensions.Intellisense
             return sb.ToString();
         }
 
+        #endregion
+
+        #region GeneroClass Extensions
+
         internal static string GetIntellisenseText(this GeneroClass generoClass)
         {
             StringBuilder sb = new StringBuilder();
@@ -205,6 +229,10 @@ namespace VSGenero.EditorExtensions.Intellisense
             }
             return sb.ToString();
         }
+
+        #endregion
+
+        #region GeneroSystemClass Extensions
 
         internal static string GetIntellisenseText(this GeneroSystemClass generoSysClass)
         {
@@ -217,60 +245,63 @@ namespace VSGenero.EditorExtensions.Intellisense
             return sb.ToString();
         }
 
-        internal static string GetSignature(this GeneroClassMethod classMethod)
+        #endregion
+
+        #region GeneroClassMethod Extensions
+
+        internal static FunctionSignatureInfo GetSignatureInfo(this GeneroClassMethod classMethod)
         {
-            StringBuilder sb = new StringBuilder();
-            sb.Append(classMethod.ParentClass + "." + classMethod.Name + "(");
-            List<GeneroClassMethodParameter> sortedParams = classMethod.Parameters.Values.OrderBy(x => x.Position).ToList();
-            for (int i = 0; i < sortedParams.Count; i++)
+            FunctionSignatureInfo fsi = new FunctionSignatureInfo();
+            fsi.Name = classMethod.Name;
+            fsi.Parent = classMethod.ParentClass;
+            fsi.Description = classMethod.Description;
+
+            foreach (var param in classMethod.Parameters.Values.OrderBy(x => x.Position))
             {
-                sb.Append(sortedParams[i].Type + " " + sortedParams[i].Name);
-                if (i + 1 < sortedParams.Count)
-                {
-                    sb.Append(", ");
-                }
+                fsi.Parameters.Add(new FunctionSignatureParamInfo
+                    {
+                        Name = param.Name,
+                        Type = param.Type,
+                        Description = param.Description
+                    });
             }
-            sb.Append(")");
-            return sb.ToString();
+
+            foreach(var ret in classMethod.Returns.Values.OrderBy(x => x.Position))
+            {
+                fsi.Returns.Add(new FunctionSignatureReturnInfo
+                    {
+                        Name = ret.Name,
+                        Type = ret.Type,
+                        Description = ret.Description
+                    });
+            }
+
+            return fsi;
         }
 
         internal static string GetIntellisenseText(this GeneroClassMethod classMethod)
         {
+            var funcSigInfo = classMethod.GetSignatureInfo();
+            return funcSigInfo.GetSignatureText(true, true, true);
+        }
+
+        #endregion
+
+        #region VariableDefinition
+
+        private static string GetVariableIntellisenseText(VariableDefinition varDef, VariableDefinition parentDef = null)
+        {
             StringBuilder sb = new StringBuilder();
-            if(classMethod.Returns.Count == 0)
-            {
-                sb.Append("void ");
-            }
-            if (classMethod.Returns.Count == 1)
-            {
-                foreach (var ret in classMethod.Returns)
-                    sb.AppendFormat("{0} ", ret.Value.Type);
-            }
-            sb.Append(classMethod.GetSignature());
-            if (classMethod.Returns.Count > 1)
-            {
-                sb.Append("\nReturns: ");
-
-                List<GeneroClassMethodReturn> sortedReturns = classMethod.Returns.Values.OrderBy(x => x.Position).ToList();
-                for (int i = 0; i < sortedReturns.Count; i++)
-                {
-                    sb.Append(sortedReturns[i].Type);
-                    if (i + 1 < sortedReturns.Count)
-                    {
-                        sb.Append(",\n");
-                    }
-                }
-            }
-
-            if (!string.IsNullOrWhiteSpace(classMethod.Description))
-            {
-                sb.AppendFormat("\n{0}", GetFormattedDescription(classMethod.Description));
-            }
-
+            sb.Append(GetVariableType(varDef));
+            if (sb.Length > 0)
+                sb.Append(" ");
+            if (parentDef != null)
+                sb.Append(string.Format("{0}.", parentDef.Name));
+            sb.Append(varDef.Name);
             return sb.ToString();
         }
 
-        private static string GetVariableIntellisenseText(VariableDefinition varDef, VariableDefinition parentDef = null)
+        private static string GetVariableType(VariableDefinition varDef)
         {
             StringBuilder sb = new StringBuilder();
             if (varDef.ArrayType == ArrayType.Static)
@@ -292,11 +323,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             if (!string.IsNullOrWhiteSpace(varDef.Type))
             {
                 sb.Append(varDef.Type);
-                sb.Append(" ");
             }
-            if (parentDef != null)
-                sb.Append(string.Format("{0}.", parentDef.Name));
-            sb.Append(varDef.Name);
             return sb.ToString();
         }
 
@@ -320,6 +347,8 @@ namespace VSGenero.EditorExtensions.Intellisense
             sb.Append(GetVariableIntellisenseText(varDef, parent));
             return sb.ToString();
         }
+
+        #endregion
 
         internal static string GetIntellisenseText(this DataType dataType, string context = null)
         {
@@ -363,7 +392,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             StringBuilder sb = new StringBuilder();
             sb.AppendLine("cursor:");
             sb.AppendLine();
-            foreach (var splitLine in IntelligentSplit(cursorPrep.CursorStatement, 40))
+            foreach (var splitLine in SplitToLines(cursorPrep.CursorStatement, 40))
             {
                 sb.AppendLine(splitLine);
             }
@@ -377,20 +406,12 @@ namespace VSGenero.EditorExtensions.Intellisense
             sb.AppendLine();
             if (!string.IsNullOrWhiteSpace(cursorDecl.StaticSqlStatement))
             {
-                foreach (var splitLine in IntelligentSplit(cursorDecl.StaticSqlStatement, 40))
+                foreach (var splitLine in SplitToLines(cursorDecl.StaticSqlStatement, 40))
                 {
                     sb.AppendLine(splitLine);
                 }
             }
             return sb.ToString();
-        }
-
-        internal static IEnumerable<string> IntelligentSplit(string stringToSplit, int maxLineLength)
-        {
-            int charCount = 0;
-            return stringToSplit.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
-                                .GroupBy(w => (charCount += w.Length + 1) / maxLineLength)
-                                .Select(g => string.Join(" ", g));
         }
 
         internal static bool IsWithinComment(this IIntellisenseSession session)

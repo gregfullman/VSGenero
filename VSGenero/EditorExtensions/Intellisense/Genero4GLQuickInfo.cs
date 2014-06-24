@@ -583,7 +583,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                 }
                 else if (funcDef != null && finalMatchType == "funcDef")
                 {
-                    qiContent.Add(funcDef.GetIntellisenseText());
+                    qiContent.Add(funcDef.GetIntellisenseText(true, true, true));
                 }
             }
         }
