@@ -57,34 +57,34 @@ namespace VSGenero.EditorExtensions.Intellisense
             _provider = provider;
             _editOps = provider._EditOperationsFactory.GetEditorOperations(textView);
             _incSearch = provider._IncrementalSearch.GetIncrementalSearch(textView);
-            _textView.MouseHover += TextViewMouseHover;
+            //_textView.MouseHover += TextViewMouseHover;
             textView.Properties.AddProperty(typeof(Genero4GLIntellisenseController), this);  // added so our key processors can get back to us
         }
 
-        private void TextViewMouseHover(object sender, MouseHoverEventArgs e)
-        {
-            if (_quickInfoSession != null && !_quickInfoSession.IsDismissed)
-            {
-                _quickInfoSession.Dismiss();
-            }
-            var pt = e.TextPosition.GetPoint(VSGeneroConstants.IsGenero4GLContent, PositionAffinity.Successor);
-            if (pt != null)
-            {
-                _quickInfoSession = _provider._QuickInfoBroker.TriggerQuickInfo(
-                    _textView,
-                    pt.Value.Snapshot.CreateTrackingPoint(pt.Value.Position, PointTrackingMode.Positive),
-                    true);
-            }
-        }
+        //private void TextViewMouseHover(object sender, MouseHoverEventArgs e)
+        //{
+        //    if (_quickInfoSession != null && !_quickInfoSession.IsDismissed)
+        //    {
+        //        _quickInfoSession.Dismiss();
+        //    }
+        //    var pt = e.TextPosition.GetPoint(VSGeneroConstants.IsGenero4GLContent, PositionAffinity.Successor);
+        //    if (pt != null)
+        //    {
+        //        _quickInfoSession = _provider._QuickInfoBroker.TriggerQuickInfo(
+        //            _textView,
+        //            pt.Value.Snapshot.CreateTrackingPoint(pt.Value.Position, PointTrackingMode.Positive),
+        //            true);
+        //    }
+        //}
 
-        internal void TriggerQuickInfo()
-        {
-            if (_quickInfoSession != null && !_quickInfoSession.IsDismissed)
-            {
-                _quickInfoSession.Dismiss();
-            }
-            _quickInfoSession = _provider._QuickInfoBroker.TriggerQuickInfo(_textView);
-        }
+        //internal void TriggerQuickInfo()
+        //{
+        //    if (_quickInfoSession != null && !_quickInfoSession.IsDismissed)
+        //    {
+        //        _quickInfoSession.Dismiss();
+        //    }
+        //    _quickInfoSession = _provider._QuickInfoBroker.TriggerQuickInfo(_textView);
+        //}
 
         /// <summary>
         /// Triggers Statement completion when appropriate keys are pressed
@@ -532,7 +532,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                 throw new ArgumentException("Not attached to specified text view", "textView");
             }
 
-            _textView.MouseHover -= TextViewMouseHover;
+            //_textView.MouseHover -= TextViewMouseHover;
             _textView.Properties.RemoveProperty(typeof(Genero4GLIntellisenseController));
 
             DetachKeyboardFilter();
