@@ -457,8 +457,10 @@ namespace VSGenero.EditorExtensions.Intellisense
                 {
                     _sigHelpSession.SelectedSignature = sig;
 
-                    IParameter param;
-                    if (_sigHelpSession.Properties.TryGetProperty(typeof(GeneroFunctionParameter), out param))
+
+                    IParameter param = _sigHelpSession.SelectedSignature.CurrentParameter;
+                    if(param != null)
+                    //if (_sigHelpSession.Properties.TryGetProperty(typeof(GeneroFunctionParameter), out param))
                     {
                         ((GeneroFunctionSignature)sig).SetCurrentParameter(param);
                     }

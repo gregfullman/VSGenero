@@ -218,17 +218,36 @@ namespace VSGenero.EditorExtensions.Intellisense
              new Span(position, 0), SpanTrackingMode.EdgeInclusive, 0);
 
             SnapshotSpan wordSpan;
-            string word = session.GetCurrentMemberOrMemberAccess(out wordSpan);
+            bool isIncompleteFunction;
+            string word = session.GetCurrentFunctionText(out wordSpan, out isIncompleteFunction);
             if (word == null)
             {
                 SnapshotPoint point = session.TextView.Caret.Position.BufferPosition - 1;
                 ITextStructureNavigator navigator = _provider.NavigatorService.GetTextStructureNavigator(m_textBuffer);
                 TextExtent extent = navigator.GetExtentOfWord(point);
                 word = extent.Span.GetText();
+                //applicableToSpan = m_textBuffer.CurrentSnapshot.CreateTrackingSpan(extent.Span, SpanTrackingMode.EdgeInclusive);
+            }
+            else
+            {
+                applicableToSpan = m_textBuffer.CurrentSnapshot.CreateTrackingSpan(wordSpan, SpanTrackingMode.EdgeInclusive);
+            }
+            // strip off open paren and beyond
+            int openParInd = word.IndexOf('(');
+            if(openParInd > 0)
+            {
+                word = word.Substring(0, word.Length - (word.Length - openParInd));
             }
             var signature = CreateSignature(session, m_textBuffer, word, applicableToSpan);
             if (signature != null)
+            {
                 signatures.Add(signature);
+
+                if(isIncompleteFunction)
+                {
+                    session.Properties.AddProperty(typeof(GeneroFunctionSignature), signature);
+                }
+            }
         }
 
         private ISignature CreateSignature(ISignatureHelpSession session, ITextBuffer textBuffer, string functionName, ITrackingSpan span)

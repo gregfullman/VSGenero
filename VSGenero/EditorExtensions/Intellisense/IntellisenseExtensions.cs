@@ -719,7 +719,8 @@ namespace VSGenero.EditorExtensions.Intellisense
             if (char.IsWhiteSpace(lineText[lineText.Length - 1]))
                 return memberName;
 
-            var revParser = EditorExtensions.GetReverseParser(triggerPoint);
+            // set up the parser to look at multiple lines (until we stop it)
+            var revParser = EditorExtensions.GetReverseParser(triggerPoint, -1, true);
 
             bool isMemberAccess = false;
             int i = 0;
@@ -796,6 +797,50 @@ namespace VSGenero.EditorExtensions.Intellisense
             string memberName = null;
             if (IsEmptySession(session)) return memberName;
             return session.TextView.Caret.Position.BufferPosition.GetCurrentMemberOrMemberAccess(out applicableSpan);
+        }
+
+        internal static string GetCurrentFunctionText(this ISignatureHelpSession session, out SnapshotSpan applicableSpan, out bool isIncompleteFunction)
+        {
+            isIncompleteFunction = false;
+            if (IsEmptySession(session))
+            {
+                applicableSpan = new SnapshotSpan();
+                return null;
+            }
+            // first try to get the current member or member access. This will work if no parameters have been entered yet.
+            var retStr = session.GetCurrentMemberOrMemberAccess(out applicableSpan);
+            if(retStr == null)
+            {
+                // see if we're in an open function signature being filled in...
+                // For right now, we'll stick with the current line...but eventually want to support looking back over multiple lines...TODO
+
+                string collect = "";
+                SnapshotSpan openParenSpan = default(SnapshotSpan);
+                // set up the parser to look at multiple lines (until we stop it)
+                var revParser = EditorExtensions.GetReverseParser(session.TextView.Caret.Position.BufferPosition);
+                foreach (var tagSpan in revParser)
+                {
+                    if (tagSpan == null)
+                        break;
+                    string spanText = tagSpan.Span.GetText();
+                    collect = spanText + collect;
+                    if(spanText == "(")
+                    {
+                        openParenSpan = tagSpan.Span;
+                        break;
+                    }
+                }
+
+                if (openParenSpan != default(SnapshotSpan))
+                {
+                    retStr = openParenSpan.Start.GetCurrentMemberOrMemberAccess(out applicableSpan);
+                    retStr += collect;
+                    SnapshotSpan newSpan = new SnapshotSpan(applicableSpan.Start, session.TextView.Caret.Position.BufferPosition);
+                    applicableSpan = newSpan;
+                    isIncompleteFunction = true;
+                }
+            }
+            return retStr;
         }
 
         // TODO: needs an overload for SnapshotPoint
