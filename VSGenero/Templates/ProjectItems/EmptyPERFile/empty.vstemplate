@@ -1,0 +1,14 @@
+﻿<VSTemplate Version="2.0.0" Type="Item" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005">
+  <TemplateData>
+    <Name>Empty PER File</Name>
+    <Description>An empty .per file</Description>
+    <Icon Package="{18274d18-91c9-420c-a121-2ffe4f920b4e}" ID="3752" />
+    <ProjectType>Genero</ProjectType>
+    <DefaultName>program.per</DefaultName>
+    <SortOrder>10</SortOrder>
+  </TemplateData>
+  <TemplateContent>
+    <References/>
+    <ProjectItem SubType="Code" TargetFileName="$fileinputname$.$fileinputextension$">empty.per</ProjectItem>
+  </TemplateContent>
+</VSTemplate>

@@ -31,6 +31,15 @@
     <PublicAssemblies>$(DevEnvDir)PublicAssemblies\</PublicAssemblies>
     <PrivateAssemblies>$(DevEnvDir)PublicAssemblies\</PrivateAssemblies>
   </PropertyGroup>
+  <PropertyGroup>
+    <!-- 
+      These are needed to properly build the project and item templates and include them in the VSIX
+      container ready for installation. Deployment is suppresssed since we are using VSTemplate files. 
+    -->
+    <VsTemplateLanguage>Genero</VsTemplateLanguage>
+    <GetVsixSourceItemsDependsOn>$(GetVsixSourceItemsDependsOn);GetVsixTemplateItems</GetVsixSourceItemsDependsOn>
+    <DeployVSTemplates>false</DeployVSTemplates>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(VisualStudioVersion)' &lt;= '11.0'">
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -336,6 +345,8 @@
     <Compile Include="Options\GeneroDialogPage.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="Project\Attributes.cs" />
+    <Compile Include="Project\Genero4GLFileNode.cs" />
     <Compile Include="Project\GeneroEditorFactory.cs" />
     <Compile Include="Project\GeneroProjectFactory.cs" />
     <Compile Include="Project\GeneroProjectNode.cs" />
@@ -368,6 +379,14 @@
     <Compile Include="VSGeneroPackage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
+  <ItemDefinitionGroup>
+    <ZipProject>
+      <Language>Genero</Language>
+    </ZipProject>
+    <ZipItem>
+      <Language>Genero</Language>
+    </ZipItem>
+  </ItemDefinitionGroup>
   <ItemGroup>
     <EmbeddedResource Include="Options\Genero4GLAdvancedOptionsControl.resx">
       <DependentUpon>Genero4GLAdvancedOptionsControl.cs</DependentUpon>
@@ -383,6 +402,7 @@
     <EmbeddedResource Include="VSPackage.resx">
       <MergeWithCTO>true</MergeWithCTO>
       <ManifestResourceName>VSPackage</ManifestResourceName>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>
   <Choose>
@@ -402,6 +422,29 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <ZipItem Include="Templates\ProjectItems\EmptyPERFile\empty.per">
+      <OutputSubPath>EmptyPERFile</OutputSubPath>
+    </ZipItem>
+    <ZipItem Include="Templates\ProjectItems\EmptyPERFile\empty.vstemplate">
+      <SubType>Designer</SubType>
+      <OutputSubPath>EmptyPERFile</OutputSubPath>
+    </ZipItem>
+    <ZipItem Include="Templates\ProjectItems\Empty4GLFile\empty.vstemplate">
+      <SubType>Designer</SubType>
+      <OutputSubPath>Empty4GLFile</OutputSubPath>
+    </ZipItem>
+    <ZipItem Include="Templates\ProjectItems\Empty4GLFile\empty.4gl">
+      <OutputSubPath>Empty4GLFile</OutputSubPath>
+    </ZipItem>
+    <ZipProject Include="Templates\Projects\Genero4GLProgram\Genero4GLProgram.glproj">
+      <RootPath>Templates\Projects\Genero4GLProgram</RootPath>
+    </ZipProject>
+    <ZipProject Include="Templates\Projects\Genero4GLProgram\Genero4GLProgram.vstemplate">
+      <RootPath>Templates\Projects\Genero4GLProgram</RootPath>
+    </ZipProject>
+    <ZipProject Include="Templates\Projects\Genero4GLProgram\Program.4gl">
+      <RootPath>Templates\Projects\Genero4GLProgram</RootPath>
+    </ZipProject>
     <Content Include="VSGenero256.ico">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
@@ -486,4 +529,15 @@
   <Target Name="AfterBuild">
   </Target>
   -->
+  <!-- This target is needed to include the project and item templates in the VSIX container. -->
+  <Target Name="GetVsixTemplateItems" DependsOnTargets="ZipProjects;ZipItems">
+    <ItemGroup>
+      <VSIXSourceItem Include="@(IntermediateZipItem)">
+        <VSIXSubPath>ItemTemplates\%(IntermediateZipItem.Language)\%(IntermediateZipItem.OutputSubPath)\%(IntermediateZipItem.Culture)</VSIXSubPath>
+      </VSIXSourceItem>
+      <VSIXSourceItem Include="@(IntermediateZipProject)">
+        <VSIXSubPath>ProjectTemplates\%(IntermediateZipProject.Language)\%(IntermediateZipProject.OutputSubPath)\%(IntermediateZipProject.Culture)</VSIXSubPath>
+      </VSIXSourceItem>
+    </ItemGroup>
+  </Target>
 </Project>

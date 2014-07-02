@@ -18,6 +18,7 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudioTools;
 using Microsoft.VisualStudioTools.Project;
+using Microsoft.VisualStudio.Shell.Interop;
 #if DEV11_OR_LATER
 using Microsoft.VisualStudio.Shell.Interop;
 #endif
@@ -26,11 +27,14 @@ namespace VSGenero.Project
 {
     [PackageRegistration(UseManagedResourcesOnly = true)]
     [Description("Genero Project Package")]
-    [ProvideProjectFactory(typeof(GeneroProjectFactory), VSGeneroConstants.LanguageName4GL, GeneroProjectFileFilter, "glproj", "glproj", ".\\NullPath", LanguageVsTemplate = VSGeneroConstants.LanguageName4GL)]
+    [ProvideProjectFactory(typeof(GeneroProjectFactory), VSGeneroConstants.LanguageName, GeneroProjectFileFilter, "glproj", "glproj", @".\\NullPath", LanguageVsTemplate = VSGeneroConstants.LanguageName)]
     // TODO: not sure how to get two language extensions registered under the same editor...we'll see
+    
+    // This attribute controls what shows up in the New Item dialog (not Project's Add Item dialog)
     [ProvideEditorExtension2(typeof(GeneroEditorFactory), VSGeneroConstants.FileExtension4GL, 50, ProjectGuid = VSConstants.CLSID.MiscellaneousFilesProject_string, NameResourceID = 3750, DefaultName = "program", TemplateDir = "Templates\\NewItem")]
-#if DEV12
+#if VS120
     // TODO: look at Python Tools, there's something different for this
+    [ProvideEditorExtension2(typeof(GeneroEditorFactory), VSGeneroConstants.FileExtension4GL, 50, __VSPHYSICALVIEWATTRIBUTES.PVA_SupportsPreview, "*:1", ProjectGuid = VSGeneroConstants.ProjectFactoryGuid, NameResourceID = 3750, EditorNameResourceId = 3751, DefaultName = "program", TemplateDir = ".\\NullPath")]
 #else
     [ProvideEditorExtension2(typeof(GeneroEditorFactory), VSGeneroConstants.FileExtension4GL, 50, "*:1", ProjectGuid = VSGeneroConstants.ProjectFactoryGuid, NameResourceID = 3750, EditorNameResourceId = 3751, DefaultName = "program", TemplateDir = ".\\NullPath")]
 #endif

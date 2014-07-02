@@ -38,5 +38,34 @@ namespace VSGenero.Project
             project.SetSite((IOleServiceProvider)((IServiceProvider)Package).GetService(typeof(IOleServiceProvider)));
             return project;
         }
+
+        protected override ProjectUpgradeState UpgradeProjectCheck(
+            ProjectRootElement projectXml,
+            ProjectRootElement userProjectXml,
+            Action<__VSUL_ERRORLEVEL, string> log,
+            ref Guid projectFactory,
+            ref __VSPPROJECTUPGRADEVIAFACTORYFLAGS backupSupport
+        )
+        {
+            Version version;
+
+            if (!Version.TryParse(projectXml.ToolsVersion, out version) ||
+                version < new Version(4, 0))
+            {
+                return ProjectUpgradeState.SafeRepair;
+            }
+
+            return ProjectUpgradeState.NotNeeded;
+        }
+
+        protected override void UpgradeProject(
+            ref ProjectRootElement projectXml,
+            ref ProjectRootElement userProjectXml,
+            Action<__VSUL_ERRORLEVEL, string> log
+        )
+        {
+            projectXml.ToolsVersion = "4.0";
+            log(__VSUL_ERRORLEVEL.VSUL_INFORMATIONAL, SR.GetString(SR.UpgradedToolsVersion));
+        }
     }
 }

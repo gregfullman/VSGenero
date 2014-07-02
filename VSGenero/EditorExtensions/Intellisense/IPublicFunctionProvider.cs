@@ -54,7 +54,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             }
         }
 
-        public string GetSignatureText(bool includeReturns, bool includeParams, bool includeDescription)
+        public virtual string GetSignatureText(bool includeReturns, bool includeParams, bool includeDescription)
         {
             StringBuilder sb = new StringBuilder();
 

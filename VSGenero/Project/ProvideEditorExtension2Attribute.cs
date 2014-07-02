@@ -18,6 +18,7 @@ using System.IO;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudioTools;
 using VSGenero;
+using Microsoft.VisualStudio.Shell.Interop;
 #if DEV11_OR_LATER
 using Microsoft.VisualStudio.Shell.Interop;
 #endif
@@ -48,7 +49,7 @@ namespace VSGenero.Project
         private string _editorName;
         private Guid _linkedEditorGuid;
         private readonly string[] _extensions;
-#if DEV11_OR_LATER
+#if VS120
         private __VSPHYSICALVIEWATTRIBUTES _commonViewAttrs;
 #endif
 
@@ -77,7 +78,7 @@ namespace VSGenero.Project
             _extensions = extensions;
         }
 
-#if DEV11_OR_LATER
+#if VS120
         public ProvideEditorExtension2Attribute(object factoryType, string extension, int priority, __VSPHYSICALVIEWATTRIBUTES commonViewAttributes, params string[] extensions) :
             this(factoryType, extension, priority, extensions) {
             _commonViewAttrs = commonViewAttributes;
@@ -133,7 +134,7 @@ namespace VSGenero.Project
             set { _linkedEditorGuid = new System.Guid(value); }
         }
 
-#if DEV11_OR_LATER
+#if VS120
         public __VSPHYSICALVIEWATTRIBUTES CommonPhysicalViewAttributes {
             get {
                 return _commonViewAttrs;

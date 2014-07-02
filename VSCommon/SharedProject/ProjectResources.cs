@@ -58,7 +58,7 @@ namespace Microsoft.VisualStudioTools.Project
             return SR.GetString(value, CultureInfo.CurrentUICulture);
         }
     }
-    internal class SR
+    public class SR
     {
         internal const string AddReferenceDialogTitle = "AddReferenceDialogTitle";
         internal const string AddToNullProjectError = "AddToNullProjectError";
@@ -218,9 +218,9 @@ namespace Microsoft.VisualStudioTools.Project
             }
         }
 
-        internal SR()
+        public SR()
         {
-            resources = new System.Resources.ResourceManager("Microsoft.VisualStudio.Project", this.GetType().Assembly);
+            resources = new System.Resources.ResourceManager("Microsoft.VisualStudio.VSCommon.SharedProject.ProjectResources", this.GetType().Assembly);
         }
 
         private static SR GetLoader()

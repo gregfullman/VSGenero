@@ -657,7 +657,8 @@ namespace Microsoft.VisualStudioTools.Project
 
         protected virtual Stream ProjectIconsImageStripStream {
             get {
-                return typeof(ProjectNode).Assembly.GetManifestResourceStream("Microsoft.VisualStudioTools.Project.Resources.imagelis.bmp");
+                Type t = typeof(ProjectNode);
+                return t.Assembly.GetManifestResourceStream("Microsoft.VisualStudio.VSCommon.SharedProject.Resources.imagelis.bmp");
             }
         }
 

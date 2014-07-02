@@ -1,0 +1,18 @@
+﻿<VSTemplate Version="2.0.0" Type="Project" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005">
+  <TemplateData>
+    <Name>Genero 4GL Program</Name>
+    <Description>A project for creating Genero 4GL Program</Description>
+    <Icon Package="{18274d18-91c9-420c-a121-2ffe4f920b4e}" ID="404" />
+    <ProjectType>Genero</ProjectType>
+    <SortOrder>50</SortOrder>
+    <NumberOfParentCategoriesToRollUp>2</NumberOfParentCategoriesToRollUp>
+    <CreateNewFolder>false</CreateNewFolder>
+    <DefaultName>GeneroProgram</DefaultName>
+    <ProvideDefaultName>true</ProvideDefaultName>
+  </TemplateData>
+  <TemplateContent>
+    <Project File="Genero4GLProgram.glproj" ReplaceParameters="true">
+      <ProjectItem ReplaceParameters="true" OpenInEditor="true" TargetFileName="$safeprojectname$.4gl">Program.4gl</ProjectItem>
+    </Project>
+  </TemplateContent>
+</VSTemplate>

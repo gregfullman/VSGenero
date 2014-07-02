@@ -88,5 +88,38 @@ namespace VSGenero.Project
         {
             return null;    // TODO: I suppose this could somehow link up with the Run mechanism...will need to expose something like that
         }
+
+        protected override void NewBuildProject(Microsoft.Build.Evaluation.Project project)
+        {
+            base.NewBuildProject(project);
+
+            // TODO: something
+        }
+
+        public override CommonFileNode CreateCodeFileNode(ProjectElement item)
+        {
+            return new Genero4GLFileNode(this, item);
+        }
+
+        public override string[] CodeFileExtensions
+        {
+            get
+            {
+                return new[] { VSGeneroConstants.FileExtension4GL, VSGeneroConstants.FileExtensionPER };
+            }
+        }
+
+        public override bool IsCodeFile(string fileName)
+        {
+            return IsGeneroFile(fileName);
+        }
+
+        internal static bool IsGeneroFile(string filename)
+        {
+            var ext = Path.GetExtension(filename);
+
+            return String.Equals(ext, VSGeneroConstants.FileExtension4GL, StringComparison.OrdinalIgnoreCase) ||
+                String.Equals(ext, VSGeneroConstants.FileExtensionPER, StringComparison.OrdinalIgnoreCase);
+        }
     }
 }

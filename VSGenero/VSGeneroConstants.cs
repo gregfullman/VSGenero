@@ -26,6 +26,7 @@ namespace VSGenero
 {
     public static class VSGeneroConstants
     {
+        internal const string LanguageName = "Genero";
         internal const string LanguageName4GL = "Genero4GL";
         internal const string LanguageNamePER = "GeneroPER";
         public const string FileExtension4GL = ".4gl";
