@@ -25,6 +25,58 @@ namespace VSGenero.EditorExtensions
 {
     public static class EditorExtensions
     {
+        public static string ReplaceLineEnding(this string line, string lineEnding)
+        {
+            StringBuilder sb = new StringBuilder();
+            var currLineEnding = line.GetLineEnding();
+            if (line.Length > currLineEnding.Length)
+                sb.Append(line.Substring(line.Length - currLineEnding.Length));
+            sb.Append(lineEnding);
+            return sb.ToString();
+        }
+
+        public static string GetLineEnding(this string line)
+        {
+            StringBuilder sb = new StringBuilder();
+            for(int i = line.Length - 1; i >= 0; i--)
+            {
+                if(line[i] == '\n' || line[i] == '\r')
+                {
+                    sb.Insert(0, line[i]);
+                }
+                else
+                {
+                    break;
+                }
+            }
+            return sb.ToString();
+        }
+
+        public static List<string> GetLines(this ITextChange change)
+        {
+            List<string> lines = new List<string>();
+            var changeLength = change.NewText.Length;
+            if (changeLength > 0)
+            {
+                StringBuilder sb = new StringBuilder();
+                int currInd = 0;
+                do
+                {
+                    sb.Append(change.NewText[currInd]);
+                    if(change.NewText[currInd] == '\n')
+                    {
+                        lines.Add(sb.ToString());
+                        sb.Clear();
+                    }
+                }
+                while (++currInd < changeLength);
+
+                if (sb.Length > 0)
+                    lines.Add(sb.ToString());
+            }
+            return lines;
+        }
+
         public static bool CommentOrUncommentBlock(ITextView view, bool comment)
         {
             SnapshotPoint start, end;

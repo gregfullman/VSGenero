@@ -285,6 +285,7 @@
     <Compile Include="EditorExtensions\Genero4GLBraceMatchingTagger.cs" />
     <Compile Include="EditorExtensions\Genero4GLOutliner.cs" />
     <Compile Include="EditorExtensions\GeneroLexer.cs" />
+    <Compile Include="EditorExtensions\GeneroLineEndingsListener.cs" />
     <Compile Include="EditorExtensions\GeneroParser.cs" />
     <Compile Include="EditorExtensions\GeneroProgramContentsManager.cs" />
     <Compile Include="EditorExtensions\GeneroReverseParser.cs" />
