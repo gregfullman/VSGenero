@@ -174,20 +174,27 @@ namespace VSGenero.EditorExtensions.Intellisense
             {
                 foreach (var ret in funcDef.Returns)
                 {
-                    // look for the parameter in the function (local) variables
-                    VariableDefinition varDef;
-                    if (funcDef.Variables.TryGetValue(ret.Name.ToLower(), out varDef))
+                    if (ret.Name == null)
                     {
-                        fsi.Returns.Add(new FunctionSignatureReturnInfo
-                        {
-                            Name = varDef.Name,
-                            Type = GetVariableType(varDef),
-                            Description = ""
-                        });
+                        fsi.Returns.Add(new FunctionSignatureReturnInfo { Type = ret.Type });
                     }
                     else
                     {
-                        fsi.Returns.Add(new FunctionSignatureReturnInfo { Name = ret.Name });
+                        // look for the parameter in the function (local) variables
+                        VariableDefinition varDef;
+                        if (funcDef.Variables.TryGetValue(ret.Name.ToLower(), out varDef))
+                        {
+                            fsi.Returns.Add(new FunctionSignatureReturnInfo
+                            {
+                                Name = varDef.Name,
+                                Type = GetVariableType(varDef),
+                                Description = ""
+                            });
+                        }
+                        else
+                        {
+                            fsi.Returns.Add(new FunctionSignatureReturnInfo { Name = ret.Name });
+                        }
                     }
                 }
             }
