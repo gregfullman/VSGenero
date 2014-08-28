@@ -445,6 +445,7 @@
     <ZipProject Include="Templates\Projects\Genero4GLProgram\Program.4gl">
       <RootPath>Templates\Projects\Genero4GLProgram</RootPath>
     </ZipProject>
+    <Resource Include="Resources\PythonImageList.bmp" />
     <Content Include="VSGenero256.ico">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
@@ -468,7 +469,6 @@
     <None Include="VS2013_Specific\source.extension.vsixmanifest" Condition="'$(VisualStudioVersion)' &gt; '11.0'">
       <SubType>Designer</SubType>
     </None>-->
-    <EmbeddedResource Include="Resources\GeneroImageList.bmp" />
     <Content Include="Templates\NewItem\NewGeneroItems.vsdir">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>

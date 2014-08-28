@@ -47,6 +47,7 @@ namespace VSGenero
         #region fields
         private VSGeneroPackage package;
         private ServiceProvider serviceProvider;
+        private Microsoft.VisualStudio.OLE.Interop.IServiceProvider _otherServiceProvider;
         #endregion
 
         #region ctors
@@ -60,6 +61,7 @@ namespace VSGenero
 
         public virtual int SetSite(Microsoft.VisualStudio.OLE.Interop.IServiceProvider psp)
         {
+            _otherServiceProvider = psp;
             serviceProvider = new ServiceProvider(psp);
             return VSConstants.S_OK;
         }
@@ -69,6 +71,10 @@ namespace VSGenero
             return serviceProvider.GetService(serviceType);
         }
 
+        public int QueryService(ref Guid sid, ref Guid iid, out IntPtr ppvObject)
+        {
+            return _otherServiceProvider.QueryService(ref sid, ref iid, out ppvObject);
+        }
         // This method is called by the Environment (inside IVsUIShellOpenDocument::
         // OpenStandardEditor and OpenSpecificEditor) to map a LOGICAL view to a 
         // PHYSICAL view. A LOGICAL view identifies the purpose of the view that is

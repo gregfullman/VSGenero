@@ -536,8 +536,6 @@ namespace VSGenero.EditorExtensions
     }
 
     /// <summary>
-    /// For right now, this class will take the output of the lexer and look for function
-    /// definitions. That's all for now.
     /// </summary>
     public class GeneroParser
     {

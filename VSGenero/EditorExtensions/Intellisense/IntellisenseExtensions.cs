@@ -627,9 +627,20 @@ namespace VSGenero.EditorExtensions.Intellisense
             return false;
         }
 
-        internal static string GetQuickInfoMemberOrMemberAccess(this SnapshotPoint triggerPoint, out SnapshotSpan applicableSpan, string testHoveringOver = null)
+        internal static SnapshotSpan MergeWith(this SnapshotSpan thisSpan, SnapshotSpan newSpan)
         {
-            applicableSpan = new SnapshotSpan();
+            if(thisSpan.IntersectsWith(newSpan))
+            {
+                int start = thisSpan.Start.Position < newSpan.Start.Position ? thisSpan.Start.Position : newSpan.Start.Position;
+                int length = thisSpan.Length + newSpan.Length;
+                return new SnapshotSpan(thisSpan.Snapshot, start, length);
+            }
+            return thisSpan;
+        }
+
+        internal static string GetQuickInfoMemberOrMemberAccess(this SnapshotPoint triggerPoint, SnapshotSpan startingSpan, out SnapshotSpan applicableSpan, string testHoveringOver = null)
+        {
+            applicableSpan = startingSpan;
             string memberName = testHoveringOver;
             if (memberName == null)
                 memberName = "";
@@ -665,7 +676,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                         lastTokenType = GeneroTokenType.Symbol;
                         isMemberAccess = true;
                         memberName = tokenText + memberName;
-                        applicableSpan = tagSpan.Span;
+                        applicableSpan = applicableSpan.MergeWith(tagSpan.Span);
                     }
                     else
                     {
@@ -679,6 +690,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                             {
                                 memberName = tokenText + memberName;
                                 lastTokenType = GeneroTokenType.Keyword;
+                                applicableSpan = applicableSpan.MergeWith(tagSpan.Span);
                                 continue;
                             }
                             else if ((tokType == GeneroTokenType.Symbol && tokenText == ".") &&
@@ -686,6 +698,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                             {
                                 memberName = tokenText + memberName;
                                 lastTokenType = GeneroTokenType.Symbol;
+                                applicableSpan = applicableSpan.MergeWith(tagSpan.Span);
                                 continue;
                             }
                             else

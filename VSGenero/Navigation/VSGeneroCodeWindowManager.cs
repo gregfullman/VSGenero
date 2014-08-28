@@ -46,6 +46,17 @@ namespace VSGenero.Navigation
         {
             _window = codeWindow;
             _textBuffer = textView.TextBuffer;
+
+            // add the IWpfTextView (used by the QuickInfoSource for debugger info
+            if (!_textBuffer.Properties.ContainsProperty(typeof(IWpfTextView)))
+            {
+                _textBuffer.Properties.AddProperty(typeof(IWpfTextView), textView);
+            }
+            else
+            {
+                _textBuffer.Properties[typeof(IWpfTextView)] = textView;
+            }
+
             if (_textBuffer.ContentType.TypeName == VSGeneroConstants.ContentType4GL)
             {
                 string filename = _textBuffer.GetFilePath();
@@ -66,12 +77,24 @@ namespace VSGenero.Navigation
             if (ErrorHandler.Succeeded(_window.GetPrimaryView(out textView)))
             {
                 ((IVsCodeWindowEvents)this).OnNewView(textView);
+                // add the IWpfTextView (used by the QuickInfoSource for debugger info
+                // TODO: not sure if a secondary view might mess this up
+                if (!_textBuffer.Properties.ContainsProperty(typeof(IVsTextView)))
+                {
+                    _textBuffer.Properties.AddProperty(typeof(IVsTextView), textView);
+                }
+                else
+                {
+                    _textBuffer.Properties[typeof(IVsTextView)] = textView;
+                }
             }
 
             if (ErrorHandler.Succeeded(_window.GetSecondaryView(out textView)))
             {
                 ((IVsCodeWindowEvents)this).OnNewView(textView);
             }
+
+            
 
             if(VSGeneroPackage.Instance.LangPrefs.NavigationBar)
                 return AddDropDownBar();

@@ -32,6 +32,11 @@ namespace VSGenero.EditorExtensions
         [Import(AllowDefault = true)]
         internal IGenero4GLTextViewChangedListener _changeListener;
 
+        public Genero4GLTextViewCreationListener()
+        {
+            int i = 0;
+        }
+
         public void TextViewCreated(IWpfTextView textView)
         {
             if (_changeListener != null)
