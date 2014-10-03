@@ -20,6 +20,7 @@ using System.Text;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using System.Windows.Media;
+using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace VSGenero.EditorExtensions.Intellisense
 {
@@ -29,6 +30,17 @@ namespace VSGenero.EditorExtensions.Intellisense
             : base(displayText, insertionText, description, iconSource, iconAutomationText)
         {
         }
+
+        public MemberCompletion(VsExpansion vsExpansion, IGlyphService glyphService)
+            : base(vsExpansion.title)
+        {
+            this.InsertionText = vsExpansion.title;
+            this.Description = vsExpansion.description;
+            this.IconSource = glyphService.GetGlyph(StandardGlyphGroup.GlyphCSharpExpansion, StandardGlyphItem.GlyphItemPublic);
+            this.VsExpansion = vsExpansion;
+        }
+
+        public VsExpansion? VsExpansion { get; protected set; }
 
         private bool _visible, _previouslyVisible;
         internal bool Visible

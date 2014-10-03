@@ -13,14 +13,18 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio;
 using System.Diagnostics;
 using System.Windows.Input;
+using Microsoft.VisualStudio.TextManager.Interop;
+using VSGenero.Snippets;
 
 namespace VSGenero.EditorExtensions.Intellisense
 {
-    class Genero4GLIntellisenseController : IIntellisenseController, IOleCommandTarget
+    class Genero4GLIntellisenseController : IIntellisenseController, IOleCommandTarget, IVsExpansionClient
     {
         private readonly ITextView _textView;
+        private IVsTextView _vsTextView;
+        private IVsExpansionSession _expansionSession;
         private readonly Genero4GLIntellisenseControllerProvider _provider;
-        private IOleCommandTarget _oldTarget; 
+        private IOleCommandTarget _oldTarget;
         private IEditorOperations _editOps;
         private readonly IIncrementalSearch _incSearch;
         private ICompletionSession _activeSession;
@@ -154,13 +158,13 @@ namespace VSGenero.EditorExtensions.Intellisense
                         break;
                     case '@':
                     case '.':
-                        if(VSGeneroPackage.Instance.IntellisenseOptions4GLPage.ShowCompletionList && _activeSession == null)
+                        if (VSGeneroPackage.Instance.IntellisenseOptions4GLPage.ShowCompletionList && _activeSession == null)
                         {
                             TriggerCompletionSession(false);
                         }
                         break;
                     default:
-                        if(IsIdentifierChar(ch) && _activeSession == null)
+                        if (IsIdentifierChar(ch) && _activeSession == null)
                         {
                             TriggerCompletionSession(false);
                         }
@@ -232,7 +236,7 @@ namespace VSGenero.EditorExtensions.Intellisense
 
         private void CommaStartSignatureSession()
         {
-             TriggerSignatureHelp();
+            TriggerSignatureHelp();
         }
 
         /// <summary>
@@ -287,82 +291,82 @@ namespace VSGenero.EditorExtensions.Intellisense
 
                 //if (targetPt != null)
                 //{
-                    // check to see where in the current signature we are
+                // check to see where in the current signature we are
 
-                    //var span = targetPt.Value.Snapshot.CreateTrackingSpan(targetPt.Value.Position, 0, SpanTrackingMode.EdgeInclusive);
+                //var span = targetPt.Value.Snapshot.CreateTrackingSpan(targetPt.Value.Position, 0, SpanTrackingMode.EdgeInclusive);
 
-                    //var sigs = targetPt.Value.Snapshot.GetSignatures(span);
-                    //bool retrigger = false;
-                    // TODO: do we need to support this?
-                    //if (sigs.Signatures.Count == _sigHelpSession.Signatures.Count)
-                    //{
-                    //    for (int i = 0; i < sigs.Signatures.Count && !retrigger; i++)
-                    //    {
-                    //        var leftSig = sigs.Signatures[i];
-                    //        var rightSig = _sigHelpSession.Signatures[i];
+                //var sigs = targetPt.Value.Snapshot.GetSignatures(span);
+                //bool retrigger = false;
+                // TODO: do we need to support this?
+                //if (sigs.Signatures.Count == _sigHelpSession.Signatures.Count)
+                //{
+                //    for (int i = 0; i < sigs.Signatures.Count && !retrigger; i++)
+                //    {
+                //        var leftSig = sigs.Signatures[i];
+                //        var rightSig = _sigHelpSession.Signatures[i];
 
-                    //        if (leftSig.Parameters.Count == rightSig.Parameters.Count)
-                    //        {
-                    //            for (int j = 0; j < leftSig.Parameters.Count; j++)
-                    //            {
-                    //                var leftParam = leftSig.Parameters[j];
-                    //                var rightParam = rightSig.Parameters[j];
+                //        if (leftSig.Parameters.Count == rightSig.Parameters.Count)
+                //        {
+                //            for (int j = 0; j < leftSig.Parameters.Count; j++)
+                //            {
+                //                var leftParam = leftSig.Parameters[j];
+                //                var rightParam = rightSig.Parameters[j];
 
-                    //                if (leftParam.Name != rightParam.Name || leftParam.Documentation != rightParam.Documentation)
-                    //                {
-                    //                    retrigger = true;
-                    //                    break;
-                    //                }
-                    //            }
-                    //        }
+                //                if (leftParam.Name != rightParam.Name || leftParam.Documentation != rightParam.Documentation)
+                //                {
+                //                    retrigger = true;
+                //                    break;
+                //                }
+                //            }
+                //        }
 
-                    //        if (leftSig.Content != rightSig.Content || leftSig.Documentation != rightSig.Documentation)
-                    //        {
-                    //            retrigger = true;
-                    //        }
-                    //    }
-                    //}
-                    //else
-                    //{
-                    //retrigger = true;
-                    //}
+                //        if (leftSig.Content != rightSig.Content || leftSig.Documentation != rightSig.Documentation)
+                //        {
+                //            retrigger = true;
+                //        }
+                //    }
+                //}
+                //else
+                //{
+                //retrigger = true;
+                //}
 
-                    //if (retrigger)
-                    //{
-                    //    _sigHelpSession.Dismiss();
-                    //    TriggerSignatureHelp();
-                    //}
-                    //else
-                    //{
-                    //int curParam = sigs.ParameterIndex;
-                    //if (sigs.LastKeywordArgument != null)
-                    //{
-                    //    curParam = Int32.MaxValue;
-                    //    for (int i = 0; i < sig.Parameters.Count; i++)
-                    //    {
-                    //        if (sig.Parameters[i].Name == sigs.LastKeywordArgument)
-                    //        {
-                    //            curParam = i;
-                    //            break;
-                    //        }
-                    //    }
-                    //}
+                //if (retrigger)
+                //{
+                //    _sigHelpSession.Dismiss();
+                //    TriggerSignatureHelp();
+                //}
+                //else
+                //{
+                //int curParam = sigs.ParameterIndex;
+                //if (sigs.LastKeywordArgument != null)
+                //{
+                //    curParam = Int32.MaxValue;
+                //    for (int i = 0; i < sig.Parameters.Count; i++)
+                //    {
+                //        if (sig.Parameters[i].Name == sigs.LastKeywordArgument)
+                //        {
+                //            curParam = i;
+                //            break;
+                //        }
+                //    }
+                //}
 
 
-       
-                    //if (curParam < sig.Parameters.Count)
-                    //{
-                    //    sig.SetCurrentParameter(sig.Parameters[curParam]);
-                    //}
-                    //else if (sigs.LastKeywordArgument == "")
-                    //{
-                    //    sig.SetCurrentParameter(null);
-                    //}
-                    //else
-                    //{
-                    //    CommaFindBestSignature(curParam, sigs.LastKeywordArgument);
-                    //}
-                    //}
+
+                //if (curParam < sig.Parameters.Count)
+                //{
+                //    sig.SetCurrentParameter(sig.Parameters[curParam]);
+                //}
+                //else if (sigs.LastKeywordArgument == "")
+                //{
+                //    sig.SetCurrentParameter(null);
+                //}
+                //else
+                //{
+                //    CommaFindBestSignature(curParam, sigs.LastKeywordArgument);
+                //}
+                //}
                 //}
             }
         }
@@ -437,7 +441,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             }
         }
 
-        
+
 
         internal void TriggerSignatureHelp()
         {
@@ -459,7 +463,7 @@ namespace VSGenero.EditorExtensions.Intellisense
 
 
                     IParameter param = _sigHelpSession.SelectedSignature.CurrentParameter;
-                    if(param != null)
+                    if (param != null)
                     //if (_sigHelpSession.Properties.TryGetProperty(typeof(GeneroFunctionParameter), out param))
                     {
                         ((GeneroFunctionSignature)sig).SetCurrentParameter(param);
@@ -551,125 +555,292 @@ namespace VSGenero.EditorExtensions.Intellisense
 
         public int Exec(ref Guid pguidCmdGroup, uint nCmdID, uint nCmdexecopt, IntPtr pvaIn, IntPtr pvaOut)
         {
-            if (pguidCmdGroup == VSConstants.VSStd2K && nCmdID == (int)VSConstants.VSStd2KCmdID.TYPECHAR)
+            if (pguidCmdGroup == VSConstants.VSStd2K)
             {
-                var ch = (char)(ushort)System.Runtime.InteropServices.Marshal.GetObjectForNativeVariant(pvaIn);
-
-                if (_activeSession != null && !_activeSession.IsDismissed)
+                if (nCmdID == (uint)VSConstants.VSStd2KCmdID.INSERTSNIPPET || nCmdID == (uint)VSConstants.VSStd2KCmdID.SURROUNDWITH)
                 {
-                    if (_activeSession.SelectedCompletionSet.SelectionStatus.IsSelected &&
-                        VSGeneroPackage.Instance.IntellisenseOptions4GLPage.CompletionCommittedBy.IndexOf(ch) != -1)
+                    IVsTextManager2 textManager = (IVsTextManager2)VSGeneroPackage.Instance.GetPackageService(typeof(SVsTextManager));
+                    IVsExpansionManager expansionManager;
+                    if (VSConstants.S_OK == textManager.GetExpansionManager(out expansionManager))
                     {
-                        _activeSession.Commit();
+                        expansionManager.InvokeInsertionUI(
+                            _vsTextView,
+                            this,
+                            VSGenero.Snippets.Constants.VSGeneroLanguageServiceGuid,
+                            null,
+                            0,
+                            1,
+                            null,
+                            0,
+                            1,
+                            "Insert Snippet",
+                            string.Empty);
                     }
-                    else if (!IsIdentifierChar(ch))
+
+                    return VSConstants.S_OK;
+                }
+
+                if (_expansionSession != null)
+                {
+                    // Handle VS Expansion (Code Snippets) keys
+                    if ((nCmdID == (uint)VSConstants.VSStd2KCmdID.TAB))
                     {
-                        _activeSession.Dismiss();
+                        if (_expansionSession.GoToNextExpansionField(0) == VSConstants.S_OK)
+                            return VSConstants.S_OK;
+                    }
+                    else if ((nCmdID == (uint)VSConstants.VSStd2KCmdID.BACKTAB))
+                    {
+                        if (_expansionSession.GoToPreviousExpansionField() == VSConstants.S_OK)
+                            return VSConstants.S_OK;
+                    }
+                    else if ((nCmdID == (uint)VSConstants.VSStd2KCmdID.RETURN || nCmdID == (uint)VSConstants.VSStd2KCmdID.CANCEL))
+                    {
+                        if (_expansionSession.EndCurrentExpansion(0) == VSConstants.S_OK)
+                        {
+                            _expansionSession = null;
+
+                            return VSConstants.S_OK;
+                        }
                     }
                 }
 
-                int res = _oldTarget.Exec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
+                // TODO
+                //// Handle Edit.ListMembers or Edit.CompleteWord commands
+                //if ((nCmdID == (uint)VSConstants.VSStd2KCmdID.SHOWMEMBERLIST || nCmdID == (uint)VSConstants.VSStd2KCmdID.COMPLETEWORD))
+                //{
+                //    if (activeSession != null)
+                //    {
+                //        activeSession.Dismiss();
+                //    }
 
-                HandleChar((char)(ushort)System.Runtime.InteropServices.Marshal.GetObjectForNativeVariant(pvaIn));
+                //    ShowCompletion();
 
-                if (_activeSession != null && !_activeSession.IsDismissed)
+                //    return VSConstants.S_OK;
+                //}
+
+                if (nCmdID == (uint)VSConstants.VSStd2KCmdID.TYPECHAR)
                 {
-                    _activeSession.Filter();
+                    var ch = (char)(ushort)System.Runtime.InteropServices.Marshal.GetObjectForNativeVariant(pvaIn);
+
+                    if (_activeSession != null && !_activeSession.IsDismissed)
+                    {
+                        if (_activeSession.SelectedCompletionSet.SelectionStatus.IsSelected &&
+                            VSGeneroPackage.Instance.IntellisenseOptions4GLPage.CompletionCommittedBy.IndexOf(ch) != -1)
+                        {
+                            _activeSession.Commit();
+                        }
+                        else if (!IsIdentifierChar(ch))
+                        {
+                            _activeSession.Dismiss();
+                        }
+                    }
+
+                    int res = _oldTarget.Exec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
+
+                    HandleChar((char)(ushort)System.Runtime.InteropServices.Marshal.GetObjectForNativeVariant(pvaIn));
+
+                    if (_activeSession != null && !_activeSession.IsDismissed)
+                    {
+                        _activeSession.Filter();
+                    }
+
+                    return res;
                 }
 
-                return res;
-            }
-
-            if (_activeSession != null)
-            {
-                if (pguidCmdGroup == VSConstants.VSStd2K)
+                if (_activeSession != null)
                 {
                     switch ((VSConstants.VSStd2KCmdID)nCmdID)
                     {
                         case VSConstants.VSStd2KCmdID.RETURN:
-                            if (VSGeneroPackage.Instance.IntellisenseOptions4GLPage.EnterCommitsIntellisense &&
-                                !_activeSession.IsDismissed &&
-                                _activeSession.SelectedCompletionSet.SelectionStatus.IsSelected)
                             {
-
-                                // If the user has typed all of the characters as the completion and presses
-                                // enter we should dismiss & let the text editor receive the enter.  For example 
-                                // when typing "import sys[ENTER]" completion starts after the space.  After typing
-                                // sys the user wants a new line and doesn't want to type enter twice.
-
-                                bool enterOnComplete = VSGeneroPackage.Instance.IntellisenseOptions4GLPage.AddNewLineAtEndOfFullyTypedWord &&
-                                         EnterOnCompleteText();
-
-                                _activeSession.Commit();
-
-                                if (!enterOnComplete)
+                                if (VSGeneroPackage.Instance.IntellisenseOptions4GLPage.EnterCommitsIntellisense &&
+                                    !_activeSession.IsDismissed &&
+                                    _activeSession.SelectedCompletionSet.SelectionStatus.IsSelected)
                                 {
-                                    return VSConstants.S_OK;
+
+                                    // If the user has typed all of the characters as the completion and presses
+                                    // enter we should dismiss & let the text editor receive the enter.  For example 
+                                    // when typing "import sys[ENTER]" completion starts after the space.  After typing
+                                    // sys the user wants a new line and doesn't want to type enter twice.
+
+                                    bool enterOnComplete = VSGeneroPackage.Instance.IntellisenseOptions4GLPage.AddNewLineAtEndOfFullyTypedWord &&
+                                             EnterOnCompleteText();
+
+                                    _activeSession.Commit();
+
+                                    if (!enterOnComplete)
+                                    {
+                                        return VSConstants.S_OK;
+                                    }
                                 }
-                            }
-                            else
-                            {
-                                _activeSession.Dismiss();
+                                else
+                                {
+                                    _activeSession.Dismiss();
+                                }
                             }
                             break;
                         case VSConstants.VSStd2KCmdID.TAB:
-                            if (!_activeSession.IsDismissed)
                             {
-                                _activeSession.Commit();
-                                return VSConstants.S_OK;
+                                if (!_activeSession.IsDismissed)
+                                {
+                                    _activeSession.Commit();
+                                    return VSConstants.S_OK;
+                                }
                             }
                             break;
                         case VSConstants.VSStd2KCmdID.BACKSPACE:
                         case VSConstants.VSStd2KCmdID.DELETE:
                         case VSConstants.VSStd2KCmdID.DELETEWORDLEFT:
                         case VSConstants.VSStd2KCmdID.DELETEWORDRIGHT:
-                            int res = _oldTarget.Exec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
-                            if (_activeSession != null && !_activeSession.IsDismissed)
                             {
-                                _activeSession.Filter();
+                                int res = _oldTarget.Exec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
+                                if (_activeSession != null && !_activeSession.IsDismissed)
+                                {
+                                    _activeSession.Filter();
+                                }
+                                return res;
                             }
-                            return res;
+                            break;
                     }
                 }
-            }
-            else if (_sigHelpSession != null)
-            {
-                if (pguidCmdGroup == VSConstants.VSStd2K)
+                else
                 {
-                    switch ((VSConstants.VSStd2KCmdID)nCmdID)
+                    if (nCmdID == (int)VSConstants.VSStd2KCmdID.TAB)
                     {
-                        case VSConstants.VSStd2KCmdID.BACKSPACE:
-                            bool fDeleted = Backspace();
-                            if (fDeleted)
+                        // TODO: handle code snippets (whether stored or dynamic)
+                        // Get the current line text until the cursor
+                        //var line = _textView.GetTextViewLineContainingBufferPosition(_textView.Caret.Position.BufferPosition);
+                        //var text = _textView.TextSnapshot.GetText(line.Start.Position, _textView.Caret.Position.BufferPosition - line.Start.Position);
+
+                        // get the token directly behind the cursor (or maybe on it?)
+                        SnapshotSpan span;
+                        _textView.Caret.Position.BufferPosition.GetCurrentMemberOrMemberAccess(out span);
+
+                        string spanText = span.GetText();
+                        var expansionManager = (IVsTextManager2)VSGeneroPackage.Instance.GetPackageService(typeof(SVsTextManager));
+                        var snippetsEnumerator = new SnippetsEnumerator(expansionManager, VSGenero.Snippets.Constants.VSGeneroLanguageServiceGuid);
+                        // Search a snippet that matched the token text
+                        var expansion = snippetsEnumerator.FirstOrDefault(e => e.title.Equals(spanText, StringComparison.OrdinalIgnoreCase));
+                        if (expansion.title != null)
+                        {
+                            // Set the location where the snippet will be inserted
+                            int startLine, startColumn, endLine, endColumn;
+                            _vsTextView.GetCaretPos(out startLine, out endColumn);
+                            startColumn = endColumn - expansion.title.Length;
+                            endLine = startLine;
+
+                            // Insert the snippet
+                            InsertCodeExpansion(expansion, startLine, startColumn, endLine, endColumn);
+
+                            return VSConstants.S_OK;
+                        }
+                        else
+                        {
+                            // TODO: do a lookup for public functions, system functions, etc.
+                            // Get a IXMLDOMNode snippet for insertion
+                        }
+                    }
+                    else if (_sigHelpSession != null)
+                    {
+                        if (pguidCmdGroup == VSConstants.VSStd2K)
+                        {
+                            switch ((VSConstants.VSStd2KCmdID)nCmdID)
                             {
-                                return VSConstants.S_OK;
+                                case VSConstants.VSStd2KCmdID.BACKSPACE:
+                                    bool fDeleted = Backspace();
+                                    if (fDeleted)
+                                    {
+                                        return VSConstants.S_OK;
+                                    }
+                                    break;
+                                case VSConstants.VSStd2KCmdID.LEFT:
+                                    _editOps.MoveToPreviousCharacter(false);
+                                    UpdateCurrentParameter();
+                                    return VSConstants.S_OK;
+                                case VSConstants.VSStd2KCmdID.RIGHT:
+                                    _editOps.MoveToNextCharacter(false);
+                                    UpdateCurrentParameter();
+                                    return VSConstants.S_OK;
+                                case VSConstants.VSStd2KCmdID.HOME:
+                                case VSConstants.VSStd2KCmdID.BOL:
+                                case VSConstants.VSStd2KCmdID.BOL_EXT:
+                                case VSConstants.VSStd2KCmdID.EOL:
+                                case VSConstants.VSStd2KCmdID.EOL_EXT:
+                                case VSConstants.VSStd2KCmdID.END:
+                                case VSConstants.VSStd2KCmdID.WORDPREV:
+                                case VSConstants.VSStd2KCmdID.WORDPREV_EXT:
+                                case VSConstants.VSStd2KCmdID.DELETEWORDLEFT:
+                                    _sigHelpSession.Dismiss();
+                                    _sigHelpSession = null;
+                                    break;
                             }
-                            break;
-                        case VSConstants.VSStd2KCmdID.LEFT:
-                            _editOps.MoveToPreviousCharacter(false);
-                            UpdateCurrentParameter();
-                            return VSConstants.S_OK;
-                        case VSConstants.VSStd2KCmdID.RIGHT:
-                            _editOps.MoveToNextCharacter(false);
-                            UpdateCurrentParameter();
-                            return VSConstants.S_OK;
-                        case VSConstants.VSStd2KCmdID.HOME:
-                        case VSConstants.VSStd2KCmdID.BOL:
-                        case VSConstants.VSStd2KCmdID.BOL_EXT:
-                        case VSConstants.VSStd2KCmdID.EOL:
-                        case VSConstants.VSStd2KCmdID.EOL_EXT:
-                        case VSConstants.VSStd2KCmdID.END:
-                        case VSConstants.VSStd2KCmdID.WORDPREV:
-                        case VSConstants.VSStd2KCmdID.WORDPREV_EXT:
-                        case VSConstants.VSStd2KCmdID.DELETEWORDLEFT:
-                            _sigHelpSession.Dismiss();
-                            _sigHelpSession = null;
-                            break;
+                        }
                     }
                 }
             }
 
             return _oldTarget.Exec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
+        }
+
+        private void InsertCodeExpansion(VsExpansion expansion)
+        {
+            int startLine, startColumn, endLine, endColumn;
+            if (_activeSession != null)
+            {
+                // if there is an active completion session we need to use the trigger point of that session
+                int position = _activeSession.GetTriggerPoint(_activeSession.TextView.TextBuffer).GetPosition(_textView.TextBuffer.CurrentSnapshot);
+                startLine = _textView.TextBuffer.CurrentSnapshot.GetLineNumberFromPosition(position);
+                startColumn = position - _textView.TextBuffer.CurrentSnapshot.GetLineFromPosition(position).Start.Position;
+
+                _vsTextView.GetCaretPos(out endLine, out endColumn);
+            }
+            else
+            {
+                // there is no active completion session so we would use the caret position of the view instead
+                _vsTextView.GetCaretPos(out startLine, out startColumn);
+                endColumn = startColumn;
+                endLine = startLine;
+            }
+
+            InsertCodeExpansion(expansion, startLine, startColumn, endLine, endColumn);
+        }
+
+        private void InsertCodeExpansion(VsExpansion expansion, int startLine, int startColumn, int endLine, int endColumn)
+        {
+            // Insert the selected code snippet and start an expansion session
+            IVsTextLines buffer;
+            _vsTextView.GetBuffer(out buffer);
+
+            // Get the IVsExpansion from the current IVsTextLines
+            IVsExpansion vsExpansion = (IVsExpansion)buffer;
+
+            // Call the actual method that performs the snippet insertion
+            vsExpansion.InsertNamedExpansion(
+                expansion.title,
+                expansion.path,
+                new TextSpan { iStartIndex = startColumn, iEndIndex = endColumn, iEndLine = endLine, iStartLine = startLine },
+                null,
+                VSGenero.Snippets.Constants.VSGeneroLanguageServiceGuid,
+                0,
+                out _expansionSession);
+        }
+
+        private void InsertCodeExpansion(MSXML.IXMLDOMNode customSnippet, int startLine, int startColumn, int endLine, int endColumn)
+        {
+            // Insert the selected code snippet and start an expansion session
+            IVsTextLines buffer;
+            _vsTextView.GetBuffer(out buffer);
+
+            // Get the IVsExpansion from the current IVsTextLines
+            IVsExpansion vsExpansion = (IVsExpansion)buffer;
+
+            vsExpansion.InsertSpecificExpansion(
+                customSnippet,
+                new TextSpan { iStartIndex = startColumn, iEndIndex = endColumn, iEndLine = endLine, iStartLine = startLine },
+                null,
+                VSGenero.Snippets.Constants.VSGeneroLanguageServiceGuid,
+                null,
+                out _expansionSession);
         }
 
         private bool EnterOnCompleteText()
@@ -705,10 +876,10 @@ namespace VSGenero.EditorExtensions.Intellisense
         {
             if (_oldTarget == null)
             {
-                var viewAdapter = AdaptersFactory.GetViewAdapter(_textView);
-                if (viewAdapter != null)
+                _vsTextView = AdaptersFactory.GetViewAdapter(_textView);
+                if (_vsTextView != null)
                 {
-                    ErrorHandler.ThrowOnFailure(viewAdapter.AddCommandFilter(this, out _oldTarget));
+                    ErrorHandler.ThrowOnFailure(_vsTextView.AddCommandFilter(this, out _oldTarget));
                 }
             }
         }
@@ -721,5 +892,62 @@ namespace VSGenero.EditorExtensions.Intellisense
                 _oldTarget = null;
             }
         }
+
+        #region IVsExpansionClient Region
+
+        public int EndExpansion()
+        {
+            return VSConstants.S_OK;
+        }
+
+        public int FormatSpan(IVsTextLines pBuffer, TextSpan[] ts)
+        {
+            return VSConstants.S_OK;
+        }
+
+        public int GetExpansionFunction(MSXML.IXMLDOMNode xmlFunctionNode, string bstrFieldName, out IVsExpansionFunction pFunc)
+        {
+            pFunc = null;
+
+            return VSConstants.S_OK;
+        }
+
+        public int IsValidKind(IVsTextLines pBuffer, TextSpan[] ts, string bstrKind, out int pfIsValidKind)
+        {
+            pfIsValidKind = 1;
+
+            return VSConstants.S_OK;
+        }
+
+        public int IsValidType(IVsTextLines pBuffer, TextSpan[] ts, string[] rgTypes, int iCountTypes, out int pfIsValidType)
+        {
+            pfIsValidType = 1;
+
+            return VSConstants.S_OK;
+        }
+
+        public int OnAfterInsertion(IVsExpansionSession pSession)
+        {
+            return VSConstants.S_OK;
+        }
+
+        public int OnBeforeInsertion(IVsExpansionSession pSession)
+        {
+            return VSConstants.S_OK;
+        }
+
+        public int OnItemChosen(string pszTitle, string pszPath)
+        {
+            InsertCodeExpansion(new VsExpansion { path = pszPath, title = pszTitle });
+
+            return VSConstants.S_OK;
+        }
+
+        public int PositionCaretForEditing(IVsTextLines pBuffer, TextSpan[] ts)
+        {
+            return VSConstants.S_OK;
+        }
+
+        #endregion
     }
 }

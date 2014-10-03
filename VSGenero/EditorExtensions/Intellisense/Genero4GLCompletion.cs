@@ -26,6 +26,8 @@ using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.VSCommon;
+using Microsoft.VisualStudio.TextManager.Interop;
+using VSGenero.Snippets;
 
 namespace VSGenero.EditorExtensions.Intellisense
 {
@@ -89,6 +91,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                                     m_sourceProvider.GlyphService.GetGlyph(StandardGlyphGroup.GlyphGroupClass, StandardGlyphItem.GlyphItemPublic), null);
                 m_compList.Add(comp);
             }
+
             _removeFromIndex = m_compList.Count;
         }
 
@@ -128,6 +131,12 @@ namespace VSGenero.EditorExtensions.Intellisense
                                 completionListToUse = m_compList;
                             }
                         }
+
+                        // add snippets
+                        var expansionManager = (IVsTextManager2)VSGeneroPackage.Instance.GetPackageService(typeof(SVsTextManager));
+                        var snippetsEnumerator = new SnippetsEnumerator(expansionManager, Constants.VSGeneroLanguageServiceGuid);
+                        m_compList.AddRange(snippetsEnumerator.Select(x => new MemberCompletion(x, m_sourceProvider.GlyphService)));
+
                         MemberCompletionSet memberCompletionSet =
                                 new MemberCompletionSet("Tokens",    //the non-localized title of the tab 
                                                         "Tokens",    //the display title of the tab

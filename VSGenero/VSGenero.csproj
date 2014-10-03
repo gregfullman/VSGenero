@@ -143,6 +143,9 @@
     <Reference Include="Microsoft.Build.Framework" />
     <Reference Include="Microsoft.Build.Utilities.v4.0" />
     <Reference Include="Microsoft.CSharp" />
+    <Reference Include="microsoft.msxml, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </Reference>
     <Reference Include="Microsoft.VisualStudio.TextManager.Interop.8.0, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
     <Reference Include="Microsoft.Web.XmlTransform">
       <HintPath>..\packages\Microsoft.Web.Xdt.1.0.0\lib\net40\Microsoft.Web.XmlTransform.dll</HintPath>
@@ -371,6 +374,9 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="GlobalSuppressions.cs" />
+    <Compile Include="Snippets\Constants.cs" />
+    <Compile Include="Snippets\RegisterSnippetsAttribute.cs" />
+    <Compile Include="Snippets\SnippetsEnumerator.cs" />
     <Compile Include="VS2013_Specific\PeekableItem.cs" Condition="'$(VisualStudioVersion)' &gt; '11.0'" />
     <Compile Include="VS2013_Specific\PeekableItemSource.cs" Condition="'$(VisualStudioVersion)' &gt; '11.0'" />
     <Compile Include="VS2013_Specific\PeekResultSource.cs" Condition="'$(VisualStudioVersion)' &gt; '11.0'" />
@@ -446,6 +452,9 @@
       <RootPath>Templates\Projects\Genero4GLProgram</RootPath>
     </ZipProject>
     <Resource Include="Resources\PythonImageList.bmp" />
+    <Content Include="Snippets\CodeSnippets\SnippetsIndex.xml">
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <Content Include="VSGenero256.ico">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
@@ -507,6 +516,7 @@
     <Content Include="Resources\Package.ico" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="Snippets\CodeSnippets\Snippets\" />
     <Folder Include="Themes\" />
   </ItemGroup>
   <ItemGroup>

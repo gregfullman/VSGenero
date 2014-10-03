@@ -49,6 +49,7 @@ using NativeMethods = Microsoft.VisualStudioTools.Project.NativeMethods;
 using VSGenero.EditorExtensions;
 using System.IO;
 using VSGenero.Options;
+using VSGenero.Snippets;
 
 namespace VSGenero
 {
@@ -73,6 +74,7 @@ namespace VSGenero
     [ProvideEditorExtensionAttribute(typeof(EditorFactory), VSGeneroConstants.FileExtensionPER, 32)]
     [ProvideEditorLogicalView(typeof(EditorFactory), "{7651a701-06e5-11d1-8ebd-00a0c90f26ea}")]
 
+    [RegisterSnippetsAttribute(VSGenero.Snippets.Constants.guidVSGeneroLanuageServiceString, false, 131, "Genero4GL", @"Snippets\CodeSnippets\SnippetsIndex.xml", @"Snippets\CodeSnippets\Snippets\", @"Snippets\CodeSnippets\Snippets\")]
     [ProvideLanguageService(typeof(VSGenero4GLLanguageInfo), VSGeneroConstants.LanguageName4GL, 106,
         //AutoOutlining = true,
         //EnableAsyncCompletion = true,
