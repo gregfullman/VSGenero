@@ -287,7 +287,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                                         {
                                             if (m_provider.PublicFunctionProvider != null)
                                             {
-                                                publicFunctionQuickInfo = m_provider.PublicFunctionProvider.GetPublicFunctionQuickInfo(splitTokens[i]);
+                                                publicFunctionQuickInfo = m_provider.PublicFunctionProvider.GetPublicFunctionQuickInfo(splitTokens[i], session.TextView.TextBuffer);
                                                 if (publicFunctionQuickInfo != null)
                                                 {
                                                     applicableToSpan = currentSnapshot.CreateTrackingSpan

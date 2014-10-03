@@ -10,6 +10,7 @@
  *
  * ***************************************************************************/
 
+using Microsoft.VisualStudio.Text;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,11 +20,11 @@ namespace VSGenero.EditorExtensions.Intellisense
 {
     public interface IPublicFunctionProvider
     {
-        IEnumerable<MemberCompletion> GetPublicFunctionCompletions();
+        IEnumerable<MemberCompletion> GetPublicFunctionCompletions(string completionText, ITextBuffer currentBuffer);
 
-        string GetPublicFunctionQuickInfo(string functionName);
+        string GetPublicFunctionQuickInfo(string functionName, ITextBuffer currentBuffer);
 
-        FunctionSignatureInfo GetPublicFunctionSignatureInfo(string functionName);
+        FunctionSignatureInfo GetPublicFunctionSignatureInfo(string functionName, ITextBuffer currentBuffer);
     }
 
     public class FunctionSignatureInfo

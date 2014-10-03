@@ -280,7 +280,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                     
                     if (_provider.PublicFunctionProvider != null)
                     {
-                        var methodSig = _provider.PublicFunctionProvider.GetPublicFunctionSignatureInfo(functionName.ToLower());
+                        var methodSig = _provider.PublicFunctionProvider.GetPublicFunctionSignatureInfo(functionName.ToLower(), textBuffer);
                         if (methodSig != null)
                         {
                             return GetSignature(methodSig, textBuffer, span);

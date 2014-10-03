@@ -182,7 +182,7 @@ namespace VSGenero.Navigation
                     }
                     if (GeneroClassifierProvider.Instance.PublicFunctionNavigator != null)
                     {
-                        goToLocation = GeneroClassifierProvider.Instance.PublicFunctionNavigator.GetPublicFunctionLocation(tokenText);
+                        goToLocation = GeneroClassifierProvider.Instance.PublicFunctionNavigator.GetPublicFunctionLocation(tokenText, _textView.TextBuffer);
                         if (goToLocation != null)
                             return goToLocation;
                     }

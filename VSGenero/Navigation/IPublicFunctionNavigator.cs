@@ -10,6 +10,7 @@
  *
  * ***************************************************************************/
 
+using Microsoft.VisualStudio.Text;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,6 +20,6 @@ namespace VSGenero.Navigation
 {
     public interface IPublicFunctionNavigator
     {
-        GoToDefinitionLocation GetPublicFunctionLocation(string functionName);
+        GoToDefinitionLocation GetPublicFunctionLocation(string functionName, ITextBuffer currentBuffer);
     }
 }

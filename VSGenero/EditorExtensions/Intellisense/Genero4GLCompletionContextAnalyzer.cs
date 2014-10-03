@@ -43,7 +43,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                 bool isDefiniteReportCall = false;
                 if (session.IsPotentialFunctionCall(out isDefiniteFunctionCall, out isDefiniteReportCall))
                 {
-                    var funcRptCompletions = GetFunctionCallCompletions(session, isDefiniteFunctionCall, isDefiniteReportCall, moduleContents, currentFunction, fileParserManager);
+                    var funcRptCompletions = GetFunctionCallCompletions(session, applicableSpan, isDefiniteFunctionCall, isDefiniteReportCall, moduleContents, currentFunction, fileParserManager);
                     isDefiniteFunctionOrReportCall = isDefiniteFunctionCall || isDefiniteReportCall;
                     if (isDefiniteFunctionOrReportCall)
                         return funcRptCompletions;  // we only want to use the retrieved completions
@@ -96,7 +96,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             return false;
         }
 
-        private List<MemberCompletion> GetFunctionCallCompletions(ICompletionSession session, bool isDefiniteFunctionCall, bool isDefiniteReportCall, GeneroModuleContents moduleContents, FunctionDefinition currentFunction, GeneroFileParserManager fileParserManager)
+        private List<MemberCompletion> GetFunctionCallCompletions(ICompletionSession session, ITrackingSpan applicableSpan, bool isDefiniteFunctionCall, bool isDefiniteReportCall, GeneroModuleContents moduleContents, FunctionDefinition currentFunction, GeneroFileParserManager fileParserManager)
         {
             List<MemberCompletion> functionsOnly = new List<MemberCompletion>();
             List<MemberCompletion> reportsOnly = new List<MemberCompletion>();
@@ -130,7 +130,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             {
                 if (_publicFunctionProvider != null)
                 {
-                    foreach (var completion in _publicFunctionProvider.GetPublicFunctionCompletions())
+                    foreach (var completion in _publicFunctionProvider.GetPublicFunctionCompletions(applicableSpan.GetText(applicableSpan.TextBuffer.CurrentSnapshot), applicableSpan.TextBuffer))
                     {
                         completion.Properties.AddProperty("public", false);
                         completion.IconSource = _glyphService.GetGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPublic);
