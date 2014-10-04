@@ -15,6 +15,8 @@ using System.Diagnostics;
 using System.Windows.Input;
 using Microsoft.VisualStudio.TextManager.Interop;
 using VSGenero.Snippets;
+using System.Xml;
+using System.IO;
 
 namespace VSGenero.EditorExtensions.Intellisense
 {
@@ -716,6 +718,11 @@ namespace VSGenero.EditorExtensions.Intellisense
                         SnapshotSpan span;
                         _textView.Caret.Position.BufferPosition.GetCurrentMemberOrMemberAccess(out span);
 
+                        if(span == default(SnapshotSpan))
+                        {
+                            return _oldTarget.Exec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
+                        }
+
                         string spanText = span.GetText();
                         var expansionManager = (IVsTextManager2)VSGeneroPackage.Instance.GetPackageService(typeof(SVsTextManager));
                         var snippetsEnumerator = new SnippetsEnumerator(expansionManager, VSGenero.Snippets.Constants.VSGeneroLanguageServiceGuid);
@@ -736,8 +743,28 @@ namespace VSGenero.EditorExtensions.Intellisense
                         }
                         else
                         {
-                            // TODO: do a lookup for public functions, system functions, etc.
-                            // Get a IXMLDOMNode snippet for insertion
+                            DynamicSnippet dynSnippet = null;
+                            // 1) TODO: first do a lookup internally (i.e. within the VSGenero symbols). We're not doing that right now
+
+                            if (dynSnippet == null)
+                            {
+                                // 2) Do a lookup using the PublicFunctionSnippetizer
+                                dynSnippet = _provider._PublicFunctionSnippetizer.GetSnippet(spanText, _textView.TextBuffer);
+                            }
+                            if (dynSnippet != null)
+                            {
+                                // Set the location where the snippet will be inserted
+                                int startLine, startColumn, endLine, endColumn;
+                                _vsTextView.GetCaretPos(out startLine, out endColumn);
+                                startColumn = endColumn - spanText.Length;
+                                endLine = startLine;
+
+                                MSXML.DOMDocument domDoc = new MSXML.DOMDocument();
+                                domDoc.loadXML(SnippetGenerator.GenerateSnippetXml(dynSnippet));
+                                MSXML.IXMLDOMNode node = domDoc;
+                                InsertCodeExpansion(node, startLine, startColumn, endLine, endColumn);
+                                return VSConstants.S_OK;
+                            }
                         }
                     }
                     else if (_sigHelpSession != null)

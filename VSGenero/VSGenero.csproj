@@ -375,7 +375,10 @@
     </Compile>
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Snippets\Constants.cs" />
+    <Compile Include="Snippets\DynamicSnippet.cs" />
+    <Compile Include="Snippets\IPublicFunctionSnippetizer.cs" />
     <Compile Include="Snippets\RegisterSnippetsAttribute.cs" />
+    <Compile Include="Snippets\SnippetGenerator.cs" />
     <Compile Include="Snippets\SnippetsEnumerator.cs" />
     <Compile Include="VS2013_Specific\PeekableItem.cs" Condition="'$(VisualStudioVersion)' &gt; '11.0'" />
     <Compile Include="VS2013_Specific\PeekableItemSource.cs" Condition="'$(VisualStudioVersion)' &gt; '11.0'" />
