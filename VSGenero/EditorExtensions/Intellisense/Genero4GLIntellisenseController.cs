@@ -749,7 +749,8 @@ namespace VSGenero.EditorExtensions.Intellisense
                             if (dynSnippet == null)
                             {
                                 // 2) Do a lookup using the PublicFunctionSnippetizer
-                                dynSnippet = _provider._PublicFunctionSnippetizer.GetSnippet(spanText, _textView.TextBuffer);
+                                if (_provider._PublicFunctionSnippetizer != null)
+                                    dynSnippet = _provider._PublicFunctionSnippetizer.GetSnippet(spanText, _textView.TextBuffer);
                             }
                             if (dynSnippet != null)
                             {
