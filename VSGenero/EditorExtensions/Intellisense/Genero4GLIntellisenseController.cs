@@ -587,6 +587,12 @@ namespace VSGenero.EditorExtensions.Intellisense
                     // Handle VS Expansion (Code Snippets) keys
                     if ((nCmdID == (uint)VSConstants.VSStd2KCmdID.TAB))
                     {
+                        // ensure the completion session gets committed correctly
+                        if (_activeSession != null && !_activeSession.IsDismissed)
+                        {
+                            _activeSession.Commit();
+                        }
+
                         if (_expansionSession.GoToNextExpansionField(0) == VSConstants.S_OK)
                             return VSConstants.S_OK;
                     }
@@ -595,7 +601,40 @@ namespace VSGenero.EditorExtensions.Intellisense
                         if (_expansionSession.GoToPreviousExpansionField() == VSConstants.S_OK)
                             return VSConstants.S_OK;
                     }
-                    else if ((nCmdID == (uint)VSConstants.VSStd2KCmdID.RETURN || nCmdID == (uint)VSConstants.VSStd2KCmdID.CANCEL))
+                    else if (nCmdID == (uint)VSConstants.VSStd2KCmdID.RETURN)
+                    {
+                        // ensure the completion session gets committed correctly
+                        if (_activeSession != null)
+                        {
+                            if (VSGeneroPackage.Instance.IntellisenseOptions4GLPage.EnterCommitsIntellisense &&
+                                        !_activeSession.IsDismissed &&
+                                        _activeSession.SelectedCompletionSet.SelectionStatus.IsSelected)
+                            {
+
+                                // If the user has typed all of the characters as the completion and presses
+                                // enter we should dismiss & let the text editor receive the enter.  For example 
+                                // when typing "import sys[ENTER]" completion starts after the space.  After typing
+                                // sys the user wants a new line and doesn't want to type enter twice.
+
+                                bool enterOnComplete = VSGeneroPackage.Instance.IntellisenseOptions4GLPage.AddNewLineAtEndOfFullyTypedWord &&
+                                         EnterOnCompleteText();
+
+                                _activeSession.Commit();
+                            }
+                            else
+                            {
+                                _activeSession.Dismiss();
+                            }
+                        }
+
+                        if (_expansionSession.EndCurrentExpansion(0) == VSConstants.S_OK)
+                        {
+                            _expansionSession = null;
+
+                            return VSConstants.S_OK;
+                        }
+                    }
+                    else if(nCmdID == (uint)VSConstants.VSStd2KCmdID.CANCEL)
                     {
                         if (_expansionSession.EndCurrentExpansion(0) == VSConstants.S_OK)
                         {
@@ -847,7 +886,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                 expansion.title,
                 expansion.path,
                 new TextSpan { iStartIndex = startColumn, iEndIndex = endColumn, iEndLine = endLine, iStartLine = startLine },
-                null,
+                this,
                 VSGenero.Snippets.Constants.VSGeneroLanguageServiceGuid,
                 0,
                 out _expansionSession);
@@ -865,7 +904,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             vsExpansion.InsertSpecificExpansion(
                 customSnippet,
                 new TextSpan { iStartIndex = startColumn, iEndIndex = endColumn, iEndLine = endLine, iStartLine = startLine },
-                null,
+                this,
                 VSGenero.Snippets.Constants.VSGeneroLanguageServiceGuid,
                 null,
                 out _expansionSession);

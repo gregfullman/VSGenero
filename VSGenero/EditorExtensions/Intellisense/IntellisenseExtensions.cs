@@ -40,7 +40,7 @@ namespace VSGenero.EditorExtensions.Intellisense
         }
 
         // Utility function for splitting text into lines with a maximum length.
-        private static IEnumerable<string> SplitToLines(string stringToSplit, int maximumLineLength)
+        public static IEnumerable<string> SplitToLines(string stringToSplit, int maximumLineLength)
         {
             var words = stringToSplit.Split(' ').Concat(new[] { "" });
             return
