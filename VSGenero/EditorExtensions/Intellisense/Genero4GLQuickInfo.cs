@@ -594,7 +594,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                         qiContent.Add(funcDef.GetIntellisenseText(true, true, true));
                     }
                 }
-                else
+                else if(dummySpan != null)
                 {
                     // TODO: test this
                     string qiText;

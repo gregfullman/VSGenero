@@ -161,12 +161,12 @@ namespace Microsoft.VisualStudio.VSCommon
         }
 
         // Shows the standard Visual Studio dialog
-        public void ShowDialog(string caption, string message)
+        public void ShowDialog(string caption, string message, bool systemModal = false)
         {
-            ShowDialog(caption, message, VSDialogButton.Ok, VSDialogDefaultButton.First, VSDialogIconMode.Info);
+            ShowDialog(caption, message, VSDialogButton.Ok, VSDialogDefaultButton.First, VSDialogIconMode.Info, systemModal);
         }
 
-        public VSDialogResult ShowDialog(string caption, string message, VSDialogButton button, VSDialogDefaultButton defaultButton, VSDialogIconMode iconMode)
+        public VSDialogResult ShowDialog(string caption, string message, VSDialogButton button, VSDialogDefaultButton defaultButton, VSDialogIconMode iconMode, bool systemModal = false)
         {
             OLEMSGBUTTON buttonToUse = OLEMSGBUTTON.OLEMSGBUTTON_OK;
             switch (button)
@@ -211,7 +211,7 @@ namespace Microsoft.VisualStudio.VSCommon
                        buttonToUse,
                        defaultButtonToUse,
                        msgIconToUse,
-                       0,        // false
+                       systemModal ? 1 : 0,
                        out result));
 
             switch (result)
