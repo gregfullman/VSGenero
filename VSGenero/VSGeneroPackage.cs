@@ -208,24 +208,32 @@ namespace VSGenero
             }
         }
 
+        private object bufferFileParserManagerLock = new object();
+
         public GeneroFileParserManager UpdateBufferFileParserManager(ITextBuffer buffer, string primarySibling = null)
         {
             GeneroFileParserManager fpm;
-            if (!buffer.Properties.TryGetProperty(typeof(GeneroFileParserManager), out fpm))
+            lock (bufferFileParserManagerLock)
             {
-                string filename = buffer.GetFilePath();
-                // see if a file parser manager has been created for this file
-                if (VSGeneroPackage.Instance.BufferFileParserManagers.TryGetValue(filename, out fpm))
+                if (!buffer.Properties.TryGetProperty(typeof(GeneroFileParserManager), out fpm))
                 {
-                    // use this file parser manager instead of a new one
-                    fpm.UseNewBuffer(buffer);
+                    string filename = buffer.GetFilePath();
+                    // see if a file parser manager has been created for this file
+                    if (VSGeneroPackage.Instance.BufferFileParserManagers.TryGetValue(filename, out fpm))
+                    {
+                        // use this file parser manager instead of a new one
+                        fpm.UseNewBuffer(buffer);
+                    }
+                    else
+                    {
+                        fpm = new GeneroFileParserManager(buffer, primarySibling);
+                        VSGeneroPackage.Instance.BufferFileParserManagers.Add(filename, fpm);
+                    }
+                    if (!buffer.Properties.ContainsProperty(typeof(GeneroFileParserManager)))
+                    {
+                        buffer.Properties.AddProperty(typeof(GeneroFileParserManager), fpm);
+                    }
                 }
-                else
-                {
-                    fpm = new GeneroFileParserManager(buffer, primarySibling);
-                    VSGeneroPackage.Instance.BufferFileParserManagers.Add(filename, fpm);
-                }
-                buffer.Properties.AddProperty(typeof(GeneroFileParserManager), fpm);
             }
             return fpm;
         }
