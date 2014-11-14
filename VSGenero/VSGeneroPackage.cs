@@ -50,6 +50,7 @@ using VSGenero.EditorExtensions;
 using System.IO;
 using VSGenero.Options;
 using VSGenero.Snippets;
+using VSGenero.VS2013_Specific;
 
 namespace VSGenero
 {
@@ -73,7 +74,7 @@ namespace VSGenero
     [ProvideEditorExtensionAttribute(typeof(EditorFactory), VSGeneroConstants.FileExtension4GL, 32)]
     [ProvideEditorExtensionAttribute(typeof(EditorFactory), VSGeneroConstants.FileExtensionPER, 32)]
     [ProvideEditorLogicalView(typeof(EditorFactory), "{7651a701-06e5-11d1-8ebd-00a0c90f26ea}")]
-
+    [PeekSupportedContentType(".4gl")]
     [RegisterSnippetsAttribute(VSGenero.Snippets.Constants.guidVSGeneroLanuageServiceString, false, 131, "Genero4GL", @"Snippets\CodeSnippets\SnippetsIndex.xml", @"Snippets\CodeSnippets\Snippets\", @"Snippets\CodeSnippets\Snippets\")]
     [ProvideLanguageService(typeof(VSGenero4GLLanguageInfo), VSGeneroConstants.LanguageName4GL, 106,
         //AutoOutlining = true,
@@ -103,7 +104,7 @@ namespace VSGenero
     [ProvideLanguageEditorOptionPage(typeof(Genero4GLAdvancedOptionsPage), VSGeneroConstants.LanguageName4GL, "", "Advanced", "114")]
     // This causes the package to autoload when Visual Studio starts (guid for UICONTEXT_NoSolution)
     [ProvideAutoLoad("{adfc4e64-0397-11d1-9f4e-00a0c911004f}")]
-
+    
     [Guid(GuidList.guidVSGeneroPkgString)]
     public sealed class VSGeneroPackage : VSCommonPackage
     {

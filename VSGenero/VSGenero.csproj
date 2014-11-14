@@ -383,6 +383,7 @@
     <Compile Include="VS2013_Specific\PeekableItem.cs" Condition="'$(VisualStudioVersion)' &gt; '11.0'" />
     <Compile Include="VS2013_Specific\PeekableItemSource.cs" Condition="'$(VisualStudioVersion)' &gt; '11.0'" />
     <Compile Include="VS2013_Specific\PeekResultSource.cs" Condition="'$(VisualStudioVersion)' &gt; '11.0'" />
+    <Compile Include="VS2013_Specific\PeekSupportedContentTypeAttribute.cs" />
     <Compile Include="VSCommands.cs" />
     <Compile Include="VSGeneroConstants.cs" />
     <Compile Include="VSGeneroPackage.cs" />
@@ -530,6 +531,9 @@
   </ItemGroup>
   <PropertyGroup>
     <UseCodebase>true</UseCodebase>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
+    <UseVSHostingProcess>true</UseVSHostingProcess>
   </PropertyGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!--<Import Project="$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v10.0\VSSDK\Microsoft.VsSDK.targets" />-->

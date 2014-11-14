@@ -77,6 +77,11 @@ namespace VSGenero.VS2013_Specific
                 SnapshotPoint? triggerPoint = session.GetTriggerPoint(this._buffer.CurrentSnapshot);
                 if(triggerPoint.HasValue && this.TryGetTextDocument(_buffer, out document))
                 {
+                    if(!session.TextView.TextBuffer.Properties.ContainsProperty(typeof(ITextDocument)))
+                    {
+                        session.TextView.TextBuffer.Properties.AddProperty(typeof(ITextDocument), document);
+                    }
+
                     GeneroLexer lexer = new GeneroLexer();
                     GoToDefinitionLocation location = EditFilter.Instance.GetGoToLocationDefinition(session.TextView, lexer);
                     if(location != null)
