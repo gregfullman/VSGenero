@@ -42,6 +42,9 @@ namespace VSGenero.EditorExtensions
         [Import(AllowDefault = true)]
         internal IPublicFunctionNavigator PublicFunctionNavigator;
 
+        [Import(AllowDefault = true)]
+        internal IGenero4GLTextViewCommandTarget Genero4GLCommandTarget;
+
         // We're using this to allow access to the PublicFunctioNavigator import without having to do the complex MEF stuff to resolve imports.
         // Since the classifier is (one of) the first exports that gets resolved, this is a fairly safe place for it.
         internal static GeneroClassifierProvider Instance { get; private set; }

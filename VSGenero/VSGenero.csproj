@@ -306,6 +306,7 @@
     <Compile Include="EditorExtensions\GeneroClassifier.cs" />
     <Compile Include="EditorExtensions\GeneroXMLSettingsLoader.cs" />
     <Compile Include="EditorExtensions\IGenero4GLTextViewChangedListener.cs" />
+    <Compile Include="EditorExtensions\IGenero4GLTextViewCommandTarget.cs" />
     <Compile Include="EditorExtensions\Intellisense\Genero4GLIntellisenseController.cs" />
     <Compile Include="EditorExtensions\Intellisense\Genero4GLIntellisenseControllerProvider.cs" />
     <Compile Include="EditorExtensions\IProgram4GLFileProvider.cs" />

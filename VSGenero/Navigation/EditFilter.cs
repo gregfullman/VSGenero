@@ -205,7 +205,7 @@ namespace VSGenero.Navigation
         private int GotoDefinition()
         {
             GoToDefinitionLocation location = GetGoToLocationDefinition(_textView, _lexer);
-            if(location != null)
+            if (location != null)
             {
                 GotoLocation(location);
             }
@@ -357,6 +357,15 @@ namespace VSGenero.Navigation
 
         public int Exec(ref Guid pguidCmdGroup, uint nCmdID, uint nCmdexecopt, IntPtr pvaIn, IntPtr pvaOut)
         {
+            if (GeneroClassifierProvider.Instance.Genero4GLCommandTarget != null &&
+                pguidCmdGroup == GeneroClassifierProvider.Instance.Genero4GLCommandTarget.PackageGuid)
+            {
+                if(GeneroClassifierProvider.Instance.Genero4GLCommandTarget.Exec(_textView.TextBuffer.GetFilePath(), nCmdID))
+                {
+                    return VSConstants.S_OK;
+                }
+            }
+
             // preprocessing
             if (pguidCmdGroup == VSConstants.GUID_VSStandardCommandSet97)
             {
@@ -490,19 +499,19 @@ namespace VSGenero.Navigation
                         return VSConstants.S_OK;
                 }
             }
-//#if DEV12
-//            else if (pguidCmdGroup == typeof(VSConstants.VSStd12CmdID).GUID)
-//            {
-//                switch ((VSConstants.VSStd12CmdID)nCmdID)
-//                {
-//                    case VSConstants.VSStd12CmdID.PeekDefinition:
-//                        {
-//                            VSGeneroPackage.Instance.ShowDialog("Functionality Not Supported", "Peek definition is not yet supported.");
-//                            return VSConstants.S_OK;
-//                        }
-//                }
-//            }
-//#endif
+            //#if DEV12
+            //            else if (pguidCmdGroup == typeof(VSConstants.VSStd12CmdID).GUID)
+            //            {
+            //                switch ((VSConstants.VSStd12CmdID)nCmdID)
+            //                {
+            //                    case VSConstants.VSStd12CmdID.PeekDefinition:
+            //                        {
+            //                            VSGeneroPackage.Instance.ShowDialog("Functionality Not Supported", "Peek definition is not yet supported.");
+            //                            return VSConstants.S_OK;
+            //                        }
+            //                }
+            //            }
+            //#endif
             //else if (pguidCmdGroup == GuidList.guidPythonToolsCmdSet)
             //{
             //    switch (nCmdID)
