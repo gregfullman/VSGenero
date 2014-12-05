@@ -702,26 +702,32 @@ namespace VSGenero.EditorExtensions.Intellisense
             vsTextView = null;
             if(m_subjectBuffer.Properties.TryGetProperty<IWpfTextView>(typeof(IWpfTextView), out textView))
             {
-                m_subjectBuffer.Properties.TryGetProperty<IVsTextView>(typeof(IVsTextView), out vsTextView);
-
-                var adapterFactory = VSGeneroPackage.ComponentModel.GetService<IVsEditorAdaptersFactoryService>();
-                var viewAdapter = adapterFactory.GetViewAdapter(textView);
-
-                int startLine, startCol;
-                int endLine, endCol;
-
-                viewAdapter.GetLineAndColumn(span.Start.Position, out startLine, out startCol);
-                viewAdapter.GetLineAndColumn(span.End.Position, out endLine, out endCol);
-
-                TextSpan newSpan = new TextSpan()
+                if (m_subjectBuffer.Properties.TryGetProperty<IVsTextView>(typeof(IVsTextView), out vsTextView))
                 {
-                    iStartLine = startLine,
-                    iStartIndex = startCol,
-                    iEndLine = endLine,
-                    iEndIndex = endCol
-                };
+                    var adapterFactory = VSGeneroPackage.ComponentModel.GetService<IVsEditorAdaptersFactoryService>();
+                    if (adapterFactory != null)
+                    {
+                        var viewAdapter = adapterFactory.GetViewAdapter(textView);
+                        if (viewAdapter != null)
+                        {
+                            int startLine, startCol;
+                            int endLine, endCol;
 
-                return newSpan;
+                            viewAdapter.GetLineAndColumn(span.Start.Position, out startLine, out startCol);
+                            viewAdapter.GetLineAndColumn(span.End.Position, out endLine, out endCol);
+
+                            TextSpan newSpan = new TextSpan()
+                            {
+                                iStartLine = startLine,
+                                iStartIndex = startCol,
+                                iEndLine = endLine,
+                                iEndIndex = endCol
+                            };
+
+                            return newSpan;
+                        }
+                    }
+                }
             }
             return default(TextSpan);
         }
