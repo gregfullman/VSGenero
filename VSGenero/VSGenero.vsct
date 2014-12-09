@@ -1,0 +1,57 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CommandTable xmlns="http://schemas.microsoft.com/VisualStudio/2005-10-18/CommandTable" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <!--  This is the file that defines the actual layout and type of the commands.
+        It is divided in different sections (e.g. command definition, command
+        placement, ...), with each defining a specific set of properties.
+        See the comment before each section for more details about how to
+        use it. -->
+
+  <!--  The VSCT compiler (the tool that translates this file into the binary 
+        format that VisualStudio will consume) has the ability to run a preprocessor 
+        on the vsct file; this preprocessor is (usually) the C++ preprocessor, so 
+        it is possible to define includes and macros with the same syntax used 
+        in C++ files. Using this ability of the compiler here, we include some files 
+        defining some of the constants that we will use inside the file. -->
+
+  <!--This is the file that defines the IDs for all the commands exposed by VisualStudio. -->
+  <Extern href="stdidcmd.h" />
+
+  <!--This header contains the command ids for the menus provided by the shell. -->
+  <Extern href="vsshlids.h" />
+
+  <!--Definition of some VSCT specific constants. In this sample we use it for the IDs inside the guidOfficeIcon group. -->
+  <!--<Extern href="msobtnid.h" xmlns="http://schemas.microsoft.com/VisualStudio/2005-10-18/CommandTable" />-->
+
+  <!--The Commands section is where we the commands, menus and menu groups are defined.
+      This section uses a Guid to identify the package that provides the command defined inside it. -->
+  <Commands package="guidVSGeneroPkg">
+    <Buttons>
+      <Button guid="guidVSGeneroCmdSet" id="cmdidExtractSqlStatements" priority="0x0000" type="Button">
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <Strings>
+          <ButtonText>Extract SQL Statement(s)</ButtonText>
+        </Strings>
+      </Button>
+    </Buttons>
+  </Commands>
+
+  <CommandPlacements>
+    <CommandPlacement guid="guidVSGeneroCmdSet" id="cmdidExtractSqlStatements" priority="0x0000">
+      <Parent guid="guidSHLMainMenu" id="IDG_VS_EDIT_CUTCOPY"/>
+    </CommandPlacement>
+
+    <CommandPlacement guid="guidVSGeneroCmdSet" id="cmdidExtractSqlStatements" priority="0x0600">
+      <Parent guid="guidSHLMainMenu" id="IDG_VS_CODEWIN_TEXTEDIT"/>
+    </CommandPlacement>
+  </CommandPlacements>
+
+  <Symbols>
+    <GuidSymbol name="guidVSGeneroEditorFactory" value="{888888c4-36f9-4453-90aa-29fa4d2e5707}"/>
+    <GuidSymbol name="guidVSGeneroPkg" value="{18274d18-91c9-420c-a121-2ffe4f920b4e}"/>
+    <GuidSymbol name="guidVSGeneroCmdSet" value="{730fb573-e079-4739-aec6-45c02012ac76}">
+      <IDSymbol name="cmdidExtractSqlStatements" value="0x0001"/>
+    </GuidSymbol>
+  </Symbols>
+
+  </CommandTable>

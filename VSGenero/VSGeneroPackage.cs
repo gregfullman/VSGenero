@@ -51,6 +51,7 @@ using System.IO;
 using VSGenero.Options;
 using VSGenero.Snippets;
 using VSGenero.VS2013_Specific;
+using VSGenero.SqlSupport;
 
 namespace VSGenero
 {
@@ -102,6 +103,10 @@ namespace VSGenero
     [ProvideLanguageExtension(typeof(VSGeneroPERLanguageInfo), VSGeneroConstants.FileExtensionPER)]
     [ProvideLanguageEditorOptionPage(typeof(Genero4GLIntellisenseOptionsPage), VSGeneroConstants.LanguageName4GL, "", "Intellisense", "113")]
     [ProvideLanguageEditorOptionPage(typeof(Genero4GLAdvancedOptionsPage), VSGeneroConstants.LanguageName4GL, "", "Advanced", "114")]
+    
+    // This attribute is needed to let the shell know that this package exposes some menus.
+    [ProvideMenuResource("Menus.ctmenu", 1)]
+
     // This causes the package to autoload when Visual Studio starts (guid for UICONTEXT_NoSolution)
     [ProvideAutoLoad("{adfc4e64-0397-11d1-9f4e-00a0c911004f}")]
     
@@ -192,8 +197,13 @@ namespace VSGenero
                 GeneroEditorFactory = new EditorFactory(this);
                 this.RegisterEditorFactory(GeneroEditorFactory);
             }
-
+            
             _programContentsManager = new GeneroProgramContentsManager();
+
+            RegisterCommands(new CommonCommand[]
+                {
+                    new ExtractSqlStatementsCommand()
+                }, GuidList.guidVSGeneroCmdSet);
         }
 
         #endregion
@@ -273,6 +283,15 @@ namespace VSGenero
         public object GetPackageService(Type t)
         {
             return Instance.GetService(t);
+        }
+
+        public Document ActiveDocument
+        {
+            get
+            {
+                EnvDTE.DTE dte = (EnvDTE.DTE)GetService(typeof(EnvDTE.DTE));
+                return dte.ActiveDocument;
+            }
         }
     }
 }
