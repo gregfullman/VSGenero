@@ -23,6 +23,8 @@ using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.VSCommon;
+using Microsoft.VisualStudio.Text.Editor;
+using System.Threading;
 
 namespace VSGenero.EditorExtensions
 {
@@ -56,16 +58,37 @@ namespace VSGenero.EditorExtensions
         GeneroModuleContents _moduleContents;
         List<Region> regions;
 
+        private bool _enabled;
+        private readonly Timer _timer;
+
+        public bool Enabled
+        {
+            get
+            {
+                return _enabled;
+            }
+        }
+
         public Genero4GLOutliner(ITextBuffer buffer)
         {
             this.buffer = buffer;
+            this.buffer.Properties[typeof(Genero4GLOutliner)] = this;
             this.buffer.Changed += BufferChanged;
             this.snapshot = buffer.CurrentSnapshot;
             this.regions = new List<Region>();
+            _enabled = true;    // turn outlining on by default. TODO: make this configurable
 
             GeneroFileParserManager fpm = VSGeneroPackage.Instance.UpdateBufferFileParserManager(buffer);
             fpm.ParseComplete += Genero4GLOutliner_ParseComplete;
             ForceReoutline(fpm);
+
+            _timer = new Timer(TagUpdate, null, Timeout.Infinite, Timeout.Infinite);
+        }
+
+        private void TagUpdate(object unused)
+        {
+            _timer.Change(Timeout.Infinite, Timeout.Infinite);
+            InvokeTagsChanged();
         }
 
         void Genero4GLOutliner_ParseComplete(object sender, ParseCompleteEventArgs e)
@@ -79,14 +102,38 @@ namespace VSGenero.EditorExtensions
             ReOutline();
         }
 
+        public void Enable()
+        {
+            _enabled = true;
+            InvokeTagsChanged();
+        }
+
+        public void Disable()
+        {
+            _enabled = false;
+            InvokeTagsChanged();
+        }
+
+        private void InvokeTagsChanged()
+        {
+            var snapshot = this.buffer.CurrentSnapshot;
+            var tagsChanged = TagsChanged;
+            if (tagsChanged != null)
+            {
+                tagsChanged(this, new SnapshotSpanEventArgs(new SnapshotSpan(snapshot, new Span(0, snapshot.Length))));
+            }
+        }
+
         void BufferChanged(object sender, TextContentChangedEventArgs e)
         {
             // TODO: ok, what I want to do is queue up a re-outline request to basically wait for idleness
             // If this isn't the most up-to-date version of the buffer, then ignore it for now (we'll eventually get another change event).
-            //if (e.After != buffer.CurrentSnapshot)
-            //    return;
+            if (e.After != buffer.CurrentSnapshot)
+                return;
 
             //ReOutline();
+
+            InvokeTagsChanged();
 
             // TODO: we can use this as a spot to insert the xml doc snippet?
         }
@@ -95,28 +142,31 @@ namespace VSGenero.EditorExtensions
         {
             if (spans.Count == 0)
                 yield break;
-            List<Region> currentRegions = this.regions;
-            ITextSnapshot currentSnapshot = spans[0].Snapshot;
-            SnapshotSpan entire = new SnapshotSpan(spans[0].Start, spans[spans.Count - 1].End).TranslateTo(currentSnapshot, SpanTrackingMode.EdgeExclusive);
-            int startPos = entire.Start.Position;
-            int endPos = entire.End.Position;
-            foreach (var region in currentRegions)
+            if (_enabled)
             {
-                if (region.Start <= endPos &&
-                    region.End >= startPos)
+                List<Region> currentRegions = this.regions;
+                ITextSnapshot currentSnapshot = spans[0].Snapshot;
+                SnapshotSpan entire = new SnapshotSpan(spans[0].Start, spans[spans.Count - 1].End).TranslateTo(currentSnapshot, SpanTrackingMode.EdgeExclusive);
+                int startPos = entire.Start.Position;
+                int endPos = entire.End.Position;
+                foreach (var region in currentRegions)
                 {
-                    int end = region.End;
-                    if (end >= currentSnapshot.Length)
-                        end = currentSnapshot.Length - 1;
-                    if (currentSnapshot.Length == 0)
-                        end = 0;
-                    //the region starts at the beginning of the "[", and goes until the *end* of the line that contains the "]".
-                    if (end > region.Start)
+                    if (region.Start <= endPos &&
+                        region.End >= startPos)
                     {
-                        yield return new TagSpan<IOutliningRegionTag>(
-                            new SnapshotSpan(currentSnapshot,
-                                region.Start, end - region.Start),
-                            new OutliningRegionTag(false, false, (region.CollapsedText + ellipsis), String.Empty));
+                        int end = region.End;
+                        if (end >= currentSnapshot.Length)
+                            end = currentSnapshot.Length - 1;
+                        if (currentSnapshot.Length == 0)
+                            end = 0;
+                        //the region starts at the beginning of the "[", and goes until the *end* of the line that contains the "]".
+                        if (end > region.Start)
+                        {
+                            yield return new TagSpan<IOutliningRegionTag>(
+                                new SnapshotSpan(currentSnapshot,
+                                    region.Start, end - region.Start),
+                                new OutliningRegionTag(false, false, (region.CollapsedText + ellipsis), String.Empty));
+                        }
                     }
                 }
             }
@@ -227,6 +277,24 @@ namespace VSGenero.EditorExtensions
             public int Start { get; set; }
             public int End { get; set; }
             public string CollapsedText { get; set; }
-        } 
+        }
+    }
+
+    static class OutliningTaggerProviderExtensions
+    {
+        public static Genero4GLOutliner GetOutliningTagger(this ITextView self)
+        {
+            return self.TextBuffer.GetOutliningTagger();
+        }
+
+        public static Genero4GLOutliner GetOutliningTagger(this ITextBuffer self)
+        {
+            Genero4GLOutliner res;
+            if (self.Properties.TryGetProperty<Genero4GLOutliner>(typeof(Genero4GLOutliner), out res))
+            {
+                return res;
+            }
+            return null;
+        }
     }
 }

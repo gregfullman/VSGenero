@@ -40,7 +40,8 @@ namespace VSGenero.SqlSupport
                     var tempText = sb.ToString().Trim();
                     if (tempText.Length > 0)
                     {
-                        if(_tempfilename == null)
+                        ITextBuffer buffer = null;
+                        if (_tempfilename == null || (buffer = GetBufferAt(_tempfilename)) == null)
                         {
                             _tempfilename = Path.GetTempPath() + "temp_sql_file.sql";
                             File.WriteAllText(_tempfilename, tempText);
@@ -48,7 +49,6 @@ namespace VSGenero.SqlSupport
                         }
                         else
                         {
-                            var buffer = GetBufferAt(_tempfilename);
                             var edit = buffer.CreateEdit();
                             edit.Insert(buffer.CurrentSnapshot.Length, (buffer.CurrentSnapshot.LineCount > 0 ? "\n\n" : "") + tempText);
                             edit.Apply();

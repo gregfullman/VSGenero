@@ -126,7 +126,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                 switch (ch)
                 {
                     case '(':
-                        if (/*PythonToolsPackage.Instance.LangPrefs.AutoListParams*/true)
+                        if (VSGeneroPackage.Instance.LangPrefs.AutoListParams)
                         {
                             OpenParenStartSignatureSession();
                         }
@@ -138,7 +138,8 @@ namespace VSGenero.EditorExtensions.Intellisense
                             _sigHelpSession = null;
                         }
 
-                        if (/*PythonToolsPackage.Instance.LangPrefs.AutoListParams*/true)
+                        // TODO: not sure if this works
+                        if (VSGeneroPackage.Instance.LangPrefs.AutoListParams)
                         {
                             // trigger help for outer call if there is one
                             TriggerSignatureHelp();
@@ -148,7 +149,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                     case ',':
                         if (_sigHelpSession == null)
                         {
-                            if (/*PythonToolsPackage.Instance.LangPrefs.AutoListParams*/true)
+                            if (VSGeneroPackage.Instance.LangPrefs.AutoListParams)
                             {
                                 CommaStartSignatureSession();
                             }
@@ -160,13 +161,13 @@ namespace VSGenero.EditorExtensions.Intellisense
                         break;
                     case '@':
                     case '.':
-                        if (VSGeneroPackage.Instance.IntellisenseOptions4GLPage.ShowCompletionList && _activeSession == null)
+                        if (VSGeneroPackage.Instance.LangPrefs.AutoListMembers && VSGeneroPackage.Instance.IntellisenseOptions4GLPage.ShowCompletionList && _activeSession == null)
                         {
                             TriggerCompletionSession(false);
                         }
                         break;
                     default:
-                        if (IsIdentifierChar(ch) && _activeSession == null)
+                        if (VSGeneroPackage.Instance.LangPrefs.AutoListMembers && IsIdentifierChar(ch) && _activeSession == null)
                         {
                             TriggerCompletionSession(false);
                         }
