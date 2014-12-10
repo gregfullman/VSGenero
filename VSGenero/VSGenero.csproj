@@ -148,6 +148,12 @@
     <Reference Include="microsoft.msxml, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </Reference>
+    <Reference Include="Microsoft.PowerToolsEx.BlockTagger">
+      <HintPath>..\Binaries\Microsoft.PowerToolsEx.BlockTagger.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.PowerToolsEx.BlockTaggerImpl">
+      <HintPath>..\Binaries\Microsoft.PowerToolsEx.BlockTaggerImpl.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.VisualStudio.TextManager.Interop.8.0, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
     <Reference Include="Microsoft.Web.XmlTransform">
       <HintPath>..\packages\Microsoft.Web.Xdt.1.0.0\lib\net40\Microsoft.Web.XmlTransform.dll</HintPath>
@@ -390,6 +396,11 @@
     <Compile Include="VS2013_Specific\PeekableItemSource.cs" Condition="'$(VisualStudioVersion)' &gt; '11.0'" />
     <Compile Include="VS2013_Specific\PeekResultSource.cs" Condition="'$(VisualStudioVersion)' &gt; '11.0'" />
     <Compile Include="VS2013_Specific\PeekSupportedContentTypeAttribute.cs" />
+    <Compile Include="VS2013_Specific\ProductivityTools\BaseFilter.cs" />
+    <Compile Include="VS2013_Specific\ProductivityTools\DisposableTagger.cs" />
+    <Compile Include="VS2013_Specific\ProductivityTools\Genero4glBlockTaggerProvider.cs" />
+    <Compile Include="VS2013_Specific\ProductivityTools\Genero4glParser.cs" />
+    <Compile Include="VS2013_Specific\ProductivityTools\QuoteFilter.cs" />
     <Compile Include="VSCommands.cs" />
     <Compile Include="VSGeneroConstants.cs" />
     <Compile Include="VSGeneroPackage.cs" />
