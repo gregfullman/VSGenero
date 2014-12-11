@@ -27,10 +27,9 @@ namespace VSGenero.EditorExtensions
     {
         public static string ReplaceLineEnding(this string line, string lineEnding)
         {
-            StringBuilder sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder(line);
             var currLineEnding = line.GetLineEnding();
-            if (line.Length > currLineEnding.Length)
-                sb.Append(line.Substring(line.Length - currLineEnding.Length));
+            sb.Remove(line.Length - currLineEnding.Length, currLineEnding.Length);
             sb.Append(lineEnding);
             return sb.ToString();
         }
