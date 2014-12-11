@@ -92,6 +92,11 @@ namespace Microsoft.VisualStudio.VSCommon
                 _documentTable = new RunningDocumentTable(ServiceProvider.GlobalProvider);
         }
 
+        public RunningDocumentTable RunningDocumentTable
+        {
+            get { return _documentTable; }
+        }
+
         protected override void Initialize()
         {
             // From PythonTools CommonPackage
