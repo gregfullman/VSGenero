@@ -52,6 +52,7 @@ using VSGenero.Options;
 using VSGenero.Snippets;
 using VSGenero.VS2013_Specific;
 using VSGenero.SqlSupport;
+using System.Reflection;
 
 namespace VSGenero
 {
@@ -145,6 +146,33 @@ namespace VSGenero
         public VSGeneroPackage()
             : base()
         {
+            AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
+        }
+
+        private List<string> _manuallyLoadedDlls = new List<string>();
+        Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
+        {
+            if (string.IsNullOrEmpty(args.Name))
+            {
+                return null;
+            }
+            else
+            {
+                var assemblyName = args.Name.Substring(0, args.Name.IndexOf(',')) + ".dll";
+                if (!_manuallyLoadedDlls.Contains(assemblyName))
+                {
+                    string asmLocation = Assembly.GetExecutingAssembly().Location;
+                    asmLocation = Path.GetDirectoryName(asmLocation);
+                    string filename = Path.Combine(asmLocation, assemblyName);
+
+                    if (File.Exists(filename))
+                    {
+                        _manuallyLoadedDlls.Add(assemblyName);
+                        return Assembly.LoadFrom(filename);
+                    }
+                }
+            }
+            return null;
         }
 
         private IProgram4GLFileProvider _currentProgram4GLFileProvider;
