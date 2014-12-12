@@ -395,12 +395,12 @@
     <Compile Include="VS2013_Specific\PeekableItem.cs" Condition="'$(VisualStudioVersion)' &gt; '11.0'" />
     <Compile Include="VS2013_Specific\PeekableItemSource.cs" Condition="'$(VisualStudioVersion)' &gt; '11.0'" />
     <Compile Include="VS2013_Specific\PeekResultSource.cs" Condition="'$(VisualStudioVersion)' &gt; '11.0'" />
-    <Compile Include="VS2013_Specific\PeekSupportedContentTypeAttribute.cs" />
-    <Compile Include="VS2013_Specific\ProductivityTools\BaseFilter.cs" />
-    <Compile Include="VS2013_Specific\ProductivityTools\DisposableTagger.cs" />
-    <Compile Include="VS2013_Specific\ProductivityTools\Genero4glBlockTaggerProvider.cs" />
-    <Compile Include="VS2013_Specific\ProductivityTools\Genero4glParser.cs" />
-    <Compile Include="VS2013_Specific\ProductivityTools\QuoteFilter.cs" />
+    <Compile Include="VS2013_Specific\PeekSupportedContentTypeAttribute.cs" Condition="'$(VisualStudioVersion)' &gt; '11.0'"  />
+    <Compile Include="VS2013_Specific\ProductivityTools\BaseFilter.cs" Condition="'$(VisualStudioVersion)' &gt; '11.0'"  />
+    <Compile Include="VS2013_Specific\ProductivityTools\DisposableTagger.cs" Condition="'$(VisualStudioVersion)' &gt; '11.0'"  />
+    <Compile Include="VS2013_Specific\ProductivityTools\Genero4glBlockTaggerProvider.cs" Condition="'$(VisualStudioVersion)' &gt; '11.0'"  />
+    <Compile Include="VS2013_Specific\ProductivityTools\Genero4glParser.cs" Condition="'$(VisualStudioVersion)' &gt; '11.0'"  />
+    <Compile Include="VS2013_Specific\ProductivityTools\QuoteFilter.cs" Condition="'$(VisualStudioVersion)' &gt; '11.0'"  />
     <Compile Include="VSCommands.cs" />
     <Compile Include="VSGeneroConstants.cs" />
     <Compile Include="VSGeneroPackage.cs" />

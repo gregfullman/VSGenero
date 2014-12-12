@@ -50,7 +50,9 @@ using VSGenero.EditorExtensions;
 using System.IO;
 using VSGenero.Options;
 using VSGenero.Snippets;
+#if VS120
 using VSGenero.VS2013_Specific;
+#endif
 using VSGenero.SqlSupport;
 using System.Reflection;
 
@@ -76,14 +78,13 @@ namespace VSGenero
     [ProvideEditorExtensionAttribute(typeof(EditorFactory), VSGeneroConstants.FileExtension4GL, 32)]
     [ProvideEditorExtensionAttribute(typeof(EditorFactory), VSGeneroConstants.FileExtensionPER, 32)]
     [ProvideEditorLogicalView(typeof(EditorFactory), "{7651a701-06e5-11d1-8ebd-00a0c90f26ea}")]
+    #if VS120
     [PeekSupportedContentType(".4gl")]
+    #endif  
     [RegisterSnippetsAttribute(VSGenero.Snippets.Constants.guidVSGeneroLanuageServiceString, false, 131, "Genero4GL", @"Snippets\CodeSnippets\SnippetsIndex.xml", @"Snippets\CodeSnippets\Snippets\", @"Snippets\CodeSnippets\Snippets\")]
     [ProvideLanguageService(typeof(VSGenero4GLLanguageInfo), VSGeneroConstants.LanguageName4GL, 106,
-        //AutoOutlining = true,
-        //EnableAsyncCompletion = true,
-        //EnableCommenting = true,
                             RequestStockColors = true,
-        //ShowSmartIndent = true,
+                            //ShowSmartIndent = true,       // enable this when we want to support smart indenting
                             ShowCompletion = true,
                             DefaultToInsertSpaces = true,
                             HideAdvancedMembersByDefault = true,
@@ -91,11 +92,8 @@ namespace VSGenero
                             ShowDropDownOptions = true)]
     [ProvideLanguageExtension(typeof(VSGenero4GLLanguageInfo), VSGeneroConstants.FileExtension4GL)]
     [ProvideLanguageService(typeof(VSGeneroPERLanguageInfo), VSGeneroConstants.LanguageNamePER, 107,
-        //AutoOutlining = true,
-        //EnableAsyncCompletion = true,
-        //EnableCommenting = true,
                             RequestStockColors = true,
-        //ShowSmartIndent = true,
+                            //ShowSmartIndent = true,       // enable this when we want to support smart indenting
                             ShowCompletion = true,
                             DefaultToInsertSpaces = true,
                             HideAdvancedMembersByDefault = true,
