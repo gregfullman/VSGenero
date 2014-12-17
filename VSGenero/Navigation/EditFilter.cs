@@ -357,12 +357,17 @@ namespace VSGenero.Navigation
 
         public int Exec(ref Guid pguidCmdGroup, uint nCmdID, uint nCmdexecopt, IntPtr pvaIn, IntPtr pvaOut)
         {
-            if (GeneroClassifierProvider.Instance.Genero4GLCommandTarget != null &&
+            if (GeneroClassifierProvider.Instance != null &&
+                GeneroClassifierProvider.Instance.Genero4GLCommandTarget != null &&
                 pguidCmdGroup == GeneroClassifierProvider.Instance.Genero4GLCommandTarget.PackageGuid)
             {
-                if(GeneroClassifierProvider.Instance.Genero4GLCommandTarget.Exec(_textView.TextBuffer.GetFilePath(), nCmdID))
+                if (_textView != null && _textView.TextBuffer != null)
                 {
-                    return VSConstants.S_OK;
+                    string path = _textView.TextBuffer.GetFilePath();
+                    if (GeneroClassifierProvider.Instance.Genero4GLCommandTarget.Exec(path, nCmdID))
+                    {
+                        return VSConstants.S_OK;
+                    }
                 }
             }
 
