@@ -40,6 +40,7 @@ namespace VSGenero.SqlSupport
                     var tempText = sb.ToString().Trim();
                     if (tempText.Length > 0)
                     {
+                        SqlExtensions.SetSqlExtractionFile(VSGeneroPackage.Instance.ActiveDocument.Path);
                         ITextBuffer buffer = null;
                         if (_tempfilename == null || (buffer = GetBufferAt(_tempfilename)) == null)
                         {

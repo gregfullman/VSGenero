@@ -395,7 +395,10 @@
     <Compile Include="Snippets\SnippetGenerator.cs" />
     <Compile Include="Snippets\SnippetsEnumerator.cs" />
     <Compile Include="SqlSupport\ExtractSqlStatementsCommand.cs" />
+    <Compile Include="SqlSupport\ISqlContextDeterminator.cs" />
+    <Compile Include="SqlSupport\SqlExtensions.cs" />
     <Compile Include="SqlSupport\SqlStatementExtractor.cs" />
+    <Compile Include="SqlSupport\SqlTextViewCreationListener.cs" />
     <Compile Include="VS2013_Specific\PeekableItem.cs" Condition="'$(VisualStudioVersion)' &gt; '11.0'" />
     <Compile Include="VS2013_Specific\PeekableItemSource.cs" Condition="'$(VisualStudioVersion)' &gt; '11.0'" />
     <Compile Include="VS2013_Specific\PeekResultSource.cs" Condition="'$(VisualStudioVersion)' &gt; '11.0'" />
