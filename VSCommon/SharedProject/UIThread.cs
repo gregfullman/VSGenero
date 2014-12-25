@@ -14,6 +14,9 @@
 
 namespace Microsoft.VisualStudioTools.Project
 {
+    using Microsoft.Internal.VisualStudio.PlatformUI;
+    using Microsoft.VisualStudio.Shell.Interop;
+    using Microsoft.VisualStudio.VSCommon.Utilities;
     using System;
     using System.Diagnostics;
     using System.Globalization;
@@ -225,19 +228,16 @@ namespace Microsoft.VisualStudioTools.Project
 
             if (this.synchronizationContext == null)
             {
-#if DEBUG
                 // This is a handy place to do this, since the product and all interesting unit tests
                 // must go through this code path.
                 AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(delegate(object sender, UnhandledExceptionEventArgs args) {
                     if (args.IsTerminating)
                     {
-                        string s = String.Format(CultureInfo.InvariantCulture, "An unhandled exception is about to terminate the process.  Exception info:\n{0}", args.ExceptionObject.ToString());
-                        Debug.Assert(false, s);
+                        ReportException(args.ExceptionObject as Exception);
                     }
                 });
 
                 this.captureStackTrace = new StackTrace(true);
-#endif
                 this.synchronizationContext = new WindowsFormsSynchronizationContext();
             }
             else
@@ -246,5 +246,49 @@ namespace Microsoft.VisualStudioTools.Project
                 Debug.Assert(this.uithread == Thread.CurrentThread);
             }
         }
+
+        private IVsUIShell _vsUiShell;
+        public IVsUIShell VsUiShell
+        {
+            get
+            {
+                if (_vsUiShell == null)
+                    _vsUiShell = CommonPackage.GetGlobalService(typeof(SVsUIShell)) as IVsUIShell;
+                return _vsUiShell;
+            }
+        }
+
+        public void ReportException(Exception e)
+        {
+            ExceptionForm exDialog = new ExceptionForm(e);
+            IntPtr hwnd;
+            VsUiShell.GetDialogOwnerHwnd(out hwnd);
+            exDialog.StartPosition = FormStartPosition.CenterParent;
+            VsUiShell.EnableModeless(0);
+            try
+            {
+                WindowWrapper ww = new WindowWrapper(hwnd);
+                exDialog.ShowDialog(ww);
+            }
+            finally
+            {
+                VsUiShell.EnableModeless(1);
+            }
+        }
+    }
+
+    public class WindowWrapper : System.Windows.Forms.IWin32Window
+    {
+        public WindowWrapper(IntPtr handle)
+        {
+            _hwnd = handle;
+        }
+
+        public IntPtr Handle
+        {
+            get { return _hwnd; }
+        }
+
+        private IntPtr _hwnd;
     }
 }

@@ -282,7 +282,9 @@
     <Compile Include="Utilities\ExceptionForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Utilities\ExceptionForm.Designer.cs" />
+    <Compile Include="Utilities\ExceptionForm.Designer.cs">
+      <DependentUpon>ExceptionForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="Utilities\SynchronizationContextRegister.cs" />
     <Compile Include="Utilities\SynchronizingObject.cs" />
     <Compile Include="SharedProject\AllFilesProjectElement.cs" />
@@ -439,6 +441,9 @@
     <EmbeddedResource Include="SharedProject\ProjectResources.resx" />
     <EmbeddedResource Include="SharedProject\Resources.resx" />
     <EmbeddedResource Include="SharedProject\WebPiComponentPickerControl.resx" />
+    <EmbeddedResource Include="Utilities\ExceptionForm.resx">
+      <DependentUpon>ExceptionForm.cs</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <Page Include="SharedProject\OverwriteFileDialog.xaml">

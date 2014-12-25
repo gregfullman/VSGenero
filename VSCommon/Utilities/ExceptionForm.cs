@@ -9,6 +9,7 @@ using System.Windows.Forms;
 using System.Collections;
 using System.Reflection;
 using System.IO;
+using System.Diagnostics;
 
 namespace Microsoft.VisualStudio.VSCommon.Utilities
 {
@@ -32,29 +33,20 @@ namespace Microsoft.VisualStudio.VSCommon.Utilities
 
         private void buttonSave_Click(object sender, EventArgs e)
         {
-            // save the exception details to an output file
-            SaveFileDialog sfd = new SaveFileDialog();
-            sfd.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-            sfd.Filter = "Text File|*.txt";
-            sfd.Title = "Save Exception Details";
-
-            if (sfd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            string filename = Path.Combine(Path.GetDirectoryName(Assembly.GetAssembly(typeof(ExceptionForm)).Location), string.Format("exception_info_{0}.txt", DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss")));
+            using (FileStream fs = new FileStream(filename, FileMode.Create))
+            using (StreamWriter sw = new StreamWriter(fs))
             {
-                if (sfd.FileName != "")
-                {
-                    using(FileStream fs = new FileStream(sfd.FileName, FileMode.Create))
-                    using(StreamWriter sw = new StreamWriter(fs))
-                    {
-                        SaveGeneralInfo(sw);
-                        sw.WriteLine();
-                        SaveStackTrace(sw);
-                        sw.WriteLine();
-                        SaveInnerException(sw);
-                        sw.WriteLine();
-                        SaveOtherInfo(sw);
-                    }
-                }
+                SaveGeneralInfo(sw);
+                sw.WriteLine();
+                SaveStackTrace(sw);
+                sw.WriteLine();
+                SaveInnerException(sw);
+                sw.WriteLine();
+                SaveOtherInfo(sw);
             }
+
+            Process.Start("notepad.exe", filename);
         }
 
         private void SaveGeneralInfo(StreamWriter sw)
