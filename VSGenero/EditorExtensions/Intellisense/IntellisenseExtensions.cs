@@ -875,8 +875,6 @@ namespace VSGenero.EditorExtensions.Intellisense
             return EditorExtensions.GetLineString(currentPoint, startPosition);
         }
 
-
-
         private static GeneroReverseParser GetReverseParser(IIntellisenseSession session, int startPosition = -1)
         {
             SnapshotPoint currentPoint = (session.TextView.Caret.Position.BufferPosition) - 1;

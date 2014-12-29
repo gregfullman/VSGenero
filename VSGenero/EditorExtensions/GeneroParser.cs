@@ -235,6 +235,7 @@ namespace VSGenero.EditorExtensions
         private bool _initialParseComplete;
 
         public event ParseCompleteEventHandler ParseComplete;
+        public event EventHandler Closing;
 
         private GeneroModuleContents _moduleContents;
         public GeneroModuleContents ModuleContents
@@ -254,7 +255,7 @@ namespace VSGenero.EditorExtensions
             _buffer.Changed += _buffer_Changed;
             _parserThread = new BackgroundWorker();
             _parser = new GeneroParser(_parserThread, primarySibling);
-            _parser.ModuleContentsChanged += new ModuleContentsUpdatedEventHandler(_parser_ModuleContentsChanged);
+            _parser.ModuleContentsChanged += _parser_ModuleContentsChanged;
             _parserThread.WorkerReportsProgress = true;
             _parserThread.WorkerSupportsCancellation = true;
             _parserThread.DoWork += _parser.DoWork;
@@ -267,7 +268,7 @@ namespace VSGenero.EditorExtensions
             _delayedParseTimer.AutoReset = true;
             _delayedParseTimer.Interval = 1000;
             _delayedParseTimer.SynchronizingObject = _synchObj;
-            _delayedParseTimer.Elapsed += new ElapsedEventHandler(_delayedParseTimer_Elapsed);
+            _delayedParseTimer.Elapsed += _delayedParseTimer_Elapsed;
             _delayedParseTimer.Start();
         }
 
@@ -528,10 +529,19 @@ namespace VSGenero.EditorExtensions
         public void CancelParsing()
         {
             if (_delayedParseTimer != null && _delayedParseTimer.Enabled)
+            {
                 _delayedParseTimer.Stop();
+                _delayedParseTimer.Elapsed -= _delayedParseTimer_Elapsed;
+            }
             if (_parserThread.IsBusy)
                 _parserThread.CancelAsync();
             _buffer.Changed -= _buffer_Changed;
+            _parser.ModuleContentsChanged -= _parser_ModuleContentsChanged;
+            _parserThread.DoWork -= _parser.DoWork;
+            _parserThread.RunWorkerCompleted -= _parserThread_RunWorkerCompleted;
+            _parserThread.ProgressChanged -= _parserThread_ProgressChanged;
+            if (Closing != null)
+                Closing(this, new EventArgs());
         }
     }
 
@@ -614,6 +624,7 @@ namespace VSGenero.EditorExtensions
                     {
                         GeneroFileParserManager fpm = VSGeneroPackage.Instance.UpdateBufferFileParserManager(moduleBuffer, currentFile);
                         fpm.ParseComplete += GeneroParser_ParseComplete;
+                        fpm.Closing += fpm_Closing;
                     }
                 }
             }
@@ -657,6 +668,12 @@ namespace VSGenero.EditorExtensions
             DiscardUnparsedVariablesAndFunctions(currentFile);
             _moduleContents.ContentFilename = currentFile;
             e.Result = _moduleContents;
+        }
+
+        void fpm_Closing(object sender, EventArgs e)
+        {
+            (sender as GeneroFileParserManager).ParseComplete -= GeneroParser_ParseComplete;
+            (sender as GeneroFileParserManager).Closing -= fpm_Closing;
         }
 
         void GeneroParser_ParseComplete(object sender, ParseCompleteEventArgs e)
@@ -2186,6 +2203,11 @@ namespace VSGenero.EditorExtensions
                                                 AdvanceToken(ref token, ref prevToken);
                                                 getVariableName = true;
                                             }
+                                        }
+                                        else
+                                        {
+                                            // give up on parsing the table
+                                            break;
                                         }
                                     }
                                 }

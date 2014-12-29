@@ -44,9 +44,13 @@ namespace VSGenero.EditorExtensions
                 VSGeneroPackage.Instance.CurrentProgram4GLFileProvider = _program4glFileProvider;
             }
 
-            //create a single tagger for each buffer.
-            Func<ITagger<T>> sc = delegate() { return new Genero4GLOutliner(buffer) as ITagger<T>; };
-            return buffer.Properties.GetOrCreateSingletonProperty<ITagger<T>>(sc);
+            ITagger<T> tagger;
+            if(!buffer.Properties.TryGetProperty<ITagger<T>>(typeof(ITagger<T>), out tagger))
+            {
+                tagger = new Genero4GLOutliner(buffer) as ITagger<T>;
+                buffer.Properties.AddProperty(typeof(ITagger<T>), tagger);
+            }
+            return tagger;
         }
     }
 
@@ -83,6 +87,19 @@ namespace VSGenero.EditorExtensions
             ForceReoutline(fpm);
 
             _timer = new Timer(TagUpdate, null, Timeout.Infinite, Timeout.Infinite);
+        }
+
+        public void Unregister(GeneroFileParserManager fpm)
+        {
+            this.buffer.Changed -= BufferChanged;
+            fpm.ParseComplete -= Genero4GLOutliner_ParseComplete;
+
+            if(_moduleContents != null)
+            {
+                // force clearing the module contents
+                _moduleContents.Clear();
+                _moduleContents = null;
+            }
         }
 
         private void TagUpdate(object unused)

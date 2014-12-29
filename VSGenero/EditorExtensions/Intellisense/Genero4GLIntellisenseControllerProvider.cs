@@ -37,7 +37,7 @@ namespace VSGenero.EditorExtensions.Intellisense
         public IIntellisenseController TryCreateIntellisenseController(ITextView textView, IList<ITextBuffer> subjectBuffers)
         {
             Genero4GLIntellisenseController controller = null;
-            if (!textView.Properties.TryGetProperty<Genero4GLIntellisenseController>(typeof(Genero4GLIntellisenseController), out controller))
+            if (!textView.TextBuffer.Properties.TryGetProperty<Genero4GLIntellisenseController>(typeof(Genero4GLIntellisenseController), out controller))
             {
                 controller = new Genero4GLIntellisenseController(this, textView);
             }
@@ -71,7 +71,7 @@ namespace VSGenero.EditorExtensions.Intellisense
         {
             var textView = _adaptersFactory.GetWpfTextView(textViewAdapter);
             Genero4GLIntellisenseController controller;
-            if (textView.Properties.TryGetProperty<Genero4GLIntellisenseController>(typeof(Genero4GLIntellisenseController), out controller))
+            if (textView.TextBuffer.Properties.TryGetProperty<Genero4GLIntellisenseController>(typeof(Genero4GLIntellisenseController), out controller))
             {
                 controller.AttachKeyboardFilter();
             }

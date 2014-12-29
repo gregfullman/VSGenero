@@ -23,6 +23,12 @@ namespace VSGenero.EditorExtensions
         {
             _textView = textView;
             _textView.TextBuffer.Changed += TextBuffer_Changed;
+            _textView.TextBuffer.Properties.AddProperty(typeof(GeneroLineEndingsListener), this);
+        }
+
+        public void Unregister()
+        {
+            _textView.TextBuffer.Changed -= TextBuffer_Changed;
         }
 
         void TextBuffer_Changed(object sender, Microsoft.VisualStudio.Text.TextContentChangedEventArgs e)

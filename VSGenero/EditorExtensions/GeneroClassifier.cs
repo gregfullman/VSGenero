@@ -84,7 +84,7 @@ namespace VSGenero.EditorExtensions
                                IClassificationTypeRegistryService typeService)
         {
             _buffer = buffer;
-            _buffer.Changed += new EventHandler<TextContentChangedEventArgs>(_buffer_Changed);
+            _buffer.Changed += _buffer_Changed;
             _lexer = new GeneroLexer();
             _4glTags = new Dictionary<GeneroTokenType, ClassificationTag>();
             _classificationTypes = new Dictionary<IClassificationType, GeneroTokenType>();
@@ -98,6 +98,11 @@ namespace VSGenero.EditorExtensions
             _4glTags[GeneroTokenType.Number] = BuildTag(typeService, PredefinedClassificationTypeNames.Number, GeneroTokenType.Number, _classificationTypes);
             _4glTags[GeneroTokenType.MultiLineComment] = BuildTag(typeService, PredefinedClassificationTypeNames.Comment, GeneroTokenType.MultiLineComment, _multiLineClassificationTypes);
             _4glTags[GeneroTokenType.MultiLineString] = BuildTag(typeService, PredefinedClassificationTypeNames.String, GeneroTokenType.MultiLineString, _multiLineClassificationTypes);
+        }
+
+        public void Unregister()
+        {
+            _buffer.Changed -= _buffer_Changed;
         }
 
         void _buffer_Changed(object sender, TextContentChangedEventArgs e)

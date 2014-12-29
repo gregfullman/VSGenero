@@ -63,8 +63,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             _provider = provider;
             _editOps = provider._EditOperationsFactory.GetEditorOperations(textView);
             _incSearch = provider._IncrementalSearch.GetIncrementalSearch(textView);
-            //_textView.MouseHover += TextViewMouseHover;
-            textView.Properties.AddProperty(typeof(Genero4GLIntellisenseController), this);  // added so our key processors can get back to us
+            textView.TextBuffer.Properties.AddProperty(typeof(Genero4GLIntellisenseController), this);  // added so our key processors can get back to us
         }
 
         //private void TextViewMouseHover(object sender, MouseHoverEventArgs e)
@@ -450,6 +449,7 @@ namespace VSGenero.EditorExtensions.Intellisense
         {
             if (_sigHelpSession != null)
             {
+                _sigHelpSession.Dismissed -= OnSignatureSessionDismissed;
                 _sigHelpSession.Dismiss();
             }
 
@@ -522,6 +522,8 @@ namespace VSGenero.EditorExtensions.Intellisense
         {
             if (_activeSession != null)
             {
+                _activeSession.Dismissed -= OnCompletionSessionDismissed;
+                _activeSession.Committed -= OnCompletionSessionCommitted;
                 _activeSession.Dismiss();
             }
         }
@@ -542,7 +544,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             }
 
             //_textView.MouseHover -= TextViewMouseHover;
-            _textView.Properties.RemoveProperty(typeof(Genero4GLIntellisenseController));
+            _textView.TextBuffer.Properties.RemoveProperty(typeof(Genero4GLIntellisenseController));
 
             DetachKeyboardFilter();
         }

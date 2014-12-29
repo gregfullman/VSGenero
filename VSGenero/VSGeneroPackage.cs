@@ -275,7 +275,7 @@ namespace VSGenero
             return fpm;
         }
 
-        public void RemoveBufferFileParserManager(ITextBuffer buffer)
+        public GeneroFileParserManager RemoveBufferFileParserManager(ITextBuffer buffer)
         {
             GeneroFileParserManager fpm;
             if (buffer.Properties.TryGetProperty(typeof(GeneroFileParserManager), out fpm))
@@ -286,6 +286,7 @@ namespace VSGenero
                     VSGeneroPackage.Instance.BufferFileParserManagers.Remove(filename);
                 buffer.Properties.RemoveProperty(typeof(GeneroFileParserManager));
             }
+            return fpm;
         }
 
         public override Type GetLibraryManagerType()

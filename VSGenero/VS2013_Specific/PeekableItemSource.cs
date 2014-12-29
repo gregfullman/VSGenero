@@ -111,7 +111,6 @@ namespace VSGenero.VS2013_Specific
 
         public void Dispose()
         {
-            int i = 0;
         }
     }
 }

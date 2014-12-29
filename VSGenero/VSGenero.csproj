@@ -323,7 +323,6 @@
     <Compile Include="EditorExtensions\Intellisense\Genero4GLIntellisenseControllerProvider.cs" />
     <Compile Include="EditorExtensions\IProgram4GLFileProvider.cs" />
     <Compile Include="EditorExtensions\Intellisense\Genero4GLCompletion.cs" />
-    <Compile Include="EditorExtensions\Intellisense\Genero4GLCompletionCommandHandler.cs" />
     <Compile Include="EditorExtensions\Intellisense\CompletionComparer.cs" />
     <Compile Include="EditorExtensions\Intellisense\FuzzyStringMatcher.cs" />
     <Compile Include="EditorExtensions\Intellisense\Genero4GLCompletionContextAnalyzer.cs" />

@@ -161,7 +161,7 @@ namespace VSGenero.EditorExtensions
         }
     }
 
-    public class Genero4GL_XMLSettingsLoader : GeneroXMLSettingsLoader
+    public class Genero4GL_XMLSettingsLoader
     {
         private Dictionary<string, string> _symbolMap;
         public Dictionary<string, string> SymbolMap
@@ -217,27 +217,39 @@ namespace VSGenero.EditorExtensions
             }
         }
 
-        public Genero4GL_XMLSettingsLoader() :
-            base(Assembly.GetAssembly(typeof(Genero4GL_XMLSettingsLoader)).GetManifestResourceStream(@"VSGenero.Genero4GL.xml"))
+        public Genero4GL_XMLSettingsLoader()
         {
-            _symbolMap = new Dictionary<string, string>();
-            LoadSymbolMap();
-            _keywordMap = new Dictionary<string, string>();
-            LoadKeywordMap();
-            _dataTypeMap = new Dictionary<string, DataType>();
-            LoadDataTypes();
-            _packages = new Dictionary<string, GeneroPackage>();
-            LoadPackages();
-            _nativeClasses = new Dictionary<string, GeneroSystemClass>();
-            _nativeMethods = new Dictionary<string, GeneroSystemClassFunction>();
-            LoadNativeClassesAndMethods();
-            _nativeOperators = new Dictionary<string, GeneroOperator>();
-            LoadNativeOperators();
+            using(var fileContents = Assembly.GetAssembly(typeof(Genero4GL_XMLSettingsLoader)).GetManifestResourceStream(@"VSGenero.Genero4GL.xml"))
+            using(var xmlReader = XmlReader.Create(fileContents))
+            {
+                var document = XDocument.Load(xmlReader);
+                var nsManager = new XmlNamespaceManager(xmlReader.NameTable);
+                nsManager.AddNamespace("gns", "GeneroXML");
+
+                _symbolMap = new Dictionary<string, string>();
+                LoadSymbolMap(document, nsManager);
+                _keywordMap = new Dictionary<string, string>();
+                LoadKeywordMap(document, nsManager);
+                _dataTypeMap = new Dictionary<string, DataType>();
+                LoadDataTypes(document, nsManager);
+                _packages = new Dictionary<string, GeneroPackage>();
+                LoadPackages(document, nsManager);
+                _nativeClasses = new Dictionary<string, GeneroSystemClass>();
+                _nativeMethods = new Dictionary<string, GeneroSystemClassFunction>();
+                LoadNativeClassesAndMethods(document, nsManager);
+                _nativeOperators = new Dictionary<string, GeneroOperator>();
+                LoadNativeOperators(document, nsManager);
+            }
         }
 
-        private void LoadKeywordMap()
+        private static IEnumerable<XElement> GetElementsAtPath(XDocument document, XmlNamespaceManager nsManager, string path)
         {
-            foreach(var element in GetElementsAtPath("//gns:Genero4GL/gns:Lexing/gns:Keywords/gns:Keyword"))
+            return document.XPathSelectElements(path, nsManager);
+        }
+
+        private void LoadKeywordMap(XDocument document, XmlNamespaceManager nsManager)
+        {
+            foreach(var element in GetElementsAtPath(document, nsManager, "//gns:Genero4GL/gns:Lexing/gns:Keywords/gns:Keyword"))
             {
                 var name = (string)element.Attribute("name");
                 if(!_keywordMap.ContainsKey(name))
@@ -245,9 +257,9 @@ namespace VSGenero.EditorExtensions
             }
         }
 
-        private void LoadSymbolMap()
+        private void LoadSymbolMap(XDocument document, XmlNamespaceManager nsManager)
         {
-            foreach (var element in GetElementsAtPath("//gns:Genero4GL/gns:Lexing/gns:Symbols/gns:Symbol"))
+            foreach (var element in GetElementsAtPath(document, nsManager, "//gns:Genero4GL/gns:Lexing/gns:Symbols/gns:Symbol"))
             {
                 var name = (string)element.Attribute("name");
                 if (!_symbolMap.ContainsKey(name))
@@ -255,9 +267,9 @@ namespace VSGenero.EditorExtensions
             }
         }
 
-        private void LoadDataTypes()
+        private void LoadDataTypes(XDocument document, XmlNamespaceManager nsManager)
         {
-            foreach (var element in GetElementsAtPath("//gns:Genero4GL/gns:Parsing/gns:DataTypes/gns:DataType"))
+            foreach (var element in GetElementsAtPath(document, nsManager, "//gns:Genero4GL/gns:Parsing/gns:DataTypes/gns:DataType"))
             {
                 List<DataType> tempList = new List<DataType>();
                 tempList.Add(new DataType { Name = (string)element.Attribute("name") });
@@ -286,27 +298,27 @@ namespace VSGenero.EditorExtensions
             }
         }
 
-        private void LoadNativeOperators()
+        private void LoadNativeOperators(XDocument document, XmlNamespaceManager nsManager)
         {
-            foreach (var element in GetElementsAtPath("//gns:Genero4GL/gns:Parsing/gns:Operators/gns:Operator"))
+            foreach (var element in GetElementsAtPath(document, nsManager, "//gns:Genero4GL/gns:Parsing/gns:Operators/gns:Operator"))
             {
                 GeneroOperator oper = new GeneroOperator();
                 oper.Name = (string)element.Attribute("name");
                 oper.Description = (string)element.Attribute("desc");
 
-                foreach (var operandElement in element.XPathSelectElement("gns:Operands", _nsManager)
-                                                                  .XPathSelectElements("gns:Operand", _nsManager))
+                foreach (var operandElement in element.XPathSelectElement("gns:Operands", nsManager)
+                                                                  .XPathSelectElements("gns:Operand", nsManager))
                 {
                     oper.Operands.Add(new Tuple<string, string>((string)operandElement.Attribute("name"), (string)operandElement.Attribute("type")));
                 }
 
-                var multiParamsElement = element.XPathSelectElement("gns:MultiParams", _nsManager);
+                var multiParamsElement = element.XPathSelectElement("gns:MultiParams", nsManager);
                 if (multiParamsElement != null)
                 {
                     oper.MultiParamType = (string)multiParamsElement.Attribute("type");
                 }
 
-                var valueElement = element.XPathSelectElement("gns:Value", _nsManager);
+                var valueElement = element.XPathSelectElement("gns:Value", nsManager);
                 if (valueElement != null)
                 {
                     oper.ReturnValue = (string)valueElement.Attribute("type");
@@ -317,13 +329,13 @@ namespace VSGenero.EditorExtensions
             }
         }
 
-        private void LoadNativeClassesAndMethods()
+        private void LoadNativeClassesAndMethods(XDocument document, XmlNamespaceManager nsManager)
         {
-            foreach (var element in GetElementsAtPath("//gns:Genero4GL/gns:Parsing/gns:Functions/gns:Context"))
+            foreach (var element in GetElementsAtPath(document, nsManager, "//gns:Genero4GL/gns:Parsing/gns:Functions/gns:Context"))
             {
                 string context = (string)element.Attribute("name");
                 Dictionary<string, GeneroSystemClassFunction> methods = new Dictionary<string, GeneroSystemClassFunction>();
-                foreach (var contextMethod in element.XPathSelectElements("gns:Function", _nsManager))
+                foreach (var contextMethod in element.XPathSelectElements("gns:Function", nsManager))
                 {
                     GeneroSystemClassFunction newMethod = new GeneroSystemClassFunction();
                     newMethod.Name = (string)contextMethod.Attribute("name");
@@ -332,8 +344,8 @@ namespace VSGenero.EditorExtensions
                     newMethod.Scope = GeneroSystemClassFunction.GeneroClassScope.Instance;
 
                     int position = 0;
-                    foreach (var paramElement in contextMethod.XPathSelectElement("gns:Parameters", _nsManager)
-                                                                  .XPathSelectElements("gns:Parameter", _nsManager))
+                    foreach (var paramElement in contextMethod.XPathSelectElement("gns:Parameters", nsManager)
+                                                                  .XPathSelectElements("gns:Parameter", nsManager))
                     {
                         GeneroClassMethodParameter newParam = new GeneroClassMethodParameter();
                         newParam.Name = (string)paramElement.Attribute("name");
@@ -345,8 +357,8 @@ namespace VSGenero.EditorExtensions
                     }
 
                     position = 0;
-                    foreach (var returnElement in contextMethod.XPathSelectElement("gns:Returns", _nsManager)
-                                                                   .XPathSelectElements("gns:Return", _nsManager))
+                    foreach (var returnElement in contextMethod.XPathSelectElement("gns:Returns", nsManager)
+                                                                   .XPathSelectElements("gns:Return", nsManager))
                     {
                         GeneroClassMethodReturn newReturn = new GeneroClassMethodReturn();
                         newReturn.Name = (string)returnElement.Attribute("name");
@@ -373,9 +385,9 @@ namespace VSGenero.EditorExtensions
             }
         }
 
-        private void LoadPackages()
+        private void LoadPackages(XDocument document, XmlNamespaceManager nsManager)
         {
-            foreach (var element in GetElementsAtPath("//gns:Genero4GL/gns:Parsing/gns:Packages/gns:Package"))
+            foreach (var element in GetElementsAtPath(document, nsManager, "//gns:Genero4GL/gns:Parsing/gns:Packages/gns:Package"))
             {
                 // get the package info
                 GeneroPackage newPackage = new GeneroPackage();
@@ -384,16 +396,16 @@ namespace VSGenero.EditorExtensions
                     GeneroPackage.GeneroPackageType.Builtin : GeneroPackage.GeneroPackageType.Extension;
 
                 // get the classes within the package
-                foreach (var classElement in element.XPathSelectElement("gns:Classes", _nsManager)
-                                                    .XPathSelectElements("gns:Class", _nsManager))
+                foreach (var classElement in element.XPathSelectElement("gns:Classes", nsManager)
+                                                    .XPathSelectElements("gns:Class", nsManager))
                 {
                     GeneroClass newClass = new GeneroClass(null);
                     newClass.ParentPackage = newPackage.Name;
                     newClass.Name = (string)classElement.Attribute("name");
                     newClass.IsStatic = (bool)classElement.Attribute("isStatic");
 
-                    foreach (var methodElement in classElement.XPathSelectElement("gns:Methods", _nsManager)
-                                                              .XPathSelectElements("gns:Method", _nsManager))
+                    foreach (var methodElement in classElement.XPathSelectElement("gns:Methods", nsManager)
+                                                              .XPathSelectElements("gns:Method", nsManager))
                     {
                         GeneroClassMethod newMethod = new GeneroClassMethod();
                         newMethod.ParentClass = newClass.Name;
@@ -403,8 +415,8 @@ namespace VSGenero.EditorExtensions
                             GeneroClassMethod.GeneroClassScope.Static : GeneroClassMethod.GeneroClassScope.Instance;
 
                         int position = 0;
-                        foreach (var paramElement in methodElement.XPathSelectElement("gns:Parameters", _nsManager)
-                                                                  .XPathSelectElements("gns:Parameter", _nsManager))
+                        foreach (var paramElement in methodElement.XPathSelectElement("gns:Parameters", nsManager)
+                                                                  .XPathSelectElements("gns:Parameter", nsManager))
                         {
                             GeneroClassMethodParameter newParam = new GeneroClassMethodParameter();
                             newParam.Name = (string)paramElement.Attribute("name");
@@ -416,8 +428,8 @@ namespace VSGenero.EditorExtensions
                         }
 
                         position = 0;
-                        foreach (var returnElement in methodElement.XPathSelectElement("gns:Returns", _nsManager)
-                                                                   .XPathSelectElements("gns:Return", _nsManager))
+                        foreach (var returnElement in methodElement.XPathSelectElement("gns:Returns", nsManager)
+                                                                   .XPathSelectElements("gns:Return", nsManager))
                         {
                             GeneroClassMethodReturn newReturn = new GeneroClassMethodReturn();
                             newReturn.Name = (string)returnElement.Attribute("name");
@@ -440,25 +452,6 @@ namespace VSGenero.EditorExtensions
                 if (!Packages.ContainsKey(loName))
                     Packages.Add(loName, newPackage);
             }
-        }
-    }
-
-    public abstract class GeneroXMLSettingsLoader
-    {
-        private XDocument _document;
-        protected XmlNamespaceManager _nsManager;
-
-        public GeneroXMLSettingsLoader(Stream fileContents)
-        {
-            var xmlReader = XmlReader.Create(fileContents);
-            _document = XDocument.Load(xmlReader);
-            _nsManager = new XmlNamespaceManager(xmlReader.NameTable);
-            _nsManager.AddNamespace("gns", "GeneroXML");
-        }
-
-        public IEnumerable<XElement> GetElementsAtPath(string path)
-        {
-            return _document.XPathSelectElements(path, _nsManager);
         }
     }
 }

@@ -48,7 +48,12 @@ namespace VSGenero.EditorExtensions.Intellisense
             m_content = content;
             m_documentation = doc;
             m_parameters = parameters;
-            m_subjectBuffer.Changed += new EventHandler<TextContentChangedEventArgs>(OnSubjectBufferChanged);
+            m_subjectBuffer.Changed += OnSubjectBufferChanged;
+        }
+
+        public void Unregister()
+        {
+            m_subjectBuffer.Changed -= OnSubjectBufferChanged;
         }
 
         internal void OnSubjectBufferChanged(object sender, TextContentChangedEventArgs e)
@@ -202,11 +207,21 @@ namespace VSGenero.EditorExtensions.Intellisense
         private ITextBuffer m_textBuffer;
         private GeneroModuleContents _moduleContents;
         private SignatureHelpSourceProvider _provider;
+        private List<GeneroFunctionSignature> _createdFunctionSignatures;
 
         public SignatureHelpSource(ITextBuffer textBuffer, SignatureHelpSourceProvider provider)
         {
+            _createdFunctionSignatures = new List<GeneroFunctionSignature>();
             m_textBuffer = textBuffer;
             _provider = provider;
+            m_textBuffer.Properties.AddProperty(typeof(SignatureHelpSource), this);
+        }
+
+        public void Unregister()
+        {
+            foreach(var sig in _createdFunctionSignatures)
+                sig.Unregister();
+            _createdFunctionSignatures.Clear();
         }
 
         public void AugmentSignatureHelpSession(ISignatureHelpSession session, IList<ISignature> signatures)
@@ -434,8 +449,7 @@ namespace VSGenero.EditorExtensions.Intellisense
         {
             string sigText = functionSignature.GetSignatureText(true, true, true);
             GeneroFunctionSignature sig = new GeneroFunctionSignature(textBuffer, sigText, "", null);
-            textBuffer.Changed += new EventHandler<TextContentChangedEventArgs>(sig.OnSubjectBufferChanged);
-
+            _createdFunctionSignatures.Add(sig);
             //find the parameters in the method signature (expect methodname(one, two) 
             List<IParameter> paramList = new List<IParameter>();
             int locusSearchStart = 0;

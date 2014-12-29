@@ -30,6 +30,8 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.VSCommon;
 using System.ComponentModel.Composition;
 using System.IO;
+using VSGenero.EditorExtensions.Intellisense;
+using Microsoft.VisualStudio.Text.Tagging;
 
 namespace VSGenero.Navigation
 {
@@ -94,9 +96,9 @@ namespace VSGenero.Navigation
                 ((IVsCodeWindowEvents)this).OnNewView(textView);
             }
 
-            
 
-            if(VSGeneroPackage.Instance.LangPrefs.NavigationBar)
+
+            if (VSGeneroPackage.Instance.LangPrefs.NavigationBar)
                 return AddDropDownBar();
 
             return VSConstants.S_OK;
@@ -104,7 +106,7 @@ namespace VSGenero.Navigation
 
         private void RefreshDropDownBar()
         {
-            if(_client != null)
+            if (_client != null)
             {
                 _client.ForceRefresh();
             }
@@ -139,7 +141,7 @@ namespace VSGenero.Navigation
             {
                 return VSConstants.E_FAIL;
             }
-            
+
             // pass on the text view
             GeneroFileParserManager fpm = VSGeneroPackage.Instance.UpdateBufferFileParserManager(_textBuffer);
             _client = new DropDownBarClient(wpfTextView);
@@ -203,14 +205,18 @@ namespace VSGenero.Navigation
                 var factory = VSGeneroPackage.ComponentModel.GetService<IEditorOperationsFactoryService>();
                 var editFilter = new EditFilter(wpfTextView, factory.GetEditorOperations(wpfTextView));
                 editFilter.AttachKeyboardFilter(vsTextView);
-//#if DEV11_OR_LATER
-//                new TextViewFilter(vsTextView);
-//#endif
+                //#if DEV11_OR_LATER
+                //                new TextViewFilter(vsTextView);
+                //#endif
                 wpfTextView.GotAggregateFocus += OnTextViewGotAggregateFocus;
             }
             return VSConstants.S_OK;
         }
 
+        /// <summary>
+        /// This method is called when a file is being closed. 
+        /// </summary>
+        /// <returns></returns>
         public int RemoveAdornments()
         {
             _windows.Remove(this);
@@ -246,11 +252,11 @@ namespace VSGenero.Navigation
             if (_client != null)
             {
                 IVsDropdownBarManager manager = (IVsDropdownBarManager)_window;
-                GeneroFileParserManager fpm;
-                if (_textBuffer.Properties.TryGetProperty(typeof(GeneroFileParserManager), out fpm))
-                {
-                    fpm.CancelParsing();
-                }
+                //GeneroFileParserManager fpm;
+                //if (_textBuffer.Properties.TryGetProperty(typeof(GeneroFileParserManager), out fpm))
+                //{
+                //    fpm.CancelParsing();
+                //}
                 _client.Unregister();
                 // A buffer may have multiple DropDownBarClients, given one may open multiple CodeWindows
                 // over a single buffer using Window/New Window
@@ -273,12 +279,10 @@ namespace VSGenero.Navigation
                     if (instancesOpen == 0)
                     {
                         string filePath = _textBuffer.GetFilePath();
-                        // remove the file parser manager for the buffer
-                        //if (_textBuffer.Properties.ContainsProperty(typeof(GeneroFileParserManager)))
-                        //{
-                        //    _textBuffer.Properties.RemoveProperty(typeof(GeneroFileParserManager));
-                        //}
-                        VSGeneroPackage.Instance.RemoveBufferFileParserManager(_textBuffer);
+
+                        // remove the file parser manager from the buffer (hang onto it for unregistration)
+                        var delFpm = VSGeneroPackage.Instance.RemoveBufferFileParserManager(_textBuffer);
+
                         // remove the buffer from the global buffer dictionary
                         if (VSGeneroPackage.BufferDictionary.ContainsKey(filePath))
                         {
@@ -291,13 +295,41 @@ namespace VSGenero.Navigation
                         if (!Directory.GetFiles(parentPath).Any(x => VSGeneroPackage.BufferDictionary.ContainsKey(x) && VSGeneroPackage.BufferDictionary[x].IsOpen))
                         {
                             VSGeneroPackage.Instance.ProgramContentsManager.Programs.Remove(_textBuffer.GetProgram());
-                            
+
                             // remove any buffers that aren't open (they were loaded into the buffer dictionary via background parser
                             foreach (var unopenedBuffer in VSGeneroPackage.BufferDictionary.Keys.Where(x => x.StartsWith(parentPath)).ToList())
                             {
                                 VSGeneroPackage.Instance.RemoveBufferFileParserManager(VSGeneroPackage.BufferDictionary[unopenedBuffer].Buffer);
                                 VSGeneroPackage.BufferDictionary.Remove(unopenedBuffer);
                             }
+                        }
+
+                        Genero4GLOutliner outliner;
+                        if (_textBuffer.Properties.TryGetProperty<Genero4GLOutliner>(typeof(Genero4GLOutliner), out outliner))
+                        {
+                            outliner.Unregister(delFpm);
+                            _textBuffer.Properties.RemoveProperty(typeof(Genero4GLOutliner));
+                        }
+
+                        GeneroClassifier classifier;
+                        if (_textBuffer.Properties.TryGetProperty<GeneroClassifier>(typeof(GeneroClassifier), out classifier))
+                        {
+                            classifier.Unregister();
+                            _textBuffer.Properties.RemoveProperty(typeof(GeneroClassifier));
+                        }
+
+                        GeneroLineEndingsListener lineEndingsListener;
+                        if (_textBuffer.Properties.TryGetProperty<GeneroLineEndingsListener>(typeof(GeneroLineEndingsListener), out lineEndingsListener))
+                        {
+                            lineEndingsListener.Unregister();
+                            _textBuffer.Properties.RemoveProperty(typeof(GeneroLineEndingsListener));
+                        }
+
+                        SignatureHelpSource sigHelpSource;
+                        if (_textBuffer.Properties.TryGetProperty<SignatureHelpSource>(typeof(SignatureHelpSource), out sigHelpSource))
+                        {
+                            sigHelpSource.Unregister();
+                            _textBuffer.Properties.RemoveProperty(typeof(SignatureHelpSource));
                         }
                     }
                 }
