@@ -246,6 +246,18 @@ namespace VSGenero.EditorExtensions
             }
         }
 
+        public string PrimarySibling
+        {
+            get
+            {
+                if(_parser != null)
+                {
+                    return _parser.PrimarySibling;
+                }
+                return null;
+            }
+        }
+
         public GeneroFileParserManager(ITextBuffer buffer, string primarySibling = null)
         {
             _initialParseComplete = false;

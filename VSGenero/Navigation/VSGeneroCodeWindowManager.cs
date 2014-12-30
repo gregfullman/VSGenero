@@ -282,25 +282,45 @@ namespace VSGenero.Navigation
 
                         // remove the file parser manager from the buffer (hang onto it for unregistration)
                         var delFpm = VSGeneroPackage.Instance.RemoveBufferFileParserManager(_textBuffer);
-
-                        // remove the buffer from the global buffer dictionary
-                        if (VSGeneroPackage.BufferDictionary.ContainsKey(filePath))
+                        if (delFpm.PrimarySibling == null)
                         {
-                            VSGeneroPackage.BufferDictionary.Remove(filePath);
-                        }
+                            // remove the buffer from the global buffer dictionary
+                            if (VSGeneroPackage.BufferDictionary.ContainsKey(filePath))
+                            {
+                                VSGeneroPackage.BufferDictionary.Remove(filePath);
+                            }
 
-                        // check to see if any of the other program files are open. If not, we should remove the program contents from the global manager
-                        // see if there are any buffers open in the same directory
-                        string parentPath = Path.GetDirectoryName(filePath);
-                        if (!Directory.GetFiles(parentPath).Any(x => VSGeneroPackage.BufferDictionary.ContainsKey(x) && VSGeneroPackage.BufferDictionary[x].IsOpen))
-                        {
                             VSGeneroPackage.Instance.ProgramContentsManager.Programs.Remove(_textBuffer.GetProgram());
 
-                            // remove any buffers that aren't open (they were loaded into the buffer dictionary via background parser
-                            foreach (var unopenedBuffer in VSGeneroPackage.BufferDictionary.Keys.Where(x => x.StartsWith(parentPath)).ToList())
+                            IEnumerable<string> programFilenames = (VSGeneroPackage.Instance.CurrentProgram4GLFileProvider == null) ?
+                                                            VSGenero.EditorExtensions.EditorExtensions.GetProgramFilenames(filePath) :
+                                                            VSGeneroPackage.Instance.CurrentProgram4GLFileProvider.GetProgramFilenames(filePath);
+                            var filenameList = programFilenames.ToList();
+                            if(filenameList.Count > 0)
                             {
-                                VSGeneroPackage.Instance.RemoveBufferFileParserManager(VSGeneroPackage.BufferDictionary[unopenedBuffer].Buffer);
-                                VSGeneroPackage.BufferDictionary.Remove(unopenedBuffer);
+                                foreach(var filename in filenameList)
+                                {
+                                    TextBufferOpenStatus bufferStatus;
+                                    if(VSGeneroPackage.BufferDictionary.TryGetValue(filename, out bufferStatus))
+                                    {
+                                        if (!bufferStatus.IsOpen)
+                                        {
+                                            VSGeneroPackage.Instance.RemoveBufferFileParserManager(bufferStatus.Buffer);
+                                            VSGeneroPackage.BufferDictionary.Remove(filename);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            if (!VSGeneroPackage.BufferDictionary.ContainsKey(delFpm.PrimarySibling))
+                            {
+                                VSGeneroPackage.BufferDictionary.Remove(filePath);
+                            }
+                            else if (VSGeneroPackage.BufferDictionary.ContainsKey(filePath))
+                            {
+                                VSGeneroPackage.BufferDictionary[filePath].IsOpen = false;
                             }
                         }
 

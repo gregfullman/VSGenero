@@ -280,6 +280,12 @@ namespace VSGenero
             GeneroFileParserManager fpm;
             if (buffer.Properties.TryGetProperty(typeof(GeneroFileParserManager), out fpm))
             {
+                if(fpm.PrimarySibling != null)
+                {
+                    if (VSGeneroPackage.Instance.BufferFileParserManagers.ContainsKey(fpm.PrimarySibling))
+                        return fpm;
+                }
+
                 fpm.CancelParsing();
                 string filename = buffer.GetFilePath();
                 if (VSGeneroPackage.Instance.BufferFileParserManagers.ContainsKey(filename))
