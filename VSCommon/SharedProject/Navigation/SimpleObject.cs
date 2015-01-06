@@ -17,7 +17,7 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudioTools.Navigation {
-    class SimpleObject : ISimpleObject {
+    public class SimpleObject : ISimpleObject {
         #region ISimpleObject Members
 
         public virtual bool CanDelete {

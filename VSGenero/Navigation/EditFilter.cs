@@ -29,6 +29,12 @@ using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.VSCommon;
 using System.ComponentModel.Composition;
 using System.ComponentModel.Composition.Hosting;
+using Microsoft.VisualStudioTools.Navigation;
+using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Language.Intellisense;
+using Microsoft.VisualStudio.Shell;
+using VSGenero.Analysis;
+using Microsoft.VisualStudioTools;
 
 namespace VSGenero.Navigation
 {
@@ -210,61 +216,6 @@ namespace VSGenero.Navigation
                 GotoLocation(location);
             }
             return VSConstants.S_OK;
-
-            //UpdateStatusForIncompleteAnalysis();
-
-            //var analysis = _textView.GetExpressionAnalysis();
-
-            //Dictionary<LocationInfo, SimpleLocationInfo> references, definitions, values;
-            //GetDefsRefsAndValues(analysis, out definitions, out references, out values);
-
-            //if ((values.Count + definitions.Count) == 1)
-            //{
-            //    if (values.Count != 0)
-            //    {
-            //        foreach (var location in values.Keys)
-            //        {
-            //            GotoLocation(location);
-            //            break;
-            //        }
-            //    }
-            //    else
-            //    {
-            //        foreach (var location in definitions.Keys)
-            //        {
-            //            GotoLocation(location);
-            //            break;
-            //        }
-            //    }
-            //}
-            //else if (values.Count + definitions.Count == 0)
-            //{
-            //    if (String.IsNullOrWhiteSpace(analysis.Expression))
-            //    {
-            //        MessageBox.Show(String.Format("Cannot go to definition.  The cursor is not on a symbol."), "Python Tools for Visual Studio");
-            //    }
-            //    else
-            //    {
-            //        MessageBox.Show(String.Format("Cannot go to definition \"{0}\"", analysis.Expression), "Python Tools for Visual Studio");
-            //    }
-            //}
-            //else if (definitions.Count == 0)
-            //{
-            //    ShowFindSymbolsDialog(analysis, new SymbolList("Values", StandardGlyphGroup.GlyphForwardType, values.Values));
-            //}
-            //else if (values.Count == 0)
-            //{
-            //    ShowFindSymbolsDialog(analysis, new SymbolList("Definitions", StandardGlyphGroup.GlyphLibrary, definitions.Values));
-            //}
-            //else
-            //{
-            //    ShowFindSymbolsDialog(analysis,
-            //        new LocationCategory("Goto Definition",
-            //            new SymbolList("Definitions", StandardGlyphGroup.GlyphLibrary, definitions.Values),
-            //            new SymbolList("Values", StandardGlyphGroup.GlyphForwardType, values.Values)
-            //        )
-            //    );
-            //}
         }
 
         /// <summary>
@@ -273,10 +224,6 @@ namespace VSGenero.Navigation
         /// </summary>
         private void GotoLocation(GoToDefinitionLocation location)
         {
-            //Debug.Assert(location != null);
-            //Debug.Assert(location.Line > 0);
-            //Debug.Assert(location.Column > 0);
-
             if (VSCommonExtensions.IsSamePath(location.Filename, _textView.GetFilePath()))
             {
                 int line, col;
@@ -313,7 +260,7 @@ namespace VSGenero.Navigation
 
         //internal static LocationCategory GetFindRefLocations(ExpressionAnalysis analysis)
         //{
-        //    Dictionary<LocationInfo, SimpleLocationInfo> references, definitions, values;
+        //    Dictionary<LocationInfo, SimpleLocationInfo> references = null, definitions = null, values = null;
         //    GetDefsRefsAndValues(analysis, out definitions, out references, out values);
 
         //    var locations = new LocationCategory("Find All References",
@@ -324,20 +271,54 @@ namespace VSGenero.Navigation
         //    return locations;
         //}
 
-        /// <summary>
-        /// Opens the find symbols dialog with a list of results.  This is done by requesting
-        /// that VS does a search against our library GUID.  Our library then responds to
-        /// that request by extracting the prvoided symbol list out and using that for the
-        /// search results.
-        /// </summary>
+        //private static void GetDefsRefsAndValues(ExpressionAnalysis provider, out Dictionary<LocationInfo, SimpleLocationInfo> definitions, out Dictionary<LocationInfo, SimpleLocationInfo> references, out Dictionary<LocationInfo, SimpleLocationInfo> values)
+        //{
+        //    references = new Dictionary<LocationInfo, SimpleLocationInfo>();
+        //    definitions = new Dictionary<LocationInfo, SimpleLocationInfo>();
+        //    values = new Dictionary<LocationInfo, SimpleLocationInfo>();
+
+        //    foreach (var v in provider.Variables)
+        //    {
+        //        if (v.Location.FilePath == null)
+        //        {
+        //            // ignore references in the REPL
+        //            continue;
+        //        }
+
+        //        switch (v.Type)
+        //        {
+        //            case VariableType.Definition:
+        //                values.Remove(v.Location);
+        //                definitions[v.Location] = new SimpleLocationInfo(provider.Expression, v.Location, StandardGlyphGroup.GlyphGroupField);
+        //                break;
+        //            case VariableType.Reference:
+        //                references[v.Location] = new SimpleLocationInfo(provider.Expression, v.Location, StandardGlyphGroup.GlyphGroupField);
+        //                break;
+        //            case VariableType.Value:
+        //                if (!definitions.ContainsKey(v.Location))
+        //                {
+        //                    values[v.Location] = new SimpleLocationInfo(provider.Expression, v.Location, StandardGlyphGroup.GlyphGroupField);
+        //                }
+        //                break;
+        //        }
+        //    }
+        //}
+
+
+        ///// <summary>
+        ///// Opens the find symbols dialog with a list of results.  This is done by requesting
+        ///// that VS does a search against our library GUID.  Our library then responds to
+        ///// that request by extracting the prvoided symbol list out and using that for the
+        ///// search results.
+        ///// </summary>
         //private static void ShowFindSymbolsDialog(ExpressionAnalysis provider, IVsNavInfo symbols)
         //{
         //    // ensure our library is loaded so find all references will go to our library
-        //    Package.GetGlobalService(typeof(IPythonLibraryManager));
+        //    Package.GetGlobalService(typeof(IGeneroLibraryManager));
 
         //    if (provider.Expression != "")
         //    {
-        //        var findSym = (IVsFindSymbol)PythonToolsPackage.GetGlobalService(typeof(SVsObjectSearch));
+        //        var findSym = (IVsFindSymbol)VSGeneroPackage.GetGlobalService(typeof(SVsObjectSearch));
         //        VSOBSEARCHCRITERIA2 searchCriteria = new VSOBSEARCHCRITERIA2();
         //        searchCriteria.eSrchType = VSOBSEARCHTYPE.SO_ENTIREWORD;
         //        searchCriteria.pIVsNavInfo = symbols;
@@ -402,7 +383,6 @@ namespace VSGenero.Navigation
                         //VSGeneroPackage.Instance.ShowDialog("Functionality Not Supported", "Go to definition is not yet supported.");
                         return GotoDefinition();
                     case VSConstants.VSStd97CmdID.FindReferences:
-                        VSGeneroPackage.Instance.ShowDialog("Functionality Not Supported", "Find all references is not yet supported.");
                         return FindAllReferences();
                 }
             }
@@ -719,6 +699,387 @@ namespace VSGenero.Navigation
         {
             // TODO:
             //UpdateSmartTags(compMgr);
+        }
+
+        internal class SymbolList : SimpleObjectList<SimpleLocationInfo>, IVsNavInfo, IVsNavInfoNode, ICustomSearchListProvider, ISimpleObject
+        {
+            private readonly string _name;
+            private readonly StandardGlyphGroup _glyphGroup;
+
+            internal SymbolList(string description, StandardGlyphGroup glyphGroup, IEnumerable<SimpleLocationInfo> locations)
+            {
+                _name = description;
+                _glyphGroup = glyphGroup;
+                Children.AddRange(locations);
+            }
+
+            public override uint CategoryField(LIB_CATEGORY lIB_CATEGORY)
+            {
+                return (uint)(_LIB_LISTTYPE.LLT_MEMBERS | _LIB_LISTTYPE.LLT_PACKAGE);
+            }
+
+            #region ISimpleObject Members
+
+            public bool CanDelete
+            {
+                get { return false; }
+            }
+
+            public bool CanGoToSource
+            {
+                get { return false; }
+            }
+
+            public bool CanRename
+            {
+                get { return false; }
+            }
+
+            public string Name
+            {
+                get { return _name; }
+            }
+
+            public string UniqueName
+            {
+                get { return _name; }
+            }
+
+            public string FullName
+            {
+                get
+                {
+                    return _name;
+                }
+            }
+
+            public string GetTextRepresentation(VSTREETEXTOPTIONS options)
+            {
+                switch (options)
+                {
+                    case VSTREETEXTOPTIONS.TTO_DISPLAYTEXT:
+                        return _name;
+                }
+                return null;
+            }
+
+            public string TooltipText
+            {
+                get { return null; }
+            }
+
+            public object BrowseObject
+            {
+                get { return null; }
+            }
+
+            public System.ComponentModel.Design.CommandID ContextMenuID
+            {
+                get { return null; }
+            }
+
+            public VSTREEDISPLAYDATA DisplayData
+            {
+                get
+                {
+                    var res = new VSTREEDISPLAYDATA();
+                    res.Image = res.SelectedImage = (ushort)_glyphGroup;
+                    return res;
+                }
+            }
+
+            public void Delete()
+            {
+            }
+
+            public void DoDragDrop(OleDataObject dataObject, uint grfKeyState, uint pdwEffect)
+            {
+            }
+
+            public void Rename(string pszNewName, uint grfFlags)
+            {
+            }
+
+            public void GotoSource(VSOBJGOTOSRCTYPE SrcType)
+            {
+            }
+
+            public void SourceItems(out IVsHierarchy ppHier, out uint pItemid, out uint pcItems)
+            {
+                ppHier = null;
+                pItemid = 0;
+                pcItems = 0;
+            }
+
+            public uint EnumClipboardFormats(_VSOBJCFFLAGS _VSOBJCFFLAGS, VSOBJCLIPFORMAT[] rgcfFormats)
+            {
+                return VSConstants.S_OK;
+            }
+
+            public void FillDescription(_VSOBJDESCOPTIONS _VSOBJDESCOPTIONS, IVsObjectBrowserDescription3 pobDesc)
+            {
+            }
+
+            public IVsSimpleObjectList2 FilterView(uint ListType)
+            {
+                return this;
+            }
+
+            #endregion
+
+            #region IVsNavInfo Members
+
+            public int EnumCanonicalNodes(out IVsEnumNavInfoNodes ppEnum)
+            {
+                ppEnum = new NodeEnumerator<SimpleLocationInfo>(Children);
+                return VSConstants.S_OK;
+            }
+
+            public int EnumPresentationNodes(uint dwFlags, out IVsEnumNavInfoNodes ppEnum)
+            {
+                ppEnum = new NodeEnumerator<SimpleLocationInfo>(Children);
+                return VSConstants.S_OK;
+            }
+
+            public int GetLibGuid(out Guid pGuid)
+            {
+                pGuid = Guid.Empty;
+                return VSConstants.S_OK;
+            }
+
+            public int GetSymbolType(out uint pdwType)
+            {
+                pdwType = (uint)_LIB_LISTTYPE2.LLT_MEMBERHIERARCHY;
+                return VSConstants.S_OK;
+            }
+
+            #endregion
+
+            #region ICustomSearchListProvider Members
+
+            public IVsSimpleObjectList2 GetSearchList()
+            {
+                return this;
+            }
+
+            #endregion
+
+            #region IVsNavInfoNode Members
+
+            public int get_Name(out string pbstrName)
+            {
+                pbstrName = "name";
+                return VSConstants.S_OK;
+            }
+
+            public int get_Type(out uint pllt)
+            {
+                pllt = 16; // (uint)_LIB_LISTTYPE2.LLT_MEMBERHIERARCHY;
+                return VSConstants.S_OK;
+            }
+
+            #endregion
+        }
+
+        class NodeEnumerator<T> : IVsEnumNavInfoNodes where T : IVsNavInfoNode
+        {
+            private readonly List<T> _locations;
+            private IEnumerator<T> _locationEnum;
+
+            public NodeEnumerator(List<T> locations)
+            {
+                _locations = locations;
+                Reset();
+            }
+
+            #region IVsEnumNavInfoNodes Members
+
+            public int Clone(out IVsEnumNavInfoNodes ppEnum)
+            {
+                ppEnum = new NodeEnumerator<T>(_locations);
+                return VSConstants.S_OK;
+            }
+
+            public int Next(uint celt, IVsNavInfoNode[] rgelt, out uint pceltFetched)
+            {
+                pceltFetched = 0;
+                while (celt-- != 0 && _locationEnum.MoveNext())
+                {
+                    rgelt[pceltFetched++] = _locationEnum.Current;
+                }
+                return VSConstants.S_OK;
+            }
+
+            public int Reset()
+            {
+                _locationEnum = _locations.GetEnumerator();
+                return VSConstants.S_OK;
+            }
+
+            public int Skip(uint celt)
+            {
+                while (celt-- != 0)
+                {
+                    _locationEnum.MoveNext();
+                }
+                return VSConstants.S_OK;
+            }
+
+            #endregion
+        }
+
+        internal class SimpleLocationInfo : SimpleObject, IVsNavInfoNode
+        {
+            private readonly LocationInfo _locationInfo;
+            private readonly StandardGlyphGroup _glyphType;
+            private readonly string _pathText, _lineText;
+
+            public SimpleLocationInfo(string searchText, LocationInfo locInfo, StandardGlyphGroup glyphType)
+            {
+                _locationInfo = locInfo;
+                _glyphType = glyphType;
+                _pathText = GetSearchDisplayText();
+                _lineText = _locationInfo.ProjectEntry.GetLine(_locationInfo.Line);
+            }
+
+            public override string Name
+            {
+                get
+                {
+                    return _locationInfo.FilePath;
+                }
+            }
+
+            public override string GetTextRepresentation(VSTREETEXTOPTIONS options)
+            {
+                if (options == VSTREETEXTOPTIONS.TTO_DEFAULT)
+                {
+                    return _pathText + _lineText.Trim();
+                }
+                return String.Empty;
+            }
+
+            private string GetSearchDisplayText()
+            {
+                return String.Format("{0} - ({1}, {2}): ",
+                    _locationInfo.FilePath,
+                    _locationInfo.Line,
+                    _locationInfo.Column);
+            }
+
+            public override string UniqueName
+            {
+                get
+                {
+                    return _locationInfo.FilePath;
+                }
+            }
+
+            public override bool CanGoToSource
+            {
+                get
+                {
+                    return true;
+                }
+            }
+
+            public override VSTREEDISPLAYDATA DisplayData
+            {
+                get
+                {
+                    var res = new VSTREEDISPLAYDATA();
+                    res.Image = res.SelectedImage = (ushort)_glyphType;
+                    res.State = (uint)_VSTREEDISPLAYSTATE.TDS_FORCESELECT;
+
+                    // This code highlights the text but it gets the wrong region.  This should be re-enabled
+                    // and highlight the correct region.
+
+                    //res.ForceSelectStart = (ushort)(_pathText.Length + _locationInfo.Column - 1);
+                    //res.ForceSelectLength = (ushort)_locationInfo.Length;
+                    return res;
+                }
+            }
+
+            public override void GotoSource(VSOBJGOTOSRCTYPE SrcType)
+            {
+                VSGeneroPackage.NavigateTo(_locationInfo.FilePath, Guid.Empty, _locationInfo.Line - 1, _locationInfo.Column - 1);
+            }
+
+            #region IVsNavInfoNode Members
+
+            public int get_Name(out string pbstrName)
+            {
+                pbstrName = _locationInfo.FilePath;
+                return VSConstants.S_OK;
+            }
+
+            public int get_Type(out uint pllt)
+            {
+                pllt = 16; // (uint)_LIB_LISTTYPE2.LLT_MEMBERHIERARCHY;
+                return VSConstants.S_OK;
+            }
+
+            #endregion
+        }
+
+        internal class LocationCategory : SimpleObjectList<SymbolList>, IVsNavInfo, ICustomSearchListProvider
+        {
+            private readonly string _name;
+
+            internal LocationCategory(string name, params SymbolList[] locations)
+            {
+                _name = name;
+
+                foreach (var location in locations)
+                {
+                    if (location.Children.Count > 0)
+                    {
+                        Children.Add(location);
+                    }
+                }
+            }
+
+            public override uint CategoryField(LIB_CATEGORY lIB_CATEGORY)
+            {
+                return (uint)(_LIB_LISTTYPE.LLT_HIERARCHY | _LIB_LISTTYPE.LLT_MEMBERS | _LIB_LISTTYPE.LLT_PACKAGE);
+            }
+
+            #region IVsNavInfo Members
+
+            public int EnumCanonicalNodes(out IVsEnumNavInfoNodes ppEnum)
+            {
+                ppEnum = new NodeEnumerator<SymbolList>(Children);
+                return VSConstants.S_OK;
+            }
+
+            public int EnumPresentationNodes(uint dwFlags, out IVsEnumNavInfoNodes ppEnum)
+            {
+                ppEnum = new NodeEnumerator<SymbolList>(Children);
+                return VSConstants.S_OK;
+            }
+
+            public int GetLibGuid(out Guid pGuid)
+            {
+                pGuid = Guid.Empty;
+                return VSConstants.S_OK;
+            }
+
+            public int GetSymbolType(out uint pdwType)
+            {
+                pdwType = (uint)_LIB_LISTTYPE2.LLT_MEMBERHIERARCHY;
+                return VSConstants.S_OK;
+            }
+
+            #endregion
+
+            #region ICustomSearchListProvider Members
+
+            public IVsSimpleObjectList2 GetSearchList()
+            {
+                return this;
+            }
+
+            #endregion
         }
     }
 }
