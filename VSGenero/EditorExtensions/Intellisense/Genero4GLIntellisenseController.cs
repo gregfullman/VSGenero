@@ -534,14 +534,8 @@ namespace VSGenero.EditorExtensions.Intellisense
 
         public void Detach(ITextView textView)
         {
-            if (_textView == null)
-            {
-                throw new InvalidOperationException("Already detached from text view");
-            }
-            if (textView != _textView)
-            {
-                throw new ArgumentException("Not attached to specified text view", "textView");
-            }
+            if (_textView == null || textView != _textView)
+                return;
 
             //_textView.MouseHover -= TextViewMouseHover;
             _textView.TextBuffer.Properties.RemoveProperty(typeof(Genero4GLIntellisenseController));

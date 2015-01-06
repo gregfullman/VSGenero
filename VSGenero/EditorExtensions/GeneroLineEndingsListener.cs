@@ -22,8 +22,11 @@ namespace VSGenero.EditorExtensions
         public void TextViewCreated(IWpfTextView textView)
         {
             _textView = textView;
-            _textView.TextBuffer.Changed += TextBuffer_Changed;
-            _textView.TextBuffer.Properties.AddProperty(typeof(GeneroLineEndingsListener), this);
+            if (!_textView.TextBuffer.Properties.ContainsProperty(typeof(GeneroLineEndingsListener)))
+            {
+                _textView.TextBuffer.Changed += TextBuffer_Changed;
+                _textView.TextBuffer.Properties.AddProperty(typeof(GeneroLineEndingsListener), this);
+            }
         }
 
         public void Unregister()
