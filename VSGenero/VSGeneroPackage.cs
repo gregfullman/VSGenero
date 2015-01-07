@@ -256,7 +256,7 @@ namespace VSGenero
                 {
                     string filename = buffer.GetFilePath();
                     // see if a file parser manager has been created for this file
-                    if (VSGeneroPackage.Instance.BufferFileParserManagers.TryGetValue(filename, out fpm))
+                    if (VSGeneroPackage.Instance.BufferFileParserManagers.TryGetValue(filename.ToLower(), out fpm))
                     {
                         // use this file parser manager instead of a new one
                         fpm.UseNewBuffer(buffer);
@@ -264,7 +264,7 @@ namespace VSGenero
                     else
                     {
                         fpm = new GeneroFileParserManager(buffer, primarySibling);
-                        VSGeneroPackage.Instance.BufferFileParserManagers.Add(filename, fpm);
+                        VSGeneroPackage.Instance.BufferFileParserManagers.Add(filename.ToLower(), fpm);
                     }
                     if (!buffer.Properties.ContainsProperty(typeof(GeneroFileParserManager)))
                     {
@@ -282,14 +282,14 @@ namespace VSGenero
             {
                 if(fpm.PrimarySibling != null)
                 {
-                    if (VSGeneroPackage.Instance.BufferFileParserManagers.ContainsKey(fpm.PrimarySibling))
+                    if (VSGeneroPackage.Instance.BufferFileParserManagers.ContainsKey(fpm.PrimarySibling.ToLower()))
                         return fpm;
                 }
 
                 fpm.CancelParsing();
                 string filename = buffer.GetFilePath();
-                if (VSGeneroPackage.Instance.BufferFileParserManagers.ContainsKey(filename))
-                    VSGeneroPackage.Instance.BufferFileParserManagers.Remove(filename);
+                if (VSGeneroPackage.Instance.BufferFileParserManagers.ContainsKey(filename.ToLower()))
+                    VSGeneroPackage.Instance.BufferFileParserManagers.Remove(filename.ToLower());
                 buffer.Properties.RemoveProperty(typeof(GeneroFileParserManager));
             }
             return fpm;

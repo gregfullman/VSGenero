@@ -631,12 +631,15 @@ namespace VSGenero.EditorExtensions
                                                         VSGeneroPackage.Instance.CurrentProgram4GLFileProvider.GetProgramFilenames(moduleFilename);
                 foreach (var filename in programFilenames)
                 {
-                    var moduleBuffer = VSGeneroPackage.GetBufferForDocument(filename, false, VSGeneroConstants.ContentType4GL);
-                    if (moduleBuffer != null)
+                    if (!VSGeneroPackage.Instance.BufferFileParserManagers.ContainsKey(filename.ToLower()))
                     {
-                        GeneroFileParserManager fpm = VSGeneroPackage.Instance.UpdateBufferFileParserManager(moduleBuffer, currentFile);
-                        fpm.ParseComplete += GeneroParser_ParseComplete;
-                        fpm.Closing += fpm_Closing;
+                        var moduleBuffer = VSGeneroPackage.GetBufferForDocument(filename, false, VSGeneroConstants.ContentType4GL);
+                        if (moduleBuffer != null)
+                        {
+                            GeneroFileParserManager fpm = VSGeneroPackage.Instance.UpdateBufferFileParserManager(moduleBuffer, currentFile);
+                            fpm.ParseComplete += GeneroParser_ParseComplete;
+                            fpm.Closing += fpm_Closing;
+                        }
                     }
                 }
             }
