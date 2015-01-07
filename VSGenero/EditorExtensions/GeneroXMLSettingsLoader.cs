@@ -284,13 +284,13 @@ namespace VSGenero.EditorExtensions
                     }
                 }
 
-                bool dimReq = false;
-                bool.TryParse((string)element.Attribute("dim_req"), out dimReq);
+                bool dimAllowed = false;
+                bool.TryParse((string)element.Attribute("dim_allowed"), out dimAllowed);
                 bool rangeReq = false;
                 bool.TryParse((string)element.Attribute("range_req"), out rangeReq);
                 foreach (var dt in tempList)
                 {
-                    dt.DimensionRequired = dimReq;
+                    dt.DimensionAllowed = dimAllowed;
                     dt.RangeRequired = rangeReq;
                     if(!_dataTypeMap.ContainsKey(dt.Name))
                         _dataTypeMap.Add(dt.Name, dt);

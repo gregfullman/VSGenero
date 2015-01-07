@@ -390,8 +390,8 @@
   </BraceMatching>
   <Parsing>
     <DataTypes>
-      <DataType name="char" synonyms="character" />
-      <DataType name="varchar" />
+      <DataType name="char" synonyms="character" dim_allowed="true"/>
+      <DataType name="varchar" dim_allowed="true"/>
       <DataType name="string"/>
       <DataType name="date"/>
       <DataType name="datetime" range_req="true"/>
@@ -400,10 +400,10 @@
       <DataType name="int" synonyms="integer"/>
       <DataType name="smallint"/>
       <DataType name="tinyint"/>
-      <DataType name="float" />
+      <DataType name="float" dim_allowed="true"/>
       <DataType name="smallfloat"/>
-      <DataType name="dec" synonyms="decimal,numeric" />
-      <DataType name="money" />
+      <DataType name="dec" synonyms="decimal,numeric" dim_allowed="true"/>
+      <DataType name="money" dim_allowed="true"/>
       <DataType name="byte"/>
       <DataType name="text"/>
       <DataType name="boolean"/>

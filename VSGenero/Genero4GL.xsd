@@ -52,7 +52,7 @@
                       <xs:complexType>
                         <xs:attribute name="name" type="xs:string"/>
                         <xs:attribute name="synonyms" type="xs:string"/>
-                        <xs:attribute name="dim_req" type="xs:boolean"/>
+                        <xs:attribute name="dim_allowed" type="xs:boolean"/>
                         <xs:attribute name="range_req" type="xs:boolean"/>
                       </xs:complexType>
                     </xs:element>

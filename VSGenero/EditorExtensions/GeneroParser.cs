@@ -68,7 +68,7 @@ namespace VSGenero.EditorExtensions
     public class DataType
     {
         public string Name { get; set; }
-        public bool DimensionRequired { get; set; }
+        public bool DimensionAllowed { get; set; }
         public bool RangeRequired { get; set; }
     }
 
@@ -1607,10 +1607,10 @@ namespace VSGenero.EditorExtensions
             // we have a data type
             // but we have a few cases that need to be parsed out, not just using the comma (char, decimal, money, etc.)
             DataType nativeDataType = null;
-            bool dimReq = false, rangeReq = false;
+            bool dimAllowed = false, rangeReq = false;
             if (_languageSettings.DataTypeMap.TryGetValue(token.LowercaseText, out nativeDataType))
             {
-                dimReq = nativeDataType.DimensionRequired;
+                dimAllowed = nativeDataType.DimensionAllowed;
                 rangeReq = nativeDataType.RangeRequired;
             }
             currentVariableDef.Type += token.TokenText;
@@ -1635,17 +1635,17 @@ namespace VSGenero.EditorExtensions
             var isComma = token.TokenText == ",";
 
             if (isComma &&
-               (dimReq || rangeReq))
+               (dimAllowed || rangeReq))
             {
                 searchState = VariableSearchState.LookingForDefineKeyword;
                 return false;
             }
 
             bool valid = true;
-            if (dimReq)
+            if (dimAllowed)
             {
-                // parse out the dimension
-                valid = GetVariableTypeDimension(ref token, ref prevToken, ref currentVariableDef);
+                // parse out the dimension, but the validity isn't affected by dimension presence
+                GetVariableTypeDimension(ref token, ref prevToken, ref currentVariableDef);
             }
             else if (rangeReq)
             {
