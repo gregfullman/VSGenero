@@ -1920,7 +1920,16 @@ namespace VSGenero.EditorExtensions
                                     _currentFunctionDef = new FunctionDefinition { Main = false, Position = token.StartPosition, LineNumber = token.LineNumber, ColumnNumber = token.ColumnNumber, Report = false };
                                     // check to see if the previous token is "private"
                                     if (prevToken.LowercaseText == "private")
+                                    {
+                                        _currentFunctionDef.Position = prevToken.StartPosition;
                                         _currentFunctionDef.Private = true;
+                                    }
+                                    else if (prevToken.LowercaseText == "public")
+                                    {
+                                        _currentFunctionDef.Position = prevToken.StartPosition;
+                                        _currentFunctionDef.Private = false;
+                                    }
+                                        
                                     _fss = FunctionSearchState.LookingForFunctionName;
                                     AdvanceToken(ref token, ref prevToken);
                                 }
@@ -1929,7 +1938,15 @@ namespace VSGenero.EditorExtensions
                                     _currentFunctionDef = new FunctionDefinition { Main = false, Position = token.StartPosition, LineNumber = token.LineNumber, ColumnNumber = token.ColumnNumber, Report = true };
                                     // check to see if the previous token is "private"
                                     if (prevToken.LowercaseText == "private")
+                                    {
+                                        _currentFunctionDef.Position = prevToken.StartPosition;
                                         _currentFunctionDef.Private = true;
+                                    }
+                                    else if (prevToken.LowercaseText == "public")
+                                    {
+                                        _currentFunctionDef.Position = prevToken.StartPosition;
+                                        _currentFunctionDef.Private = false;
+                                    }
                                     _fss = FunctionSearchState.LookingForFunctionName;
                                     AdvanceToken(ref token, ref prevToken);
                                 }
