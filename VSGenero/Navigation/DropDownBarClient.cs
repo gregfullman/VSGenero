@@ -538,7 +538,7 @@ namespace VSGenero.Navigation
             Property,
             Unknown8,
             Unknown9,
-            Unknown10,
+            Report,
             Unknown11,
             Unknown12,
             Unknown13,
@@ -587,6 +587,8 @@ namespace VSGenero.Navigation
 
         struct DropDownEntryInfo
         {
+            private FunctionDefinition _def;
+
             public static int CompareEntryInfo(DropDownEntryInfo x, DropDownEntryInfo y)
             {
                 return string.Compare(x.Name, y.Name);
@@ -594,6 +596,7 @@ namespace VSGenero.Navigation
 
             public DropDownEntryInfo(FunctionDefinition def)
             {
+                _def = def;
                 // TODO: need to make getting the parameters optional
                 _name = def.GetIntellisenseText(false, VSGeneroPackage.Instance.AdvancedOptions4GLPage.ShowFunctionParametersInList, false);
                 _start = def.Position;
@@ -633,72 +636,22 @@ namespace VSGenero.Navigation
                         overlay = ImageListOverlay.ImageListOverlayPrivate;
                     }
 
-                    FunctionDefinition funcDef;
-                    //if (Body is ClassDefinition)
-                    //{
-                    //    return GetImageListIndex(ImageListKind.Class, overlay);
-                    //}
-                    //else if ((funcDef = Body as FunctionDefinition) != null)
-                    //{
-                        return GetImageListIndex(GetImageListKind(), overlay);
-                    //}
+                    if(_def.Private)
+                    {
+                        overlay = ImageListOverlay.ImageListOverlayPrivate;
+                    }
 
-                    return 0;
+                    return GetImageListIndex(GetImageListKind(_def), overlay);
                 }
             }
 
-            private static ImageListKind GetImageListKind()
+            private static ImageListKind GetImageListKind(FunctionDefinition def)
             {
-                ImageListKind imageKind = ImageListKind.Method;
-                //if (funcDef.Decorators != null && funcDef.Decorators.Decorators.Count == 1)
-                //{
-                //    foreach (var decorator in funcDef.Decorators.Decorators)
-                //    {
-                //        NameExpression nameExpr = decorator as NameExpression;
-                //        if (nameExpr != null)
-                //        {
-                //            if (nameExpr.Name == "property")
-                //            {
-                //                imageKind = ImageListKind.Property;
-                //                break;
-                //            }
-                //            else if (nameExpr.Name == "staticmethod")
-                //            {
-                //                imageKind = ImageListKind.StaticMethod;
-                //                break;
-                //            }
-                //            else if (nameExpr.Name == "classmethod")
-                //            {
-                //                imageKind = ImageListKind.ClassMethod;
-                //                break;
-                //            }
-                //        }
-                //    }
-                //}
-                return imageKind;
+                if (def.Report)
+                    return ImageListKind.Report;
+                else
+                    return ImageListKind.Method;
             }
         }
     }
-
-    
-
-    //public static class Prompt
-    //{
-    //    public static int ShowDialog(string text, string caption)
-    //    {
-    //        Form prompt = new Form();
-    //        prompt.Width = 500;
-    //        prompt.Height = 100;
-    //        prompt.Text = caption;
-    //        Label textLabel = new Label() { Left = 50, Top = 20, Text = text };
-    //        NumericUpDown inputBox = new NumericUpDown() { Left = 50, Top = 50, Width = 400 };
-    //        Button confirmation = new Button() { Text = "Ok", Left = 350, Width = 100, Top = 70 };
-    //        confirmation.Click += (sender, e) => { prompt.Close(); };
-    //        prompt.Controls.Add(confirmation);
-    //        prompt.Controls.Add(textLabel);
-    //        prompt.Controls.Add(inputBox);
-    //        prompt.ShowDialog();
-    //        return (int)inputBox.Value;
-    //    }
-    //}
 }
