@@ -175,13 +175,17 @@ namespace VSGenero.VS2013_Specific.ProductivityTools
                         {
                             blockType = BlockType.Method;
                         }
-                        // function
+                        // foreach
+                        else if (TryMatchRemainingKeywordFragment("foreach", filter, tempStatement, continueInd - 1))
+                        {
+                            blockType = BlockType.Loop;
+                        }
+                        // for
                         else if (TryMatchRemainingKeywordFragment("for", filter, tempStatement, continueInd - 1))
                         {
                             blockType = BlockType.Loop;
                         }
                         break;
-                    // for
                     case 'r':
                         // report
                         break;
@@ -225,6 +229,8 @@ namespace VSGenero.VS2013_Specific.ProductivityTools
                         // function
                         if (TryParseFunctionBlockStart(TryFunctionEnum.Function, filter, statementStart, out blockType))
                             return true;
+                        else if (TryParseLoopBlockStart(TryLoopEnum.Foreach, filter, statementStart, out blockType))    // foreach
+                            return true;
                         else
                             // for
                             return TryParseLoopBlockStart(TryLoopEnum.For, filter, statementStart, out blockType);
@@ -252,13 +258,20 @@ namespace VSGenero.VS2013_Specific.ProductivityTools
         private enum TryLoopEnum
         {
             For,
+            Foreach,
             While
         }
 
         private bool TryParseLoopBlockStart(TryLoopEnum tryLoop, QuoteFilter filter, StringBuilder statementStart, out BlockType blockType)
         {
             blockType = BlockType.Unknown;
-            string remaining = tryLoop == TryLoopEnum.For ? "or" : "hile";
+            string remaining = null;
+            switch(tryLoop)
+            {
+                case TryLoopEnum.For: remaining = "or"; break;
+                case TryLoopEnum.Foreach: remaining = "oreach"; break;
+                case TryLoopEnum.While: remaining = "hile"; break;
+            }
             if (TryMatchRemainingKeywordFragment(remaining, filter, statementStart))
             {
                 // make sure there's nothing else before the for on this line

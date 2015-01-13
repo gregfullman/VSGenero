@@ -46,7 +46,7 @@ namespace VSGenero.Navigation
         public int ColumnNumber { get; set; }
     }
 
-    internal sealed class EditFilter : IOleCommandTarget
+    public sealed class EditFilter : IOleCommandTarget
     {
         private readonly ITextView _textView;
         private readonly IEditorOperations _editorOps;
@@ -71,7 +71,7 @@ namespace VSGenero.Navigation
             }
         }
 
-        public GoToDefinitionLocation GetGoToLocationDefinition(ITextView textView, GeneroLexer lexer)
+        public static GoToDefinitionLocation GetGoToLocationDefinition(ITextView textView, GeneroLexer lexer, out GeneroLanguageItemDefinition foundItem, bool preventDialogs = false)
         {
             GoToDefinitionLocation goToLocation = null;
             int absoluteCaretPos = textView.Caret.Position.BufferPosition.Position;
@@ -163,26 +163,31 @@ namespace VSGenero.Navigation
                         if (varDef != null)
                         {
                             goToLocation = new GoToDefinitionLocation { Filename = varDef.ContainingFile, Position = varDef.Position, ColumnNumber = varDef.ColumnNumber, LineNumber = varDef.LineNumber };
+                            foundItem = varDef;
                             return goToLocation;
                         }
                         else if (constDef != null)
                         {
                             goToLocation = new GoToDefinitionLocation { Filename = constDef.ContainingFile, Position = constDef.Position, ColumnNumber = constDef.ColumnNumber, LineNumber = constDef.LineNumber };
+                            foundItem = constDef;
                             return goToLocation;
                         }
                         else if (typeDef != null)
                         {
                             goToLocation = new GoToDefinitionLocation { Filename = typeDef.ContainingFile, Position = typeDef.Position, ColumnNumber = typeDef.ColumnNumber, LineNumber = typeDef.LineNumber };
+                            foundItem = typeDef;
                             return goToLocation;
                         }
                         else if (funcDef != null)
                         {
                             goToLocation = new GoToDefinitionLocation { Filename = funcDef.ContainingFile, Position = funcDef.Position, ColumnNumber = funcDef.ColumnNumber, LineNumber = funcDef.LineNumber };
+                            foundItem = funcDef;
                             return goToLocation;
                         }
                         else if (cursorPrep != null)
                         {
                             goToLocation = new GoToDefinitionLocation { Filename = cursorPrep.ContainingFile, Position = cursorPrep.Position, ColumnNumber = cursorPrep.ColumnNumber, LineNumber = cursorPrep.LineNumber };
+                            foundItem = cursorPrep;
                             return goToLocation;
                         }
                     }
@@ -190,13 +195,20 @@ namespace VSGenero.Navigation
                     {
                         goToLocation = GeneroClassifierProvider.Instance.PublicFunctionNavigator.GetPublicFunctionLocation(tokenText, textView.TextBuffer);
                         if (goToLocation != null)
+                        {
+                            foundItem = null;
                             return goToLocation;
+                        }
                     }
-                    VSGeneroPackage.Instance.ShowDialog("Definition not found", string.Format("The definition of \"{0}\" could not be found.", tokenText));
+                    if(!preventDialogs)
+                        VSGeneroPackage.Instance.ShowDialog("Definition not found", string.Format("The definition of \"{0}\" could not be found.", tokenText));
+                    foundItem = null;
                     return goToLocation;
                 }
-                VSGeneroPackage.Instance.ShowDialog("Definition not found", "Unable to determine what token the cursor is on.");
+                if(!preventDialogs)
+                    VSGeneroPackage.Instance.ShowDialog("Definition not found", "Unable to determine what token the cursor is on.");
             }
+            foundItem = null;
             return goToLocation;
         }
 
@@ -210,7 +222,8 @@ namespace VSGenero.Navigation
         /// </summary>
         private int GotoDefinition()
         {
-            GoToDefinitionLocation location = GetGoToLocationDefinition(_textView, _lexer);
+            GeneroLanguageItemDefinition languageItem;
+            GoToDefinitionLocation location = GetGoToLocationDefinition(_textView, _lexer, out languageItem);
             if (location != null)
             {
                 GotoLocation(location);

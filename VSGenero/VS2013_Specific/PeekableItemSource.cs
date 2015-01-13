@@ -83,7 +83,8 @@ namespace VSGenero.VS2013_Specific
                     }
 
                     GeneroLexer lexer = new GeneroLexer();
-                    GoToDefinitionLocation location = EditFilter.Instance.GetGoToLocationDefinition(session.TextView, lexer);
+                    GeneroLanguageItemDefinition languageItem;
+                    GoToDefinitionLocation location = EditFilter.GetGoToLocationDefinition(session.TextView, lexer, out languageItem);
                     if(location != null)
                     {
                         // TODO: need to create a peekable item using a peek item factory
