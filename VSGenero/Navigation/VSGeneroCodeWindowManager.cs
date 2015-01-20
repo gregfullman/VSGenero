@@ -169,7 +169,7 @@ namespace VSGenero.Navigation
                 }
             }
 
-            int res = manager.AddDropdownBar(2, _client);
+            int res = manager.AddDropdownBar(1, _client);
             if (ErrorHandler.Succeeded(res))
             {
                 // A buffer may have multiple DropDownBarClients, given one may open multiple CodeWindows

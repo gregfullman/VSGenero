@@ -47,7 +47,7 @@ namespace VSGenero.Navigation
         private static readonly ReadOnlyCollection<DropDownEntryInfo> EmptyEntries = new ReadOnlyCollection<DropDownEntryInfo>(new DropDownEntryInfo[0]);
 
         private const int TopLevelComboBoxId = 0;
-        private const int NestedComboBoxId = 1;
+        //private const int NestedComboBoxId = 1;
 
         private GeneroModuleContents _moduleContents;
 
@@ -75,7 +75,7 @@ namespace VSGenero.Navigation
                 // TODO: need to mark the end of the functions too
                 if (newPosition >= topLevel[curTopLevel].Start && newPosition <= topLevel[curTopLevel].End)
                 {
-                    UpdateNestedComboSelection(newPosition);
+                    //UpdateNestedComboSelection(newPosition);
                 }
                 else
                 {
@@ -88,72 +88,72 @@ namespace VSGenero.Navigation
             }
         }
 
-        private void UpdateNestedComboSelection(int newPosition)
-        {
-            // left side has not changed, check rhs
-            int curNested = _curNestedIndex;
-            var nested = _nestedEntries;
+        //private void UpdateNestedComboSelection(int newPosition)
+        //{
+        //    // left side has not changed, check rhs
+        //    int curNested = _curNestedIndex;
+        //    var nested = _nestedEntries;
 
-            if (curNested != -1 && curNested < nested.Count)
-            {
-                if (newPosition < nested[curNested].Start || newPosition > nested[curNested].End)
-                {
-                    // right hand side has changed
-                    FindActiveNestedSelection(newPosition, nested);
-                }
-            }
-            else
-            {
-                FindActiveNestedSelection(newPosition, nested);
-            }
-        }
+        //    if (curNested != -1 && curNested < nested.Count)
+        //    {
+        //        if (newPosition < nested[curNested].Start || newPosition > nested[curNested].End)
+        //        {
+        //            // right hand side has changed
+        //            FindActiveNestedSelection(newPosition, nested);
+        //        }
+        //    }
+        //    else
+        //    {
+        //        FindActiveNestedSelection(newPosition, nested);
+        //    }
+        //}
 
-        private void FindActiveNestedSelection(int newPosition, ReadOnlyCollection<DropDownEntryInfo> nested)
-        {
-            if (_dropDownBar == null)
-            {
-                return;
-            }
+        //private void FindActiveNestedSelection(int newPosition, ReadOnlyCollection<DropDownEntryInfo> nested)
+        //{
+        //    if (_dropDownBar == null)
+        //    {
+        //        return;
+        //    }
 
-            int oldNested = _curNestedIndex;
+        //    int oldNested = _curNestedIndex;
 
-            bool found = false;
+        //    bool found = false;
 
-            if (_curTopLevelIndex != -1)
-            {
-                for (int i = 0; i < nested.Count; i++)
-                {
-                    if (newPosition >= nested[i].Start && newPosition <= nested[i].End)
-                    {
-                        _curNestedIndex = i;
+        //    if (_curTopLevelIndex != -1)
+        //    {
+        //        for (int i = 0; i < nested.Count; i++)
+        //        {
+        //            if (newPosition >= nested[i].Start && newPosition <= nested[i].End)
+        //            {
+        //                _curNestedIndex = i;
 
-                        if (oldNested == -1)
-                        {
-                            // we've selected something new, we need to refresh the combo to
-                            // to remove the grayed out entry
-                            _dropDownBar.RefreshCombo(NestedComboBoxId, i);
-                        }
-                        else
-                        {
-                            // changing from one nested to another, just update the selection
-                            _dropDownBar.SetCurrentSelection(NestedComboBoxId, i);
-                        }
+        //                if (oldNested == -1)
+        //                {
+        //                    // we've selected something new, we need to refresh the combo to
+        //                    // to remove the grayed out entry
+        //                    _dropDownBar.RefreshCombo(NestedComboBoxId, i);
+        //                }
+        //                else
+        //                {
+        //                    // changing from one nested to another, just update the selection
+        //                    _dropDownBar.SetCurrentSelection(NestedComboBoxId, i);
+        //                }
 
-                        found = true;
-                        break;
-                    }
-                }
-            }
+        //                found = true;
+        //                break;
+        //            }
+        //        }
+        //    }
 
-            if (!found)
-            {
-                // there's no associated entry, we should disable the bar
-                _curNestedIndex = -1;
+        //    if (!found)
+        //    {
+        //        // there's no associated entry, we should disable the bar
+        //        _curNestedIndex = -1;
 
-                // we need to refresh to clear the nested combo box since there is no associated nested entry
-                _dropDownBar.RefreshCombo(NestedComboBoxId, -1);
-            }
-        }
+        //        // we need to refresh to clear the nested combo box since there is no associated nested entry
+        //        _dropDownBar.RefreshCombo(NestedComboBoxId, -1);
+        //    }
+        //}
 
         private void ForceTopLevelRefresh()
         {
@@ -197,9 +197,9 @@ namespace VSGenero.Navigation
                     }
 
                     // update the nested entries
-                    CalculateNestedEntries();
-                    _dropDownBar.RefreshCombo(NestedComboBoxId, 0);
-                    UpdateNestedComboSelection(newPosition);
+                    //CalculateNestedEntries();
+                    //_dropDownBar.RefreshCombo(NestedComboBoxId, 0);
+                    //UpdateNestedComboSelection(newPosition);
                     found = true;
                     break;
                 }
@@ -209,18 +209,18 @@ namespace VSGenero.Navigation
             {
                 // there's no associated entry, we should disable the bar
                 _curTopLevelIndex = -1;
-                _curNestedIndex = -1;
+                //_curNestedIndex = -1;
 
                 // Commented this out because it was preventing the function list from populating when the document first displayed
                 //if (oldTopLevel != -1)
                 //{
                     // we need to refresh to clear both combo boxes since there is no associated entry
                     _dropDownBar.RefreshCombo(TopLevelComboBoxId, -1);
-                    _dropDownBar.RefreshCombo(NestedComboBoxId, -1);
+                    //_dropDownBar.RefreshCombo(NestedComboBoxId, -1);
                 //}
             }
 
-            UpdateNestedComboSelection(newPosition);
+            //UpdateNestedComboSelection(newPosition);
         }
 
         public int GetComboAttributes(int iCombo, out uint pcEntries, out uint puEntryType, out IntPtr phImageList)
@@ -233,10 +233,10 @@ namespace VSGenero.Navigation
                     CalculateTopLevelEntries();
                     count = (uint)_topLevelEntries.Count;
                     break;
-                case NestedComboBoxId:
-                    CalculateNestedEntries();
-                    count = (uint)_nestedEntries.Count;
-                    break;
+                //case NestedComboBoxId:
+                //    CalculateNestedEntries();
+                //    count = (uint)_nestedEntries.Count;
+                //    break;
             }
 
             pcEntries = count;
@@ -273,29 +273,29 @@ namespace VSGenero.Navigation
             return false;
         }
 
-        private void CalculateNestedEntries()
-        {
-            //var entries = _topLevelEntries;
-            //int topLevelIndex = _curTopLevelIndex;
-            //if (entries.Count == 0)
-            //{
-                _nestedEntries = EmptyEntries;
-            //}
-            //else if (topLevelIndex < entries.Count)
-            //{
-            //    var info = entries[topLevelIndex == -1 ? 0 : topLevelIndex];
+        //private void CalculateNestedEntries()
+        //{
+        //    //var entries = _topLevelEntries;
+        //    //int topLevelIndex = _curTopLevelIndex;
+        //    //if (entries.Count == 0)
+        //    //{
+        //     //   _nestedEntries = EmptyEntries;
+        //    //}
+        //    //else if (topLevelIndex < entries.Count)
+        //    //{
+        //    //    var info = entries[topLevelIndex == -1 ? 0 : topLevelIndex];
 
-            //    ClassDefinition klass = info.Body as ClassDefinition;
-            //    if (klass != null)
-            //    {
-            //        _nestedEntries = CalculateEntries(klass.Body as SuiteStatement);
-            //    }
-            //    else
-            //    {
-            //        _nestedEntries = EmptyEntries;
-            //    }
-            //}
-        }
+        //    //    ClassDefinition klass = info.Body as ClassDefinition;
+        //    //    if (klass != null)
+        //    //    {
+        //    //        _nestedEntries = CalculateEntries(klass.Body as SuiteStatement);
+        //    //    }
+        //    //    else
+        //    //    {
+        //    //        _nestedEntries = EmptyEntries;
+        //    //    }
+        //    //}
+        //}
 
         public int GetComboTipText(int iCombo, out string pbstrText)
         {
@@ -317,12 +317,12 @@ namespace VSGenero.Navigation
                             pAttr = (uint)DROPDOWNFONTATTR.FONTATTR_GRAY;
                         }
                         break;
-                    case NestedComboBoxId:
-                        if (_curNestedIndex == -1)
-                        {
-                            pAttr = (uint)DROPDOWNFONTATTR.FONTATTR_GRAY;
-                        }
-                        break;
+                    //case NestedComboBoxId:
+                    //    if (_curNestedIndex == -1)
+                    //    {
+                    //        pAttr = (uint)DROPDOWNFONTATTR.FONTATTR_GRAY;
+                    //    }
+                    //    break;
                 }
             }
 
@@ -342,13 +342,13 @@ namespace VSGenero.Navigation
                         piImageIndex = topLevel[iIndex].ImageListIndex;
                     }
                     break;
-                case NestedComboBoxId:
-                    var nested = _nestedEntries;
-                    if (iIndex < nested.Count)
-                    {
-                        piImageIndex = nested[iIndex].ImageListIndex;
-                    }
-                    break;
+                //case NestedComboBoxId:
+                //    var nested = _nestedEntries;
+                //    if (iIndex < nested.Count)
+                //    {
+                //        piImageIndex = nested[iIndex].ImageListIndex;
+                //    }
+                //    break;
             }
 
             return VSConstants.S_OK;
@@ -366,13 +366,13 @@ namespace VSGenero.Navigation
                         ppszText = topLevel[iIndex].Name;
                     }
                     break;
-                case NestedComboBoxId:
-                    var nested = _nestedEntries;
-                    if (iIndex < nested.Count)
-                    {
-                        ppszText = nested[iIndex].Name;
-                    }
-                    break;
+                //case NestedComboBoxId:
+                //    var nested = _nestedEntries;
+                //    if (iIndex < nested.Count)
+                //    {
+                //        ppszText = nested[iIndex].Name;
+                //    }
+                //    break;
             }
 
             return VSConstants.S_OK;
@@ -392,7 +392,7 @@ namespace VSGenero.Navigation
             switch (iCombo)
             {
                 case TopLevelComboBoxId:
-                    _dropDownBar.RefreshCombo(NestedComboBoxId, 0);
+                    //_dropDownBar.RefreshCombo(NestedComboBoxId, 0);
                     var topLevel = _topLevelEntries;
                     if (iIndex < topLevel.Count)
                     {
@@ -405,19 +405,19 @@ namespace VSGenero.Navigation
                         CenterAndFocus(topLevel[iIndex].Start);
                     }
                     break;
-                case NestedComboBoxId:
-                    var nested = _nestedEntries;
-                    if (iIndex < nested.Count)
-                    {
-                        int oldIndex = _curNestedIndex;
-                        _curNestedIndex = iIndex;
-                        if (oldIndex == -1)
-                        {
-                            _dropDownBar.RefreshCombo(NestedComboBoxId, iIndex);
-                        }
-                        CenterAndFocus(nested[iIndex].Start);
-                    }
-                    break;
+                //case NestedComboBoxId:
+                //    var nested = _nestedEntries;
+                //    if (iIndex < nested.Count)
+                //    {
+                //        int oldIndex = _curNestedIndex;
+                //        _curNestedIndex = iIndex;
+                //        if (oldIndex == -1)
+                //        {
+                //            _dropDownBar.RefreshCombo(NestedComboBoxId, iIndex);
+                //        }
+                //        CenterAndFocus(nested[iIndex].Start);
+                //    }
+                //    break;
             }
             return VSConstants.S_OK;
         }
