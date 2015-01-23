@@ -18,6 +18,7 @@ using System.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
+using System.ComponentModel.Composition;
 
 namespace VSGenero.EditorExtensions
 {
@@ -32,7 +33,18 @@ namespace VSGenero.EditorExtensions
 
         public GeneroClassifier Classifier
         {
-            get { return _classifier ?? (_classifier = (GeneroClassifier)_buffer.Properties.GetProperty(typeof(GeneroClassifier))); }
+            get 
+            { 
+                if(_classifier == null)
+                {
+                    if(!_buffer.Properties.TryGetProperty(typeof(GeneroClassifier), out _classifier))
+                    {
+                        _classifier = new GeneroClassifier(_buffer, GeneroClassifierProvider.Instance.ClassificationTypeRegistry);
+                        _buffer.Properties.AddProperty(typeof(GeneroClassifier), _classifier);
+                    }
+                }
+                return _classifier;
+            }
         }
 
         public GeneroReverseParser(ITextSnapshot snapshot, ITextBuffer buffer, ITrackingSpan span, bool multiLine = false)
