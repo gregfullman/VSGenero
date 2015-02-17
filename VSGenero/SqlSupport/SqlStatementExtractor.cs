@@ -40,7 +40,7 @@ namespace VSGenero.SqlSupport
             text = text.Replace("\r\n", "\n");
 
             List<IScriptFragment> fragments = new List<IScriptFragment>();
-            var matches = Regex.Matches(text, _regexStr);
+            var matches = Regex.Matches(text, _regexStr, RegexOptions.IgnoreCase);
             for (int i = 0; i < matches.Count; i++)
             {
                 int startIndex = matches[i].Index;
