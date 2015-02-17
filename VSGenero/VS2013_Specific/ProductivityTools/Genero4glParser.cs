@@ -232,8 +232,12 @@ namespace VSGenero.VS2013_Specific.ProductivityTools
                         else if (TryParseLoopBlockStart(TryLoopEnum.Foreach, filter, statementStart, out blockType))    // foreach
                             return true;
                         else
+                        {
+                            // restore the filter character, since it was probably stripped off in the foreach match-attempt
+                            statementStart.Append(filter.Character);
                             // for
                             return TryParseLoopBlockStart(TryLoopEnum.For, filter, statementStart, out blockType);
+                        }
                     }
                 case 'r':
                     // report
