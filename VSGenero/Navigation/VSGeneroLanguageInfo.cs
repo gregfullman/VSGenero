@@ -26,7 +26,7 @@ using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace VSGenero.Navigation
 {
-    internal abstract class VSGeneroLanguageInfo : IVsLanguageInfo
+    public abstract class VSGeneroLanguageInfo : IVsLanguageInfo
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly IComponentModel _componentModel;
@@ -65,7 +65,7 @@ namespace VSGenero.Navigation
     }
 
     [Guid("c41c558d-4373-4ae1-8424-fb04873a0e9c")]
-    internal sealed class VSGenero4GLLanguageInfo : VSGeneroLanguageInfo, IVsLanguageDebugInfo
+    public sealed class VSGenero4GLLanguageInfo : VSGeneroLanguageInfo, IVsLanguageDebugInfo
     {
         public VSGenero4GLLanguageInfo(IServiceProvider serviceProvider)
             : base(serviceProvider)
@@ -154,7 +154,7 @@ namespace VSGenero.Navigation
     }
 
     [Guid("c41c558d-4373-4ae1-8424-fb04873a0e9d")]
-    internal sealed class VSGeneroPERLanguageInfo : VSGeneroLanguageInfo
+    public sealed class VSGeneroPERLanguageInfo : VSGeneroLanguageInfo
     {
         public VSGeneroPERLanguageInfo(IServiceProvider serviceProvider)
             : base(serviceProvider)

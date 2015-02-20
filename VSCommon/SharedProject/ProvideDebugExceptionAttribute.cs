@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudioTools {
     /// to be registered independently (to provide their code/state settings).
     /// </summary>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple=true)]
-    class ProvideDebugExceptionAttribute : RegistrationAttribute {
+    public class ProvideDebugExceptionAttribute : RegistrationAttribute {
         private readonly string _engineGuid;
         private readonly string[] _path;
         private int _code;
