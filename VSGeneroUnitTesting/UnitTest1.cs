@@ -7,6 +7,7 @@ using System.IO;
 using System.Text.RegularExpressions;
 using System.Text;
 using VSGenero.SqlSupport;
+using VSGenero.Analysis;
 
 namespace VSGeneroUnitTesting
 {
@@ -99,6 +100,44 @@ namespace VSGeneroUnitTesting
                 Assert.IsTrue(fragment != null);
                 Assert.IsTrue(fragment.FragmentLength > 0);
             }
+        }
+
+        [TestMethod]
+        public void TokenizerTest1()
+        {
+            Tokenizer t = new Tokenizer(null, options: TokenizerOptions.Verbatim | TokenizerOptions.VerbatimCommentsAndLineJoins);
+
+            using (TextReader tr = new StringReader("let x = 3 # this is a comment"))
+            {
+                t.Initialize(tr);
+                var tokens = t.ReadTokens(int.MaxValue);
+                Assert.IsTrue(tokens.Count == 5);
+            }
+        }
+
+
+        [TestMethod]
+        public void ParserTest1()
+        {
+            ParserOptions po = new ParserOptions();
+            po.ErrorSink = new TestErrorSink();
+            //string codeSample = "globals\n\tdefine x, y record\n\tz smallint, a int\nend record\nend globals";
+            string codeSample = "globals\n\tdefine x, y record like tablename.*\nend globals";
+            
+            using (TextReader tr = new StringReader(codeSample))
+            {
+                VSGenero.Analysis.Parser p = VSGenero.Analysis.Parser.CreateParser(tr, po);
+                var node = p.ParseFile();
+                int i = 0;
+            }
+        }
+    }
+
+    public class TestErrorSink : ErrorSink
+    {
+        public override void Add(string message, int[] lineLocations, int startIndex, int endIndex, int errorCode, Severity severity)
+        {
+            int i = 0;
         }
     }
 }

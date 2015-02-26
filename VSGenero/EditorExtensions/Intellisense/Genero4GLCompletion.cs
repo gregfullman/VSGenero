@@ -31,7 +31,7 @@ using VSGenero.Snippets;
 
 namespace VSGenero.EditorExtensions.Intellisense
 {
-    [Export(typeof(ICompletionSourceProvider)), Order(Before = "default"), Name("VSGenero 4GL Completion Source"), ContentType(VSGeneroConstants.ContentType4GL)]
+    //[Export(typeof(ICompletionSourceProvider)), Order(Before = "default"), Name("VSGenero 4GL Completion Source"), ContentType(VSGeneroConstants.ContentType4GL)]
     internal class Genero4GLCompletionSourceProvider : ICompletionSourceProvider
     {
         [Import]

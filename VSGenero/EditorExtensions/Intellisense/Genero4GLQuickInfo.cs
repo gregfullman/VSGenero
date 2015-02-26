@@ -34,7 +34,7 @@ using EnvDTE;
 
 namespace VSGenero.EditorExtensions.Intellisense
 {
-    [Export(typeof(IQuickInfoSourceProvider)), ContentType(VSGeneroConstants.ContentType4GL), Order, Name("Genero4GL Quick Info Source")]
+    //[Export(typeof(IQuickInfoSourceProvider)), ContentType(VSGeneroConstants.ContentType4GL), Order, Name("Genero4GL Quick Info Source")]
     internal class Genero4GLQuickInfoSourceProvider : IQuickInfoSourceProvider
     {
         [Import]

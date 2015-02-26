@@ -27,10 +27,10 @@ using VSGenero.Navigation;
 namespace VSGenero.EditorExtensions
 {
     #region Provider definition
-    [Export(typeof(ITaggerProvider))]
-    [ContentType(VSGeneroConstants.ContentType4GL)]
-    [ContentType(VSGeneroConstants.ContentTypePER)]
-    [TagType(typeof(ClassificationTag))]
+    //[Export(typeof(ITaggerProvider))]
+    //[ContentType(VSGeneroConstants.ContentType4GL)]
+    //[ContentType(VSGeneroConstants.ContentTypePER)]
+    //[TagType(typeof(ClassificationTag))]
     internal sealed class GeneroClassifierProvider : ITaggerProvider
     {
         [Import]
@@ -47,7 +47,11 @@ namespace VSGenero.EditorExtensions
 
         // We're using this to allow access to the PublicFunctioNavigator import without having to do the complex MEF stuff to resolve imports.
         // Since the classifier is (one of) the first exports that gets resolved, this is a fairly safe place for it.
-        internal static GeneroClassifierProvider Instance { get; private set; }
+        internal static GeneroClassifierProvider Instance
+        {
+            get;
+            private set;
+        }
 
         public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
         {

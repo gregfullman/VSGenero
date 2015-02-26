@@ -16,7 +16,7 @@ using VSGenero.Snippets;
 
 namespace VSGenero.EditorExtensions.Intellisense
 {
-    [Export(typeof(IIntellisenseControllerProvider)), ContentType(VSGeneroConstants.ContentType4GL), Order]
+    //[Export(typeof(IIntellisenseControllerProvider)), ContentType(VSGeneroConstants.ContentType4GL), Order]
     class Genero4GLIntellisenseControllerProvider : IIntellisenseControllerProvider
     {
         [Import]

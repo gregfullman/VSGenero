@@ -133,7 +133,7 @@ namespace Microsoft.VisualStudioTools.Project
             return guids.ToArray();
         }
 
-        internal static void CheckNotNull(object value, string message = null)
+        public static void CheckNotNull(object value, string message = null)
         {
             if (value == null)
             {
