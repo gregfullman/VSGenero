@@ -18,4 +18,11 @@ namespace VSGenero.Analysis.AST
         FGL,
         Java
     }
+
+    public enum ArrayType
+    {
+        Static,
+        Dynamic,
+        Java
+    }
 }

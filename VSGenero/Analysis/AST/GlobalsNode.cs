@@ -66,6 +66,11 @@ namespace VSGenero.Analysis.AST
                         {
                             defNode.Children.Add(defineNode.StartIndex, constNode);
                         }
+                        else
+                        {
+                            // TODO: not sure whether to break or keep going...for right now, let's keep going until we hit the end keyword
+                            parser.NextToken();
+                        }
                     }
 
                     if (!parser.PeekToken(TokenKind.EndOfFile))

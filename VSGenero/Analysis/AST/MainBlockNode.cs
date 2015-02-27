@@ -27,8 +27,57 @@ namespace VSGenero.Analysis.AST
         public static bool TryParseNode(Parser parser, out MainBlockNode defNode)
         {
             defNode = null;
-            // TODO: parse main block
-            return false;
+            bool result = false;
+
+            if(parser.PeekToken(TokenKind.MainKeyword))
+            {
+                result = true;
+                defNode = new MainBlockNode();
+                parser.NextToken();
+                defNode.StartIndex = parser.Token.Span.Start;
+
+                List<TokenKind> breakSequence = new List<TokenKind>() { TokenKind.EndKeyword, TokenKind.MainKeyword };
+                // try to parse one or more declaration statements
+                while (!parser.PeekToken(TokenKind.EndKeyword) &&
+                      !parser.PeekToken(TokenKind.EndOfFile))
+                {
+                    DefineNode defineNode;
+                    TypeDefNode typeNode;
+                    ConstantDefNode constNode;
+                    if (DefineNode.TryParseDefine(parser, out defineNode, breakSequence))
+                    {
+                        defNode.Children.Add(defineNode.StartIndex, defineNode);
+                    }
+                    else if (TypeDefNode.TryParseNode(parser, out typeNode))
+                    {
+                        defNode.Children.Add(defineNode.StartIndex, typeNode);
+                    }
+                    else if (ConstantDefNode.TryParseNode(parser, out constNode))
+                    {
+                        defNode.Children.Add(defineNode.StartIndex, constNode);
+                    }
+                }
+
+                if (!parser.PeekToken(TokenKind.EndOfFile))
+                {
+                    parser.NextToken();
+                    if (parser.PeekToken(TokenKind.MainKeyword))
+                    {
+                        parser.NextToken();
+                        defNode.EndIndex = parser.Token.Span.End;
+                    }
+                    else
+                    {
+                        parser.ReportSyntaxError(parser.Token.Span.Start, parser.Token.Span.End, "Invalid end of main definition.");
+                    }
+                }
+                else
+                {
+                    parser.ReportSyntaxError("Unexpected end of main definition");
+                }
+            }
+
+            return result;
         }
     }
 }

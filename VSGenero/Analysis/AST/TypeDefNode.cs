@@ -18,11 +18,82 @@ namespace VSGenero.Analysis.AST
         // TODO: instead of string, this should be the token
         public string AccessModifierToken { get; private set; }
 
-        public static bool TryParseNode(Parser parser, out TypeDefNode defNode)
+        public static bool TryParseNode(Parser parser, out TypeDefNode defNode, List<TokenKind> breakSequence = null)
         {
             defNode = null;
-            // TODO: parse type node
-            return false;
+            bool result = false;
+            AccessModifier? accMod = null;
+            string accModToken = null;
+
+            if (parser.PeekToken(TokenKind.PublicKeyword))
+            {
+                accMod = AccessModifier.Public;
+                accModToken = parser.PeekToken().Value.ToString();
+            }
+            else if (parser.PeekToken(TokenKind.PrivateKeyword))
+            {
+                accMod = AccessModifier.Private;
+                accModToken = parser.PeekToken().Value.ToString();
+            }
+
+            uint lookAheadBy = (uint)(accMod.HasValue ? 2 : 1);
+            if (parser.PeekToken(TokenKind.ConstantKeyword, lookAheadBy))
+            {
+                result = true;
+                defNode = new TypeDefNode();
+                if (accMod.HasValue)
+                {
+                    parser.NextToken();
+                    defNode.AccessModifier = accMod.Value;
+                }
+                else
+                {
+                    defNode.AccessModifier = AccessModifier.Public;
+                }
+
+                parser.NextToken(); // move past the Type keyword
+                defNode.StartIndex = parser.Token.Span.Start;
+
+                TypeDefinitionNode constDef;
+                while (true)
+                {
+                    if (TypeDefinitionNode.TryParseDefine(parser, out constDef))
+                    {
+                        defNode.Children.Add(constDef.StartIndex, constDef);
+                    }
+                    else
+                    {
+                        break;
+                    }
+
+                    if (!parser.PeekToken(TokenKind.Comma))
+                    {
+                        break;
+                    }
+
+                    if (breakSequence != null)
+                    {
+                        bool bsMatch = true;
+                        uint peekaheadCount = 1;
+                        foreach (var kind in breakSequence)
+                        {
+                            if (parser.PeekToken(kind, peekaheadCount))
+                            {
+                                peekaheadCount++;
+                            }
+                            else
+                            {
+                                bsMatch = false;
+                                break;
+                            }
+                        }
+
+                        if (bsMatch)
+                            break;
+                    }
+                }
+            }
+            return result;
         }
     }
 }

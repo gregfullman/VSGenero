@@ -60,8 +60,7 @@ namespace VSGenero.Analysis.AST
                 parser.NextToken(); // move past the Define keyword
                 defNode.StartIndex = parser.Token.Span.Start;
 
-                var cat = Tokenizer.GetTokenInfo(parser.PeekToken()).Category;
-                if (cat == TokenCategory.Keyword || cat == TokenCategory.Identifier)
+                if (parser.PeekToken(TokenCategory.Keyword) || parser.PeekToken(TokenCategory.Identifier))
                 {
                     bool tryAgain = true;
                     do

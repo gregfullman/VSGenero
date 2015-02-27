@@ -134,6 +134,7 @@ namespace VSGenero.Analysis
         DelimiterKeyword,
         DescKeyword,
         DescribeKeyword,
+        DimensionKeyword,
         DimensionsKeyword,
         DimKeyword,
         DirtyKeyword,

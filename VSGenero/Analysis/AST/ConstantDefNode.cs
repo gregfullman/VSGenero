@@ -19,7 +19,7 @@ namespace VSGenero.Analysis.AST
         // TODO: instead of string, this should be the token
         public string AccessModifierToken { get; private set; }
 
-        public static bool TryParseNode(Parser parser, out ConstantDefNode defNode)
+        public static bool TryParseNode(Parser parser, out ConstantDefNode defNode, List<TokenKind> breakSequence = null)
         {
             defNode = null;
             bool result = false;
@@ -70,6 +70,27 @@ namespace VSGenero.Analysis.AST
                     if(!parser.PeekToken(TokenKind.Comma))
                     {
                         break;
+                    }
+
+                    if (breakSequence != null)
+                    {
+                        bool bsMatch = true;
+                        uint peekaheadCount = 1;
+                        foreach (var kind in breakSequence)
+                        {
+                            if (parser.PeekToken(kind, peekaheadCount))
+                            {
+                                peekaheadCount++;
+                            }
+                            else
+                            {
+                                bsMatch = false;
+                                break;
+                            }
+                        }
+
+                        if (bsMatch)
+                            break;
                     }
                 }
             }

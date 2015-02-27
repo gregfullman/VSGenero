@@ -22,8 +22,34 @@ namespace VSGenero.Analysis.AST
         public static bool TryParseDefine(Parser parser, out TypeDefinitionNode defNode)
         {
             defNode = null;
-            // TODO: attempt to parse a variable definition
-            return false;
+            bool result = false;
+            if (parser.PeekToken(TokenCategory.Identifier) || parser.PeekToken(TokenCategory.Keyword))
+            {
+                defNode = new TypeDefinitionNode();
+                result = true;
+                parser.NextToken();
+                defNode.StartIndex = parser.Token.Span.Start;
+                defNode.Identifier = parser.Token.Token.Value.ToString();
+
+                RecordDefinitionNode recordDef;
+                if(RecordDefinitionNode.TryParseNode(parser, out recordDef))
+                {
+                    defNode.Children.Add(recordDef.StartIndex, recordDef);
+                }
+                else
+                {
+                    TypeReference typeRef;
+                    if(TypeReference.TryParseNode(parser, out typeRef))
+                    {
+                        defNode.Children.Add(typeRef.StartIndex, typeRef);
+                    }
+                    else
+                    {
+                        parser.ReportSyntaxError("Invalid syntax found in type definition.");
+                    }
+                }
+            }
+            return result;
         }
     }
 }

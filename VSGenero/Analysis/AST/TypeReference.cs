@@ -25,12 +25,21 @@ namespace VSGenero.Analysis.AST
         public string TableName { get; private set; }
         public string ColumnName { get; private set; }
 
-        public static bool TryParseNode(Parser parser, out TypeReference defNode)
+        public static bool TryParseNode(Parser parser, out TypeReference defNode, bool mimickingRecord = false)
         {
             defNode = null;
             bool result = false;
-            
-            if(parser.PeekToken(TokenKind.LikeKeyword))
+
+            ArrayTypeReference arrayType;
+            if(ArrayTypeReference.TryParseNode(parser, out arrayType))
+            {
+                result = true;
+                defNode = new TypeReference();
+                defNode.StartIndex = arrayType.StartIndex;
+                defNode.EndIndex = arrayType.EndIndex;
+                defNode.Children.Add(arrayType.StartIndex, arrayType);
+            }
+            else if(parser.PeekToken(TokenKind.LikeKeyword))
             {
                 result = true;
                 parser.NextToken();
@@ -38,7 +47,6 @@ namespace VSGenero.Analysis.AST
                 defNode.StartIndex = parser.Token.Span.Start;
 
                 // get db info
-                parser.NextToken();
                 if (!parser.PeekToken(TokenCategory.Identifier) && parser.PeekToken(TokenKind.Colon, 2))
                 {
                     parser.NextToken(); // advance to the database name
@@ -58,8 +66,12 @@ namespace VSGenero.Analysis.AST
                     parser.NextToken(); // advance to the table name
                     defNode.TableName = parser.Token.Token.Value.ToString();
                     parser.NextToken(); // advance to the dot
-                    parser.NextToken(); // advance to the ident
+                    parser.NextToken(); // advance to the columne name (or dot)
                     defNode.ColumnName = parser.Token.Token.Value.ToString();
+                    if(!mimickingRecord && defNode.ColumnName == "*")
+                    {
+                        parser.ReportSyntaxError("A variable cannot mimic an entire table without being a record. The variable must be defined as a mimicking record.");
+                    }
                 }
             }
             else

@@ -36,80 +36,89 @@ namespace VSGenero.Analysis.AST
             // TODO: need to think of a way of ensuring order of the pre-function nodes
 
             CompilerOptionsNode compOptionsNode;
-            if(CompilerOptionsNode.TryParseNode(parser, out compOptionsNode))
+            if (CompilerOptionsNode.TryParseNode(parser, out compOptionsNode))
             {
                 defNode.Children.Add(compOptionsNode.StartIndex, compOptionsNode);
-                parser.NextToken();
+                // parser.NextToken();
             }
 
             ImportModuleNode importNode;
-            while(ImportModuleNode.TryParseNode(parser, out importNode))
+            while (ImportModuleNode.TryParseNode(parser, out importNode))
             {
                 defNode.Children.Add(importNode.StartIndex, importNode);
-                parser.NextToken();
+                //parser.NextToken();
             }
 
             SchemaSpecificationNode schemaNode;
-            if(SchemaSpecificationNode.TryParseDefine(parser, out schemaNode))
+            if (SchemaSpecificationNode.TryParseDefine(parser, out schemaNode))
             {
                 defNode.Children.Add(schemaNode.StartIndex, schemaNode);
-                parser.NextToken();
+                //parser.NextToken();
             }
 
             GlobalsNode globalNode;
-            if(GlobalsNode.TryParseNode(parser, out globalNode))
+            if (GlobalsNode.TryParseNode(parser, out globalNode))
             {
                 defNode.Children.Add(globalNode.StartIndex, globalNode);
-                parser.NextToken();
+                //parser.NextToken();
             }
 
+            // TODO: need to figure out a way of enforcing order of 1) constant defs, 2) type defs, and 3) var defs
+
             ConstantDefNode constNode;
-            while(ConstantDefNode.TryParseNode(parser, out constNode))
+            while (ConstantDefNode.TryParseNode(parser, out constNode))
             {
                 defNode.Children.Add(constNode.StartIndex, constNode);
-                parser.NextToken();
+                //parser.NextToken();
             }
 
             TypeDefNode typeNode;
             while (TypeDefNode.TryParseNode(parser, out typeNode))
             {
                 defNode.Children.Add(typeNode.StartIndex, typeNode);
-                parser.NextToken();
+                //parser.NextToken();
             }
 
             DefineNode defineNode;
             while (DefineNode.TryParseDefine(parser, out defineNode))
             {
                 defNode.Children.Add(typeNode.StartIndex, defineNode);
-                parser.NextToken();
+                //parser.NextToken();
             }
 
             MainBlockNode mainBlock;
-            if(MainBlockNode.TryParseNode(parser, out mainBlock))
+            if (MainBlockNode.TryParseNode(parser, out mainBlock))
             {
-                defNode.Children.Add(typeNode.StartIndex, mainBlock);
-                parser.NextToken();
+                defNode.Children.Add(mainBlock.StartIndex, mainBlock);
+                //parser.NextToken();
             }
 
-            while(!parser.PeekToken(TokenKind.EndOfFile))
+            while (!parser.PeekToken(TokenKind.EndOfFile))
             {
                 // TODO: declared dialog block
 
                 FunctionBlockNode funcNode;
-                if(FunctionBlockNode.TryParseNode(parser, out funcNode))
+                ReportBlockNode repNode;
+                if (FunctionBlockNode.TryParseNode(parser, out funcNode))
                 {
                     defNode.Children.Add(typeNode.StartIndex, funcNode);
-                    parser.NextToken();
+                    //parser.NextToken();
+                }
+                else if (ReportBlockNode.TryParseNode(parser, out repNode))
+                {
+                    defNode.Children.Add(typeNode.StartIndex, repNode);
+                    //parser.NextToken();
                 }
                 else
                 {
-                    ReportBlockNode repNode;
-                    if(ReportBlockNode.TryParseNode(parser, out repNode))
-                    {
-                        defNode.Children.Add(typeNode.StartIndex, repNode);
-                        parser.NextToken();
-                    }
+                    parser.NextToken();
                 }
+            }
+
+            if (defNode.Children.Count > 0)
+            {
+                defNode.StartIndex = defNode.Children[0].StartIndex;
+                defNode.EndIndex = defNode.Children[defNode.Children.Count - 1].EndIndex;
             }
 
             return true;

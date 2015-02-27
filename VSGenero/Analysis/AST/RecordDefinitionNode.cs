@@ -103,7 +103,7 @@ namespace VSGenero.Analysis.AST
                         parser.NextToken();
 
                         TypeReference tr;
-                        if (TypeReference.TryParseNode(parser, out tr))
+                        if (TypeReference.TryParseNode(parser, out tr, true))
                         {
                             defNode.MemberDictionary.Add(tok.Value.ToString(), tr);
                         }
