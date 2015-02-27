@@ -71,9 +71,14 @@ namespace VSGenero.EditorExtensions
                     {
                         sb.Append(line);
                     }
-                    ITextEdit edit = _textView.TextBuffer.CreateEdit();
-                    edit.Replace(change.NewSpan, sb.ToString());
-                    edit.Apply();
+                    try
+                    {
+                        ITextEdit edit = _textView.TextBuffer.CreateEdit();
+                        edit.Replace(change.NewSpan, sb.ToString());
+                        edit.Apply();
+                    }
+                    catch (Exception)
+                    { }
                 }
             }
         }
