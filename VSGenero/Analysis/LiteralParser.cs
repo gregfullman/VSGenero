@@ -182,10 +182,10 @@ namespace VSGenero.Analysis
                 char ch = text[i++];
                 if (!isRaw && ch == '\\')
                 {
-                    if (i >= l)
-                    {
-                        throw new ArgumentException("Trailing \\ in string");
-                    }
+                    //if (i >= l)
+                    //{
+                    //    throw new ArgumentException("Trailing \\ in string");
+                    //}
                     ch = text[i++];
                     switch (ch)
                     {

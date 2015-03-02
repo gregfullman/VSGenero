@@ -1071,7 +1071,7 @@ namespace VSGenero.Analysis
                     _state.IncompleteString = new IncompleteString(quote == '\'', isRaw, isUnicode, isTriple);
                     return new IncompleteStringErrorToken("<eof> while reading string", incompleteContents);
                 }
-                else if (ch == quote)
+                else if (ch == quote && _position > 1 && _buffer[_position - 2] != '\\')
                 {
 
                     if (isTriple)
@@ -1556,6 +1556,8 @@ namespace VSGenero.Analysis
                         return Tokens.DoubleEqualsToken;
                     }
                     return Tokens.EqualsToken;
+                case '&':
+                    return Tokens.AmpersandToken;
             }
 
             return null;

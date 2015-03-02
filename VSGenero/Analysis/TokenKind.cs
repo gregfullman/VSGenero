@@ -21,6 +21,7 @@ namespace VSGenero.Analysis
         Dot = 31,
 
         Add = 32,
+        Ampersand = 33,
         Subtract = 34,
         Power = 36,
         Multiply = 38,
@@ -460,6 +461,7 @@ namespace VSGenero.Analysis
         private static readonly Token symDoubleEqualsToken = new OperatorToken(TokenKind.DoubleEquals, "==", -1);
         private static readonly Token symEqualsToken = new OperatorToken(TokenKind.Equals, "=", -1);
         private static readonly Token symAssign = new OperatorToken(TokenKind.Assign, ":=", -1);
+        private static readonly Token symAmpersand = new OperatorToken(TokenKind.Ampersand, "&", -1);
 
         private static Dictionary<string, TokenKind> _keywords;
 
@@ -486,6 +488,11 @@ namespace VSGenero.Analysis
                 tok = new SymbolToken(tryKind, possibleKeyword);
             }
             return tok;
+        }
+
+        public static Token AmpersandToken
+        {
+            get { return symAmpersand; }
         }
 
         public static Token PowerToken

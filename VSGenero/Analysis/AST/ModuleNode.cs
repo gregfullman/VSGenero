@@ -29,84 +29,167 @@ namespace VSGenero.Analysis.AST
     /// </summary>
     public class ModuleNode : AstNode
     {
+        private enum NodesProcessed
+        {
+            None = 0,
+            CompilerOption,
+            Imports,
+            SchemaSpec,
+            Globals,
+            Constants,
+            TypeDefs,
+            VarDefs,
+            Main,
+            Body
+        }
+
         public static bool TryParseNode(Parser parser, out ModuleNode defNode)
         {
             defNode = new ModuleNode();
-
-            // TODO: need to think of a way of ensuring order of the pre-function nodes
-
-            CompilerOptionsNode compOptionsNode;
-            if (CompilerOptionsNode.TryParseNode(parser, out compOptionsNode))
-            {
-                defNode.Children.Add(compOptionsNode.StartIndex, compOptionsNode);
-                // parser.NextToken();
-            }
-
-            ImportModuleNode importNode;
-            while (ImportModuleNode.TryParseNode(parser, out importNode))
-            {
-                defNode.Children.Add(importNode.StartIndex, importNode);
-                //parser.NextToken();
-            }
-
-            SchemaSpecificationNode schemaNode;
-            if (SchemaSpecificationNode.TryParseDefine(parser, out schemaNode))
-            {
-                defNode.Children.Add(schemaNode.StartIndex, schemaNode);
-                //parser.NextToken();
-            }
-
-            GlobalsNode globalNode;
-            if (GlobalsNode.TryParseNode(parser, out globalNode))
-            {
-                defNode.Children.Add(globalNode.StartIndex, globalNode);
-                //parser.NextToken();
-            }
-
-            // TODO: need to figure out a way of enforcing order of 1) constant defs, 2) type defs, and 3) var defs
-
-            ConstantDefNode constNode;
-            while (ConstantDefNode.TryParseNode(parser, out constNode))
-            {
-                defNode.Children.Add(constNode.StartIndex, constNode);
-                //parser.NextToken();
-            }
-
-            TypeDefNode typeNode;
-            while (TypeDefNode.TryParseNode(parser, out typeNode))
-            {
-                defNode.Children.Add(typeNode.StartIndex, typeNode);
-                //parser.NextToken();
-            }
-
-            DefineNode defineNode;
-            while (DefineNode.TryParseDefine(parser, out defineNode))
-            {
-                defNode.Children.Add(typeNode.StartIndex, defineNode);
-                //parser.NextToken();
-            }
-
-            MainBlockNode mainBlock;
-            if (MainBlockNode.TryParseNode(parser, out mainBlock))
-            {
-                defNode.Children.Add(mainBlock.StartIndex, mainBlock);
-                //parser.NextToken();
-            }
-
+            NodesProcessed processed = NodesProcessed.None;
+            
             while (!parser.PeekToken(TokenKind.EndOfFile))
             {
+                PreprocessorNode preNode;
+                if(PreprocessorNode.TryParseNode(parser, out preNode))
+                {
+                    // not storing it right now
+                    continue;
+                }
+
+                CompilerOptionsNode compOptionsNode;
+                if (CompilerOptionsNode.TryParseNode(parser, out compOptionsNode))
+                {
+                    if (processed == NodesProcessed.None)
+                    {
+                        defNode.Children.Add(compOptionsNode.StartIndex, compOptionsNode);
+                    }
+                    else
+                    {
+                        parser.ReportSyntaxError("Compiler options statement found in incorrect position.");
+                    }
+                }
+                if(processed == NodesProcessed.None)
+                    processed = NodesProcessed.CompilerOption;
+
+                ImportModuleNode importNode;
+                while (ImportModuleNode.TryParseNode(parser, out importNode))
+                {
+                    if (processed == NodesProcessed.CompilerOption)
+                    {
+                        defNode.Children.Add(importNode.StartIndex, importNode);
+                        continue;
+                    }
+                    else
+                    {
+                        parser.ReportSyntaxError("Import statement found in incorrect position.");
+                    }
+                }
+                if(processed == NodesProcessed.CompilerOption)
+                    processed = NodesProcessed.Imports;
+
+                SchemaSpecificationNode schemaNode;
+                if (SchemaSpecificationNode.TryParseDefine(parser, out schemaNode))
+                {
+                    if (processed == NodesProcessed.Imports)
+                    {
+                        defNode.Children.Add(schemaNode.StartIndex, schemaNode);
+                    }
+                    else
+                    {
+                        parser.ReportSyntaxError("Schema statement found in incorrect position.");
+                    }
+                }
+                if (processed == NodesProcessed.Imports)
+                    processed = NodesProcessed.SchemaSpec;
+
+                GlobalsNode globalNode;
+                if (GlobalsNode.TryParseNode(parser, out globalNode))
+                {
+                    if (processed == NodesProcessed.SchemaSpec)
+                    {
+                        defNode.Children.Add(globalNode.StartIndex, globalNode);
+                    }
+                    else
+                    {
+                        parser.ReportSyntaxError("Globals statement found in incorrect position.");
+                    }
+                }
+                if (processed == NodesProcessed.SchemaSpec)
+                    processed = NodesProcessed.Globals;
+
+                ConstantDefNode constNode;
+                while (ConstantDefNode.TryParseNode(parser, out constNode))
+                {
+                    if (processed == NodesProcessed.Globals)
+                    {
+                        defNode.Children.Add(constNode.StartIndex, constNode);
+                    }
+                    else
+                    {
+                        parser.ReportSyntaxError("Constant definition found in incorrect position.");
+                    }
+                }
+                if (processed == NodesProcessed.Globals)
+                    processed = NodesProcessed.Constants;
+
+                TypeDefNode typeNode;
+                while (TypeDefNode.TryParseNode(parser, out typeNode))
+                {
+                    if (processed == NodesProcessed.Constants)
+                    {
+                        defNode.Children.Add(typeNode.StartIndex, typeNode);
+                    }
+                    else
+                    {
+                        parser.ReportSyntaxError("Type definition found in incorrect position.");
+                    }
+                }
+                if (processed == NodesProcessed.Constants)
+                    processed = NodesProcessed.TypeDefs;
+
+                DefineNode defineNode;
+                while (DefineNode.TryParseDefine(parser, out defineNode))
+                {
+                    if (processed == NodesProcessed.TypeDefs)
+                    {
+                        defNode.Children.Add(typeNode.StartIndex, defineNode);
+                    }
+                    else
+                    {
+                        parser.ReportSyntaxError("Variable definition found in incorrect position.");
+                    }
+                }
+                if (processed == NodesProcessed.TypeDefs)
+                    processed = NodesProcessed.VarDefs;
+
+                MainBlockNode mainBlock;
+                if (MainBlockNode.TryParseNode(parser, out mainBlock))
+                {
+                    if (processed == NodesProcessed.VarDefs)
+                    {
+                        defNode.Children.Add(mainBlock.StartIndex, mainBlock);
+                    }
+                    else
+                    {
+                        parser.ReportSyntaxError("Main block found in incorrect position.");
+                    }
+                }
+                if (processed == NodesProcessed.VarDefs)
+                    processed = NodesProcessed.Main;
+
                 // TODO: declared dialog block
 
                 FunctionBlockNode funcNode;
                 ReportBlockNode repNode;
                 if (FunctionBlockNode.TryParseNode(parser, out funcNode))
                 {
-                    defNode.Children.Add(typeNode.StartIndex, funcNode);
+                    defNode.Children.Add(funcNode.StartIndex, funcNode);
                     //parser.NextToken();
                 }
                 else if (ReportBlockNode.TryParseNode(parser, out repNode))
                 {
-                    defNode.Children.Add(typeNode.StartIndex, repNode);
+                    defNode.Children.Add(repNode.StartIndex, repNode);
                     //parser.NextToken();
                 }
                 else
@@ -117,8 +200,8 @@ namespace VSGenero.Analysis.AST
 
             if (defNode.Children.Count > 0)
             {
-                defNode.StartIndex = defNode.Children[0].StartIndex;
-                defNode.EndIndex = defNode.Children[defNode.Children.Count - 1].EndIndex;
+                defNode.StartIndex = defNode.Children[defNode.Children.Keys[0]].StartIndex;
+                defNode.EndIndex = defNode.Children[defNode.Children.Keys[defNode.Children.Count - 1]].EndIndex;
             }
 
             return true;

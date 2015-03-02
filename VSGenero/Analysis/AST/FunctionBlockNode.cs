@@ -105,8 +105,8 @@ namespace VSGenero.Analysis.AST
 
                 List<TokenKind> breakSequence = new List<TokenKind>() { TokenKind.EndKeyword, TokenKind.FunctionKeyword };
                 // try to parse one or more declaration statements
-                while (!parser.PeekToken(TokenKind.EndKeyword) &&
-                      !parser.PeekToken(TokenKind.EndOfFile))
+                while (!parser.PeekToken(TokenKind.EndOfFile) &&
+                       !(parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.FunctionKeyword, 2)))
                 {
                     DefineNode defineNode;
                     TypeDefNode typeNode;

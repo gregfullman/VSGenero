@@ -23,15 +23,15 @@ namespace VSGenero.Analysis.AST
     {
         public ArrayType ArrayType { get; private set; }
         public uint DynamicArrayDimension { get; private set; }
-        public uint StaticDimOneSize { get; private set; }
-        public uint StaticDimTwoSize { get; private set; }
-        public uint StaticDimThreeSize { get; private set; }
+        public UInt16 StaticDimOneSize { get; private set; }
+        public UInt16 StaticDimTwoSize { get; private set; }
+        public UInt16 StaticDimThreeSize { get; private set; }
 
         public static bool TryParseNode(Parser parser, out ArrayTypeReference defNode)
         {
             defNode = null;
             bool result = false;
-            if(parser.PeekToken(TokenKind.DynamicKeyword))
+            if (parser.PeekToken(TokenKind.DynamicKeyword))
             {
                 result = true;
                 defNode = new ArrayTypeReference();
@@ -45,22 +45,22 @@ namespace VSGenero.Analysis.AST
                     parser.NextToken();
 
                 // [WITH DIMENSION rank] is optional
-                if(parser.PeekToken(TokenKind.WithKeyword))
+                if (parser.PeekToken(TokenKind.WithKeyword))
                 {
                     parser.NextToken();
-                    if(parser.PeekToken(TokenKind.DimensionKeyword))
+                    if (parser.PeekToken(TokenKind.DimensionKeyword))
                     {
                         parser.NextToken();
-                        if(parser.PeekToken(TokenCategory.NumericLiteral))
+                        if (parser.PeekToken(TokenCategory.NumericLiteral))
                         {
                             var tok = parser.NextToken() as ConstantValueToken;
-                            if(tok != null)
+                            if (tok != null)
                             {
                                 uint intVal;
                                 string val = tok.Value.ToString();
-                                if(uint.TryParse(val, out intVal))
+                                if (uint.TryParse(val, out intVal))
                                 {
-                                    if(intVal >= 1 && intVal <= 3)
+                                    if (intVal >= 1 && intVal <= 3)
                                     {
                                         defNode.DynamicArrayDimension = intVal;
                                     }
@@ -90,14 +90,14 @@ namespace VSGenero.Analysis.AST
                     }
                 }
 
-                if(!parser.PeekToken(TokenKind.OfKeyword))
+                if (!parser.PeekToken(TokenKind.OfKeyword))
                     parser.ReportSyntaxError("Missing \"of\" keyword in array definition.");
                 else
                     parser.NextToken();
 
                 // now try to get the datatype
                 TypeReference typeRef;
-                if((TypeReference.TryParseNode(parser, out typeRef)))
+                if ((TypeReference.TryParseNode(parser, out typeRef)))
                 {
                     defNode.Children.Add(typeRef.StartIndex, typeRef);
                     defNode.EndIndex = typeRef.EndIndex;
@@ -107,7 +107,7 @@ namespace VSGenero.Analysis.AST
                     parser.ReportSyntaxError("Invalid type specified for dynamic array definition");
                 }
             }
-            else if(parser.PeekToken(TokenKind.ArrayKeyword))
+            else if (parser.PeekToken(TokenKind.ArrayKeyword))
             {
                 result = true;
                 defNode = new ArrayTypeReference();
@@ -119,24 +119,95 @@ namespace VSGenero.Analysis.AST
                 else
                     parser.NextToken();
 
-                if(parser.PeekToken(TokenKind.RightBracket))
+                if (parser.PeekToken(TokenKind.RightBracket))
                 {
                     // we should have a java array
                     defNode.ArrayType = ArrayType.Java;
+                    parser.NextToken();
+
+                    if (!parser.PeekToken(TokenKind.OfKeyword))
+                        parser.ReportSyntaxError("Missing \"of\" keyword in array definition.");
+                    else
+                        parser.NextToken();
+
+                    // now try to get the datatype
+                    TypeReference typeRef;
+                    if ((TypeReference.TryParseNode(parser, out typeRef)))
+                    {
+                        defNode.Children.Add(typeRef.StartIndex, typeRef);
+                        defNode.EndIndex = typeRef.EndIndex;
+                    }
+                    else
+                    {
+                        parser.ReportSyntaxError("Invalid type specified for java array definition");
+                    }
                 }
-                else if(parser.PeekToken(TokenCategory.NumericLiteral))
+                else if (parser.PeekToken(TokenCategory.NumericLiteral))
                 {
                     defNode.ArrayType = ArrayType.Static;
                     parser.NextToken();
 
+                    // get the first-dimension size
+                    UInt16 val;
+                    if (!UInt16.TryParse(parser.Token.Token.Value.ToString(), out val))
+                        parser.ReportSyntaxError("Array's first dimension size is invalid");
+                    else
+                        defNode.StaticDimOneSize = val;
 
+                    if(parser.PeekToken(TokenKind.Comma))
+                    {
+                        parser.NextToken();
+                        if (!parser.PeekToken(TokenCategory.NumericLiteral))
+                            parser.ReportSyntaxError("Invalid token found in static array size.");
+                        else
+                            parser.NextToken();
+
+                        if (!UInt16.TryParse(parser.Token.Token.Value.ToString(), out val))
+                            parser.ReportSyntaxError("Array's second dimension size is invalid");
+                        else
+                            defNode.StaticDimTwoSize = val;
+
+                        if (parser.PeekToken(TokenKind.Comma))
+                        {
+                            parser.NextToken();
+                            if (!parser.PeekToken(TokenCategory.NumericLiteral))
+                                parser.ReportSyntaxError("Invalid token found in static array size.");
+                            else
+                                parser.NextToken();
+
+                            if (!UInt16.TryParse(parser.Token.Token.Value.ToString(), out val))
+                                parser.ReportSyntaxError("Array's third dimension size is invalid");
+                            else
+                                defNode.StaticDimThreeSize = val;
+                        }
+                    }
+
+                    if(!parser.PeekToken(TokenKind.RightBracket))
+                        parser.ReportSyntaxError("Invalid end of static array dimension specifier.");
+                    else
+                        parser.NextToken();
+
+                    if(!parser.PeekToken(TokenKind.OfKeyword))
+                        parser.ReportSyntaxError("Missing \"of\" keyword in array definition.");
+                    else
+                        parser.NextToken();
+
+                    // now try to get the datatype
+                    TypeReference typeRef;
+                    if ((TypeReference.TryParseNode(parser, out typeRef)))
+                    {
+                        defNode.Children.Add(typeRef.StartIndex, typeRef);
+                        defNode.EndIndex = typeRef.EndIndex;
+                    }
+                    else
+                    {
+                        parser.ReportSyntaxError("Invalid type specified for static array definition");
+                    }
                 }
                 else
                 {
                     parser.ReportSyntaxError("Invalid size specified for array.");
                 }
-
-
             }
             return result;
         }

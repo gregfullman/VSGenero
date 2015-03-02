@@ -313,6 +313,7 @@
     <Compile Include="Analysis\AST\AttributeSpecifier.cs" />
     <Compile Include="Analysis\AST\FunctionBlockNode.cs" />
     <Compile Include="Analysis\AST\ModuleNode.cs" />
+    <Compile Include="Analysis\AST\PreprocessorNode.cs" />
     <Compile Include="Analysis\AST\ReportBlockNode.cs" />
     <Compile Include="Analysis\ErrorCodes.cs" />
     <Compile Include="Analysis\ErrorSink.cs" />

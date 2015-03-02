@@ -115,52 +115,18 @@ namespace VSGeneroUnitTesting
             }
         }
 
-
+        // let tmp_err_msg = "Export file \"", tmp_exp_command clipped,"\" ",
         [TestMethod]
-        public void ParserTest1()
+        public void TokenizerTest2()
         {
-            ParserOptions po = new ParserOptions();
-            po.ErrorSink = new TestErrorSink();
-            //string codeSample = "globals\n\tdefine x, y record\n\tz smallint, a int\nend record\nend globals";
-            //string codeSample = "globals\n\tdefine x, y record like tablename.*\nend globals";
-            //string codeSample = "globals\n\tdefine x, y record like tablename.*\nend globals\n\n\nmain\n\tdefine x, y smallint\n\nend main";
-            string codeSample = "globals\n\tdefine x, y like tablename.*\nend globals\n\n\nmain\n\tdefine x, y smallint\n\nend main";
-            
-            using (TextReader tr = new StringReader(codeSample))
+            Tokenizer t = new Tokenizer(null, options: TokenizerOptions.Verbatim | TokenizerOptions.VerbatimCommentsAndLineJoins);
+            var path = @"..\..\TokenizerTests\TestFile1.4gl";
+            using (TextReader tr = new StreamReader(path))
             {
-                VSGenero.Analysis.Parser p = VSGenero.Analysis.Parser.CreateParser(tr, po);
-                var node = p.ParseFile();
+                t.Initialize(tr);
+                var tokens = t.ReadTokens(int.MaxValue);
                 int i = 0;
             }
         }
-    }
-
-    public class TestErrorSink : ErrorSink
-    {
-        private List<TestError> _errors;
-        public List<TestError> Errors
-        {
-            get
-            {
-                if (_errors == null)
-                    _errors = new List<TestError>();
-                return _errors;
-            }
-        }
-
-        public override void Add(string message, int[] lineLocations, int startIndex, int endIndex, int errorCode, Severity severity)
-        {
-            Errors.Add(new TestError { Message = message, LineLocations = lineLocations, StartIndex = startIndex, EndIndex = endIndex, ErrorCode = errorCode, Severity = severity });
-        }
-    }
-
-    public struct TestError
-    {
-        public string Message { get; set; }
-        public int[] LineLocations { get; set; }
-        public int StartIndex { get; set; }
-        public int EndIndex { get; set; }
-        public int ErrorCode { get; set; }
-        public Severity Severity { get; set; }
     }
 }

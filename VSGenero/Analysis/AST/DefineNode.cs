@@ -105,6 +105,21 @@ namespace VSGenero.Analysis.AST
                                 if (bsMatch)
                                     tryAgain = false;
                             }
+
+                            if (tryAgain)
+                            {
+                                if (parser.PeekToken(TokenKind.Comma))
+                                {
+                                    parser.NextToken();
+                                    continue;
+                                }
+                                else
+                                {
+                                    tryAgain = false;
+                                }
+                            }
+
+                            
                         }
                     }
                     while (tryAgain);
