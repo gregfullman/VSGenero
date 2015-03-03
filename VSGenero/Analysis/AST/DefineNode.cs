@@ -24,10 +24,11 @@ namespace VSGenero.Analysis.AST
         // TODO: instead of string, this should be the token
         public string AccessModifierToken { get; private set; }
 
-        public static bool TryParseDefine(Parser parser, out DefineNode defNode, List<TokenKind> breakSequence = null)
+        public static bool TryParseDefine(Parser parser, out DefineNode defNode, out bool matchedBreakSequence, List<List<TokenKind>> breakSequences = null)
         {
             defNode = null;
             bool result = false;
+            matchedBreakSequence = false;
             AccessModifier? accMod = null;
             string accModToken = null;
 
@@ -65,45 +66,49 @@ namespace VSGenero.Analysis.AST
                     bool tryAgain = true;
                     do
                     {
-                        RecordDefinitionNode recDef;
-                        if (RecordDefinitionNode.TryParseNode(parser, out recDef))
+                        VariableDefinitionNode varDef;
+                        if (VariableDefinitionNode.TryParseNode(parser, out varDef))
                         {
-                            defNode.Children.Add(recDef.StartIndex, recDef);
+                            defNode.Children.Add(varDef.StartIndex, varDef);
                         }
                         else
                         {
-                            VariableDefinitionNode varDef;
-                            if (VariableDefinitionNode.TryParseNode(parser, out varDef))
-                            {
-                                defNode.Children.Add(varDef.StartIndex, varDef);
-                            }
-                            else
-                            {
-                                tryAgain = false;
-                            }
+                            tryAgain = false;
                         }
 
                         if (tryAgain)
                         {
-                            if (breakSequence != null)
+                            if (breakSequences != null)
                             {
-                                bool bsMatch = true;
-                                uint peekaheadCount = 1;
-                                foreach (var kind in breakSequence)
+                                bool matchedBreak = false;
+                                foreach (var seq in breakSequences)
                                 {
-                                    if (parser.PeekToken(kind, peekaheadCount))
+                                    bool bsMatch = true;
+                                    uint peekaheadCount = 1;
+                                    foreach (var kind in seq)
                                     {
-                                        peekaheadCount++;
+                                        if (parser.PeekToken(kind, peekaheadCount))
+                                        {
+                                            peekaheadCount++;
+                                        }
+                                        else
+                                        {
+                                            bsMatch = false;
+                                            break;
+                                        }
                                     }
-                                    else
+                                    if (bsMatch)
                                     {
-                                        bsMatch = false;
+                                        matchedBreak = true;
                                         break;
                                     }
                                 }
 
-                                if (bsMatch)
-                                    tryAgain = false;
+                                if (matchedBreak)
+                                {
+                                    matchedBreakSequence = true;
+                                    break;
+                                }
                             }
 
                             if (tryAgain)
@@ -119,7 +124,7 @@ namespace VSGenero.Analysis.AST
                                 }
                             }
 
-                            
+
                         }
                     }
                     while (tryAgain);

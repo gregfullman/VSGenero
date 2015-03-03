@@ -84,10 +84,10 @@ namespace VSGenero.Analysis.AST
                 else
                 {
                     defNode.ImportType = ImportModuleType.C;
-                    var tok = parser.NextToken();
-                    if(Tokenizer.GetTokenInfo(tok).Category == TokenCategory.StringLiteral)
+                    if(parser.PeekToken(TokenCategory.Keyword) || parser.PeekToken(TokenCategory.Identifier))
                     {
-                        defNode.ImportName = tok.Value.ToString();
+                        parser.NextToken();
+                        defNode.ImportName = parser.Token.Token.Value.ToString();
                         defNode.EndIndex = parser.Token.Span.End;
                     }
                     else

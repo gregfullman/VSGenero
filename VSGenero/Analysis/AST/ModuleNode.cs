@@ -43,6 +43,17 @@ namespace VSGenero.Analysis.AST
             Body
         }
 
+        private static bool CheckForPreprocessorNode(Parser parser)
+        {
+            PreprocessorNode preNode;
+            if (PreprocessorNode.TryParseNode(parser, out preNode))
+            {
+                // not storing it right now
+                return true;
+            }
+            return false;
+        }
+
         public static bool TryParseNode(Parser parser, out ModuleNode defNode)
         {
             defNode = new ModuleNode();
@@ -50,12 +61,8 @@ namespace VSGenero.Analysis.AST
             
             while (!parser.PeekToken(TokenKind.EndOfFile))
             {
-                PreprocessorNode preNode;
-                if(PreprocessorNode.TryParseNode(parser, out preNode))
-                {
-                    // not storing it right now
+                if (CheckForPreprocessorNode(parser))
                     continue;
-                }
 
                 CompilerOptionsNode compOptionsNode;
                 if (CompilerOptionsNode.TryParseNode(parser, out compOptionsNode))
@@ -71,6 +78,9 @@ namespace VSGenero.Analysis.AST
                 }
                 if(processed == NodesProcessed.None)
                     processed = NodesProcessed.CompilerOption;
+
+                if (CheckForPreprocessorNode(parser))
+                    continue;
 
                 ImportModuleNode importNode;
                 while (ImportModuleNode.TryParseNode(parser, out importNode))
@@ -88,6 +98,9 @@ namespace VSGenero.Analysis.AST
                 if(processed == NodesProcessed.CompilerOption)
                     processed = NodesProcessed.Imports;
 
+                if (CheckForPreprocessorNode(parser))
+                    continue;
+
                 SchemaSpecificationNode schemaNode;
                 if (SchemaSpecificationNode.TryParseDefine(parser, out schemaNode))
                 {
@@ -102,6 +115,9 @@ namespace VSGenero.Analysis.AST
                 }
                 if (processed == NodesProcessed.Imports)
                     processed = NodesProcessed.SchemaSpec;
+
+                if (CheckForPreprocessorNode(parser))
+                    continue;
 
                 GlobalsNode globalNode;
                 if (GlobalsNode.TryParseNode(parser, out globalNode))
@@ -118,8 +134,17 @@ namespace VSGenero.Analysis.AST
                 if (processed == NodesProcessed.SchemaSpec)
                     processed = NodesProcessed.Globals;
 
+                if (CheckForPreprocessorNode(parser))
+                    continue;
+
+                bool matchedBreakSequence = false;
                 ConstantDefNode constNode;
-                while (ConstantDefNode.TryParseNode(parser, out constNode))
+                List<List<TokenKind>> breakSequences = new List<List<TokenKind>>() 
+                    { 
+                        new List<TokenKind> { TokenKind.TypeKeyword },
+                        new List<TokenKind> { TokenKind.DefineKeyword }
+                    };
+                while (ConstantDefNode.TryParseNode(parser, out constNode, out matchedBreakSequence, breakSequences))
                 {
                     if (processed == NodesProcessed.Globals)
                     {
@@ -133,8 +158,17 @@ namespace VSGenero.Analysis.AST
                 if (processed == NodesProcessed.Globals)
                     processed = NodesProcessed.Constants;
 
+                if (CheckForPreprocessorNode(parser))
+                    continue;
+
                 TypeDefNode typeNode;
-                while (TypeDefNode.TryParseNode(parser, out typeNode))
+                breakSequences = new List<List<TokenKind>>() 
+                    { 
+                        new List<TokenKind> { TokenKind.ConstantKeyword },
+                        new List<TokenKind> { TokenKind.DefineKeyword },
+                        new List<TokenKind> { TokenKind.TypeKeyword }
+                    };
+                while (TypeDefNode.TryParseNode(parser, out typeNode, out matchedBreakSequence, breakSequences))
                 {
                     if (processed == NodesProcessed.Constants)
                     {
@@ -148,12 +182,20 @@ namespace VSGenero.Analysis.AST
                 if (processed == NodesProcessed.Constants)
                     processed = NodesProcessed.TypeDefs;
 
+                if (CheckForPreprocessorNode(parser))
+                    continue;
+
                 DefineNode defineNode;
-                while (DefineNode.TryParseDefine(parser, out defineNode))
+                breakSequences = new List<List<TokenKind>>() 
+                    { 
+                        new List<TokenKind> { TokenKind.TypeKeyword },
+                        new List<TokenKind> { TokenKind.ConstantKeyword }
+                    };
+                while (DefineNode.TryParseDefine(parser, out defineNode, out matchedBreakSequence, breakSequences))
                 {
                     if (processed == NodesProcessed.TypeDefs)
                     {
-                        defNode.Children.Add(typeNode.StartIndex, defineNode);
+                        defNode.Children.Add(defineNode.StartIndex, defineNode);
                     }
                     else
                     {
@@ -162,6 +204,9 @@ namespace VSGenero.Analysis.AST
                 }
                 if (processed == NodesProcessed.TypeDefs)
                     processed = NodesProcessed.VarDefs;
+
+                if (CheckForPreprocessorNode(parser))
+                    continue;
 
                 MainBlockNode mainBlock;
                 if (MainBlockNode.TryParseNode(parser, out mainBlock))
@@ -177,6 +222,9 @@ namespace VSGenero.Analysis.AST
                 }
                 if (processed == NodesProcessed.VarDefs)
                     processed = NodesProcessed.Main;
+
+                if (CheckForPreprocessorNode(parser))
+                    continue;
 
                 // TODO: declared dialog block
 

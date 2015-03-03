@@ -20,7 +20,18 @@ namespace VSGenero.Analysis.AST
     /// </summary>
     public class TypeReference : AstNode
     {
-        public string TypeName { get; private set; }
+        public AttributeSpecifier Attribute { get; private set; }
+
+        private List<Token> _typeNameTokens;
+        public List<Token> TypeNameTokens
+        {
+            get
+            {
+                if (_typeNameTokens == null)
+                    _typeNameTokens = new List<Token>();
+                return _typeNameTokens;
+            }
+        }
         public string DatabaseName { get; private set; }
         public string TableName { get; private set; }
         public string ColumnName { get; private set; }
@@ -31,6 +42,7 @@ namespace VSGenero.Analysis.AST
             bool result = false;
 
             ArrayTypeReference arrayType;
+            RecordDefinitionNode recordDef;
             if(ArrayTypeReference.TryParseNode(parser, out arrayType))
             {
                 result = true;
@@ -38,6 +50,14 @@ namespace VSGenero.Analysis.AST
                 defNode.StartIndex = arrayType.StartIndex;
                 defNode.EndIndex = arrayType.EndIndex;
                 defNode.Children.Add(arrayType.StartIndex, arrayType);
+            }
+            else if(RecordDefinitionNode.TryParseNode(parser, out recordDef))
+            {
+                result = true;
+                defNode = new TypeReference();
+                defNode.StartIndex = recordDef.StartIndex;
+                defNode.EndIndex = recordDef.EndIndex;
+                defNode.Children.Add(recordDef.StartIndex, recordDef);
             }
             else if(parser.PeekToken(TokenKind.LikeKeyword))
             {
@@ -84,8 +104,89 @@ namespace VSGenero.Analysis.AST
                     parser.NextToken();
                     defNode = new TypeReference();
                     defNode.StartIndex = parser.Token.Span.Start;
-                    defNode.TypeName = tok.Value.ToString();
+                    defNode.TypeNameTokens.Add(parser.Token.Token);
                     defNode.EndIndex = parser.Token.Span.End;
+
+                    // determine if there are any constraints on the type keyword
+                    TypeConstraint constraint;
+                    if(TypeConstraints.Constraints.TryGetValue(parser.Token.Token.Kind, out constraint))
+                    {
+                        //parser.NextToken();
+                        
+                        // parse them off
+                        int group = -1;
+                        foreach(var constPiece in constraint.Pieces)
+                        {
+                            tok = parser.PeekToken();
+                            if(constPiece.KindOrCategory is TokenKind)
+                            {
+                                TokenKind kind = (TokenKind)constPiece.KindOrCategory;
+                                if(tok.Kind == kind)
+                                {
+                                    parser.NextToken();
+                                    defNode.TypeNameTokens.Add(parser.Token.Token);
+                                }
+                                else
+                                {
+                                    // if it's not required, then skip it
+                                    if(constPiece.Optional)
+                                    {
+                                        continue;
+                                    }
+                                    else
+                                    {
+                                        parser.ReportSyntaxError("Missing token in type reference.");
+                                        parser.NextToken();
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                TokenCategory ccat = (TokenCategory)constPiece.KindOrCategory;
+                                if (Tokenizer.GetTokenInfo(tok).Category == ccat)
+                                {
+                                    parser.NextToken();
+                                    defNode.TypeNameTokens.Add(parser.Token.Token);
+                                }
+                                else
+                                {
+                                    // if it's not required, then skip it
+                                    if (constPiece.Optional)
+                                    {
+                                        parser.NextToken();
+                                        continue;
+                                    }
+                                    else
+                                    {
+                                        parser.ReportSyntaxError("Missing token in type reference.");
+                                        parser.NextToken();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // see if we're referencing an extension type (dotted name)
+                        while(parser.PeekToken(TokenKind.Dot))
+                        {
+                            defNode.TypeNameTokens.Add(parser.NextToken());
+                            if(parser.PeekToken(TokenCategory.Keyword) || parser.PeekToken(TokenCategory.Identifier))
+                            {
+                                defNode.TypeNameTokens.Add(parser.NextToken());
+                            }
+                            else
+                            {
+                                parser.ReportSyntaxError("Unexpected token in type reference.");
+                            }
+                        }
+                    }
+
+                    AttributeSpecifier attribSpec;
+                    if (AttributeSpecifier.TryParseNode(parser, out attribSpec))
+                    {
+                        defNode.Attribute = attribSpec;
+                    }
                 }
                 else if(cat == TokenCategory.EndOfStream)
                 {

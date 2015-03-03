@@ -361,6 +361,7 @@
     <Compile Include="Analysis\TokenizerOptions.cs" />
     <Compile Include="Analysis\TokenKind.cs" />
     <Compile Include="Analysis\TokenTriggers.cs" />
+    <Compile Include="Analysis\AST\TypeConstraints.cs" />
     <Compile Include="EditorExtensions\DefinitionClasses.cs" />
     <Compile Include="EditorExtensions\EditorExtensions.cs" />
     <Compile Include="EditorExtensions\Genero4GLBraceMatchingTagger.cs" />

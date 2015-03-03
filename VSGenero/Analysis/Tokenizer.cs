@@ -24,7 +24,7 @@ namespace VSGenero.Analysis
         private bool _multiEolns;
         private int _position, _end, _tokenEnd, _start, _tokenStartIndex, _tokenEndIndex;
         private bool _bufferResized;
-        private readonly TokenizerOptions _options;
+        private TokenizerOptions _options;
 
         private const int EOF = -1;
         private const int MaxIndent = 80;
@@ -68,6 +68,17 @@ namespace VSGenero.Analysis
             {
                 return (_options & TokenizerOptions.Verbatim) != 0;
             }
+        }
+
+        public void AdjustOptions(TokenizerOptions options)
+        {
+            _options = options;
+        }
+
+        public TokenizerOptions CurrentOptions
+        {
+            get
+            { return _options; }
         }
 
         /// <summary>
@@ -1872,12 +1883,12 @@ namespace VSGenero.Analysis
             {
                 current = DoDedent(spaces, current);
 
-                if (spaces != current && indentStart != -1)
-                {
-                    ReportSyntaxError(
-                        new IndexSpan(indentStart, spaces),
-                        "unindent does not match any outer indentation level", ErrorCodes.IndentationError);
-                }
+                //if (spaces != current && indentStart != -1)
+                //{
+                //    ReportSyntaxError(
+                //        new IndexSpan(indentStart, spaces),
+                //        "unindent does not match any outer indentation level", ErrorCodes.IndentationError);
+                //}
             }
         }
 

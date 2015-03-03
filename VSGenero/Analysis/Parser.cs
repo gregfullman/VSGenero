@@ -56,6 +56,11 @@ namespace VSGenero.Analysis
             get { return _token; }
         }
 
+        internal Tokenizer Tokenizer
+        {
+            get { return _tokenizer; }
+        }
+
         #region Construction
 
         private Parser(Tokenizer tokenizer, ErrorSink errorSink, bool verbatim, bool bindRefs, string privatePrefix)
@@ -372,8 +377,8 @@ namespace VSGenero.Analysis
         {
             // for right now we don't want to see whitespace chars
             var tok = _tokenizer.GetNextToken();
-            while(Tokenizer.GetTokenInfo(tok).Category == TokenCategory.WhiteSpace ||
-                  tok is DentToken)
+            while((!_tokenizer.CurrentOptions.HasFlag(TokenizerOptions.VerbatimCommentsAndLineJoins) && Tokenizer.GetTokenInfo(tok).Category == TokenCategory.WhiteSpace) 
+                || tok is DentToken)
                 tok = _tokenizer.GetNextToken();
             _lookaheads.Add(new TokenWithSpan(tok, _tokenizer.TokenSpan));
             _lookaheadWhiteSpaces.Add(_tokenizer.PreceedingWhiteSpace);

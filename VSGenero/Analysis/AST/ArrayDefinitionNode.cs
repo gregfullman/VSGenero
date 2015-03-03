@@ -21,6 +21,8 @@ namespace VSGenero.Analysis.AST
     /// </summary>
     public class ArrayTypeReference : TypeReference
     {
+        public AttributeSpecifier Attribute { get; private set; }
+
         public ArrayType ArrayType { get; private set; }
         public uint DynamicArrayDimension { get; private set; }
         public UInt16 StaticDimOneSize { get; private set; }
@@ -43,6 +45,12 @@ namespace VSGenero.Analysis.AST
                     parser.ReportSyntaxError("Missing \"array\" keyword after \"dynamic\" array keyword.");
                 else
                     parser.NextToken();
+
+                AttributeSpecifier attribSpec;
+                if (AttributeSpecifier.TryParseNode(parser, out attribSpec))
+                {
+                    defNode.Attribute = attribSpec;
+                }
 
                 // [WITH DIMENSION rank] is optional
                 if (parser.PeekToken(TokenKind.WithKeyword))

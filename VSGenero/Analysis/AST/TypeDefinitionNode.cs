@@ -31,22 +31,14 @@ namespace VSGenero.Analysis.AST
                 defNode.StartIndex = parser.Token.Span.Start;
                 defNode.Identifier = parser.Token.Token.Value.ToString();
 
-                RecordDefinitionNode recordDef;
-                if(RecordDefinitionNode.TryParseNode(parser, out recordDef))
+                TypeReference typeRef;
+                if (TypeReference.TryParseNode(parser, out typeRef))
                 {
-                    defNode.Children.Add(recordDef.StartIndex, recordDef);
+                    defNode.Children.Add(typeRef.StartIndex, typeRef);
                 }
                 else
                 {
-                    TypeReference typeRef;
-                    if(TypeReference.TryParseNode(parser, out typeRef))
-                    {
-                        defNode.Children.Add(typeRef.StartIndex, typeRef);
-                    }
-                    else
-                    {
-                        parser.ReportSyntaxError("Invalid syntax found in type definition.");
-                    }
+                    parser.ReportSyntaxError("Invalid syntax found in type definition.");
                 }
             }
             return result;

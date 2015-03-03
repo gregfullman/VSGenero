@@ -38,7 +38,7 @@ namespace VSGenero.Analysis.AST
             }
 
             uint lookAheadBy = (uint)(accMod.HasValue ? 2 : 1);
-            if (parser.PeekToken(TokenKind.FunctionKeyword, lookAheadBy))
+            if (parser.PeekToken(TokenKind.ReportKeyword, lookAheadBy))
             {
                 result = true;
                 defNode = new ReportBlockNode();
@@ -63,11 +63,11 @@ namespace VSGenero.Analysis.AST
                 }
                 else
                 {
-                    parser.ReportSyntaxError("A function must have a name.");
+                    parser.ReportSyntaxError("A report must have a name.");
                 }
 
                 if (!parser.PeekToken(TokenKind.LeftParenthesis))
-                    parser.ReportSyntaxError("A function must specify zero or more parameters in the form: ([param1][,...])");
+                    parser.ReportSyntaxError("A report must specify zero or more parameters in the form: ([param1][,...])");
                 else
                     parser.NextToken();
 
@@ -83,31 +83,54 @@ namespace VSGenero.Analysis.AST
                 }
 
                 if (!parser.PeekToken(TokenKind.RightParenthesis))
-                    parser.ReportSyntaxError("A function must specify zero or more parameters in the form: ([param1][,...])");
+                    parser.ReportSyntaxError("A report must specify zero or more parameters in the form: ([param1][,...])");
                 else
                     parser.NextToken();
 
-                List<TokenKind> breakSequence = new List<TokenKind>() { TokenKind.EndKeyword, TokenKind.FunctionKeyword };
+                List<List<TokenKind>> breakSequences = new List<List<TokenKind>>() 
+                    { 
+                        new List<TokenKind> { TokenKind.EndKeyword, TokenKind.ReportKeyword },
+                        new List<TokenKind> { TokenKind.ConstantKeyword },
+                        new List<TokenKind> { TokenKind.DefineKeyword },
+                        new List<TokenKind> { TokenKind.TypeKeyword }
+                    };
                 // try to parse one or more declaration statements
-                while (!parser.PeekToken(TokenKind.EndKeyword) &&
-                      !parser.PeekToken(TokenKind.EndOfFile))
+                while (!parser.PeekToken(TokenKind.EndOfFile) &&
+                          !(parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.ReportKeyword, 2)))
                 {
                     DefineNode defineNode;
                     TypeDefNode typeNode;
                     ConstantDefNode constNode;
-                    if (DefineNode.TryParseDefine(parser, out defineNode, breakSequence))
+                    bool matchedBreakSequence = false;
+                    switch (parser.PeekToken().Kind)
                     {
-                        defNode.Children.Add(defineNode.StartIndex, defineNode);
+                        case TokenKind.TypeKeyword:
+                            {
+                                if (TypeDefNode.TryParseNode(parser, out typeNode, out matchedBreakSequence, breakSequences))
+                                {
+                                    defNode.Children.Add(typeNode.StartIndex, typeNode);
+                                }
+                                break;
+                            }
+                        case TokenKind.ConstantKeyword:
+                            {
+                                if (ConstantDefNode.TryParseNode(parser, out constNode, out matchedBreakSequence, breakSequences))
+                                {
+                                    defNode.Children.Add(constNode.StartIndex, constNode);
+                                }
+                                break;
+                            }
+                        case TokenKind.DefineKeyword:
+                            {
+                                if (DefineNode.TryParseDefine(parser, out defineNode, out matchedBreakSequence, breakSequences))
+                                {
+                                    defNode.Children.Add(defineNode.StartIndex, defineNode);
+                                }
+                                break;
+                            }
                     }
-                    else if (TypeDefNode.TryParseNode(parser, out typeNode))
-                    {
-                        defNode.Children.Add(defineNode.StartIndex, typeNode);
-                    }
-                    else if (ConstantDefNode.TryParseNode(parser, out constNode))
-                    {
-                        defNode.Children.Add(defineNode.StartIndex, constNode);
-                    }
-                    else
+                    // if a break sequence was matched, we don't want to advance the token
+                    if (!matchedBreakSequence)
                     {
                         // TODO: not sure whether to break or keep going...for right now, let's keep going until we hit the end keyword
                         parser.NextToken();

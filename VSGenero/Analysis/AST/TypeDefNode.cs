@@ -18,10 +18,11 @@ namespace VSGenero.Analysis.AST
         // TODO: instead of string, this should be the token
         public string AccessModifierToken { get; private set; }
 
-        public static bool TryParseNode(Parser parser, out TypeDefNode defNode, List<TokenKind> breakSequence = null)
+        public static bool TryParseNode(Parser parser, out TypeDefNode defNode, out bool matchedBreakSequence, List<List<TokenKind>> breakSequences = null)
         {
             defNode = null;
             bool result = false;
+            matchedBreakSequence = false;
             AccessModifier? accMod = null;
             string accModToken = null;
 
@@ -37,7 +38,7 @@ namespace VSGenero.Analysis.AST
             }
 
             uint lookAheadBy = (uint)(accMod.HasValue ? 2 : 1);
-            if (parser.PeekToken(TokenKind.ConstantKeyword, lookAheadBy))
+            if (parser.PeekToken(TokenKind.TypeKeyword, lookAheadBy))
             {
                 result = true;
                 defNode = new TypeDefNode();
@@ -66,30 +67,42 @@ namespace VSGenero.Analysis.AST
                         break;
                     }
 
-                    if (!parser.PeekToken(TokenKind.Comma))
+                    if (parser.PeekToken(TokenKind.Comma))
                     {
-                        break;
+                        parser.NextToken();
                     }
 
-                    if (breakSequence != null)
+                    if (breakSequences != null)
                     {
-                        bool bsMatch = true;
-                        uint peekaheadCount = 1;
-                        foreach (var kind in breakSequence)
+                        bool matchedBreak = false;
+                        foreach (var seq in breakSequences)
                         {
-                            if (parser.PeekToken(kind, peekaheadCount))
+                            bool bsMatch = true;
+                            uint peekaheadCount = 1;
+                            foreach (var kind in seq)
                             {
-                                peekaheadCount++;
+                                if (parser.PeekToken(kind, peekaheadCount))
+                                {
+                                    peekaheadCount++;
+                                }
+                                else
+                                {
+                                    bsMatch = false;
+                                    break;
+                                }
                             }
-                            else
+                            if (bsMatch)
                             {
-                                bsMatch = false;
+                                matchedBreak = true;
                                 break;
                             }
                         }
 
-                        if (bsMatch)
+                        if (matchedBreak)
+                        {
+                            matchedBreakSequence = true;
                             break;
+                        }
                     }
                 }
             }

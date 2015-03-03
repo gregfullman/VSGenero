@@ -15,8 +15,9 @@ namespace VSGenero.Analysis.AST
     /// 
     /// For more info, see: http://www.4js.com/online_documentation/fjs-fgl-manual-html/index.html#c_fgl_records_002.html
     /// </summary>
-    public class RecordDefinitionNode : VariableDefinitionNode
+    public class RecordDefinitionNode : AstNode
     {
+        public AttributeSpecifier Attribute { get; private set; }
         public string MimicTableName { get; private set; }
         public string MimicDatabaseName { get; private set; }
 
@@ -31,42 +32,16 @@ namespace VSGenero.Analysis.AST
             }
         }
 
-        public new static bool TryParseNode(Parser parser, out RecordDefinitionNode defNode, bool requireIdentifiers = true)
+        public new static bool TryParseNode(Parser parser, out RecordDefinitionNode defNode)
         {
             defNode = null;
             bool result = false;
-            uint peekaheadCount = 1;
-            List<string> identifiers = new List<string>();
 
-            var tok = parser.PeekToken(peekaheadCount);
-            var cat = Tokenizer.GetTokenInfo(tok).Category;
-            while (cat == TokenCategory.Identifier || cat == TokenCategory.Keyword)
-            {
-                identifiers.Add(tok.Value.ToString());
-                peekaheadCount++;
-                if(!parser.PeekToken(TokenKind.Comma, peekaheadCount))
-                    break;
-                peekaheadCount++;
-                tok = parser.PeekToken(peekaheadCount);
-                cat = Tokenizer.GetTokenInfo(tok).Category;
-            }
-
-            if(requireIdentifiers && identifiers.Count == 0)
-            {
-                return result;
-            }
-
-            if(parser.PeekToken(TokenKind.RecordKeyword, peekaheadCount))
+            if(parser.PeekToken(TokenKind.RecordKeyword))
             {
                 result = true;
                 defNode = new RecordDefinitionNode();
-                defNode.Identifiers = new HashSet<string>(identifiers);
                 defNode.StartIndex = parser.Token.Span.Start;
-                while(peekaheadCount > 1)
-                {
-                    parser.NextToken();
-                    peekaheadCount--;
-                }
                 parser.NextToken();     // move past the record keyword
                 if (parser.PeekToken(TokenKind.LikeKeyword))
                 {
@@ -96,11 +71,15 @@ namespace VSGenero.Analysis.AST
                 }
                 else
                 {
-                    tok = parser.PeekToken();
-                    cat = Tokenizer.GetTokenInfo(tok).Category;
-                    while (cat == TokenCategory.Identifier || cat == TokenCategory.Keyword)
+                    AttributeSpecifier attribSpec;
+                    if(AttributeSpecifier.TryParseNode(parser, out attribSpec))
                     {
-                        parser.NextToken();
+                        defNode.Attribute = attribSpec;
+                    }
+
+                    while (parser.PeekToken(TokenCategory.Identifier) || parser.PeekToken(TokenCategory.Keyword))
+                    {
+                        var tok = parser.NextToken();
 
                         TypeReference tr;
                         if (TypeReference.TryParseNode(parser, out tr, true))
@@ -110,8 +89,7 @@ namespace VSGenero.Analysis.AST
 
                         if (parser.MaybeEat(TokenKind.Comma))
                         {
-                            tok = parser.PeekToken();
-                            cat = Tokenizer.GetTokenInfo(tok).Category;
+                            continue;
                         }
                         else if (parser.MaybeEat(TokenKind.EndKeyword))
                         {

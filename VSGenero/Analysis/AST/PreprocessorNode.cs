@@ -26,6 +26,9 @@ namespace VSGenero.Analysis.AST
 
             if(parser.PeekToken(TokenKind.Ampersand))
             {
+                var options = parser.Tokenizer.CurrentOptions;
+                var newOptions = options | TokenizerOptions.VerbatimCommentsAndLineJoins;
+                parser.Tokenizer.AdjustOptions(newOptions);
                 parser.NextToken();
                 result = true;
                 node = new PreprocessorNode();
@@ -36,7 +39,8 @@ namespace VSGenero.Analysis.AST
                 {
                     node.PreprocessorTokens.Add(parser.NextToken());
                 }
-                if (parser.PeekToken(TokenKind.NewLine))
+                parser.Tokenizer.AdjustOptions(options);
+                while(parser.PeekToken(TokenKind.NewLine))
                     parser.NextToken();
             }
 

@@ -46,27 +46,51 @@ namespace VSGenero.Analysis.AST
                 }
                 else
                 {
-                    List<TokenKind> breakSequence = new List<TokenKind>() { TokenKind.EndKeyword, TokenKind.GlobalsKeyword };
+                    List<List<TokenKind>> breakSequences = new List<List<TokenKind>>() 
+                    { 
+                        new List<TokenKind> { TokenKind.EndKeyword, TokenKind.GlobalsKeyword },
+                        new List<TokenKind> { TokenKind.ConstantKeyword },
+                        new List<TokenKind> { TokenKind.DefineKeyword },
+                        new List<TokenKind> { TokenKind.TypeKeyword }
+                    };
                     // try to parse one or more declaration statements
-                    while(!parser.PeekToken(TokenKind.EndKeyword) &&
-                          !parser.PeekToken(TokenKind.EndOfFile))
+                    while(!parser.PeekToken(TokenKind.EndOfFile) &&
+                          !(parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.GlobalsKeyword, 2)))
                     {
                         DefineNode defineNode;
                         TypeDefNode typeNode;
                         ConstantDefNode constNode;
-                        if (DefineNode.TryParseDefine(parser, out defineNode, breakSequence))
+                        bool matchedBreakSequence = false;
+                        switch(parser.PeekToken().Kind)
                         {
-                            defNode.Children.Add(defineNode.StartIndex, defineNode);
+                            case TokenKind.TypeKeyword:
+                                {
+                                    var bsList = new List<List<TokenKind>>(breakSequences);
+                                    if (TypeDefNode.TryParseNode(parser, out typeNode, out matchedBreakSequence, breakSequences))
+                                    {
+                                        defNode.Children.Add(typeNode.StartIndex, typeNode);
+                                    }
+                                    break;
+                                }
+                            case TokenKind.ConstantKeyword:
+                                {
+                                    if (ConstantDefNode.TryParseNode(parser, out constNode, out matchedBreakSequence, breakSequences))
+                                    {
+                                        defNode.Children.Add(constNode.StartIndex, constNode);
+                                    }
+                                    break;
+                                }
+                            case TokenKind.DefineKeyword:
+                                {
+                                    if (DefineNode.TryParseDefine(parser, out defineNode, out matchedBreakSequence, breakSequences))
+                                    {
+                                        defNode.Children.Add(defineNode.StartIndex, defineNode);
+                                    }
+                                    break;
+                                }
                         }
-                        else if(TypeDefNode.TryParseNode(parser, out typeNode))
-                        {
-                            defNode.Children.Add(defineNode.StartIndex, typeNode);
-                        }
-                        else if(ConstantDefNode.TryParseNode(parser, out constNode))
-                        {
-                            defNode.Children.Add(defineNode.StartIndex, constNode);
-                        }
-                        else
+                        // if a break sequence was matched, we don't want to advance the token
+                        if(!matchedBreakSequence)
                         {
                             // TODO: not sure whether to break or keep going...for right now, let's keep going until we hit the end keyword
                             parser.NextToken();
