@@ -74,6 +74,18 @@ namespace VSGeneroUnitTesting
                 int i = 0;
             }
         }
+
+        [TestMethod]
+        public void RealLife2()
+        {
+            string path = @"..\..\ParserTests\RealLife2.4gl";
+            using (TextReader tr = new StreamReader(path))
+            {
+                VSGenero.Analysis.Parser p = VSGenero.Analysis.Parser.CreateParser(tr, po);
+                var node = p.ParseFile();
+                int i = 0;
+            }
+        }
     }
 
     public class TestErrorSink : ErrorSink

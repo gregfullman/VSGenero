@@ -11,7 +11,7 @@ using VSGenero.Analysis;
 
 namespace VSGenero.EditorExtensions
 {
-    internal class Genero4glClassifier : IClassifier
+    public class Genero4glClassifier : IClassifier
     {
         private readonly TokenCache _tokenCache;
         private readonly Genero4glClassifierProvider _provider;

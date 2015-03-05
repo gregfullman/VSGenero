@@ -13,7 +13,7 @@ using VSGenero.Analysis;
 namespace VSGenero.EditorExtensions
 {
     [Export(typeof(IClassifierProvider)), ContentType(VSGeneroConstants.ContentType4GL)]
-    internal class Genero4glClassifierProvider : IClassifierProvider
+    public class Genero4glClassifierProvider : IClassifierProvider
     {
         private Dictionary<TokenCategory, IClassificationType> _categoryMap;
         private IClassificationType _comment;

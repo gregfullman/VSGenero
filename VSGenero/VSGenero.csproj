@@ -364,10 +364,12 @@
     <Compile Include="Analysis\AST\TypeConstraints.cs" />
     <Compile Include="EditorExtensions\DefinitionClasses.cs" />
     <Compile Include="EditorExtensions\EditorExtensions.cs" />
+    <Compile Include="EditorExtensions\Extensions.cs" />
     <Compile Include="EditorExtensions\Genero4GLBraceMatchingTagger.cs" />
     <Compile Include="EditorExtensions\Genero4glClassifier.cs" />
     <Compile Include="EditorExtensions\Genero4glClassifierProvider.cs" />
     <Compile Include="EditorExtensions\Genero4GLOutliner.cs" />
+    <Compile Include="EditorExtensions\Genero4glReverseParser.cs" />
     <Compile Include="EditorExtensions\GeneroLexer.cs" />
     <Compile Include="EditorExtensions\GeneroLineEndingsListener.cs" />
     <Compile Include="EditorExtensions\GeneroParser.cs" />
