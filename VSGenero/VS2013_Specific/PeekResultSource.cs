@@ -54,6 +54,7 @@ namespace VSGenero.VS2013_Specific
         private IPeekResult CreatePeekResult(IPeekResultCollection resultCollection, GoToDefinitionLocation location)
         {
             string path = location.Filename;
+            FileInfo fi = new FileInfo(path);
             PeekResultDisplayInfo displayInfo = new PeekResultDisplayInfo("Test", path, BuildTitle(location), path);
             // TODO: the location stuff doesn't work 100% correctly. This needs to be fixed
             int line = location.LineNumber - 1;   // start line
@@ -65,7 +66,7 @@ namespace VSGenero.VS2013_Specific
             int endIndex = 0;   // end index
             int positionLine = 0;   // id line
             int positionChar = 0;   // id index
-            bool isReadOnly = true;
+            bool isReadOnly = fi.IsReadOnly;
 
             // TODO: determine the stuff above.
 
