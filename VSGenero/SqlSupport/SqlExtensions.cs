@@ -100,7 +100,7 @@ namespace VSGenero.SqlSupport
                                                                 var isConnProp = queryExecutorVal.GetType().GetProperty("IsConnected", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
                                                                 if(isConnProp != null)
                                                                 {
-                                                                    isConnProp.SetValue(queryExecutorVal, true);
+                                                                    isConnProp.SetValue(queryExecutorVal, true, null);
                                                                 }
                                                             }
                                                         }
