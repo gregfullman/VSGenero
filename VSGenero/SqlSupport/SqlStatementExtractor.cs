@@ -12,7 +12,7 @@ namespace VSGenero.SqlSupport
 {
     public static class SqlStatementExtractor
     {
-        private const string _regexStr = "(\"\\s*)?(select|delete|insert|(?<!for\\s+)update)\\s+";
+        private const string _regexStr = "(\"\\s*)?((?<!\\()select|delete|insert|(?<!for\\s+)update)\\s+";
         private static TSql100Parser _parser = new TSql100Parser(false);
         private static Sql100ScriptGenerator _scriptGenerator = new Sql100ScriptGenerator();
         private static IList<ParseError> _parseErrors;
@@ -60,95 +60,43 @@ namespace VSGenero.SqlSupport
                 }
 
                 string substr = text.Substring(startIndex, (endIndex - startIndex) + 1);
-                var stringJoinMatches = Regex.Matches(substr, "\"\\s*,");
-                if (stringJoinMatches.Count > 0)
+                StringBuilder sb = new StringBuilder();
+                for(int j = 0; j < substr.Length; j++)
                 {
-                    StringBuilder sb = new StringBuilder();
-                    int currInd = 0;
-                    for (int j = 0; j < stringJoinMatches.Count; j++)
+                    if (substr.Length > j && substr[j] == '\"' && startsWithQuote)
                     {
-                        int matchEndIndex = stringJoinMatches[j].Index + stringJoinMatches[j].Length;
-                        sb.Append(substr.Substring(currInd, matchEndIndex - currInd));
-                        matchEndIndex++;
-                        if (substr.Length > matchEndIndex)
+                        // look for comma
+                        j++;
+                        while (substr.Length > j && char.IsWhiteSpace(substr[j]))
+                            j++;
+                        if (substr.Length > j && substr[j] == ',')
+                            j++;
+                        while (substr.Length > j && char.IsWhiteSpace(substr[j]))
+                            j++;
+                        if (substr.Length > j && substr[j] != '\"')
                         {
-                            // advance currInd to the next good bit of info
-                            while (substr.Length > matchEndIndex)
-                            {
-                                if (!char.IsWhiteSpace(substr[matchEndIndex]))
-                                    break;
-                                matchEndIndex++;
-                            }
-                            if (substr.Length > matchEndIndex)
-                            {
-                                if(substr[matchEndIndex] == '\"')
-                                {
-                                    // advance past the quote so it will join cleanly
-                                    currInd = matchEndIndex + 1;
-                                    // remove the comma and quote
-                                    sb.Remove(sb.Length - 2, 2);
-                                }
-                                else 
-                                {
-                                    // we're attempting to join two strings where the one on the right is not a string literal.
-                                    // Can't do much more.
-
-                                    // remove the comma
-                                    sb.Remove(sb.Length - 1, 1);
-                                    sb.Append("\n");
-                                    currInd = matchEndIndex;
-                                    break;
-                                }
-                            }
-                            else
-                            {
-                                currInd = matchEndIndex;
-                            }
+                            sb.Append("\n");
+                            j--;
                         }
-                        else
-                        {
-                            if (startsWithQuote)
-                            {
-                                // only remove the comma
-                                sb.Remove(sb.Length - 1, 1);
-                            }
-                            else
-                            {
-                                // remove the command and quote
-                                sb.Remove(sb.Length - 2, 2);
-                            }
-                        }
+                        sb.Append(" ");
                     }
-                    sb.Append(substr.Substring(currInd));
-                    substr = sb.ToString().TrimEnd().Replace("\r\n", "\n");
-                }
-
-
-                if (startsWithQuote)
-                {
-                    int prevNewline = substr.Length - 1;
-                    // we need to finish with a quote
-                    while (!substr.EndsWith("\""))
+                    else if(substr.Length > (j + 4) &&
+                            substr.Substring(j, 4).Equals("into", StringComparison.OrdinalIgnoreCase))
                     {
-                        prevNewline = substr.LastIndexOf('\n', substr.Length - 1);
-                        if (prevNewline >= 0)
-                        {
-                            substr = substr.Substring(0, prevNewline);
-                        }
-                        else
-                        {
-                            break;
-                        }
-                    }
-                    if (prevNewline < 0)
-                    {
-                        continue;
+                        j = j + 4;
+                        while (substr.Length > (j + 4) &&
+                               !substr.Substring(j, 4).Equals("from", StringComparison.OrdinalIgnoreCase))
+                            j++;
+                        j--;
                     }
                     else
                     {
-                        substr = substr.TrimEnd(new[] { '\"' });
+                        sb.Append(substr[j]);
                     }
                 }
+
+                substr = sb.ToString();
+
                 _parseErrors = null;
                 var fragment = _parser.Parse(new StringReader(substr), out _parseErrors);
                 bool notAStatement = false;
@@ -160,30 +108,6 @@ namespace VSGenero.SqlSupport
                     if (prevNewline >= 0)
                     {
                         substr = substr.Substring(0, prevNewline);
-                        if (startsWithQuote)
-                        {
-                            // we need to finish with a quote
-                            while (!substr.EndsWith("\""))
-                            {
-                                prevNewline = substr.LastIndexOf('\n', substr.Length - 1);
-                                if (prevNewline >= 0)
-                                {
-                                    substr = substr.Substring(0, prevNewline);
-                                }
-                                else
-                                {
-                                    break;
-                                }
-                            }
-                            if (prevNewline < 0)
-                            {
-                                continue;
-                            }
-                            else
-                            {
-                                substr = substr.TrimEnd(new[] { '\"' });
-                            }
-                        }
                         fragment = _parser.Parse(new StringReader(substr), out _parseErrors);
                     }
                     else
