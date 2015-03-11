@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using VSGenero.Analysis;
+using VSGenero.Analysis.Parsing;
 
 namespace VSGenero.EditorExtensions
 {
@@ -458,7 +459,7 @@ namespace VSGenero.EditorExtensions
     }
 
     internal static class ClassifierExtensions {
-        public static Genero4glClassifier GetPythonClassifier(this ITextBuffer buffer) {
+        public static Genero4glClassifier GetGeneroClassifier(this ITextBuffer buffer) {
             Genero4glClassifier res;
             if (buffer.Properties.TryGetProperty<Genero4glClassifier>(typeof(Genero4glClassifier), out res)) {
                 return res;

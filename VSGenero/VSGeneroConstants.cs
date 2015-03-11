@@ -21,6 +21,7 @@ using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Utilities;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio;
+using System.IO;
 
 namespace VSGenero
 {
@@ -31,6 +32,8 @@ namespace VSGenero
         internal const string LanguageNamePER = "GeneroPER";
         public const string FileExtension4GL = ".4gl";
         public const string FileExtensionPER = ".per";
+        public const string FileExtensionINC = ".inc";
+        public const string FileExtension4RP = ".4rp";
         internal const string ProjectFileFilter = "Genero Project File (*.glproj)\n*.glproj\nAll Files (*.*)\n*.*\n";
 
         public const string ProjectFactoryGuid = "888888a0-9f3d-457c-b088-3a5042f75d53";
@@ -77,6 +80,16 @@ namespace VSGenero
         internal static bool IsGeneroPERContent(ITextSnapshot buffer)
         {
             return buffer.ContentType.IsOfType(VSGeneroConstants.ContentTypePER);
+        }
+
+        internal static bool IsGeneroFile(string filename)
+        {
+            var ext = Path.GetExtension(filename);
+            return string.Equals(ext, FileExtension4GL, StringComparison.OrdinalIgnoreCase) ||
+                   string.Equals(ext, FileExtensionPER, StringComparison.OrdinalIgnoreCase) ||
+                   string.Equals(ext, FileExtensionINC, StringComparison.OrdinalIgnoreCase) ||
+                   string.Equals(ext, FileExtension4RP, StringComparison.OrdinalIgnoreCase);
+
         }
     }
 }

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using VSGenero.Analysis;
+using VSGenero.Analysis.Parsing;
 
 namespace VSGeneroUnitTesting
 {
@@ -31,7 +32,7 @@ namespace VSGeneroUnitTesting
 
             using (TextReader tr = new StringReader(codeSample))
             {
-                VSGenero.Analysis.Parser p = VSGenero.Analysis.Parser.CreateParser(tr, po);
+                Parser p = Parser.CreateParser(tr, po);
                 var node = p.ParseFile();
                 int i = 0;
             }
@@ -43,11 +44,11 @@ namespace VSGeneroUnitTesting
             string path = @"..\..\ParserTests\EmptyFile.4gl";
             using (TextReader tr = new StreamReader(path))
             {
-                VSGenero.Analysis.Parser p = VSGenero.Analysis.Parser.CreateParser(tr, po);
+                Parser p = Parser.CreateParser(tr, po);
                 var node = p.ParseFile();
                 Assert.IsNotNull(node);
                 Assert.IsTrue(_errorSink.Errors.Count == 0);
-                Assert.IsTrue(node.Children.Count == 0);
+                Assert.IsTrue(node.Body.Children.Count == 0);
             }
         }
 
@@ -57,7 +58,7 @@ namespace VSGeneroUnitTesting
             string path = @"..\..\ParserTests\TestFile1.4gl";
             using (TextReader tr = new StreamReader(path))
             {
-                VSGenero.Analysis.Parser p = VSGenero.Analysis.Parser.CreateParser(tr, po);
+                Parser p = Parser.CreateParser(tr, po);
                 var node = p.ParseFile();
                 int i = 0;
             }
@@ -69,7 +70,7 @@ namespace VSGeneroUnitTesting
             string path = @"..\..\ParserTests\RealLife1.4gl";
             using (TextReader tr = new StreamReader(path))
             {
-                VSGenero.Analysis.Parser p = VSGenero.Analysis.Parser.CreateParser(tr, po);
+                Parser p = Parser.CreateParser(tr, po);
                 var node = p.ParseFile();
                 int i = 0;
             }
@@ -81,7 +82,7 @@ namespace VSGeneroUnitTesting
             string path = @"..\..\ParserTests\RealLife2.4gl";
             using (TextReader tr = new StreamReader(path))
             {
-                VSGenero.Analysis.Parser p = VSGenero.Analysis.Parser.CreateParser(tr, po);
+                Parser p = Parser.CreateParser(tr, po);
                 var node = p.ParseFile();
                 int i = 0;
             }

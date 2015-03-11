@@ -18,6 +18,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using VSGenero.Analysis;
 using VSGenero.Navigation;
 
 namespace VSGenero.VS2013_Specific
@@ -25,9 +26,9 @@ namespace VSGenero.VS2013_Specific
     class PeekResultSource : IPeekResultSource
     {
         private readonly PeekableItemSourceProvider _factory;
-        private readonly GoToDefinitionLocation _location;
+        private readonly LocationInfo _location;
 
-        public PeekResultSource(GoToDefinitionLocation location, PeekableItemSourceProvider factory)
+        public PeekResultSource(LocationInfo location, PeekableItemSourceProvider factory)
         {
             _location = location;
             _factory = factory;
@@ -45,21 +46,21 @@ namespace VSGenero.VS2013_Specific
             }
         }
 
-        private string BuildTitle(GoToDefinitionLocation location)
+        private string BuildTitle(LocationInfo location)
         {
             // TODO: build the title
-            return Path.GetFileName(location.Filename);
+            return Path.GetFileName(location.FilePath);
         }
 
-        private IPeekResult CreatePeekResult(IPeekResultCollection resultCollection, GoToDefinitionLocation location)
+        private IPeekResult CreatePeekResult(IPeekResultCollection resultCollection, LocationInfo location)
         {
-            string path = location.Filename;
+            string path = location.FilePath;
             PeekResultDisplayInfo displayInfo = new PeekResultDisplayInfo("Test", path, BuildTitle(location), path);
             // TODO: the location stuff doesn't work 100% correctly. This needs to be fixed
-            int line = location.LineNumber - 1;   // start line
+            int line = location.Line - 1;   // start line
             if (line < 0)
                 line = 0;
-            int character = location.ColumnNumber - 1;  // start index
+            int character = location.Column - 1;  // start index
             //EditorExtensions.EditorExtensions.GetLineAndColumnOfFile(path, location.Position, out line, out character);
             int endLine = line + 10;    // end line
             int endIndex = 0;   // end index

@@ -15,13 +15,14 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.VisualStudio.Language.Intellisense;
+using VSGenero.Analysis;
 
 namespace VSGenero.EditorExtensions.Intellisense
 {
     /// <summary>
     /// Compares various types of completions.
     /// </summary>
-    public class CompletionComparer : IEqualityComparer<Completion>, IComparer<Completion>, IComparer<string>
+    public class CompletionComparer : IEqualityComparer<MemberResult>, IComparer<MemberResult>, IComparer<Completion>, IComparer<string>
     {
         /// <summary>
         /// A CompletionComparer that sorts names beginning with underscores to
@@ -32,7 +33,7 @@ namespace VSGenero.EditorExtensions.Intellisense
         /// A CompletionComparer that determines whether
         /// <see cref="MemberResult" /> structures are equal.
         /// </summary>
-        public static readonly IEqualityComparer<Completion> MemberEquality = UnderscoresLast;
+        public static readonly IEqualityComparer<MemberResult> MemberEquality = UnderscoresLast;
         /// <summary>
         /// A CompletionComparer that sorts names beginning with underscores to
         /// the start of the list.
@@ -99,6 +100,24 @@ namespace VSGenero.EditorExtensions.Intellisense
         public int GetHashCode(Completion obj)
         {
             return obj.DisplayText.GetHashCode();
+        }
+
+        public int Compare(MemberResult x, MemberResult y)
+        {
+            return Compare(x.Name, y.Name);
+        }
+
+        public int GetHashCode(MemberResult obj)
+        {
+            return obj.Name.GetHashCode(); 
+        }
+
+        /// <summary>
+        /// Compares two <see cref="MemberResult"/> structures for equality.
+        /// </summary>
+        public bool Equals(MemberResult x, MemberResult y)
+        {
+            return x.Name.Equals(y.Name);
         }
     }
 }

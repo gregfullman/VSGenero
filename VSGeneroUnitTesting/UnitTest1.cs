@@ -8,6 +8,7 @@ using System.Text.RegularExpressions;
 using System.Text;
 using VSGenero.SqlSupport;
 using VSGenero.Analysis;
+using VSGenero.Analysis.Parsing;
 
 namespace VSGeneroUnitTesting
 {

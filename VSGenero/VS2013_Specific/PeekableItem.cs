@@ -17,6 +17,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using VSGenero.Analysis;
 using VSGenero.Navigation;
 
 namespace VSGenero.VS2013_Specific
@@ -24,9 +25,9 @@ namespace VSGenero.VS2013_Specific
     class PeekableItem : IPeekableItem
     {
         private readonly PeekableItemSourceProvider _factory;
-        private readonly GoToDefinitionLocation _location;
+        private readonly LocationInfo _location;
 
-        public PeekableItem(GoToDefinitionLocation location, PeekableItemSourceProvider factory)
+        public PeekableItem(LocationInfo location, PeekableItemSourceProvider factory)
         {
             _location = location;
             _factory = factory;

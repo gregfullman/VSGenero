@@ -9,9 +9,17 @@ namespace VSGenero.Analysis
     public class LocationInfo : IEquatable<LocationInfo>, ILocationResolver {
         private readonly int _line, _column;
         private readonly IProjectEntry _entry;
+        private readonly string _filename;
         internal static LocationInfo[] Empty = new LocationInfo[0];
 
         private static readonly IEqualityComparer<LocationInfo> _fullComparer = new FullLocationComparer();
+
+        internal LocationInfo(string filename, int line, int column)
+        {
+            _filename = filename;
+            _line = line;
+            _column = column;
+        }
 
         internal LocationInfo(IProjectEntry entry, int line, int column) {
             _entry = entry;
@@ -26,7 +34,10 @@ namespace VSGenero.Analysis
         }
 
         public string FilePath {
-            get { return _entry.FilePath; }
+            get 
+            { 
+                return _entry == null ? _filename : _entry.FilePath; 
+            }
         }
 
         public int Line {
@@ -73,6 +84,7 @@ namespace VSGenero.Analysis
             public bool Equals(LocationInfo x, LocationInfo y) {
                 return x.Line == y.Line &&
                     x.Column == y.Column &&
+                    x._filename == y._filename &&
                     x.ProjectEntry == y.ProjectEntry;
             }
 

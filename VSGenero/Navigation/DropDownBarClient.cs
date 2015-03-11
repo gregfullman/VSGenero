@@ -30,11 +30,14 @@ using System.Drawing;
 using System.IO;
 using Microsoft.VisualStudio.VSCommon;
 using Microsoft.VisualStudio.VSCommon.Utilities;
+using VSGenero.Analysis;
+using VSGenero.Analysis.Parsing.AST;
 
 namespace VSGenero.Navigation
 {
     class DropDownBarClient : IVsDropdownBarClient
     {
+        private IGeneroProjectEntry _projectEntry;
         private ReadOnlyCollection<DropDownEntryInfo> _topLevelEntries; // entries for top-level members of the file
         private ReadOnlyCollection<DropDownEntryInfo> _nestedEntries;   // entries for nested members in the file
         private readonly Dispatcher _dispatcher;                        // current dispatcher so we can get back to our thread
@@ -48,19 +51,14 @@ namespace VSGenero.Navigation
 
         private const int TopLevelComboBoxId = 0;
         //private const int NestedComboBoxId = 1;
-
-        private GeneroModuleContents _moduleContents;
-
-        public DropDownBarClient(IWpfTextView textView)
+        public DropDownBarClient(IWpfTextView textView, IGeneroProjectEntry pythonProjectEntry)
         {
+            _projectEntry = pythonProjectEntry;
+            _projectEntry.OnNewParseTree += ParserOnNewParseTree;
             _textView = textView;
             _topLevelEntries = _nestedEntries = EmptyEntries;
             _dispatcher = Dispatcher.CurrentDispatcher;
             _textView.Caret.PositionChanged += CaretPositionChanged;
-
-            GeneroFileParserManager fpm = VSGeneroPackage.Instance.UpdateBufferFileParserManager(_textView.TextBuffer);
-            fpm.ParseComplete += this.UpdateFunctionList;
-            ForceFunctionListUpdate(fpm);
         }
 
         private void CaretPositionChanged(object sender, CaretPositionChangedEventArgs e)
@@ -245,32 +243,73 @@ namespace VSGenero.Navigation
             return VSConstants.S_OK;
         }
 
-        private bool CalculateTopLevelEntries()
+        /// <summary>
+        /// Wired to parser event for when the parser has completed parsing a new tree and we need
+        /// to update the navigation bar with the new data.
+        /// </summary>
+        private void ParserOnNewParseTree(object sender, EventArgs e)
         {
-            bool forceRefresh = false;
-            // intialize the top level entries with a transform from function defs to drop down entries
-            if (_moduleContents != null)
+            var dropDownBar = _dropDownBar;
+            if (dropDownBar != null)
             {
-                string bufferFilename = _textView.TextBuffer.GetFilePath();
-                var list = _moduleContents.FunctionDefinitions.Where(y => y.Value.ContainingFile == bufferFilename).Select(x => new DropDownEntryInfo(x.Value)).ToList();
-                list.Sort(DropDownEntryInfo.CompareEntryInfo);
-                forceRefresh = DifferencesExist(_topLevelEntries, list);
-                _topLevelEntries = new ReadOnlyCollection<DropDownEntryInfo>(list);
+                _curNestedIndex = -1;
+                _curTopLevelIndex = -1;
+                Action callback = () =>
+                {
+                    CalculateTopLevelEntries();
+                    CaretPositionChanged(this, new CaretPositionChangedEventArgs(null, _textView.Caret.Position, _textView.Caret.Position));
+                };
+                _dispatcher.BeginInvoke(callback, DispatcherPriority.Background);
             }
-            return forceRefresh;
         }
 
-        private bool DifferencesExist(IList<DropDownEntryInfo> oldList, IList<DropDownEntryInfo> newList)
+        private void CalculateTopLevelEntries()
         {
-            if (oldList.Count != newList.Count)
-                return true;
-
-            foreach(var item in oldList)
+            //bool forceRefresh = false;
+            //// intialize the top level entries with a transform from function defs to drop down entries
+            //if (_moduleContents != null)
+            //{
+            //    string bufferFilename = _textView.TextBuffer.GetFilePath();
+            //    var list = _moduleContents.FunctionDefinitions.Where(y => y.Value.ContainingFile == bufferFilename).Select(x => new DropDownEntryInfo(x.Value)).ToList();
+            //    list.Sort(DropDownEntryInfo.CompareEntryInfo);
+            //    forceRefresh = DifferencesExist(_topLevelEntries, list);
+            //    _topLevelEntries = new ReadOnlyCollection<DropDownEntryInfo>(list);
+            //}
+            //return forceRefresh;
+            GeneroAst ast = _projectEntry.Analysis;
+            if (ast != null)
             {
-                if (!newList.Any((x) => x.Name == item.Name))
-                    return true;
+                _topLevelEntries = CalculateEntries(ast.Body as ModuleNode);
             }
-            return false;
+        }
+
+        /// <summary>
+        /// Helper function for calculating all of the drop down entries that are available
+        /// in the given suite statement.  Called to calculate both the members of top-level
+        /// code and class bodies.
+        /// </summary>
+        private static ReadOnlyCollection<DropDownEntryInfo> CalculateEntries(ModuleNode moduleNode)
+        {
+            List<DropDownEntryInfo> newEntries = new List<DropDownEntryInfo>();
+
+            if (moduleNode != null)
+            {
+                foreach (var node in moduleNode.Children)
+                {
+                    if (node.Value is FunctionBlockNode || node.Value is MainBlockNode)
+                    {
+                        newEntries.Add(new DropDownEntryInfo(node.Value));
+                    }
+                }
+            }
+
+            newEntries.Sort(ComparisonFunction);
+            return new ReadOnlyCollection<DropDownEntryInfo>(newEntries);
+        }
+
+        private static int ComparisonFunction(DropDownEntryInfo x, DropDownEntryInfo y)
+        {
+            return CompletionComparer.UnderscoresLast.Compare(x.Name, y.Name);
         }
 
         //private void CalculateNestedEntries()
@@ -363,16 +402,12 @@ namespace VSGenero.Navigation
                     var topLevel = _topLevelEntries;
                     if (iIndex < topLevel.Count)
                     {
-                        ppszText = topLevel[iIndex].Name;
+                        if (VSGeneroPackage.Instance.AdvancedOptions4GLPage.ShowFunctionParametersInList)
+                            ppszText = topLevel[iIndex].DescriptiveName;
+                        else
+                            ppszText = topLevel[iIndex].Name;
                     }
                     break;
-                //case NestedComboBoxId:
-                //    var nested = _nestedEntries;
-                //    if (iIndex < nested.Count)
-                //    {
-                //        ppszText = nested[iIndex].Name;
-                //    }
-                //    break;
             }
 
             return VSConstants.S_OK;
@@ -452,11 +487,7 @@ namespace VSGenero.Navigation
 
         internal void Unregister()
         {
-            GeneroFileParserManager fpm;
-            if (_textView.TextBuffer.Properties.TryGetProperty(typeof(GeneroFileParserManager), out fpm))
-            {
-                fpm.ParseComplete -= UpdateFunctionList;
-            }
+            _projectEntry.OnNewParseTree -= ParserOnNewParseTree;
             _textView.Caret.PositionChanged -= CaretPositionChanged;
         }
 
@@ -469,42 +500,35 @@ namespace VSGenero.Navigation
                 _textView.Caret.PositionChanged += CaretPositionChanged;
                 CaretPositionChanged(this, new CaretPositionChangedEventArgs(null, _textView.Caret.Position, _textView.Caret.Position));
             }
-            else
-            {
-                // at least update the function list
-                if (CalculateTopLevelEntries())
-                    ForceTopLevelRefresh();
-                CaretPositionChanged(this, new CaretPositionChangedEventArgs(null, _textView.Caret.Position, _textView.Caret.Position));
-            }
         }
 
-        private void UpdateFunctionList(object sender, ParseCompleteEventArgs e)
-        {
-            if (!_synchObj.InvokeRequired)
-            {
-                ForceFunctionListUpdate(sender as GeneroFileParserManager);
-            }
-            else
-            {
-                _synchObj.Invoke(new Action<GeneroFileParserManager>(ForceFunctionListUpdate), new object[] { sender as GeneroFileParserManager });
-            }
-        }
+        //private void UpdateFunctionList(object sender, ParseCompleteEventArgs e)
+        //{
+        //    if (!_synchObj.InvokeRequired)
+        //    {
+        //        ForceFunctionListUpdate(sender as GeneroFileParserManager);
+        //    }
+        //    else
+        //    {
+        //        _synchObj.Invoke(new Action<GeneroFileParserManager>(ForceFunctionListUpdate), new object[] { sender as GeneroFileParserManager });
+        //    }
+        //}
 
-        private void ForceFunctionListUpdate(GeneroFileParserManager fpm)
-        {
-            if (fpm != null)
-            {
-                _moduleContents = fpm.ModuleContents;
-            }
-            if (CalculateTopLevelEntries())
-                ForceTopLevelRefresh();
-            CaretPositionChanged(this, new CaretPositionChangedEventArgs(null, _textView.Caret.Position, _textView.Caret.Position));
-        }
+        //private void ForceFunctionListUpdate(GeneroFileParserManager fpm)
+        //{
+        //    if (fpm != null)
+        //    {
+        //        _moduleContents = fpm.ModuleContents;
+        //    }
+        //    if (CalculateTopLevelEntries())
+        //        ForceTopLevelRefresh();
+        //    CaretPositionChanged(this, new CaretPositionChangedEventArgs(null, _textView.Caret.Position, _textView.Caret.Position));
+        //}
 
-        public void ForceRefresh()
-        {
-            ForceFunctionListUpdate(null);
-        }
+        //public void ForceRefresh()
+        //{
+        //    ForceFunctionListUpdate(null);
+        //}
 
         /// <summary>
         /// An enum which is synchronized with our image list for the various
@@ -585,28 +609,69 @@ namespace VSGenero.Navigation
             return list;
         }
 
+        internal void UpdateProjectEntry(IProjectEntry newEntry)
+        {
+            if (newEntry is IGeneroProjectEntry)
+            {
+                _projectEntry.OnNewParseTree -= ParserOnNewParseTree;
+                _projectEntry = (IGeneroProjectEntry)newEntry;
+                _projectEntry.OnNewParseTree += ParserOnNewParseTree;
+            }
+        }
+
+        public void ForceRefresh()
+        {
+            ForceTopLevelRefresh();
+        }
+
         struct DropDownEntryInfo
         {
-            private FunctionDefinition _def;
+            private FunctionBlockNode _funcDef;
+            private MainBlockNode _mainDef;
 
             public static int CompareEntryInfo(DropDownEntryInfo x, DropDownEntryInfo y)
             {
                 return string.Compare(x.Name, y.Name);
             }
 
-            public DropDownEntryInfo(FunctionDefinition def)
+            public DropDownEntryInfo(AstNode def)
             {
-                _def = def;
-                // TODO: need to make getting the parameters optional
-                _name = def.GetIntellisenseText(false, VSGeneroPackage.Instance.AdvancedOptions4GLPage.ShowFunctionParametersInList, false);
-                _start = def.Position;
-                _end = def.End;
+                _start = def.StartIndex;
+                _end = def.EndIndex;
+                if(def is FunctionBlockNode)
+                {
+                    _mainDef = null;
+                    _funcDef = def as FunctionBlockNode;
+                    _name = _funcDef.Name;
+                    _descName = _funcDef.DescriptiveName;
+                }
+                else if(def is MainBlockNode)
+                {
+                    _funcDef = null;
+                    _mainDef = def as MainBlockNode;
+                    _name = "main";
+                    _descName = "main";
+                }
+                else
+                {
+                    _mainDef = null;
+                    _funcDef = null;
+                    _name = null;
+                    _descName = null;
+                    throw new ArgumentException("Invalid AstNode for DropDownEntry");
+                }
             }
 
             private string _name;
             public string Name
             {
                 get { return _name; }
+            }
+
+            private string _descName;
+            public string DescriptiveName
+            {
+                get { return _descName; }
             }
 
             private int _start;
@@ -636,18 +701,25 @@ namespace VSGenero.Navigation
                         overlay = ImageListOverlay.ImageListOverlayPrivate;
                     }
 
-                    if(_def.Private)
+                    if (_funcDef != null)
                     {
-                        overlay = ImageListOverlay.ImageListOverlayPrivate;
-                    }
+                        if (_funcDef.AccessModifier == AccessModifier.Private)
+                        {
+                            overlay = ImageListOverlay.ImageListOverlayPrivate;
+                        }
 
-                    return GetImageListIndex(GetImageListKind(_def), overlay);
+                        return GetImageListIndex(GetImageListKind(_funcDef), overlay);
+                    }
+                    else
+                    {
+                        return GetImageListIndex(GetImageListKind(_mainDef), overlay);
+                    }
                 }
             }
 
-            private static ImageListKind GetImageListKind(FunctionDefinition def)
+            private static ImageListKind GetImageListKind(AstNode def)
             {
-                if (def.Report)
+                if (def is ReportBlockNode)
                     return ImageListKind.Report;
                 else
                     return ImageListKind.Method;

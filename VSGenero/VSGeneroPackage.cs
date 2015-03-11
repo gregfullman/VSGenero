@@ -55,6 +55,8 @@ using VSGenero.VS2013_Specific;
 #endif
 using VSGenero.SqlSupport;
 using System.Reflection;
+using VSGenero.EditorExtensions.Intellisense;
+using Microsoft.VisualStudio.Text.Adornments;
 
 namespace VSGenero
 {
@@ -124,6 +126,7 @@ namespace VSGenero
         }
 
         public new static VSGeneroPackage Instance;
+        private GeneroProjectAnalyzer _analyzer;
 
         public Genero4GLIntellisenseOptionsPage IntellisenseOptions4GLPage
         {
@@ -173,18 +176,18 @@ namespace VSGenero
             return null;
         }
 
-        private IProgram4GLFileProvider _currentProgram4GLFileProvider;
-        internal IProgram4GLFileProvider CurrentProgram4GLFileProvider
-        {
-            get { return _currentProgram4GLFileProvider; }
-            set { _currentProgram4GLFileProvider = value; }
-        }
+        //private IProgram4GLFileProvider _currentProgram4GLFileProvider;
+        //internal IProgram4GLFileProvider CurrentProgram4GLFileProvider
+        //{
+        //    get { return _currentProgram4GLFileProvider; }
+        //    set { _currentProgram4GLFileProvider = value; }
+        //}
 
-        private GeneroProgramContentsManager _programContentsManager;
-        internal GeneroProgramContentsManager ProgramContentsManager
-        {
-            get { return _programContentsManager; }
-        }
+        //private GeneroProgramContentsManager _programContentsManager;
+        //internal GeneroProgramContentsManager ProgramContentsManager
+        //{
+        //    get { return _programContentsManager; }
+        //}
 
         /////////////////////////////////////////////////////////////////////////////
         // Overriden Package Implementation
@@ -224,7 +227,7 @@ namespace VSGenero
                 this.RegisterEditorFactory(GeneroEditorFactory);
             }
             
-            _programContentsManager = new GeneroProgramContentsManager();
+            //_programContentsManager = new GeneroProgramContentsManager();
 
             RegisterCommands(new CommonCommand[]
                 {
@@ -234,66 +237,66 @@ namespace VSGenero
 
         #endregion
 
-        private Dictionary<string, GeneroFileParserManager> _bufferFileParserManagers;
-        public Dictionary<string, GeneroFileParserManager> BufferFileParserManagers
-        {
-            get
-            {
-                if (_bufferFileParserManagers == null)
-                    _bufferFileParserManagers = new Dictionary<string, GeneroFileParserManager>();
-                return _bufferFileParserManagers;
-            }
-        }
+        //private Dictionary<string, GeneroFileParserManager> _bufferFileParserManagers;
+        //public Dictionary<string, GeneroFileParserManager> BufferFileParserManagers
+        //{
+        //    get
+        //    {
+        //        if (_bufferFileParserManagers == null)
+        //            _bufferFileParserManagers = new Dictionary<string, GeneroFileParserManager>();
+        //        return _bufferFileParserManagers;
+        //    }
+        //}
 
-        private object bufferFileParserManagerLock = new object();
+        //private object bufferFileParserManagerLock = new object();
 
-        public GeneroFileParserManager UpdateBufferFileParserManager(ITextBuffer buffer, string primarySibling = null)
-        {
-            GeneroFileParserManager fpm;
-            lock (bufferFileParserManagerLock)
-            {
-                if (!buffer.Properties.TryGetProperty(typeof(GeneroFileParserManager), out fpm))
-                {
-                    string filename = buffer.GetFilePath();
-                    // see if a file parser manager has been created for this file
-                    if (VSGeneroPackage.Instance.BufferFileParserManagers.TryGetValue(filename.ToLower(), out fpm))
-                    {
-                        // use this file parser manager instead of a new one
-                        fpm.UseNewBuffer(buffer);
-                    }
-                    else
-                    {
-                        fpm = new GeneroFileParserManager(buffer, primarySibling);
-                        VSGeneroPackage.Instance.BufferFileParserManagers.Add(filename.ToLower(), fpm);
-                    }
-                    if (!buffer.Properties.ContainsProperty(typeof(GeneroFileParserManager)))
-                    {
-                        buffer.Properties.AddProperty(typeof(GeneroFileParserManager), fpm);
-                    }
-                }
-            }
-            return fpm;
-        }
+        //public GeneroFileParserManager UpdateBufferFileParserManager(ITextBuffer buffer, string primarySibling = null)
+        //{
+        //    GeneroFileParserManager fpm;
+        //    lock (bufferFileParserManagerLock)
+        //    {
+        //        if (!buffer.Properties.TryGetProperty(typeof(GeneroFileParserManager), out fpm))
+        //        {
+        //            string filename = buffer.GetFilePath();
+        //            // see if a file parser manager has been created for this file
+        //            if (VSGeneroPackage.Instance.BufferFileParserManagers.TryGetValue(filename.ToLower(), out fpm))
+        //            {
+        //                // use this file parser manager instead of a new one
+        //                fpm.UseNewBuffer(buffer);
+        //            }
+        //            else
+        //            {
+        //                fpm = new GeneroFileParserManager(buffer, primarySibling);
+        //                VSGeneroPackage.Instance.BufferFileParserManagers.Add(filename.ToLower(), fpm);
+        //            }
+        //            if (!buffer.Properties.ContainsProperty(typeof(GeneroFileParserManager)))
+        //            {
+        //                buffer.Properties.AddProperty(typeof(GeneroFileParserManager), fpm);
+        //            }
+        //        }
+        //    }
+        //    return fpm;
+        //}
 
-        public GeneroFileParserManager RemoveBufferFileParserManager(ITextBuffer buffer)
-        {
-            GeneroFileParserManager fpm;
-            if (buffer.Properties.TryGetProperty(typeof(GeneroFileParserManager), out fpm))
-            {
-                if(fpm.PrimarySibling != null)
-                {
-                    if (VSGeneroPackage.Instance.BufferFileParserManagers.ContainsKey(fpm.PrimarySibling.ToLower()))
-                        return fpm;
-                }
+        //public GeneroFileParserManager RemoveBufferFileParserManager(ITextBuffer buffer)
+        //{
+        //    GeneroFileParserManager fpm;
+        //    if (buffer.Properties.TryGetProperty(typeof(GeneroFileParserManager), out fpm))
+        //    {
+        //        if(fpm.PrimarySibling != null)
+        //        {
+        //            if (VSGeneroPackage.Instance.BufferFileParserManagers.ContainsKey(fpm.PrimarySibling.ToLower()))
+        //                return fpm;
+        //        }
 
-                fpm.CancelParsing();
-                string filename = buffer.GetFilePath();
-                if (VSGeneroPackage.Instance.BufferFileParserManagers.ContainsKey(filename.ToLower()))
-                    VSGeneroPackage.Instance.BufferFileParserManagers.Remove(filename.ToLower());
-                buffer.Properties.RemoveProperty(typeof(GeneroFileParserManager));
-            }
-            return fpm;
-        }
+        //        fpm.CancelParsing();
+        //        string filename = buffer.GetFilePath();
+        //        if (VSGeneroPackage.Instance.BufferFileParserManagers.ContainsKey(filename.ToLower()))
+        //            VSGeneroPackage.Instance.BufferFileParserManagers.Remove(filename.ToLower());
+        //        buffer.Properties.RemoveProperty(typeof(GeneroFileParserManager));
+        //    }
+        //    return fpm;
+        //}
 
         public override Type GetLibraryManagerType()
         {
@@ -324,6 +327,48 @@ namespace VSGenero
             {
                 EnvDTE.DTE dte = (EnvDTE.DTE)GetService(typeof(EnvDTE.DTE));
                 return dte.ActiveDocument;
+            }
+        }
+
+        /// <summary>
+        /// The analyzer which is used for loose files.
+        /// </summary>
+        internal GeneroProjectAnalyzer DefaultAnalyzer
+        {
+            get
+            {
+                if (_analyzer == null)
+                {
+                    _analyzer = CreateAnalyzer();
+                }
+                return _analyzer;
+            }
+        }
+
+        internal void RecreateAnalyzer()
+        {
+            if (_analyzer != null)
+            {
+                _analyzer.Dispose();
+            }
+            _analyzer = CreateAnalyzer();
+        }
+
+        private GeneroProjectAnalyzer CreateAnalyzer()
+        {
+            return new GeneroProjectAnalyzer(ComponentModel.GetService<IErrorProviderFactory>());
+        }
+
+        private IContentType _contentType;
+        public IContentType ContentType
+        {
+            get
+            {
+                if (_contentType == null)
+                {
+                    _contentType = ComponentModel.GetService<IContentTypeRegistryService>().GetContentType(VSGeneroConstants.ContentType4GL);
+                }
+                return _contentType;
             }
         }
     }

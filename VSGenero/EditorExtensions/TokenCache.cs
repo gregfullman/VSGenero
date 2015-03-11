@@ -6,7 +6,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using VSGenero.Analysis;
+using VSGenero.Analysis.Parsing;
 
 namespace VSGenero.EditorExtensions
 {

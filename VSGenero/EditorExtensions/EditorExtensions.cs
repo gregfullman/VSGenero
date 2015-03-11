@@ -254,29 +254,29 @@ namespace VSGenero.EditorExtensions
             }
         }
 
-        public static GeneroReverseParser GetReverseParser(IWpfTextView textView, int startPosition = -1, bool multiLine = false)
-        {
-            SnapshotPoint currentPoint = (textView.Caret.Position.BufferPosition) - 1;
-            return GetReverseParser(currentPoint, startPosition, multiLine);
-        }
+        //public static GeneroReverseParser GetReverseParser(IWpfTextView textView, int startPosition = -1, bool multiLine = false)
+        //{
+        //    SnapshotPoint currentPoint = (textView.Caret.Position.BufferPosition) - 1;
+        //    return GetReverseParser(currentPoint, startPosition, multiLine);
+        //}
 
-        public static GeneroReverseParser GetReverseParser(SnapshotPoint triggerPoint, int startPosition = -1, bool multiLine = false)
-        {
-            ITextSnapshotLine currentLine = triggerPoint.GetContainingLine();
-            int lineNumber = currentLine.LineNumber - 1;
+        //public static GeneroReverseParser GetReverseParser(SnapshotPoint triggerPoint, int startPosition = -1, bool multiLine = false)
+        //{
+        //    ITextSnapshotLine currentLine = triggerPoint.GetContainingLine();
+        //    int lineNumber = currentLine.LineNumber - 1;
 
-            int tempStartPos = startPosition;
-            if (tempStartPos < 0)
-                tempStartPos = currentLine.End.Position;
-            //if (tempStartPos < currentLine.Start.Position &&
-            //    lineNumber > 0)
-            //{
-            //    currentLine.Snapshot.
-            //}
+        //    int tempStartPos = startPosition;
+        //    if (tempStartPos < 0)
+        //        tempStartPos = currentLine.End.Position;
+        //    //if (tempStartPos < currentLine.Start.Position &&
+        //    //    lineNumber > 0)
+        //    //{
+        //    //    currentLine.Snapshot.
+        //    //}
 
-            ITrackingSpan span = currentLine.Snapshot.CreateTrackingSpan(currentLine.Start.Position, tempStartPos - currentLine.Start.Position, SpanTrackingMode.EdgeInclusive);
-            return new GeneroReverseParser(currentLine.Snapshot, triggerPoint.Snapshot.TextBuffer, span, multiLine);
-        }
+        //    ITrackingSpan span = currentLine.Snapshot.CreateTrackingSpan(currentLine.Start.Position, tempStartPos - currentLine.Start.Position, SpanTrackingMode.EdgeInclusive);
+        //    return new GeneroReverseParser(currentLine.Snapshot, triggerPoint.Snapshot.TextBuffer, span, multiLine);
+        //}
 
         public static string GetLineString(IWpfTextView textView, int startPosition)
         {

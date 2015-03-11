@@ -25,6 +25,7 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.ComponentModelHost;
 using VSGenero.EditorExtensions;
 using VSGenero.Navigation;
+using VSGenero.Analysis;
 
 namespace VSGenero.VS2013_Specific
 {
@@ -82,13 +83,15 @@ namespace VSGenero.VS2013_Specific
                         session.TextView.TextBuffer.Properties.AddProperty(typeof(ITextDocument), document);
                     }
 
-                    GeneroLexer lexer = new GeneroLexer();
-                    GeneroLanguageItemDefinition languageItem;
-                    GoToDefinitionLocation location = EditFilter.GetGoToLocationDefinition(session.TextView, lexer, out languageItem);
-                    if(location != null)
+                    IEnumerable<LocationInfo> locations = EditFilter.GetLocations(session.TextView);
+                    if(locations.Count() == 1)
                     {
                         // TODO: need to create a peekable item using a peek item factory
-                        peekableItems.Add(new PeekableItem(location, _factory));
+                        peekableItems.Add(new PeekableItem(locations.ElementAt(0), _factory));
+                    }
+                    else
+                    {
+                        // TODO: need to figure out what to do with multiple locations found...
                     }
                 }
             }

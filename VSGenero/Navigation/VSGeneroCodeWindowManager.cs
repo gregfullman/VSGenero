@@ -32,6 +32,7 @@ using System.ComponentModel.Composition;
 using System.IO;
 using VSGenero.EditorExtensions.Intellisense;
 using Microsoft.VisualStudio.Text.Tagging;
+using VSGenero.Analysis;
 
 namespace VSGenero.Navigation
 {
@@ -59,14 +60,6 @@ namespace VSGenero.Navigation
                 _textBuffer.Properties[typeof(IWpfTextView)] = textView;
             }
 
-            if (_textBuffer.ContentType.TypeName == VSGeneroConstants.ContentType4GL)
-            {
-                string filename = _textBuffer.GetFilePath();
-                if (!VSGeneroPackage.BufferDictionary.ContainsKey(filename))
-                    VSGeneroPackage.BufferDictionary.Add(filename, new TextBufferOpenStatus { Buffer = _textBuffer, IsOpen = true });
-                else
-                    VSGeneroPackage.BufferDictionary[filename].IsOpen = true;
-            }
             VSGeneroPackage.Instance.OnIdle += OnIdle;
         }
 
@@ -125,11 +118,11 @@ namespace VSGenero.Navigation
                 }
             }
 
-            //var pythonProjectEntry = _textBuffer.GetAnalysis() as IPythonProjectEntry;
-            //if (pythonProjectEntry == null)
-            //{
-            //    return VSConstants.E_FAIL;
-            //}
+            var pythonProjectEntry = _textBuffer.GetAnalysis() as IGeneroProjectEntry;
+            if (pythonProjectEntry == null)
+            {
+                return VSConstants.E_FAIL;
+            }
 
             IWpfTextView wpfTextView = null;
             IVsTextView vsTextView;
@@ -143,8 +136,8 @@ namespace VSGenero.Navigation
             }
 
             // pass on the text view
-            GeneroFileParserManager fpm = VSGeneroPackage.Instance.UpdateBufferFileParserManager(_textBuffer);
-            _client = new DropDownBarClient(wpfTextView);
+            //GeneroFileParserManager fpm = VSGeneroPackage.Instance.UpdateBufferFileParserManager(_textBuffer);
+            _client = new DropDownBarClient(wpfTextView, pythonProjectEntry);
 
             IVsDropdownBarManager manager = (IVsDropdownBarManager)_window;
 
@@ -280,77 +273,77 @@ namespace VSGenero.Navigation
                     {
                         string filePath = _textBuffer.GetFilePath();
 
-                        // remove the file parser manager from the buffer (hang onto it for unregistration)
-                        var delFpm = VSGeneroPackage.Instance.RemoveBufferFileParserManager(_textBuffer);
-                        if (delFpm.PrimarySibling == null)
-                        {
-                            // remove the buffer from the global buffer dictionary
-                            if (VSGeneroPackage.BufferDictionary.ContainsKey(filePath))
-                            {
-                                VSGeneroPackage.BufferDictionary.Remove(filePath);
-                            }
+                        //// remove the file parser manager from the buffer (hang onto it for unregistration)
+                        //var delFpm = VSGeneroPackage.Instance.RemoveBufferFileParserManager(_textBuffer);
+                        //if (delFpm.PrimarySibling == null)
+                        //{
+                        //    // remove the buffer from the global buffer dictionary
+                        //    if (VSGeneroPackage.BufferDictionary.ContainsKey(filePath))
+                        //    {
+                        //        VSGeneroPackage.BufferDictionary.Remove(filePath);
+                        //    }
 
-                            VSGeneroPackage.Instance.ProgramContentsManager.Programs.Remove(_textBuffer.GetProgram());
+                        //    VSGeneroPackage.Instance.ProgramContentsManager.Programs.Remove(_textBuffer.GetProgram());
 
-                            IEnumerable<string> programFilenames = (VSGeneroPackage.Instance.CurrentProgram4GLFileProvider == null) ?
-                                                            VSGenero.EditorExtensions.EditorExtensions.GetProgramFilenames(filePath) :
-                                                            VSGeneroPackage.Instance.CurrentProgram4GLFileProvider.GetProgramFilenames(filePath);
-                            var filenameList = programFilenames.ToList();
-                            if(filenameList.Count > 0)
-                            {
-                                foreach(var filename in filenameList)
-                                {
-                                    TextBufferOpenStatus bufferStatus;
-                                    if(VSGeneroPackage.BufferDictionary.TryGetValue(filename, out bufferStatus))
-                                    {
-                                        if (!bufferStatus.IsOpen)
-                                        {
-                                            VSGeneroPackage.Instance.RemoveBufferFileParserManager(bufferStatus.Buffer);
-                                            VSGeneroPackage.BufferDictionary.Remove(filename);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        else
-                        {
-                            if (!VSGeneroPackage.BufferDictionary.ContainsKey(delFpm.PrimarySibling))
-                            {
-                                VSGeneroPackage.BufferDictionary.Remove(filePath);
-                            }
-                            else if (VSGeneroPackage.BufferDictionary.ContainsKey(filePath))
-                            {
-                                VSGeneroPackage.BufferDictionary[filePath].IsOpen = false;
-                            }
-                        }
+                        //    IEnumerable<string> programFilenames = (VSGeneroPackage.Instance.CurrentProgram4GLFileProvider == null) ?
+                        //                                    VSGenero.EditorExtensions.EditorExtensions.GetProgramFilenames(filePath) :
+                        //                                    VSGeneroPackage.Instance.CurrentProgram4GLFileProvider.GetProgramFilenames(filePath);
+                        //    var filenameList = programFilenames.ToList();
+                        //    if(filenameList.Count > 0)
+                        //    {
+                        //        foreach(var filename in filenameList)
+                        //        {
+                        //            TextBufferOpenStatus bufferStatus;
+                        //            if(VSGeneroPackage.BufferDictionary.TryGetValue(filename, out bufferStatus))
+                        //            {
+                        //                if (!bufferStatus.IsOpen)
+                        //                {
+                        //                    VSGeneroPackage.Instance.RemoveBufferFileParserManager(bufferStatus.Buffer);
+                        //                    VSGeneroPackage.BufferDictionary.Remove(filename);
+                        //                }
+                        //            }
+                        //        }
+                        //    }
+                        //}
+                        //else
+                        //{
+                        //    if (!VSGeneroPackage.BufferDictionary.ContainsKey(delFpm.PrimarySibling))
+                        //    {
+                        //        VSGeneroPackage.BufferDictionary.Remove(filePath);
+                        //    }
+                        //    else if (VSGeneroPackage.BufferDictionary.ContainsKey(filePath))
+                        //    {
+                        //        VSGeneroPackage.BufferDictionary[filePath].IsOpen = false;
+                        //    }
+                        //}
 
-                        Genero4GLOutliner outliner;
-                        if (_textBuffer.Properties.TryGetProperty<Genero4GLOutliner>(typeof(Genero4GLOutliner), out outliner))
-                        {
-                            outliner.Unregister(delFpm);
-                            _textBuffer.Properties.RemoveProperty(typeof(Genero4GLOutliner));
-                        }
+                        //Genero4GLOutliner outliner;
+                        //if (_textBuffer.Properties.TryGetProperty<Genero4GLOutliner>(typeof(Genero4GLOutliner), out outliner))
+                        //{
+                        //    outliner.Unregister(delFpm);
+                        //    _textBuffer.Properties.RemoveProperty(typeof(Genero4GLOutliner));
+                        //}
 
-                        GeneroClassifier classifier;
-                        if (_textBuffer.Properties.TryGetProperty<GeneroClassifier>(typeof(GeneroClassifier), out classifier))
-                        {
-                            classifier.Unregister();
-                            _textBuffer.Properties.RemoveProperty(typeof(GeneroClassifier));
-                        }
+                        //GeneroClassifier classifier;
+                        //if (_textBuffer.Properties.TryGetProperty<GeneroClassifier>(typeof(GeneroClassifier), out classifier))
+                        //{
+                        //    classifier.Unregister();
+                        //    _textBuffer.Properties.RemoveProperty(typeof(GeneroClassifier));
+                        //}
 
-                        GeneroLineEndingsListener lineEndingsListener;
-                        if (_textBuffer.Properties.TryGetProperty<GeneroLineEndingsListener>(typeof(GeneroLineEndingsListener), out lineEndingsListener))
-                        {
-                            lineEndingsListener.Unregister();
-                            _textBuffer.Properties.RemoveProperty(typeof(GeneroLineEndingsListener));
-                        }
+                        //GeneroLineEndingsListener lineEndingsListener;
+                        //if (_textBuffer.Properties.TryGetProperty<GeneroLineEndingsListener>(typeof(GeneroLineEndingsListener), out lineEndingsListener))
+                        //{
+                        //    lineEndingsListener.Unregister();
+                        //    _textBuffer.Properties.RemoveProperty(typeof(GeneroLineEndingsListener));
+                        //}
 
-                        SignatureHelpSource sigHelpSource;
-                        if (_textBuffer.Properties.TryGetProperty<SignatureHelpSource>(typeof(SignatureHelpSource), out sigHelpSource))
-                        {
-                            sigHelpSource.Unregister();
-                            _textBuffer.Properties.RemoveProperty(typeof(SignatureHelpSource));
-                        }
+                        //SignatureHelpSource sigHelpSource;
+                        //if (_textBuffer.Properties.TryGetProperty<SignatureHelpSource>(typeof(SignatureHelpSource), out sigHelpSource))
+                        //{
+                        //    sigHelpSource.Unregister();
+                        //    _textBuffer.Properties.RemoveProperty(typeof(SignatureHelpSource));
+                        //}
                     }
                 }
 

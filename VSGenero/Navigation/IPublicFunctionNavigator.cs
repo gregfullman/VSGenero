@@ -15,11 +15,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using VSGenero.Analysis;
 
 namespace VSGenero.Navigation
 {
     public interface IPublicFunctionNavigator
     {
-        GoToDefinitionLocation GetPublicFunctionLocation(string functionName, ITextBuffer currentBuffer);
+        LocationInfo GetPublicFunctionLocation(string functionName, ITextBuffer currentBuffer);
     }
 }

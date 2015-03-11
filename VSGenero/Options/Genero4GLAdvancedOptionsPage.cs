@@ -69,6 +69,12 @@ namespace VSGenero.Options
         public override void LoadSettingsFromStorage()
         {
             _showFunctionParameters = LoadBool(ShowFunctionParametersSetting) ?? true;
+
+            if (_showFunctionParametersChanged)
+            {
+                VSGeneroPackage.Instance.LangPrefs.OnUserPreferencesChanged2(null, null, null, null);
+            }
+
             _showFunctionParametersChanged = false;
         }
 
