@@ -48,10 +48,10 @@ namespace VSGenero.EditorExtensions.Intellisense
             _curSession = null;
         }
 
-        internal static void AugmentQuickInfoWorker(ExpressionAnalysis vars, System.Collections.Generic.IList<object> quickInfoContent, out ITrackingSpan applicableToSpan)
+        internal static void AugmentQuickInfoWorker(ExpressionAnalysis exprAnalysis, System.Collections.Generic.IList<object> quickInfoContent, out ITrackingSpan applicableToSpan)
         {
-            applicableToSpan = vars.Span;
-            if (applicableToSpan == null || String.IsNullOrWhiteSpace(vars.Expression))
+            applicableToSpan = exprAnalysis.Span;
+            if (applicableToSpan == null || String.IsNullOrWhiteSpace(exprAnalysis.Expression))
             {
                 return;
             }
@@ -59,72 +59,11 @@ namespace VSGenero.EditorExtensions.Intellisense
             bool first = true;
             var result = new StringBuilder();
             int count = 0;
-            List<AstNode> listVars = new List<AstNode>(vars.Values);
-            HashSet<string> descriptions = new HashSet<string>();
-            bool multiline = false;
-            foreach (var v in listVars)
+            IAnalysisResult val = exprAnalysis.Value;
+            if(val != null)
             {
-                string description = null;
-                if (listVars.Count == 1)
-                {
-                    if (!String.IsNullOrWhiteSpace(v.Description))
-                    {
-                        description = v.Description;
-                    }
-                }
-                else
-                {
-                    if (!String.IsNullOrWhiteSpace(v.ShortDescription))
-                    {
-                        description = v.ShortDescription;
-                    }
-                }
-
-                description = description.LimitLines();
-
-                if (description != null && descriptions.Add(description))
-                {
-                    if (first)
-                    {
-                        first = false;
-                    }
-                    else
-                    {
-                        if (result.Length == 0 || result[result.Length - 1] != '\n')
-                        {
-                            result.Append(", ");
-                        }
-                        else
-                        {
-                            multiline = true;
-                        }
-                    }
-                    result.Append(description);
-                    count++;
-                }
+                quickInfoContent.Add(val.Documentation);
             }
-
-            string expr = vars.Expression;
-            if (expr.Length > 4096)
-            {
-                expr = expr.Substring(0, 4093) + "...";
-            }
-            if (multiline)
-            {
-                result.Insert(0, expr + ": " + Environment.NewLine);
-            }
-            else if (result.Length > 0)
-            {
-                result.Insert(0, expr + ": ");
-            }
-            else
-            {
-                result.Append(expr);
-                result.Append(": ");
-                result.Append("<unknown type>");
-            }
-
-            quickInfoContent.Add(result.ToString());
         }
 
         #endregion

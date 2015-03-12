@@ -31,7 +31,12 @@ namespace VSGenero.Analysis.Parsing.AST
             if((limitTo != TokenKind.EndOfFile && parser.PeekToken(limitTo)) ||
                IsValidStatementStart(parser.PeekToken().Kind))
             {
+                result = true;
+                defNode = new SqlStatement();
+                parser.NextToken();
+                defNode.StartIndex = parser.Token.Span.Start;
 
+                // TODO: need to parse out the sql statement (ugh)
             }
 
             return result;

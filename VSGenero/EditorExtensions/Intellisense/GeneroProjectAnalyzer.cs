@@ -262,10 +262,9 @@ namespace VSGenero.EditorExtensions.Intellisense
                     }
                     if (entry != null)
                     {
-                        GeneroProject proj = new GeneroProject();
-                        proj.ProjectEntries.AddOrUpdate(path, entry, (x, y) => y);
-                        entry.SetProject(proj);
-                        _projects.AddOrUpdate(dirPath, proj, (x, y) => y);
+                        projEntry.ProjectEntries.AddOrUpdate(path, entry, (x, y) => y);
+                        entry.SetProject(projEntry);
+                        _projects.AddOrUpdate(dirPath, projEntry, (x, y) => y);
                     }
                 }
 

@@ -38,11 +38,13 @@ namespace VSGenero.Analysis.Parsing.AST
                     {
                         node.Children.Add(memberAccess.StartIndex, memberAccess);
                         node.EndIndex = memberAccess.EndIndex;
+                        sb.Append(memberAccess.ToString());
                     }
                     else if(ArrayIndexNameExpressionPiece.TryParse(parser, out arrayIndex, breakToken))
                     {
                         node.Children.Add(arrayIndex.StartIndex, arrayIndex);
                         node.EndIndex = arrayIndex.EndIndex;
+                        sb.Append(arrayIndex.ToString());
                     }
                     else
                     {
@@ -50,6 +52,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         break;
                     }
                 }
+                node.Name = sb.ToString();
             }
 
             return result;

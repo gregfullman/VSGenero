@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace VSGenero.Analysis.Parsing.AST
+namespace VSGenero.Analysis
 {
     public enum AccessModifier
     {

@@ -22,7 +22,7 @@ namespace VSGenero.Analysis.Parsing.AST
     /// 
     /// For more info, see: http://www.4js.com/online_documentation/fjs-fgl-manual-html/index.html#c_fgl_Globals_003.html
     /// </summary>
-    public class GlobalsNode : AstNode
+    public class GlobalsNode : AstNode, IGlobalsResult, IOutlinableResult
     {
         public string GlobalsFilename { get; private set; }
 
@@ -69,6 +69,11 @@ namespace VSGenero.Analysis.Parsing.AST
                                     if (TypeDefNode.TryParseNode(parser, out typeNode, out matchedBreakSequence, breakSequences))
                                     {
                                         defNode.Children.Add(typeNode.StartIndex, typeNode);
+                                        foreach (var def in typeNode.GetDefinitions())
+                                        {
+                                            def.Scope = "global type";
+                                            defNode.GlobalTypes.Add(def.Name, def);
+                                        }
                                     }
                                     break;
                                 }
@@ -77,6 +82,11 @@ namespace VSGenero.Analysis.Parsing.AST
                                     if (ConstantDefNode.TryParseNode(parser, out constNode, out matchedBreakSequence, breakSequences))
                                     {
                                         defNode.Children.Add(constNode.StartIndex, constNode);
+                                        foreach (var def in constNode.GetDefinitions())
+                                        {
+                                            def.Scope = "global constant";
+                                            defNode.GlobalConstants.Add(def.Name, def);
+                                        }
                                     }
                                     break;
                                 }
@@ -85,6 +95,12 @@ namespace VSGenero.Analysis.Parsing.AST
                                     if (DefineNode.TryParseDefine(parser, out defineNode, out matchedBreakSequence, breakSequences))
                                     {
                                         defNode.Children.Add(defineNode.StartIndex, defineNode);
+                                        foreach (var def in defineNode.GetDefinitions())
+                                            foreach (var vardef in def.VariableDefinitions)
+                                            {
+                                                vardef.Scope = "global variable";
+                                                defNode.GlobalVariables.Add(vardef.Name, vardef);
+                                            }
                                     }
                                     break;
                                 }
@@ -118,6 +134,55 @@ namespace VSGenero.Analysis.Parsing.AST
             }
 
             return result;
+        }
+
+        private Dictionary<string, IAnalysisResult> _variables;
+        public IDictionary<string, IAnalysisResult> GlobalVariables
+        {
+            get
+            {
+                if (_variables == null)
+                    _variables = new Dictionary<string, IAnalysisResult>(StringComparer.OrdinalIgnoreCase);
+                return _variables;
+            }
+        }
+
+        private Dictionary<string, IAnalysisResult> _types;
+        public IDictionary<string, IAnalysisResult> GlobalTypes
+        {
+            get
+            {
+                if (_types == null)
+                    _types = new Dictionary<string, IAnalysisResult>(StringComparer.OrdinalIgnoreCase);
+                return _types;
+            }
+        }
+
+        private Dictionary<string, IAnalysisResult> _constants;
+        public IDictionary<string, IAnalysisResult> GlobalConstants
+        {
+            get
+            {
+                if (_constants == null)
+                    _constants = new Dictionary<string, IAnalysisResult>(StringComparer.OrdinalIgnoreCase);
+                return _constants;
+            }
+        }
+
+        public int DecoratorEnd
+        {
+            get
+            {
+                return StartIndex + 7;
+            }
+            set
+            {
+            }
+        }
+
+        public bool CanOutline
+        {
+            get { return string.IsNullOrWhiteSpace(GlobalsFilename); }
         }
     }
 }

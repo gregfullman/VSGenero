@@ -77,7 +77,7 @@ namespace VSGenero.EditorExtensions.Intellisense
         /// 
         /// This is used by the QuickInfoSource to retrieve info about the expression that's being hovered over
         /// </summary>
-        public IEnumerable<AstNode> Values
+        public IAnalysisResult Value
         {
             get
             {
@@ -85,10 +85,10 @@ namespace VSGenero.EditorExtensions.Intellisense
                 {
                     lock (_analyzer)
                     {
-                        return _analysis.GetValuesByIndex(_expr, TranslatedIndex);
+                        return _analysis.GetValueByIndex(_expr, TranslatedIndex);
                     }
                 }
-                return new AstNode[0];
+                return null;
             }
         }
 

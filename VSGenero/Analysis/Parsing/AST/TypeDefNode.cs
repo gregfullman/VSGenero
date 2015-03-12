@@ -18,6 +18,12 @@ namespace VSGenero.Analysis.Parsing.AST
         // TODO: instead of string, this should be the token
         public string AccessModifierToken { get; private set; }
 
+        public IEnumerable<TypeDefinitionNode> GetDefinitions()
+        {
+            return Children.Where(x => x.Value is TypeDefinitionNode)
+                           .Select(x => x.Value as TypeDefinitionNode);
+        }
+
         public static bool TryParseNode(Parser parser, out TypeDefNode defNode, out bool matchedBreakSequence, List<List<TokenKind>> breakSequences = null)
         {
             defNode = null;

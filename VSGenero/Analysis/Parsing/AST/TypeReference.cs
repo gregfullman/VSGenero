@@ -42,7 +42,7 @@ namespace VSGenero.Analysis.Parsing.AST
             {
                 if(Children.Count == 1)
                 {
-                    return Children[0].ToString();
+                    return Children[Children.Keys[0]].ToString();
                 }
                 else
                 {
@@ -132,11 +132,11 @@ namespace VSGenero.Analysis.Parsing.AST
             }
             else
             {
-                result = true;
                 var tok = parser.PeekToken();
                 var cat = Tokenizer.GetTokenInfo(tok).Category;
                 if(cat == TokenCategory.Keyword || cat == TokenCategory.Identifier)
                 {
+                    result = true;
                     parser.NextToken();
                     defNode = new TypeReference();
                     defNode.StartIndex = parser.Token.Span.Start;

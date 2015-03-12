@@ -127,139 +127,29 @@ namespace VSGenero.EditorExtensions
             private IEnumerable<ITagSpan<IOutliningRegionTag>> ProcessSuite(NormalizedSnapshotSpanCollection spans, GeneroAst ast, ModuleNode moduleNode, ITextSnapshot snapshot, bool isTopLevel)
             {
                 if (moduleNode != null)
-                {
-                    // TODO: Binary search the statements?  The perf of this seems fine for the time being
-                    // w/ a 5000+ line file though.                    
-                    foreach (var child in moduleNode.Children)
+                {                  
+                    foreach (var child in moduleNode.Children.Where(x => x.Value is IOutlinableResult).Select(x => x.Value as IOutlinableResult))
                     {
-                        SnapshotSpan? span = ShouldInclude(child.Value, spans);
+                        SnapshotSpan? span = ShouldInclude(child, spans);
                         if (span == null)
                         {
                             continue;
                         }
 
-                        FunctionBlockNode funcDef = child.Value as FunctionBlockNode;
-                        if (funcDef != null)
+                        TagSpan tagSpan = GetOutlineSpan(ast, snapshot, child);
+
+                        if (tagSpan != null)
                         {
-                            TagSpan tagSpan = GetFunctionSpan(ast, snapshot, funcDef);
-
-                            if (tagSpan != null)
-                            {
-                                yield return tagSpan;
-                            }
-
-                            // recurse into the class definition and outline it's members
-                            //foreach (var v in ProcessSuite(spans, ast, funcDef.Body as SuiteStatement, snapshot, false))
-                            //{
-                            //    yield return v;
-                            //}
+                            yield return tagSpan;
                         }
-
-                        MainBlockNode mainDef = child.Value as MainBlockNode;
-                        if(mainDef != null)
-                        {
-                            TagSpan tagSpan = GetMainSpan(ast, snapshot, mainDef);
-
-                            if (tagSpan != null)
-                            {
-                                yield return tagSpan;
-                            }
-                        }
-
-                        //ClassDefinition classDef = statement as ClassDefinition;
-                        //if (classDef != null)
-                        //{
-                        //    TagSpan tagSpan = GetClassSpan(ast, snapshot, classDef);
-
-                        //    if (tagSpan != null)
-                        //    {
-                        //        yield return tagSpan;
-                        //    }
-
-                        //    // recurse into the class definition and outline it's members
-                        //    foreach (var v in ProcessSuite(spans, ast, classDef.Body as SuiteStatement, snapshot, false))
-                        //    {
-                        //        yield return v;
-                        //    }
-                        //}
-
-                        //if (isTopLevel)
-                        //{
-                        //    IfStatement ifStmt = statement as IfStatement;
-                        //    if (ifStmt != null)
-                        //    {
-                        //        TagSpan tagSpan = GetIfSpan(ast, snapshot, ifStmt);
-
-                        //        if (tagSpan != null)
-                        //        {
-                        //            yield return tagSpan;
-                        //        }
-                        //    }
-
-                        //    WhileStatement whileStatment = statement as WhileStatement;
-                        //    if (whileStatment != null)
-                        //    {
-                        //        TagSpan tagSpan = GetWhileSpan(ast, snapshot, whileStatment);
-
-                        //        if (tagSpan != null)
-                        //        {
-                        //            yield return tagSpan;
-                        //        }
-                        //    }
-
-                        //    ForStatement forStatement = statement as ForStatement;
-                        //    if (forStatement != null)
-                        //    {
-                        //        TagSpan tagSpan = GetForSpan(ast, snapshot, forStatement);
-
-                        //        if (tagSpan != null)
-                        //        {
-                        //            yield return tagSpan;
-                        //        }
-                        //    }
-                        //}
                     }
                 }
             }
 
-            //private static TagSpan GetForSpan(GeneroAst ast, ITextSnapshot snapshot, ForStatement forStmt)
-            //{
-            //    if (forStmt.List != null)
-            //    {
-            //        return GetTagSpan(snapshot, forStmt.StartIndex, forStmt.EndIndex, forStmt.List.EndIndex);
-            //    }
-            //    return null;
-            //}
-
-            //private static TagSpan GetWhileSpan(GeneroAst ast, ITextSnapshot snapshot, WhileStatement whileStmt)
-            //{
-            //    return GetTagSpan(
-            //        snapshot,
-            //        whileStmt.StartIndex,
-            //        whileStmt.EndIndex,
-            //        whileStmt.Test.EndIndex
-            //    );
-            //}
-
-            //private static TagSpan GetIfSpan(GeneroAst ast, ITextSnapshot snapshot, IfStatement ifStmt)
-            //{
-            //    return GetTagSpan(snapshot, ifStmt.StartIndex, ifStmt.EndIndex, ifStmt.Tests[0].HeaderIndex);
-            //}
-
-            private static TagSpan GetFunctionSpan(GeneroAst ast, ITextSnapshot snapshot, FunctionBlockNode funcDef)
+            private static TagSpan GetOutlineSpan(GeneroAst ast, ITextSnapshot snapshot, IOutlinableResult outlineResult)
             {
-                return GetTagSpan(snapshot, funcDef.StartIndex, funcDef.EndIndex, funcDef.DecoratorEnd);
+                return GetTagSpan(snapshot, outlineResult.StartIndex, outlineResult.EndIndex, outlineResult.DecoratorEnd);
             }
-
-            private static TagSpan GetMainSpan(GeneroAst ast, ITextSnapshot snapshot, MainBlockNode funcDef)
-            {
-                return GetTagSpan(snapshot, funcDef.StartIndex, funcDef.EndIndex, funcDef.DecoratorEnd);
-            }
-
-            //private static TagSpan GetClassSpan(GeneroAst ast, ITextSnapshot snapshot, ClassDefinition classDef)
-            //{
-            //    return GetTagSpan(snapshot, classDef.StartIndex, classDef.EndIndex, classDef.HeaderIndex, classDef.Decorators);
-            //}
 
             private static TagSpan GetTagSpan(ITextSnapshot snapshot, int start, int end, int decoratorEnd)
             {
@@ -303,7 +193,7 @@ namespace VSGenero.EditorExtensions
                 return new Span(start, length);
             }
 
-            private SnapshotSpan? ShouldInclude(AstNode statement, NormalizedSnapshotSpanCollection spans)
+            private SnapshotSpan? ShouldInclude(IOutlinableResult result, NormalizedSnapshotSpanCollection spans)
             {
                 if (spans.Count == 1 && spans[0].Length == spans[0].Snapshot.Length)
                 {
@@ -313,7 +203,7 @@ namespace VSGenero.EditorExtensions
 
                 for (int i = 0; i < spans.Count; i++)
                 {
-                    if (spans[i].IntersectsWith(Span.FromBounds(statement.StartIndex, statement.EndIndex)))
+                    if (spans[i].IntersectsWith(Span.FromBounds(result.StartIndex, result.EndIndex)))
                     {
                         return spans[i];
                     }

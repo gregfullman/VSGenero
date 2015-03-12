@@ -17,7 +17,7 @@ namespace VSGenero.Analysis.Parsing.AST
     /// 
     /// For more info, see: http://www.4js.com/online_documentation/fjs-fgl-manual-html/index.html#c_fgl_Functions_syntax.html
     /// </summary>
-    public class FunctionBlockNode : AstNode
+    public class FunctionBlockNode : AstNode, IFunctionResult
     {
         public AccessModifier AccessModifier { get; protected set; }
         // TODO: instead of string, this should be the token
@@ -25,7 +25,7 @@ namespace VSGenero.Analysis.Parsing.AST
 
         public string Name { get; protected set; }
 
-        public int DecoratorEnd { get; protected set; }
+        public int DecoratorEnd { get; set; }
 
         public string DescriptiveName
         {
@@ -41,12 +41,15 @@ namespace VSGenero.Analysis.Parsing.AST
                 int i = 0;
                 foreach (var varDef in _arguments.OrderBy(x => x.Key.Span.Start))
                 {
-                    sb.AppendFormat("{0} {1}", varDef.Value.Type.ToString(), varDef.Value.Name);
-                    if(i + 1 < total)
+                    if (varDef.Value != null)
                     {
-                        sb.Append(", ");
+                        sb.AppendFormat("{0} {1}", varDef.Value.Type.ToString(), varDef.Value.Name);
+                        if (i + 1 < total)
+                        {
+                            sb.Append(", ");
+                        }
+                        i++;
                     }
-                    i++;
                 }
 
                 sb.Append(')');
@@ -86,16 +89,49 @@ namespace VSGenero.Analysis.Parsing.AST
             }
         }
 
-        //private List<string> _arguments;
-        //public List<string> Arguments
-        //{
-        //    get
-        //    {
-        //        if (_arguments == null)
-        //            _arguments = new List<string>();
-        //        return _arguments;
-        //    }
-        //}
+        protected void BindPrepareCursorFromIdentifier(PrepareStatement prepStmt)
+        {
+            // If the prepare statement uses a variable from prepare from, that variable should have been encountered
+            // prior to the prepare statement. So we'll do a binary search in the children of this function to look for
+            // a LetStatement above the prepare statement where the prepare statement's from identifier was assigned. 
+            // If it can't be found, then we have to assume that the identifier was assigned outside of this function,
+            // and we have no real way to determining the cursor SQL text.
+
+            List<int> keys = Children.Select(x => x.Key).ToList();
+            int searchIndex = keys.BinarySearch(prepStmt.StartIndex);
+            if (searchIndex < 0)
+            {
+                searchIndex = ~searchIndex;
+                if (searchIndex > 0)
+                    searchIndex--;
+            }
+
+            LetStatement letStmt = null;
+            do
+            {
+                int key = keys[searchIndex];
+                letStmt = Children[key] as LetStatement;
+                if(letStmt != null)
+                {
+                    // check for the LetStatement's identifier
+                    if(prepStmt.Identifier.Equals(letStmt.Variable.Name, StringComparison.OrdinalIgnoreCase))
+                        break;
+                    else
+                        letStmt = null;
+                }
+                searchIndex--;
+            }
+            while (searchIndex >= 0);
+
+            if(letStmt != null)
+            {
+                // we have a match, bind the let statement's value
+            }
+            else
+            {
+                // no match was found, so we'll put something in its place
+            }
+        }
 
         public static bool TryParseNode(Parser parser, out FunctionBlockNode defNode)
         {
@@ -192,6 +228,11 @@ namespace VSGenero.Analysis.Parsing.AST
                                 if (TypeDefNode.TryParseNode(parser, out typeNode, out matchedBreakSequence, breakSequences))
                                 {
                                     defNode.Children.Add(typeNode.StartIndex, typeNode);
+                                    foreach(var def in typeNode.GetDefinitions())
+                                    {
+                                        def.Scope = "local type";
+                                        defNode.Types.Add(def.Name, def);
+                                    }
                                 }
                                 break;
                             }
@@ -200,6 +241,11 @@ namespace VSGenero.Analysis.Parsing.AST
                                 if (ConstantDefNode.TryParseNode(parser, out constNode, out matchedBreakSequence, breakSequences))
                                 {
                                     defNode.Children.Add(constNode.StartIndex, constNode);
+                                    foreach (var def in constNode.GetDefinitions())
+                                    {
+                                        def.Scope = "local constant";
+                                        defNode.Types.Add(def.Name, def);
+                                    }
                                 }
                                 break;
                             }
@@ -208,6 +254,12 @@ namespace VSGenero.Analysis.Parsing.AST
                                 if (DefineNode.TryParseDefine(parser, out defineNode, out matchedBreakSequence, breakSequences, defNode.BindArgument))
                                 {
                                     defNode.Children.Add(defineNode.StartIndex, defineNode);
+                                    foreach (var def in defineNode.GetDefinitions())
+                                        foreach (var vardef in def.VariableDefinitions)
+                                        {
+                                            vardef.Scope = "local variable";
+                                            defNode.Variables.Add(vardef.Name, vardef);
+                                        }
                                 }
                                 break;
                             }
@@ -222,6 +274,13 @@ namespace VSGenero.Analysis.Parsing.AST
                                 break;
                             }
                     }
+
+                    if (parser.PeekToken(TokenKind.EndOfFile) ||
+                       (parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.FunctionKeyword, 2)))
+                    {
+                        break;
+                    }
+
                     // if a break sequence was matched, we don't want to advance the token
                     if (!matchedBreakSequence)
                     {
@@ -249,6 +308,83 @@ namespace VSGenero.Analysis.Parsing.AST
                 }
             }
             return result;
+        }
+
+        public ParameterResult[] Parameters
+        {
+            get 
+            {
+                return _arguments.OrderBy(x => x.Key.Span.Start)
+                                 .Select(x => new ParameterResult(x.Value.Name, x.Value.Documentation, x.Value.Type.ToString()))
+                                 .ToArray();
+            }
+        }
+
+        private Dictionary<string, IAnalysisResult> _variables;
+        public IDictionary<string, IAnalysisResult> Variables
+        {
+            get
+            {
+                if (_variables == null)
+                    _variables = new Dictionary<string, IAnalysisResult>(StringComparer.OrdinalIgnoreCase);
+                return _variables;
+            }
+        }
+
+        private Dictionary<string, IAnalysisResult> _types;
+        public IDictionary<string, IAnalysisResult> Types
+        {
+            get
+            {
+                if (_types == null)
+                    _types = new Dictionary<string, IAnalysisResult>(StringComparer.OrdinalIgnoreCase);
+                return _types;
+            }
+        }
+
+        private Dictionary<string, IAnalysisResult> _constants;
+        public IDictionary<string, IAnalysisResult> Constants
+        {
+            get
+            {
+                if (_constants == null)
+                    _constants = new Dictionary<string, IAnalysisResult>(StringComparer.OrdinalIgnoreCase);
+                return _constants;
+            }
+        }
+
+        private string _scope;
+        public string Scope
+        {
+            get
+            {
+                return _scope;
+            }
+            set
+            {
+                _scope = value;
+            }
+        }
+
+        public override string Documentation
+        {
+            get
+            {
+                StringBuilder sb = new StringBuilder();
+
+                if (!string.IsNullOrWhiteSpace(Scope))
+                {
+                    sb.AppendFormat("({0}) ", Scope);
+                }
+                sb.Append(DescriptiveName);
+
+                return sb.ToString();
+            }
+        }
+
+        public bool CanOutline
+        {
+            get { return true; }
         }
     }
 }

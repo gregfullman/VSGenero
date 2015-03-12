@@ -114,6 +114,11 @@ namespace VSGenero.Analysis.Parsing.AST
                                 if (TypeDefNode.TryParseNode(parser, out typeNode, out matchedBreakSequence, breakSequences))
                                 {
                                     defNode.Children.Add(typeNode.StartIndex, typeNode);
+                                    foreach (var def in typeNode.GetDefinitions())
+                                    {
+                                        def.Scope = "local type";
+                                        defNode.Types.Add(def.Name, def);
+                                    }
                                 }
                                 break;
                             }
@@ -122,6 +127,11 @@ namespace VSGenero.Analysis.Parsing.AST
                                 if (ConstantDefNode.TryParseNode(parser, out constNode, out matchedBreakSequence, breakSequences))
                                 {
                                     defNode.Children.Add(constNode.StartIndex, constNode);
+                                    foreach (var def in constNode.GetDefinitions())
+                                    {
+                                        def.Scope = "local constant";
+                                        defNode.Types.Add(def.Name, def);
+                                    }
                                 }
                                 break;
                             }
@@ -130,6 +140,12 @@ namespace VSGenero.Analysis.Parsing.AST
                                 if (DefineNode.TryParseDefine(parser, out defineNode, out matchedBreakSequence, breakSequences, defNode.BindArgument))
                                 {
                                     defNode.Children.Add(defineNode.StartIndex, defineNode);
+                                    foreach (var def in defineNode.GetDefinitions())
+                                        foreach (var vardef in def.VariableDefinitions)
+                                        {
+                                            vardef.Scope = "local variable";
+                                            defNode.Variables.Add(vardef.Name, vardef);
+                                        }
                                 }
                                 break;
                             }
@@ -144,6 +160,13 @@ namespace VSGenero.Analysis.Parsing.AST
                                 break;
                             }
                     }
+
+                    if (parser.PeekToken(TokenKind.EndOfFile) ||
+                          (parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.ReportKeyword, 2)))
+                    {
+                        break;
+                    }
+
                     // if a break sequence was matched, we don't want to advance the token
                     if (!matchedBreakSequence)
                     {

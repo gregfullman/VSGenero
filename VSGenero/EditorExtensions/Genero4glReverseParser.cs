@@ -228,7 +228,7 @@ namespace VSGenero.EditorExtensions
                         nestingChanged = true;
                         lastTokenWasCommaOrOperator = true;
                         lastTokenWasKeywordArgAssignment = false;
-                    } else if (token.ClassificationType == Classifier.Provider.Keyword ||
+                    } else if (/*token.ClassificationType == Classifier.Provider.Keyword ||*/   // We're going to exclude keywords from this logic...messing too many things up
                                token.ClassificationType == Classifier.Provider.Operator) {
                         lastTokenWasKeywordArgAssignment = false;
 

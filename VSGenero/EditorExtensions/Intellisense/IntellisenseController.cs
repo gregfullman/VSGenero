@@ -38,7 +38,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             _provider = provider;
             _editOps = provider._EditOperationsFactory.GetEditorOperations(textView);
             _incSearch = provider._IncrementalSearch.GetIncrementalSearch(textView);
-            _textView.MouseHover += TextViewMouseHover;
+            //_textView.MouseHover += TextViewMouseHover;
             textView.Properties.AddProperty(typeof(IntellisenseController), this);  // added so our key processors can get back to us
         }
 
@@ -48,21 +48,21 @@ namespace VSGenero.EditorExtensions.Intellisense
             _bufferParser = bufferParser;
         }
 
-        private void TextViewMouseHover(object sender, MouseHoverEventArgs e)
-        {
-            if (_quickInfoSession != null && !_quickInfoSession.IsDismissed)
-            {
-                _quickInfoSession.Dismiss();
-            }
-            var pt = e.TextPosition.GetPoint(VSGeneroConstants.IsGenero4GLContent, PositionAffinity.Successor);
-            if (pt != null)
-            {
-                _quickInfoSession = _provider._QuickInfoBroker.TriggerQuickInfo(
-                    _textView,
-                    pt.Value.Snapshot.CreateTrackingPoint(pt.Value.Position, PointTrackingMode.Positive),
-                    true);
-            }
-        }
+        //private void TextViewMouseHover(object sender, MouseHoverEventArgs e)
+        //{
+        //    if (_quickInfoSession != null && !_quickInfoSession.IsDismissed)
+        //    {
+        //        _quickInfoSession.Dismiss();
+        //    }
+        //    var pt = e.TextPosition.GetPoint(VSGeneroConstants.IsGenero4GLContent, PositionAffinity.Successor);
+        //    if (pt != null)
+        //    {
+        //        _quickInfoSession = _provider._QuickInfoBroker.TriggerQuickInfo(
+        //            _textView,
+        //            pt.Value.Snapshot.CreateTrackingPoint(pt.Value.Position, PointTrackingMode.Positive),
+        //            true);
+        //    }
+        //}
 
         internal void TriggerQuickInfo()
         {
@@ -126,7 +126,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                 throw new ArgumentException("Not attached to specified text view", "textView");
             }
 
-            _textView.MouseHover -= TextViewMouseHover;
+            //_textView.MouseHover -= TextViewMouseHover;
             _textView.Properties.RemoveProperty(typeof(IntellisenseController));
 
             DetachKeyboardFilter();

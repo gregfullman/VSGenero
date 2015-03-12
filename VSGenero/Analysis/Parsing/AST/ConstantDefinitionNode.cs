@@ -13,7 +13,7 @@ namespace VSGenero.Analysis.Parsing.AST
     /// 
     /// For more info, see: http://www.4js.com/online_documentation/fjs-fgl-manual-html/index.html#c_fgl_Constants_003.html
     /// </summary>
-    public class ConstantDefinitionNode : AstNode
+    public class ConstantDefinitionNode : AstNode, IAnalysisResult
     {
         public string Identifier { get; private set; }
         public string SpecifiedType { get; private set; }
@@ -50,6 +50,43 @@ namespace VSGenero.Analysis.Parsing.AST
                 }
             }
             return result;
+        }
+
+        private string _scope;
+        public string Scope
+        {
+            get
+            {
+                return _scope;
+            }
+            set
+            {
+                _scope = value;
+            }
+        }
+
+        public string Name
+        {
+            get { return Identifier; }
+        }
+
+        public override string Documentation
+        {
+            get
+            {
+                StringBuilder sb = new StringBuilder();
+                if (!string.IsNullOrWhiteSpace(Scope))
+                {
+                    sb.AppendFormat("({0}) ", Scope);
+                }
+                sb.Append(Name);
+                if(!string.IsNullOrWhiteSpace(SpecifiedType))
+                {
+                    sb.AppendFormat(" ({0})", SpecifiedType);
+                }
+                sb.AppendFormat(" = {0}", Literal);
+                return sb.ToString();
+            }
         }
     }
 }

@@ -94,7 +94,7 @@ namespace VSGenero.Analysis.Parsing.AST
         {
             StringBuilder sb = new StringBuilder();
 
-            if(ArrayType == AST.ArrayType.Dynamic)
+            if(ArrayType == ArrayType.Dynamic)
             {
                 sb.Append("dynamic array ");
                 if(DynamicArrayDimension != 1)
@@ -102,7 +102,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     sb.AppendFormat("with dimension {0}", DynamicArrayDimension);
                 }
             }
-            else if(ArrayType == AST.ArrayType.Static)
+            else if(ArrayType == ArrayType.Static)
             {
                 sb.Append("array [");
                 if (StaticDimOneSize != UInt16.MaxValue)
@@ -129,7 +129,7 @@ namespace VSGenero.Analysis.Parsing.AST
 
             if (Children.Count == 1)
             {
-                sb.Append(Children[0].ToString());
+                sb.Append(Children[Children.Keys[0]].ToString());
             }
 
             return sb.ToString();

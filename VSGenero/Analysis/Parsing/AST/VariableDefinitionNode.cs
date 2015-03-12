@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace VSGenero.Analysis.Parsing.AST
 {
-    public class VariableDef
+    public class VariableDef : IAnalysisResult
     {
         public string Name { get; private set; }
         public TypeReference Type { get; private set; }
@@ -16,6 +16,33 @@ namespace VSGenero.Analysis.Parsing.AST
         {
             Name = name;
             Type = type;
+        }
+
+        public string Documentation
+        {
+            get
+            {
+                StringBuilder sb = new StringBuilder();
+                if(!string.IsNullOrWhiteSpace(Scope))
+                {
+                    sb.AppendFormat("({0}) ", Scope);
+                }
+                sb.AppendFormat("{0} {1}", Name, Type.ToString());
+                return sb.ToString();
+            }
+        }
+
+        private string _scope;
+        public string Scope
+        {
+            get
+            {
+                return _scope;
+            }
+            set
+            {
+                _scope = value;
+            }
         }
     }
 
@@ -41,6 +68,17 @@ namespace VSGenero.Analysis.Parsing.AST
             set
             {
                 _identifiers = value;
+            }
+        }
+
+        private List<VariableDef> _varDefs;
+        public List<VariableDef> VariableDefinitions
+        {
+            get
+            {
+                if (_varDefs == null)
+                    _varDefs = new List<VariableDef>();
+                return _varDefs;
             }
         }
 
@@ -88,12 +126,16 @@ namespace VSGenero.Analysis.Parsing.AST
                     result = false;
                 }
 
-                // Now attempt to bind the variables collected
-                if(binder != null && typeRef != null)
+                if(typeRef != null)
                 {
-                    foreach(var ident in defNode.Identifiers)
+                    foreach (var ident in defNode.Identifiers)
                     {
-                        binder(new VariableDef(ident, typeRef));
+                        var varDef = new VariableDef(ident, typeRef);
+                        defNode.VariableDefinitions.Add(varDef);
+                        if(binder != null)
+                        {
+                            binder(varDef);
+                        }
                     }
                 }
             }

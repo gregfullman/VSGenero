@@ -329,9 +329,8 @@
     <Compile Include="Analysis\FileCookie.cs" />
     <Compile Include="Analysis\GetMemberOptions.cs" />
     <Compile Include="Analysis\IAnalysisVariable.cs" />
-    <Compile Include="Analysis\IFunctionResult.cs" />
+    <Compile Include="Analysis\ResultInterfaces.cs" />
     <Compile Include="Analysis\MemberResult.cs" />
-    <Compile Include="Analysis\OverloadResult.cs" />
     <Compile Include="Analysis\ParameterResult.cs" />
     <Compile Include="Analysis\Parsing\ErrorCodes.cs" />
     <Compile Include="Analysis\Parsing\GeneroLanguageVersion.cs" />
@@ -390,7 +389,7 @@
     <Compile Include="Analysis\Parsing\AST\RecordDefinitionNode.cs" />
     <Compile Include="Analysis\Parsing\AST\SchemaSpecificationNode.cs" />
     <Compile Include="Analysis\Parsing\AST\ExplicitSqlBlockNode.cs" />
-    <Compile Include="Analysis\Parsing\AST\SyntaxEnums.cs" />
+    <Compile Include="Analysis\SyntaxEnums.cs" />
     <Compile Include="Analysis\Parsing\AST\TryBlockNode.cs" />
     <Compile Include="Analysis\Parsing\AST\TypeDefinitionNode.cs" />
     <Compile Include="Analysis\Parsing\AST\TypeDefNode.cs" />

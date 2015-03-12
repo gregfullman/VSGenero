@@ -11,8 +11,7 @@ namespace VSGenero.Analysis.Parsing.AST
     /// This class encapsulates the logic for variables definitions
     /// [PUBLIC|PRIVATE] DEFINE 
     /// {
-    ///     <see cref="VariableDefinitionNode"/> |
-    ///     <see cref="RecordDefinitionNode"/>
+    ///     <see cref="VariableDefinitionNode"/>
     /// }[,...]
     /// 
     /// 
@@ -23,6 +22,12 @@ namespace VSGenero.Analysis.Parsing.AST
         public AccessModifier AccessModifier { get; private set; }
         // TODO: instead of string, this should be the token
         public string AccessModifierToken { get; private set; }
+
+        public IEnumerable<VariableDefinitionNode> GetDefinitions()
+        {
+            return Children.Where(x => x.Value is VariableDefinitionNode)
+                           .Select(x => x.Value as VariableDefinitionNode);
+        }
 
         public static bool TryParseDefine(Parser parser, out DefineNode defNode, out bool matchedBreakSequence, List<List<TokenKind>> breakSequences = null, Action<VariableDef> binder = null)
         {

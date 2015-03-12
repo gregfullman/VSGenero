@@ -258,7 +258,7 @@ namespace VSGenero.Analysis.Parsing.AST
         /// </summary>
         /// <param name="exprText">The expression to determine the result of.</param>
         /// <param name="index">The 0-based absolute index into the file where the expression should be evaluated within the module.</param>
-        public IEnumerable<AstNode> GetValuesByIndex(string exprText, int index)
+        public IAnalysisResult GetValueByIndex(string exprText, int index)
         {
             // do a binary search to determine what node we're in
             List<int> keys = _body.Children.Select(x => x.Key).ToList();
@@ -272,23 +272,97 @@ namespace VSGenero.Analysis.Parsing.AST
 
             int key = keys[searchIndex];
 
+            // TODO: need to handle multiple results of the same name
             AstNode containingNode = _body.Children[key];
             if(containingNode != null)
             {
-                /*
+                if(containingNode is IFunctionResult)
+                {
+                    // Check for local vars, types, and constants
+                    IFunctionResult func = containingNode as IFunctionResult;
+                    IAnalysisResult res;
+                    if(func.Variables.TryGetValue(exprText, out res) ||
+                       func.Types.TryGetValue(exprText, out res) ||
+                       func.Constants.TryGetValue(exprText, out res))
+                    {
+                        return res;
+                    }
+                }
+
+                if(_body is IModuleResult)
+                {
+                    // check for module vars, types, and constants (and globals defined in this module)
+                    IModuleResult mod = _body as IModuleResult;
+                    IAnalysisResult res;
+                    if(mod.Variables.TryGetValue(exprText, out res) ||
+                       mod.Types.TryGetValue(exprText, out res) ||
+                       mod.Constants.TryGetValue(exprText, out res) ||
+                       mod.GlobalVariables.TryGetValue(exprText, out res) ||
+                       mod.GlobalTypes.TryGetValue(exprText, out res) ||
+                       mod.GlobalConstants.TryGetValue(exprText, out res))
+                    {
+                        return res;
+                    }
+
+                    // TODO: check for module cursors
+
+                    // check for module functions
+                    IFunctionResult funcRes;
+                    if(mod.Functions.TryGetValue(exprText, out funcRes))
+                    {
+                        return funcRes;
+                    }
+                }
+
+                // TODO: this could probably be done more efficiently by having each GeneroAst load globals and functions into
+                // dictionaries stored on the IGeneroProject, instead of in each project entry.
+                // However, this does required more upkeep when changes occur. Will look into it...
+                if(_projEntry != null && _projEntry is IGeneroProjectEntry)
+                {
+                    IGeneroProjectEntry genProj = _projEntry as IGeneroProjectEntry;
+                    if(genProj.ParentProject != null)
+                    {
+                        foreach(var projEntry in genProj.ParentProject.ProjectEntries.Where(x => x.Value != genProj))
+                        {
+                            if(projEntry.Value.Analysis != null &&
+                               projEntry.Value.Analysis.Body != null)
+                            {
+                                IModuleResult modRes = projEntry.Value.Analysis.Body as IModuleResult;
+                                if(modRes != null)
+                                {
+                                    // check global vars, types, and constants
+                                    IAnalysisResult res;
+                                    if(modRes.GlobalVariables.TryGetValue(exprText, out res) ||
+                                       modRes.GlobalTypes.TryGetValue(exprText, out res) ||
+                                       modRes.GlobalConstants.TryGetValue(exprText, out res))
+                                    {
+                                        return res;
+                                    }
+
+                                    // check project functions
+                                    IFunctionResult funcRes;
+                                    if (modRes.Functions.TryGetValue(exprText, out funcRes))
+                                    {
+                                        if(funcRes.AccessModifier == AccessModifier.Public)
+                                            return funcRes;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                /* TODO:
                  * Need to check for:
-                 * 1) Local variables, types, or constants
-                 * 2) Module variables, types, or constants
-                 * 3) Module cursors
-                 * 4) Functions within the current module
-                 * 5) Global variables, types, or constants
-                 * 6) Functions within the current project
+                 * 1) Temp tables
+                 * 2) DB Tables and columns
+                 * 3) Record fields
                  * 7) Public functions
                  */
             }
 
 
-            yield return null;
+            return null;
             //var scope = FindScope(index);
             //var privatePrefix = GetPrivatePrefixClassName(scope);
             //var expr = Statement.GetExpression(GetAstFromText(exprText, privatePrefix).Body);
