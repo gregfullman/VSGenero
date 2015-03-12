@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace VSGenero.EditorExtensions.Intellisense
 {
-    [Export(typeof(ICompletionSourceProvider)), ContentType(VSGeneroConstants.ContentType4GL), ContentType(VSGeneroConstants.ContentTypePER), Order, Name("CompletionProvider")]
+    [Export(typeof(ICompletionSourceProvider)), ContentType(VSGeneroConstants.ContentType4GL), Order, Name("CompletionProvider")]
     internal class CompletionSourceProvider : ICompletionSourceProvider
     {
         [Import]

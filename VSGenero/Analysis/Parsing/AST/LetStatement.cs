@@ -16,6 +16,26 @@ namespace VSGenero.Analysis.Parsing.AST
     {
         public NameExpression Variable { get; private set; }
 
+        public string GetLiteralValue()
+        {
+            if(Children.Count == 1)
+            {
+                StringExpressionNode strExpr = Children[Children.Keys[0]] as StringExpressionNode;
+                if(strExpr != null)
+                {
+                    return strExpr.LiteralValue;
+                }
+                else
+                {
+                    return "(unable to evaluate expression)";
+                }
+            }
+            else
+            {
+                return "";
+            }
+        }
+
         public static bool TryParseNode(Parser parser, out LetStatement defNode)
         {
             defNode = null;

@@ -13,7 +13,7 @@ namespace VSGenero.Analysis.Parsing.AST
 
     public class FglStatementFactory
     {
-        public bool TryParseNode(Parser parser, out FglStatement node)
+        public bool TryParseNode(Parser parser, out FglStatement node, Func<string, PrepareStatement> prepStatementResolver = null, Action<PrepareStatement> prepStatementBinder = null)
         {
             node = null;
             bool result = false;
@@ -32,7 +32,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 case TokenKind.DeclareKeyword:
                     {
                         DeclareStatement declStmt;
-                        if ((result = DeclareStatement.TryParseNode(parser, out declStmt)))
+                        if ((result = DeclareStatement.TryParseNode(parser, out declStmt, prepStatementResolver)))
                         {
                             node = declStmt;
                         }
@@ -53,6 +53,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         if ((result = PrepareStatement.TryParseNode(parser, out prepStmt)))
                         {
                             node = prepStmt;
+                            prepStatementBinder(prepStmt);
                         }
                         break;
                     }

@@ -67,7 +67,7 @@ namespace VSGenero.EditorExtensions.Intellisense
 
             _content = content.ToString();
             _ppContent = ppContent.ToString();
-            _documentation = overload.Documentation.LimitLines(15, stopAtFirstBlankLine: true);
+            _documentation = overload.FunctionDocumentation.LimitLines(15, stopAtFirstBlankLine: true);
 
             _parameters = new ReadOnlyCollection<IParameter>(parameters);
             if (paramIndex < parameters.Length) {

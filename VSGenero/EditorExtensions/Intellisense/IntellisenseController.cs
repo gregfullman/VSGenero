@@ -208,6 +208,12 @@ namespace VSGenero.EditorExtensions.Intellisense
                             UpdateCurrentParameter();
                         }
                         break;
+                    default:
+                        if (VSGeneroPackage.Instance.LangPrefs.AutoListMembers && IsIdentifierChar(ch) && _activeSession == null)
+                        {
+                            TriggerCompletionSession(false);
+                        }
+                        break;
                 }
             }
         }

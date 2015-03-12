@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using VSGenero.SqlSupport;
 
 namespace VSGenero.Analysis.Parsing.AST
 {
-    public class PrepareStatement : FglStatement
+    public class PrepareStatement : FglStatement, IAnalysisResult
     {
         public string Identifier { get; private set; }
 
@@ -54,6 +55,44 @@ namespace VSGenero.Analysis.Parsing.AST
             }
 
             return result;
+        }
+
+        public string Scope
+        {
+            get
+            {
+                return null;
+            }
+            set
+            {
+            }
+        }
+
+        public string Name
+        {
+            get { return Identifier; }
+        }
+
+        private string _sqlStatement;
+        public void SetSqlStatement(string sqlStmt)
+        {
+            _sqlStatement = sqlStmt;
+        }
+
+        public override string Documentation
+        {
+            get
+            {
+                StringBuilder sb = new StringBuilder();
+                sb.AppendFormat("prepared cursor {0}:", Name);
+                sb.Append("\n\n");
+                string formatted = SqlStatementExtractor.FormatSqlStatement(_sqlStatement);
+                if (formatted != null)
+                    sb.Append(formatted);
+                else
+                    sb.Append(_sqlStatement);
+                return sb.ToString();
+            }
         }
     }
 }

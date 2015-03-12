@@ -37,7 +37,7 @@ namespace VSGenero.Analysis
     {
         ParameterResult[] Parameters { get; }
         AccessModifier AccessModifier { get; }
-
+        string FunctionDocumentation { get; }
         IDictionary<string, IAnalysisResult> Variables { get; }
         IDictionary<string, IAnalysisResult> Types { get; }
         IDictionary<string, IAnalysisResult> Constants { get; }

@@ -28,6 +28,19 @@ namespace VSGenero.SqlSupport
             return script.Trim();
         }
 
+        public static string FormatSqlStatement(string sqlStatement)
+        {
+            _parseErrors = null;
+            sqlStatement = sqlStatement.Replace("?", _dynamicPlaceholder);
+            var fragment = _parser.Parse(new StringReader(sqlStatement), out _parseErrors);
+            if (_parseErrors.Count == 0)
+            {
+                var result = fragment.GetText().Replace(_dynamicPlaceholder, "?");
+                return fragment.GetText();
+            }
+            return null;
+        }
+
         /// <summary>
         /// Given some text, extract any sql statements contained within.
         /// </summary>

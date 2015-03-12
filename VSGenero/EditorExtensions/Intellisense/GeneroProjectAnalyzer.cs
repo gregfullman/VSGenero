@@ -373,9 +373,12 @@ namespace VSGenero.EditorExtensions.Intellisense
                     }
 
                     var result = new List<ISignature>();
-                    foreach (var sig in sigs)
+                    if (sigs != null)
                     {
-                        result.Add(new Genero4glFunctionSignature(applicableSpan, sig, paramIndex, lastKeywordArg));
+                        foreach (var sig in sigs)
+                        {
+                            result.Add(new Genero4glFunctionSignature(applicableSpan, sig, paramIndex, lastKeywordArg));
+                        }
                     }
 
                     return new SignatureAnalysis(
@@ -712,6 +715,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                 }
             }
 
+            // TODO: need to figure out how to get a statement that spans more than one line
             var tokens = classifier.GetClassificationSpans(new SnapshotSpan(start.GetContainingLine().Start, snapSpan.Start));
             if (tokens.Count > 0)
             {

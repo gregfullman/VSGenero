@@ -22,15 +22,9 @@ namespace VSGenero.Analysis.Parsing.AST
     /// 
     /// For more info, see: http://www.4js.com/online_documentation/fjs-fgl-manual-html/index.html#c_fgl_programs_MAIN.html
     /// </summary>
-    public class MainBlockNode : AstNode, IFunctionResult
+    public class MainBlockNode : FunctionBlockNode, IFunctionResult
     {
-        public int DecoratorEnd
-        {
-            get { return StartIndex + 4; }
-            set { }
-        }
-
-        public static bool TryParseNode(Parser parser, out MainBlockNode defNode)
+        public static bool TryParseNode(Parser parser, out MainBlockNode defNode, Func<string, PrepareStatement> prepStatementResolver = null)
         {
             defNode = null;
             bool result = false;
@@ -40,14 +34,18 @@ namespace VSGenero.Analysis.Parsing.AST
                 result = true;
                 defNode = new MainBlockNode();
                 parser.NextToken();
+                defNode.Name = parser.Token.Token.Value.ToString();
                 defNode.StartIndex = parser.Token.Span.Start;
+                defNode.DecoratorEnd = defNode.StartIndex + 4;
+                defNode.AccessModifier = AccessModifier.Private;
 
                 List<List<TokenKind>> breakSequences = new List<List<TokenKind>>() 
                     { 
                         new List<TokenKind> { TokenKind.EndKeyword, TokenKind.MainKeyword },
                         new List<TokenKind> { TokenKind.ConstantKeyword },
                         new List<TokenKind> { TokenKind.DefineKeyword },
-                        new List<TokenKind> { TokenKind.TypeKeyword }
+                        new List<TokenKind> { TokenKind.TypeKeyword },
+                        new List<TokenKind> { TokenKind.LetKeyword }
                     };
                 // try to parse one or more declaration statements
                 while (!parser.PeekToken(TokenKind.EndOfFile) &&
@@ -102,7 +100,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         default:
                             {
                                 FglStatement statement;
-                                if (parser.StatementFactory.TryParseNode(parser, out statement))
+                                if (parser.StatementFactory.TryParseNode(parser, out statement, prepStatementResolver, defNode.BindPrepareCursorFromIdentifier))
                                 {
                                     AstNode stmtNode = statement as AstNode;
                                     defNode.Children.Add(stmtNode.StartIndex, stmtNode);
@@ -147,79 +145,12 @@ namespace VSGenero.Analysis.Parsing.AST
             return result;
         }
 
-        public ParameterResult[] Parameters
-        {
-            get { return new ParameterResult[0]; }
-        }
-
-        private Dictionary<string, IAnalysisResult> _variables;
-        public IDictionary<string, IAnalysisResult> Variables
-        {
-            get
-            {
-                if (_variables == null)
-                    _variables = new Dictionary<string, IAnalysisResult>(StringComparer.OrdinalIgnoreCase);
-                return _variables;
-            }
-        }
-
-        private Dictionary<string, IAnalysisResult> _types;
-        public IDictionary<string, IAnalysisResult> Types
-        {
-            get
-            {
-                if (_types == null)
-                    _types = new Dictionary<string, IAnalysisResult>(StringComparer.OrdinalIgnoreCase);
-                return _types;
-            }
-        }
-
-        private Dictionary<string, IAnalysisResult> _constants;
-        public IDictionary<string, IAnalysisResult> Constants
-        {
-            get
-            {
-                if (_constants == null)
-                    _constants = new Dictionary<string, IAnalysisResult>(StringComparer.OrdinalIgnoreCase);
-                return _constants;
-            }
-        }
-
-        private string _scope;
-        public string Scope
-        {
-            get
-            {
-                return _scope;
-            }
-            set
-            {
-                _scope = value;
-            }
-        }
-
-        public string Name
-        {
-            get { return "main"; }
-        }
-
         public override string Documentation
         {
             get
             {
                 return Name;
             }
-        }
-
-
-        public AccessModifier AccessModifier
-        {
-            get { return AccessModifier.Private; }
-        }
-
-        public bool CanOutline
-        {
-            get { return true; }
         }
     }
 }

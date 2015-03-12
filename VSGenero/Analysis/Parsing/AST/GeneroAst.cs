@@ -171,8 +171,8 @@ namespace VSGenero.Analysis.Parsing.AST
              * 6) Functions within the current project
              * 7) Public function modules
              */
-
-            yield return default(MemberResult);
+            List<MemberResult> results = new List<MemberResult>();
+            return results;
             //var result = new Dictionary<string, List<AnalysisValue>>();
 
             //// collect builtins
@@ -213,43 +213,46 @@ namespace VSGenero.Analysis.Parsing.AST
              * 2) Functions within the current project
              * 3) Public functions
              */
+            if (_body is IModuleResult)
+            {
+                // check for module vars, types, and constants (and globals defined in this module)
+                IModuleResult mod = _body as IModuleResult;
 
-            yield return null;
-            //try
-            //{
-            //    var scope = FindScope(index);
-            //    var unit = GetNearestEnclosingAnalysisUnit(scope);
-            //    var eval = new ExpressionEvaluator(unit.CopyForEval(), scope, mergeScopes: true);
-            //    using (var parser = Parser.CreateParser(new StringReader(exprText), _unit.ProjectState.LanguageVersion))
-            //    {
-            //        var expr = GetExpression(parser.ParseTopExpression().Body);
-            //        if (expr is ListExpression ||
-            //            expr is TupleExpression ||
-            //            expr is DictionaryExpression)
-            //        {
-            //            return Enumerable.Empty<IOverloadResult>();
-            //        }
-            //        var lookup = eval.Evaluate(expr);
+                // check for module functions
+                IFunctionResult funcRes;
+                if (mod.Functions.TryGetValue(exprText, out funcRes))
+                {
+                    return new IFunctionResult[1] { funcRes };
+                }
+            }
 
-            //        var result = new HashSet<OverloadResult>(OverloadResultComparer.Instance);
+            if (_projEntry != null && _projEntry is IGeneroProjectEntry)
+            {
+                IGeneroProjectEntry genProj = _projEntry as IGeneroProjectEntry;
+                if (genProj.ParentProject != null)
+                {
+                    foreach (var projEntry in genProj.ParentProject.ProjectEntries.Where(x => x.Value != genProj))
+                    {
+                        if (projEntry.Value.Analysis != null &&
+                           projEntry.Value.Analysis.Body != null)
+                        {
+                            IModuleResult modRes = projEntry.Value.Analysis.Body as IModuleResult;
+                            if (modRes != null)
+                            {
+                                // check project functions
+                                IFunctionResult funcRes;
+                                if (modRes.Functions.TryGetValue(exprText, out funcRes))
+                                {
+                                    if (funcRes.AccessModifier == AccessModifier.Public)
+                                        return new IFunctionResult[1] { funcRes };
+                                }
+                            }
+                        }
+                    }
+                }
+            }
 
-            //        // TODO: Include relevant type info on the parameter...
-            //        foreach (var ns in lookup)
-            //        {
-            //            if (ns.Overloads != null)
-            //            {
-            //                result.UnionWith(ns.Overloads);
-            //            }
-            //        }
-
-            //        return result;
-            //    }
-            //}
-            //catch (Exception)
-            //{
-            //    // TODO: log exception
-            //    return new[] { new SimpleOverloadResult(new ParameterResult[0], "Unknown", "IntellisenseError_Sigs") };
-            //}
+            return null;
         }
 
         /// <summary>
@@ -304,7 +307,11 @@ namespace VSGenero.Analysis.Parsing.AST
                         return res;
                     }
 
-                    // TODO: check for module cursors
+                    // check for cursors in this module
+                    if(mod.Cursors.TryGetValue(exprText, out res))
+                    {
+                        return res;
+                    }
 
                     // check for module functions
                     IFunctionResult funcRes;
@@ -346,6 +353,12 @@ namespace VSGenero.Analysis.Parsing.AST
                                         if(funcRes.AccessModifier == AccessModifier.Public)
                                             return funcRes;
                                     }
+
+                                    // check for cursors in this module
+                                    if (modRes.Cursors.TryGetValue(exprText, out res))
+                                    {
+                                        return res;
+                                    }
                                 }
                             }
                         }
@@ -363,34 +376,6 @@ namespace VSGenero.Analysis.Parsing.AST
 
 
             return null;
-            //var scope = FindScope(index);
-            //var privatePrefix = GetPrivatePrefixClassName(scope);
-            //var expr = Statement.GetExpression(GetAstFromText(exprText, privatePrefix).Body);
-
-            //var unit = GetNearestEnclosingAnalysisUnit(scope);
-            //var eval = new ExpressionEvaluator(unit.CopyForEval(), scope, mergeScopes: true);
-
-            //var values = eval.Evaluate(expr);
-            //var res = AnalysisSet.EmptyUnion;
-            //foreach (var v in values)
-            //{
-            //    MultipleMemberInfo multipleMembers = v as MultipleMemberInfo;
-            //    if (multipleMembers != null)
-            //    {
-            //        foreach (var member in multipleMembers.Members)
-            //        {
-            //            if (member.IsCurrent)
-            //            {
-            //                res = res.Add(member);
-            //            }
-            //        }
-            //    }
-            //    else if (v.IsCurrent)
-            //    {
-            //        res = res.Add(v);
-            //    }
-            //}
-            //return res;
         }
 
         /// <summary>
@@ -402,7 +387,8 @@ namespace VSGenero.Analysis.Parsing.AST
         /// </summary>
         public IEnumerable<MemberResult> GetMembersByIndex(string exprText, int index, GetMemberOptions options = GetMemberOptions.IntersectMultipleResults)
         {
-            yield return default(MemberResult);
+            List<MemberResult> results = new List<MemberResult>();
+            return results;
             //if (exprText.Length == 0)
             //{
             //    return GetAllAvailableMembersByIndex(index, options);
@@ -433,6 +419,8 @@ namespace VSGenero.Analysis.Parsing.AST
         /// </summary>
         public IEnumerable<IAnalysisVariable> GetVariablesByIndex(string exprText, int index)
         {
+            List<IAnalysisVariable> results = new List<IAnalysisVariable>();
+            return results;
             //var scope = FindScope(index);
             //string privatePrefix = GetPrivatePrefixClassName(scope);
             //var expr = Statement.GetExpression(GetAstFromText(exprText, privatePrefix).Body);
@@ -468,8 +456,6 @@ namespace VSGenero.Analysis.Parsing.AST
             //        }
             //    }
             //}
-
-            return Enumerable.Empty<IAnalysisVariable>();
         }
     }
 }

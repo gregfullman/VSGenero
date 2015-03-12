@@ -3,18 +3,20 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using VSGenero.SqlSupport;
 
 namespace VSGenero.Analysis.Parsing.AST
 {
-    public class DeclareStatement : FglStatement
+    public class DeclareStatement : FglStatement, IAnalysisResult
     {
         public string Identifier { get; private set; }
         public bool Scroll { get; private set; }
         public bool WithHold { get; private set; }
 
         public string PreparedStatementId { get; private set; }
+        private Func<string, PrepareStatement> _prepStatementResolver;
 
-        public static bool TryParseNode(Parser parser, out DeclareStatement defNode)
+        public static bool TryParseNode(Parser parser, out DeclareStatement defNode, Func<string, PrepareStatement> preparedStatementResolver = null)
         {
             defNode = null;
             bool result = false;
@@ -25,6 +27,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 defNode = new DeclareStatement();
                 parser.NextToken();
                 defNode.StartIndex = parser.Token.Span.Start;
+                defNode._prepStatementResolver = preparedStatementResolver;
 
                 if (parser.PeekToken(TokenCategory.Identifier) || parser.PeekToken(TokenCategory.Keyword))
                 {
@@ -127,6 +130,64 @@ namespace VSGenero.Analysis.Parsing.AST
             }
 
             return result;
+        }
+
+        public string Scope
+        {
+            get
+            {
+                return null;
+            }
+            set
+            {
+            }
+        }
+
+        public string Name
+        {
+            get { return Identifier; }
+        }
+
+        public override string Documentation
+        {
+            get
+            {
+                StringBuilder sb = new StringBuilder();
+                sb.AppendFormat("declared cursor {0}", Name);
+                if (!string.IsNullOrWhiteSpace(PreparedStatementId) && _prepStatementResolver != null)
+                {
+                    sb.AppendLine();
+                    PrepareStatement prepStmt = _prepStatementResolver(PreparedStatementId);
+                    if(prepStmt != null)
+                    {
+                        sb.Append(prepStmt.Documentation);
+                    }
+                    else
+                    {
+                        sb.Append("(unable to resolve prepared statement)");
+                    }
+                }
+                else if(Children.Count == 1)
+                {
+                    StringExpressionNode strExpr = Children[Children.Keys[0]] as StringExpressionNode;
+                    if(strExpr != null)
+                    {
+                        sb.AppendLine(" from:");
+                        sb.AppendLine();
+                        string formatted = SqlStatementExtractor.FormatSqlStatement(strExpr.LiteralValue);
+                        if (formatted != null)
+                            sb.Append(formatted);
+                        else
+                            sb.Append(strExpr.LiteralValue);
+                    }
+                }
+                else
+                {
+                    sb.AppendLine();
+                    sb.Append("(Documentation not supported at this time)");
+                }
+                return sb.ToString();
+            }
         }
     }
 }

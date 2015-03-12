@@ -235,12 +235,17 @@ namespace VSGenero.Analysis.Parsing.AST
                     continue;
 
                 MainBlockNode mainBlock;
-                if (MainBlockNode.TryParseNode(parser, out mainBlock))
+                if (MainBlockNode.TryParseNode(parser, out mainBlock, defNode.PreparedCursorResolver))
                 {
                     if (processed == NodesProcessed.VarDefs)
                     {
                         defNode.Children.Add(mainBlock.StartIndex, mainBlock);
                         defNode.Functions.Add(mainBlock.Name, mainBlock);
+                        foreach(var cursor in mainBlock.Children.Values.Where(x => x is PrepareStatement || x is DeclareStatement))
+                        {
+                            IAnalysisResult curRes = cursor as IAnalysisResult;
+                            defNode.Cursors.Add(curRes.Name, curRes);
+                        }
                     }
                     else
                     {
@@ -257,17 +262,27 @@ namespace VSGenero.Analysis.Parsing.AST
 
                 FunctionBlockNode funcNode;
                 ReportBlockNode repNode;
-                if (FunctionBlockNode.TryParseNode(parser, out funcNode))
+                if (FunctionBlockNode.TryParseNode(parser, out funcNode, defNode.PreparedCursorResolver))
                 {
                     defNode.Children.Add(funcNode.StartIndex, funcNode);
                     funcNode.Scope = "function";
                     defNode.Functions.Add(funcNode.Name, funcNode);
+                    foreach (var cursor in funcNode.Children.Values.Where(x => x is PrepareStatement || x is DeclareStatement))
+                    {
+                        IAnalysisResult curRes = cursor as IAnalysisResult;
+                        defNode.Cursors.Add(curRes.Name, curRes);
+                    }
                 }
-                else if (ReportBlockNode.TryParseNode(parser, out repNode))
+                else if (ReportBlockNode.TryParseNode(parser, out repNode, defNode.PreparedCursorResolver))
                 {
                     defNode.Children.Add(repNode.StartIndex, repNode);
                     repNode.Scope = "report";
                     defNode.Functions.Add(repNode.Name, repNode);
+                    foreach (var cursor in repNode.Children.Values.Where(x => x is PrepareStatement || x is DeclareStatement))
+                    {
+                        IAnalysisResult curRes = cursor as IAnalysisResult;
+                        defNode.Cursors.Add(curRes.Name, curRes);
+                    }
                 }
                 else
                 {
@@ -335,7 +350,7 @@ namespace VSGenero.Analysis.Parsing.AST
             }
         }
 
-        private Dictionary<string, IAnalysisResult> emptyGlobalTypes;
+        private Dictionary<string, IAnalysisResult> emptyGlobalTypes = new Dictionary<string, IAnalysisResult>();
         public IDictionary<string, IAnalysisResult> GlobalTypes
         {
             get
@@ -351,7 +366,7 @@ namespace VSGenero.Analysis.Parsing.AST
             }
         }
 
-        private Dictionary<string, IAnalysisResult> emptyGlobalConstants;
+        private Dictionary<string, IAnalysisResult> emptyGlobalConstants = new Dictionary<string, IAnalysisResult>();
         public IDictionary<string, IAnalysisResult> GlobalConstants
         {
             get
@@ -367,7 +382,7 @@ namespace VSGenero.Analysis.Parsing.AST
             }
         }
 
-        private Dictionary<string, IFunctionResult> _functions;
+        private Dictionary<string, IFunctionResult> _functions = new Dictionary<string, IFunctionResult>();
         public IDictionary<string, IFunctionResult> Functions
         {
             get
@@ -376,6 +391,27 @@ namespace VSGenero.Analysis.Parsing.AST
                     _functions = new Dictionary<string, IFunctionResult>(StringComparer.OrdinalIgnoreCase);
                 return _functions;
             }
+        }
+
+        private void BindCursorResult(IAnalysisResult cursorResult)
+        {
+            if(!Cursors.ContainsKey(cursorResult.Name))
+            {
+                Cursors.Add(cursorResult.Name, cursorResult);
+            }
+        }
+
+        private PrepareStatement PreparedCursorResolver(string prepIdent)
+        {
+            IAnalysisResult prepRes;
+            if(Cursors.TryGetValue(prepIdent, out prepRes))
+            {
+                if(prepRes is PrepareStatement)
+                {
+                    return prepRes as PrepareStatement;
+                }
+            }
+            return null;
         }
 
         private Dictionary<string, IAnalysisResult> _cursors;
