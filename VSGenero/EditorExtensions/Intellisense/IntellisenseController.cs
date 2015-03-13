@@ -167,7 +167,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             {
                 switch (ch)
                 {
-                    case '@':
+                    case '&':
                     case '.':
                     case ' ':
                         if (VSGeneroPackage.Instance.LangPrefs.AutoListMembers)
@@ -194,7 +194,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                             TriggerSignatureHelp();
                         }
                         break;
-                    case '=':
+                    //case '=':
                     case ',':
                         if (_sigHelpSession == null)
                         {
@@ -209,13 +209,24 @@ namespace VSGenero.EditorExtensions.Intellisense
                         }
                         break;
                     default:
-                        if (VSGeneroPackage.Instance.LangPrefs.AutoListMembers && IsIdentifierChar(ch) && _activeSession == null)
+                        if (VSGeneroPackage.Instance.LangPrefs.AutoListMembers && IsIdentifierChar(ch) && _activeSession == null && IsPreviousCharacterNonWhitespace())
                         {
                             TriggerCompletionSession(false);
                         }
                         break;
                 }
             }
+        }
+
+        private bool IsPreviousCharacterNonWhitespace()
+        {
+            var point = _textView.GetCaretPosition();
+            if(point.HasValue)
+            {
+                if (point.Value.Position <= 1) return false;
+                return string.IsNullOrWhiteSpace(_textView.TextSnapshot.GetText(new Span(point.Value.Position - 2, 1)));
+            }
+            return false;
         }
 
         private bool Backspace()

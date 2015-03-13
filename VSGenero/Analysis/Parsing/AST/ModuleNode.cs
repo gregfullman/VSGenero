@@ -130,21 +130,21 @@ namespace VSGenero.Analysis.Parsing.AST
                             if (!defNode.GlobalConstants.ContainsKey(cGlobKVP.Key))
                                 defNode.GlobalConstants.Add(cGlobKVP);
                             else
-                                parser.ReportSyntaxError(string.Format("Global constant {0} defined more than once.", cGlobKVP.Key));
+                                parser.ReportSyntaxError(cGlobKVP.Value.LocationIndex, cGlobKVP.Value.LocationIndex + cGlobKVP.Value.Name.Length, string.Format("Global constant {0} defined more than once.", cGlobKVP.Key));
                         }
                         foreach (var tGlobKVP in globalNode.Types)
                         {
                             if(!defNode.GlobalTypes.ContainsKey(tGlobKVP.Key))
                                 defNode.GlobalTypes.Add(tGlobKVP);
                             else
-                                parser.ReportSyntaxError(string.Format("Global type {0} defined more than once.", tGlobKVP.Key));
+                                parser.ReportSyntaxError(tGlobKVP.Value.LocationIndex, tGlobKVP.Value.LocationIndex + tGlobKVP.Value.Name.Length, string.Format("Global type {0} defined more than once.", tGlobKVP.Key));
                         }
                         foreach (var vGlobKVP in globalNode.Variables)
                         {
                             if(!defNode.GlobalVariables.ContainsKey(vGlobKVP.Key))
                                 defNode.GlobalVariables.Add(vGlobKVP);
                             else
-                                parser.ReportSyntaxError(string.Format("Global variable {0} defined more than once.", vGlobKVP.Key));
+                                parser.ReportSyntaxError(vGlobKVP.Value.LocationIndex, vGlobKVP.Value.LocationIndex + vGlobKVP.Value.Name.Length, string.Format("Global variable {0} defined more than once.", vGlobKVP.Key));
                         }
                     }
                     else
@@ -176,7 +176,10 @@ namespace VSGenero.Analysis.Parsing.AST
                         foreach (var def in constNode.GetDefinitions())
                         {
                             def.Scope = "module constant";
-                            defNode.Constants.Add(def.Name, def);
+                            if(!defNode.Constants.ContainsKey(def.Name))
+                                defNode.Constants.Add(def.Name, def);
+                            else
+                                parser.ReportSyntaxError(def.LocationIndex, def.LocationIndex + def.Name.Length, string.Format("Module constant {0} defined more than once.", def.Name));
                         }
                     }
                     else
@@ -208,7 +211,10 @@ namespace VSGenero.Analysis.Parsing.AST
                         foreach (var def in typeNode.GetDefinitions())
                         {
                             def.Scope = "module type";
-                            defNode.Types.Add(def.Name, def);
+                            if(!defNode.Types.ContainsKey(def.Name))
+                                defNode.Types.Add(def.Name, def);
+                            else
+                                parser.ReportSyntaxError(def.LocationIndex, def.LocationIndex + def.Name.Length, string.Format("Module type {0} defined more than once.", def.Name));
                         }
                     }
                     else
@@ -240,7 +246,10 @@ namespace VSGenero.Analysis.Parsing.AST
                             foreach (var vardef in def.VariableDefinitions)
                             {
                                 vardef.Scope = "module variable";
-                                defNode.Variables.Add(vardef.Name, vardef);
+                                if(!defNode.Variables.ContainsKey(vardef.Name))
+                                    defNode.Variables.Add(vardef.Name, vardef);
+                                else
+                                    parser.ReportSyntaxError(vardef.LocationIndex, vardef.LocationIndex + vardef.Name.Length, string.Format("Module variable {0} defined more than once.", vardef.Name));
                             }
                     }
                     else
@@ -264,7 +273,10 @@ namespace VSGenero.Analysis.Parsing.AST
                         foreach(var cursor in mainBlock.Children.Values.Where(x => x is PrepareStatement || x is DeclareStatement))
                         {
                             IAnalysisResult curRes = cursor as IAnalysisResult;
-                            defNode.Cursors.Add(curRes.Name, curRes);
+                            if(!defNode.Cursors.ContainsKey(curRes.Name))
+                                defNode.Cursors.Add(curRes.Name, curRes);
+                            else
+                                parser.ReportSyntaxError(curRes.LocationIndex, curRes.LocationIndex + curRes.Name.Length, string.Format("Module variable {0} defined more than once.", curRes.Name));
                         }
                     }
                     else
@@ -286,22 +298,36 @@ namespace VSGenero.Analysis.Parsing.AST
                 {
                     defNode.Children.Add(funcNode.StartIndex, funcNode);
                     funcNode.Scope = "function";
-                    defNode.Functions.Add(funcNode.Name, funcNode);
-                    foreach (var cursor in funcNode.Children.Values.Where(x => x is PrepareStatement || x is DeclareStatement))
+                    if (!defNode.Functions.ContainsKey(funcNode.Name))
                     {
-                        IAnalysisResult curRes = cursor as IAnalysisResult;
-                        defNode.Cursors.Add(curRes.Name, curRes);
+                        defNode.Functions.Add(funcNode.Name, funcNode);
+                        foreach (var cursor in funcNode.Children.Values.Where(x => x is PrepareStatement || x is DeclareStatement))
+                        {
+                            IAnalysisResult curRes = cursor as IAnalysisResult;
+                            defNode.Cursors.Add(curRes.Name, curRes);
+                        }
+                    }
+                    else
+                    {
+                        parser.ReportSyntaxError(funcNode.LocationIndex, funcNode.LocationIndex + funcNode.Name.Length, string.Format("Function {0} defined more than once.", funcNode.Name));
                     }
                 }
                 else if (ReportBlockNode.TryParseNode(parser, out repNode, defNode.PreparedCursorResolver))
                 {
                     defNode.Children.Add(repNode.StartIndex, repNode);
                     repNode.Scope = "report";
-                    defNode.Functions.Add(repNode.Name, repNode);
-                    foreach (var cursor in repNode.Children.Values.Where(x => x is PrepareStatement || x is DeclareStatement))
+                    if (!defNode.Functions.ContainsKey(repNode.Name))
                     {
-                        IAnalysisResult curRes = cursor as IAnalysisResult;
-                        defNode.Cursors.Add(curRes.Name, curRes);
+                        defNode.Functions.Add(repNode.Name, repNode);
+                        foreach (var cursor in repNode.Children.Values.Where(x => x is PrepareStatement || x is DeclareStatement))
+                        {
+                            IAnalysisResult curRes = cursor as IAnalysisResult;
+                            defNode.Cursors.Add(curRes.Name, curRes);
+                        }
+                    }
+                    else
+                    {
+                        parser.ReportSyntaxError(repNode.LocationIndex, repNode.LocationIndex + repNode.Name.Length, string.Format("Function {0} defined more than once.", repNode.Name));
                     }
                 }
                 else
@@ -427,5 +453,44 @@ namespace VSGenero.Analysis.Parsing.AST
                 return _cursors;
             }
         }
+
+        public override IEnumerable<MemberResult> GetValidMembersByContext(int index, IReverseTokenizer revTokenizer, GetMemberOptions options = GetMemberOptions.IntersectMultipleResults)
+        {
+            // do a binary search to determine what node we're in
+            List<int> keys = Children.Select(x => x.Key).ToList();
+            int searchIndex = keys.BinarySearch(index);
+            if (searchIndex < 0)
+            {
+                searchIndex = ~searchIndex;
+                if (searchIndex > 0)
+                    searchIndex--;
+            }
+
+            int key = keys[searchIndex];
+
+            // TODO: need to handle multiple results of the same name
+            AstNode containingNode = Children[key];
+            if (containingNode != null)
+            {
+                if (containingNode.StartIndex < index && containingNode.EndIndex >= index)
+                {
+                    return containingNode.GetValidMembersByContext(index, revTokenizer, options);
+                }
+                else
+                {
+                    // TODO: try to narrow down valid keywords by checking the previous node
+                    int i = 0;
+                }
+            }
+            else
+            {
+                // TODO: return all valid keywords 
+                int i = 0;
+            }
+
+            return base.GetValidMembersByContext(index, revTokenizer, options);
+        }
+
+
     }
 }

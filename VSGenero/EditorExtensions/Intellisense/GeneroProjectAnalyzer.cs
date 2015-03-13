@@ -322,8 +322,8 @@ namespace VSGenero.EditorExtensions.Intellisense
         /// </summary>
         internal static CompletionAnalysis GetCompletions(ITextSnapshot snapshot, ITrackingSpan span, ITrackingPoint point, CompletionOptions options)
         {
-            return TrySpecialCompletions(snapshot, span, point, options) ??
-                   GetNormalCompletionContext(snapshot, span, point, options);
+            return TrySpecialCompletions(snapshot, span, point, options); /*??
+                   GetNormalCompletionContext(snapshot, span, point, options)*/
         }
 
         /// <summary>
@@ -739,19 +739,6 @@ namespace VSGenero.EditorExtensions.Intellisense
                     return CompletionAnalysis.EmptyCompletionContext;
                     //}
                 }
-                else
-                {
-                    var entry = (IGeneroProjectEntry)buffer.GetAnalysis();
-                    if(entry != null)
-                    {
-                        var members = entry.Analysis.GetContextMembersByIndex(start, parser);
-                        if(members != null)
-                        {
-                            return new ContextSensitiveCompletionAnalysis(members, span, buffer, options);
-                        }
-                    }
-                }
-                return null;
             }
             else if ((tokens = classifier.GetClassificationSpans(snapSpan.Start.GetContainingLine().ExtentIncludingLineBreak)).Count > 0 &&
              tokens[0].ClassificationType == classifier.Provider.StringLiteral)
@@ -759,12 +746,18 @@ namespace VSGenero.EditorExtensions.Intellisense
                 // multi-line string, no string completions.
                 return CompletionAnalysis.EmptyCompletionContext;
             }
-            //else if (snapshot.IsReplBufferWithCommand())
-            //{
-            //    return CompletionAnalysis.EmptyCompletionContext;
-            //}
 
-            return null;
+            var entry = (IGeneroProjectEntry)buffer.GetAnalysis();
+            if (entry != null)
+            {
+                var members = entry.Analysis.GetContextMembersByIndex(start, parser);
+                if (members != null)
+                {
+                    return new ContextSensitiveCompletionAnalysis(members, span, buffer, options);
+                }
+            }
+
+            return CompletionAnalysis.EmptyCompletionContext;;
         }
 
         private static CompletionAnalysis GetNormalCompletionContext(ITextSnapshot snapshot, ITrackingSpan applicableSpan, ITrackingPoint point, CompletionOptions options)

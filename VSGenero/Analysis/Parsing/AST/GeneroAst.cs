@@ -171,26 +171,11 @@ namespace VSGenero.Analysis.Parsing.AST
              * Using the specified index, we can attempt to determine what our scope is. Then, using the reverse tokenizer, we can attempt to
              * determine where within the scope we are, and attempt to provide a set of context-sensitive members based on that.
              **********************************************************************************************************************************/
-            // do a binary search to determine what node we're in
-            List<int> keys = _body.Children.Select(x => x.Key).ToList();
-            int searchIndex = keys.BinarySearch(index);
-            if (searchIndex < 0)
-            {
-                searchIndex = ~searchIndex;
-                if (searchIndex > 0)
-                    searchIndex--;
-            }
+            var members = _body.GetValidMembersByContext(index, revTokenizer, options);
 
-            int key = keys[searchIndex];
+            // TODO: need some way of knowing whether to include global members outside the scope of _body
 
-            // TODO: need to handle multiple results of the same name
-            AstNode containingNode = _body.Children[key];
-            if (containingNode != null)
-            {
-                int i = 0;
-            }
-
-            return null;
+            return members;
         }
 
         /// <summary>

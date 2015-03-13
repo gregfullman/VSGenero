@@ -225,6 +225,11 @@ namespace VSGenero.Analysis.Parsing.AST
                 return _children;
             }
         }
+
+        public virtual IEnumerable<MemberResult> GetValidMembersByContext(int index, IReverseTokenizer revTokenizer, GetMemberOptions options = GetMemberOptions.IntersectMultipleResults)
+        {
+            return new MemberResult[0];
+        }
     }
 
     public class IndexSpanComparer : IComparer<IndexSpan>
