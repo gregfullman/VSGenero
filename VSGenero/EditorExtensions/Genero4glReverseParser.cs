@@ -6,15 +6,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using VSGenero.Analysis;
+using VSGenero.Analysis.Parsing;
 
 namespace VSGenero.EditorExtensions
 {
-    public class Genero4glReverseParser : IEnumerable<ClassificationSpan>
+    public class Genero4glReverseParser : IEnumerable<ClassificationSpan>, IReverseTokenizer
     {
         private readonly ITextSnapshot _snapshot;
         private readonly ITextBuffer _buffer;
         private readonly ITrackingSpan _span;
         private IList<ClassificationSpan> _tokens;
+        private IList<TokenInfo> _tokenInfos;
         private ITextSnapshotLine _curLine;
         private Genero4glClassifier _classifier;
         private static readonly string[] _assignOperators = new[] {
@@ -32,7 +35,9 @@ namespace VSGenero.EditorExtensions
             var line = _curLine = snapshot.GetLineFromPosition(loc.Start);
 
             var targetSpan = new Span(line.Start.Position, span.GetEndPoint(snapshot).Position - line.Start.Position);
-            _tokens = Classifier.GetClassificationSpans(new SnapshotSpan(snapshot, targetSpan));
+            var snapSpan = new SnapshotSpan(snapshot, targetSpan);
+            _tokens = Classifier.GetClassificationSpans(snapSpan);
+            _tokenInfos = Classifier.GetTokens(snapSpan);
         }
 
         public SnapshotSpan? GetExpressionRange(bool forCompletion = true, int nesting = 0) {
@@ -41,6 +46,35 @@ namespace VSGenero.EditorExtensions
             string lastKeywordArg;
             bool isParameterName;
             return GetExpressionRange(nesting, out dummy, out dummyPoint, out lastKeywordArg, out isParameterName, forCompletion);
+        }
+
+        internal static IEnumerable<TokenInfo> ReverseTokenInfoEnumerable(Genero4glClassifier classifier, SnapshotPoint startPoint)
+        {
+            var startLine = startPoint.GetContainingLine();
+            int curLine = startLine.LineNumber;
+            var tokens = classifier.GetTokens(new SnapshotSpan(startLine.Start, startPoint));
+
+            for (; ; )
+            {
+                for (int i = tokens.Count - 1; i >= 0; i--)
+                {
+                    yield return tokens[i];
+                }
+
+                // indicate the line break
+                yield return default(TokenInfo);
+
+                curLine--;
+                if (curLine >= 0)
+                {
+                    var prevLine = startPoint.Snapshot.GetLineFromLineNumber(curLine);
+                    tokens = classifier.GetTokens(prevLine.Extent);
+                }
+                else
+                {
+                    break;
+                }
+            }
         }
 
         internal static IEnumerator<ClassificationSpan> ReverseClassificationSpanEnumerator(Genero4glClassifier classifier, SnapshotPoint startPoint)
@@ -411,6 +445,11 @@ namespace VSGenero.EditorExtensions
 
         public IEnumerator<ClassificationSpan> GetEnumerator() {
             return ReverseClassificationSpanEnumerator(_classifier, _span.GetSpan(_snapshot).End);
+        }
+
+        public IEnumerable<TokenInfo> GetReversedTokens()
+        {
+            return ReverseTokenInfoEnumerable(_classifier, _span.GetSpan(_snapshot).End);
         }
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() {

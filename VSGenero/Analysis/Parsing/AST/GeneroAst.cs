@@ -155,6 +155,34 @@ namespace VSGenero.Analysis.Parsing.AST
             return res.ToArray();
         }
 
+        public IEnumerable<MemberResult> GetContextMembersByIndex(int index, IReverseTokenizer revTokenizer, GetMemberOptions options = GetMemberOptions.IntersectMultipleResults)
+        {
+            /**********************************************************************************************************************************
+             * Using the specified index, we can attempt to determine what our scope is. Then, using the reverse tokenizer, we can attempt to
+             * determine where within the scope we are, and attempt to provide a set of context-sensitive members based on that.
+             **********************************************************************************************************************************/
+            // do a binary search to determine what node we're in
+            List<int> keys = _body.Children.Select(x => x.Key).ToList();
+            int searchIndex = keys.BinarySearch(index);
+            if (searchIndex < 0)
+            {
+                searchIndex = ~searchIndex;
+                if (searchIndex > 0)
+                    searchIndex--;
+            }
+
+            int key = keys[searchIndex];
+
+            // TODO: need to handle multiple results of the same name
+            AstNode containingNode = _body.Children[key];
+            if (containingNode != null)
+            {
+                int i = 0;
+            }
+
+            return null;
+        }
+
         /// <summary>
         /// Gets the available names at the given location.  This includes built-in variables, global variables, and locals.
         /// </summary>

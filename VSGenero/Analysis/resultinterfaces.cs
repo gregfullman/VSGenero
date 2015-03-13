@@ -17,17 +17,13 @@ namespace VSGenero.Analysis
     { 
     }
 
-    public interface IModuleResult : IAnalysisResultContainer, IGlobalsResult
+    public interface IModuleResult : IAnalysisResultContainer
     {
         IDictionary<string, IAnalysisResult> Variables { get; }
         IDictionary<string, IAnalysisResult> Types { get; }
         IDictionary<string, IAnalysisResult> Constants { get; }
         IDictionary<string, IFunctionResult> Functions { get; }
         IDictionary<string, IAnalysisResult> Cursors { get; }
-    }
-
-    public interface IGlobalsResult
-    {
         IDictionary<string, IAnalysisResult> GlobalVariables { get; }
         IDictionary<string, IAnalysisResult> GlobalTypes { get; }
         IDictionary<string, IAnalysisResult> GlobalConstants { get; }

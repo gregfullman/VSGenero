@@ -114,8 +114,8 @@ namespace VSGenero.EditorExtensions.Intellisense
             var start = _stopwatch.ElapsedMilliseconds;
 
             var result = new FuzzyCompletionSet(
-                "Python",
-                "Python",
+                "Genero",
+                "Genero",
                 Span,
                 members.Select(m => GeneroCompletion(glyphService, m)),
                 _options,

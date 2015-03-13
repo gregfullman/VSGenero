@@ -740,31 +740,18 @@ namespace VSGenero.EditorExtensions.Intellisense
                     return CompletionAnalysis.EmptyCompletionContext;
                     //}
                 }
-                //else if (lastClass.ClassificationType == classifier.Provider.Operator &&
-                //  lastClass.Span.GetText() == "@")
-                //{
-
-                //    return new DecoratorCompletionAnalysis(span, buffer, options);
-                //}
-                //else if (CompletionAnalysis.IsKeyword(lastClass, "raise") || CompletionAnalysis.IsKeyword(lastClass, "except"))
-                //{
-                //    return new ExceptionCompletionAnalysis(span, buffer, options);
-                //}
-                //else if (CompletionAnalysis.IsKeyword(lastClass, "def"))
-                //{
-                //    return new OverrideCompletionAnalysis(span, buffer, options);
-                //}
-
-                //// Import completions
-                //var first = tokens[0];
-                //if (CompletionAnalysis.IsKeyword(first, "import"))
-                //{
-                //    return ImportCompletionAnalysis.Make(tokens, span, buffer, options);
-                //}
-                //else if (CompletionAnalysis.IsKeyword(first, "from"))
-                //{
-                //    return FromImportCompletionAnalysis.Make(tokens, span, buffer, options);
-                //}
+                else
+                {
+                    var entry = (IGeneroProjectEntry)buffer.GetAnalysis();
+                    if(entry != null)
+                    {
+                        var members = entry.Analysis.GetContextMembersByIndex(start, parser);
+                        if(members != null)
+                        {
+                            return new ContextSensitiveCompletionAnalysis(members, span, buffer, options);
+                        }
+                    }
+                }
                 return null;
             }
             else if ((tokens = classifier.GetClassificationSpans(snapSpan.Start.GetContainingLine().ExtentIncludingLineBreak)).Count > 0 &&

@@ -120,12 +120,32 @@ namespace VSGenero.Analysis.Parsing.AST
                     continue;
 
                 GlobalsNode globalNode;
-                if (GlobalsNode.TryParseNode(parser, out globalNode))
+                while (GlobalsNode.TryParseNode(parser, out globalNode))
                 {
                     if (processed == NodesProcessed.SchemaSpec)
                     {
                         defNode.Children.Add(globalNode.StartIndex, globalNode);
-                        defNode._globals = globalNode;
+                        foreach (var cGlobKVP in globalNode.Constants)
+                        {
+                            if (!defNode.GlobalConstants.ContainsKey(cGlobKVP.Key))
+                                defNode.GlobalConstants.Add(cGlobKVP);
+                            else
+                                parser.ReportSyntaxError(string.Format("Global constant {0} defined more than once.", cGlobKVP.Key));
+                        }
+                        foreach (var tGlobKVP in globalNode.Types)
+                        {
+                            if(!defNode.GlobalTypes.ContainsKey(tGlobKVP.Key))
+                                defNode.GlobalTypes.Add(tGlobKVP);
+                            else
+                                parser.ReportSyntaxError(string.Format("Global type {0} defined more than once.", tGlobKVP.Key));
+                        }
+                        foreach (var vGlobKVP in globalNode.Variables)
+                        {
+                            if(!defNode.GlobalVariables.ContainsKey(vGlobKVP.Key))
+                                defNode.GlobalVariables.Add(vGlobKVP);
+                            else
+                                parser.ReportSyntaxError(string.Format("Global variable {0} defined more than once.", vGlobKVP.Key));
+                        }
                     }
                     else
                     {
@@ -299,8 +319,6 @@ namespace VSGenero.Analysis.Parsing.AST
             return true;
         }
 
-        private GlobalsNode _globals = null;
-
         private Dictionary<string, IAnalysisResult> _variables;
         public IDictionary<string, IAnalysisResult> Variables
         {
@@ -334,51 +352,36 @@ namespace VSGenero.Analysis.Parsing.AST
             }
         }
 
-        private Dictionary<string, IAnalysisResult> _emptyGlobalVariables = new Dictionary<string, IAnalysisResult>();
+        private Dictionary<string, IAnalysisResult> _globalVariables;
         public IDictionary<string, IAnalysisResult> GlobalVariables
         {
             get
             {
-                if(_globals == null)
-                {
-                    return _emptyGlobalVariables;
-                }
-                else
-                {
-                    return _globals.GlobalVariables;
-                }
+                if (_globalVariables == null)
+                    _globalVariables = new Dictionary<string, IAnalysisResult>(StringComparer.OrdinalIgnoreCase);
+                return _globalVariables;
             }
         }
 
-        private Dictionary<string, IAnalysisResult> emptyGlobalTypes = new Dictionary<string, IAnalysisResult>();
+        private Dictionary<string, IAnalysisResult> _globalTypes;
         public IDictionary<string, IAnalysisResult> GlobalTypes
         {
             get
             {
-                if (_globals == null)
-                {
-                    return emptyGlobalTypes;
-                }
-                else
-                {
-                    return _globals.GlobalTypes;
-                }
+                if (_globalTypes == null)
+                    _globalTypes = new Dictionary<string, IAnalysisResult>(StringComparer.OrdinalIgnoreCase);
+                return _globalTypes;
             }
         }
 
-        private Dictionary<string, IAnalysisResult> emptyGlobalConstants = new Dictionary<string, IAnalysisResult>();
+        private Dictionary<string, IAnalysisResult> _globalConstants;
         public IDictionary<string, IAnalysisResult> GlobalConstants
         {
             get
             {
-                if (_globals == null)
-                {
-                    return emptyGlobalConstants;
-                }
-                else
-                {
-                    return _globals.GlobalConstants;
-                }
+                if (_globalConstants == null)
+                    _globalConstants = new Dictionary<string, IAnalysisResult>(StringComparer.OrdinalIgnoreCase);
+                return _globalConstants;
             }
         }
 

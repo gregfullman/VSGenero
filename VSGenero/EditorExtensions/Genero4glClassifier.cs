@@ -60,6 +60,20 @@ namespace VSGenero.EditorExtensions
             return classifications;
         }
 
+        public IList<TokenInfo> GetTokens(SnapshotSpan span)
+        {
+            var tokens = new List<TokenInfo>();
+            var snapshot = span.Snapshot;
+
+
+            if (span.Length > 0)
+            {
+                AddTokens(GetTokenizer(), tokens, span);
+            }
+
+            return tokens;
+        }
+
         private Tokenizer GetTokenizer() {
             if (_tokenizer == null) {
                 _tokenizer = new Tokenizer(options: TokenizerOptions.Verbatim | TokenizerOptions.VerbatimCommentsAndLineJoins);
@@ -104,6 +118,40 @@ namespace VSGenero.EditorExtensions
                 }
 
                 ApplyChange(tokenizer, snapshot, change.NewSpan);
+            }
+        }
+
+        private void AddTokens(Tokenizer tokenizer, List<TokenInfo> tokens, SnapshotSpan span)
+        {
+            Debug.Assert(span.Length > 0);
+
+            var snapshot = span.Snapshot;
+            int firstLine = snapshot.GetLineNumberFromPosition(span.Start);
+            int lastLine = snapshot.GetLineNumberFromPosition(span.End - 1);
+
+            Contract.Assert(firstLine >= 0);
+
+            _tokenCache.EnsureCapacity(snapshot.LineCount);
+
+            // find the closest line preceding firstLine for which we know categorizer state, stop at the codeStartLine:
+            LineTokenization lineTokenization;
+            int currentLine = _tokenCache.IndexOfPreviousTokenization(firstLine, 0, out lineTokenization) + 1;
+            object state = lineTokenization.State;
+
+            while (currentLine <= lastLine)
+            {
+                if (!_tokenCache.TryGetTokenization(currentLine, out lineTokenization))
+                {
+                    lineTokenization = TokenizeLine(tokenizer, snapshot, state, currentLine);
+                    _tokenCache[currentLine] = lineTokenization;
+                }
+
+                foreach(var token in lineTokenization.Tokens)
+                {
+                    tokens.Add(token);
+                }
+
+                currentLine++;
             }
         }
 

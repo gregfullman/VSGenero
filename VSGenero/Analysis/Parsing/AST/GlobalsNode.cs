@@ -22,7 +22,7 @@ namespace VSGenero.Analysis.Parsing.AST
     /// 
     /// For more info, see: http://www.4js.com/online_documentation/fjs-fgl-manual-html/index.html#c_fgl_Globals_003.html
     /// </summary>
-    public class GlobalsNode : AstNode, IGlobalsResult, IOutlinableResult
+    public class GlobalsNode : AstNode, IOutlinableResult
     {
         public string GlobalsFilename { get; private set; }
 
@@ -72,7 +72,10 @@ namespace VSGenero.Analysis.Parsing.AST
                                         foreach (var def in typeNode.GetDefinitions())
                                         {
                                             def.Scope = "global type";
-                                            defNode.GlobalTypes.Add(def.Name, def);
+                                            if(!defNode.Types.ContainsKey(def.Name))
+                                                defNode.Types.Add(def.Name, def);
+                                            else
+                                                parser.ReportSyntaxError(string.Format("Global type {0} is defined more than once.", def.Name));
                                         }
                                     }
                                     break;
@@ -85,7 +88,10 @@ namespace VSGenero.Analysis.Parsing.AST
                                         foreach (var def in constNode.GetDefinitions())
                                         {
                                             def.Scope = "global constant";
-                                            defNode.GlobalConstants.Add(def.Name, def);
+                                            if(!defNode.Constants.ContainsKey(def.Name))
+                                                defNode.Constants.Add(def.Name, def);
+                                            else
+                                                parser.ReportSyntaxError(string.Format("Global constant {0} is defined more than once.", def.Name));
                                         }
                                     }
                                     break;
@@ -99,7 +105,10 @@ namespace VSGenero.Analysis.Parsing.AST
                                             foreach (var vardef in def.VariableDefinitions)
                                             {
                                                 vardef.Scope = "global variable";
-                                                defNode.GlobalVariables.Add(vardef.Name, vardef);
+                                                if(!defNode.Variables.ContainsKey(vardef.Name))
+                                                    defNode.Variables.Add(vardef.Name, vardef);
+                                                else
+                                                    parser.ReportSyntaxError(string.Format("Global variable {0} is defined more than once.", vardef.Name));
                                             }
                                     }
                                     break;
@@ -137,7 +146,7 @@ namespace VSGenero.Analysis.Parsing.AST
         }
 
         private Dictionary<string, IAnalysisResult> _variables;
-        public IDictionary<string, IAnalysisResult> GlobalVariables
+        public Dictionary<string, IAnalysisResult> Variables
         {
             get
             {
@@ -147,25 +156,25 @@ namespace VSGenero.Analysis.Parsing.AST
             }
         }
 
-        private Dictionary<string, IAnalysisResult> _types;
-        public IDictionary<string, IAnalysisResult> GlobalTypes
-        {
-            get
-            {
-                if (_types == null)
-                    _types = new Dictionary<string, IAnalysisResult>(StringComparer.OrdinalIgnoreCase);
-                return _types;
-            }
-        }
-
         private Dictionary<string, IAnalysisResult> _constants;
-        public IDictionary<string, IAnalysisResult> GlobalConstants
+        public Dictionary<string, IAnalysisResult> Constants
         {
             get
             {
                 if (_constants == null)
                     _constants = new Dictionary<string, IAnalysisResult>(StringComparer.OrdinalIgnoreCase);
                 return _constants;
+            }
+        }
+
+        private Dictionary<string, IAnalysisResult> _types;
+        public Dictionary<string, IAnalysisResult> Types
+        {
+            get
+            {
+                if (_types == null)
+                    _types = new Dictionary<string, IAnalysisResult>(StringComparer.OrdinalIgnoreCase);
+                return _types;
             }
         }
 

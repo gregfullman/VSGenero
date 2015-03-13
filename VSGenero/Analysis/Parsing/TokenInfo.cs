@@ -12,6 +12,13 @@ namespace VSGenero.Analysis.Parsing
         private TokenCategory _category;
         private TokenTriggers _trigger;
         private SourceSpan _span;
+        private Token _token;
+
+        public Token Token
+        {
+            get { return _token; }
+            set { _token = value; }
+        }
 
         public TokenCategory Category
         {
@@ -31,18 +38,19 @@ namespace VSGenero.Analysis.Parsing
             set { _span = value; }
         }
 
-        internal TokenInfo(SourceSpan span, TokenCategory category, TokenTriggers trigger)
+        internal TokenInfo(SourceSpan span, TokenCategory category, TokenTriggers trigger, Token token)
         {
             _category = category;
             _trigger = trigger;
             _span = span;
+            _token = token;
         }
 
         #region IEquatable<TokenInfo> Members
 
         public bool Equals(TokenInfo other)
         {
-            return _category == other._category && _trigger == other._trigger && _span == other._span;
+            return _category == other._category && _trigger == other._trigger && _span == other._span && _token == other._token;
         }
 
         #endregion

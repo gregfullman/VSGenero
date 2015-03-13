@@ -246,6 +246,7 @@ namespace VSGenero.Analysis.Parsing
         public static TokenInfo GetTokenInfo(Token token)
         {
             TokenInfo result = new TokenInfo();
+            result.Token = token;
             switch (token.Kind)
             {
                 case TokenKind.EndOfFile:
@@ -343,6 +344,7 @@ namespace VSGenero.Analysis.Parsing
 
             TokenInfo result = new TokenInfo();
             Token token = GetNextToken();
+            result.Token = token;
             result.SourceSpan = new SourceSpan(IndexToLocation(TokenSpan.Start), IndexToLocation(TokenSpan.End));
 
             switch (token.Kind)
