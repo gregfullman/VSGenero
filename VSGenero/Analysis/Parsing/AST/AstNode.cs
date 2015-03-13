@@ -226,7 +226,7 @@ namespace VSGenero.Analysis.Parsing.AST
             }
         }
 
-        public virtual IEnumerable<MemberResult> GetValidMembersByContext(int index, IReverseTokenizer revTokenizer, GetMemberOptions options = GetMemberOptions.IntersectMultipleResults)
+        public virtual IEnumerable<MemberResult> GetValidMembersByContext(int index, IReverseTokenizer revTokenizer, GeneroAst ast, GetMemberOptions options = GetMemberOptions.IntersectMultipleResults)
         {
             return new MemberResult[0];
         }

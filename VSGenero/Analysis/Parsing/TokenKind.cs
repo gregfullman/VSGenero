@@ -477,6 +477,17 @@ namespace VSGenero.Analysis.Parsing
             }
         }
 
+        private static Dictionary<TokenKind, string> _tokenKinds;
+        public static Dictionary<TokenKind, string> TokenKinds
+        {
+            get
+            {
+                if (_tokenKinds == null)
+                    return new Dictionary<TokenKind, string>();
+                return _tokenKinds;
+            }
+        }
+
         private static object _tokLock = new object();
 
         public static Token GetToken(string possibleKeyword)
@@ -489,6 +500,7 @@ namespace VSGenero.Analysis.Parsing
                     var keywords = Enum.GetNames(typeof(TokenKind));
                     var values = Enum.GetValues(typeof(TokenKind)).OfType<TokenKind>().ToArray();
                     _keywords = new Dictionary<string, TokenKind>(keywords.Length, StringComparer.OrdinalIgnoreCase);
+                    _tokenKinds = new Dictionary<TokenKind, string>(keywords.Length);
                     for (int i = 0; i < keywords.Length; i++)
                     {
                         if (keywords[i].EndsWith("Keyword") && !keywords[i].Contains("Language"))
@@ -498,6 +510,7 @@ namespace VSGenero.Analysis.Parsing
                             if (!_keywords.ContainsKey(key))
                             {
                                 _keywords.Add(key.ToLower(), val);
+                                _tokenKinds.Add(val, key.ToLower());
                             }
                             else
                             {

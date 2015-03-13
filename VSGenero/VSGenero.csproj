@@ -434,6 +434,7 @@
     <Compile Include="EditorExtensions\SmartIndentProvider.cs" />
     <Compile Include="EditorExtensions\SnapshotSpanCodeReader.cs" />
     <Compile Include="EditorExtensions\TokenCache.cs" />
+    <Compile Include="Extensions.cs" />
     <Compile Include="Genero4GLLanguagePreferences.cs" />
     <Compile Include="Navigation\GeneroLibraryManager.cs" />
     <Compile Include="Navigation\IPublicFunctionNavigator.cs" />

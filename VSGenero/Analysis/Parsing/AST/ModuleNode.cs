@@ -43,6 +43,24 @@ namespace VSGenero.Analysis.Parsing.AST
             Body
         }
 
+        private static TokenKind[] ValidKeywords = new TokenKind[]
+        {
+            TokenKind.OptionsKeyword,
+            TokenKind.ImportKeyword,
+            TokenKind.SchemaKeyword,
+            TokenKind.DescribeKeyword,
+            TokenKind.DatabaseKeyword,
+            TokenKind.GlobalsKeyword,
+            TokenKind.ConstantKeyword,
+            TokenKind.TypeKeyword,
+            TokenKind.DefineKeyword,
+            TokenKind.MainKeyword,
+            TokenKind.FunctionKeyword,
+            TokenKind.ReportKeyword,
+            TokenKind.PrivateKeyword,
+            TokenKind.PublicKeyword
+        };
+
         private static bool CheckForPreprocessorNode(Parser parser)
         {
             PreprocessorNode preNode;
@@ -454,7 +472,7 @@ namespace VSGenero.Analysis.Parsing.AST
             }
         }
 
-        public override IEnumerable<MemberResult> GetValidMembersByContext(int index, IReverseTokenizer revTokenizer, GetMemberOptions options = GetMemberOptions.IntersectMultipleResults)
+        public override IEnumerable<MemberResult> GetValidMembersByContext(int index, IReverseTokenizer revTokenizer, GeneroAst ast, GetMemberOptions options = GetMemberOptions.IntersectMultipleResults)
         {
             // do a binary search to determine what node we're in
             List<int> keys = Children.Select(x => x.Key).ToList();
@@ -474,21 +492,39 @@ namespace VSGenero.Analysis.Parsing.AST
             {
                 if (containingNode.StartIndex < index && containingNode.EndIndex >= index)
                 {
-                    return containingNode.GetValidMembersByContext(index, revTokenizer, options);
+                    return containingNode.GetValidMembersByContext(index, revTokenizer, ast, options);
                 }
                 else
                 {
-                    // TODO: try to narrow down valid keywords by checking the previous node
-                    int i = 0;
+                    // try to narrow down valid keywords by checking the previous node
+                    int tokenKindLimit = 0;
+                    if (containingNode is CompilerOptionsNode)
+                        tokenKindLimit = 1;
+                    else if (containingNode is ImportModuleNode)
+                        tokenKindLimit = 2;
+                    else if (containingNode is SchemaSpecificationNode)
+                        tokenKindLimit = 5;
+                    else if (containingNode is GlobalsNode)
+                        tokenKindLimit = 5;
+                    else if (containingNode is ConstantDefNode)
+                        tokenKindLimit = 6;
+                    else if (containingNode is TypeDefNode)
+                        tokenKindLimit = 7;
+                    else if (containingNode is DefineNode)
+                        tokenKindLimit = 8;
+                    else if (containingNode is MainBlockNode)
+                        tokenKindLimit = 10;
+                    else
+                        tokenKindLimit = 10;
+                    return ValidKeywords.SubArray(tokenKindLimit, ValidKeywords.Length - tokenKindLimit)
+                                        .Select(x => new MemberResult(Tokens.TokenKinds[x], GeneroMemberType.Keyword, ast));
                 }
             }
             else
             {
                 // TODO: return all valid keywords 
-                int i = 0;
+                return ValidKeywords.Select(x => new MemberResult(Tokens.TokenKinds[x], GeneroMemberType.Keyword, ast));
             }
-
-            return base.GetValidMembersByContext(index, revTokenizer, options);
         }
 
 

@@ -171,7 +171,7 @@ namespace VSGenero.Analysis.Parsing.AST
              * Using the specified index, we can attempt to determine what our scope is. Then, using the reverse tokenizer, we can attempt to
              * determine where within the scope we are, and attempt to provide a set of context-sensitive members based on that.
              **********************************************************************************************************************************/
-            var members = _body.GetValidMembersByContext(index, revTokenizer, options);
+            var members = _body.GetValidMembersByContext(index, revTokenizer, this, options);
 
             // TODO: need some way of knowing whether to include global members outside the scope of _body
 
