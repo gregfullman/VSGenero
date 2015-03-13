@@ -68,32 +68,6 @@ namespace VSGenero.EditorExtensions.Intellisense
             );
         }
 
-        internal static DynamicallyVisibleCompletion PythonCompletion(IGlyphService service, string name, string tooltip, StandardGlyphGroup group)
-        {
-            var icon = new IconDescription(group, StandardGlyphItem.GlyphItemPublic);
-
-            var result = new DynamicallyVisibleCompletion(name,
-                name,
-                tooltip,
-                service.GetGlyph(group, StandardGlyphItem.GlyphItemPublic),
-                Enum.GetName(typeof(StandardGlyphGroup), group));
-            result.Properties.AddProperty(typeof(IconDescription), icon);
-            return result;
-        }
-
-        internal static DynamicallyVisibleCompletion PythonCompletion(IGlyphService service, string name, string completion, string tooltip, StandardGlyphGroup group)
-        {
-            var icon = new IconDescription(group, StandardGlyphItem.GlyphItemPublic);
-
-            var result = new DynamicallyVisibleCompletion(name,
-                completion,
-                tooltip,
-                service.GetGlyph(group, StandardGlyphItem.GlyphItemPublic),
-                Enum.GetName(typeof(StandardGlyphGroup), group));
-            result.Properties.AddProperty(typeof(IconDescription), icon);
-            return result;
-        }
-
         internal GeneroAst GetAnalysisEntry()
         {
             var entry = (IGeneroProjectEntry)TextBuffer.GetAnalysis();

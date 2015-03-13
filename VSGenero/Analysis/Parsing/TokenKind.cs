@@ -465,6 +465,17 @@ namespace VSGenero.Analysis.Parsing
         private static readonly Token symAmpersand = new OperatorToken(TokenKind.Ampersand, "&", -1);
 
         private static Dictionary<string, TokenKind> _keywords;
+        public static Dictionary<string, TokenKind> Keywords
+        {
+            get
+            {
+                if(_keywords == null)
+                {
+                    return new Dictionary<string, TokenKind>();
+                }
+                return _keywords;
+            }
+        }
 
         private static object _tokLock = new object();
 
@@ -486,7 +497,7 @@ namespace VSGenero.Analysis.Parsing
                             TokenKind val = (TokenKind)values[i];
                             if (!_keywords.ContainsKey(key))
                             {
-                                _keywords.Add(key, val);
+                                _keywords.Add(key.ToLower(), val);
                             }
                             else
                             {

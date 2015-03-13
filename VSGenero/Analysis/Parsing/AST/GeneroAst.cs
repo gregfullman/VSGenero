@@ -171,8 +171,9 @@ namespace VSGenero.Analysis.Parsing.AST
              * 6) Functions within the current project
              * 7) Public function modules
              */
-            List<MemberResult> results = new List<MemberResult>();
-            return results;
+
+            //List<MemberResult> results = new List<MemberResult>();
+            //return results;
             //var result = new Dictionary<string, List<AnalysisValue>>();
 
             //// collect builtins
@@ -194,10 +195,99 @@ namespace VSGenero.Analysis.Parsing.AST
             //var res = MemberDictToResultList(GetPrivatePrefix(scope), options, result);
             //if (options.Keywords())
             //{
-            //    res = GetKeywordMembers(options, scope).Union(res);
+            //    res = GetKeywordMember    `s(options, scope).Union(res);
             //}
 
-            //return res;
+            //return res;h
+            IEnumerable<MemberResult> res = GetKeywordMembers(options);
+
+            // do a binary search to determine what node we're in
+            List<int> keys = _body.Children.Select(x => x.Key).ToList();
+            int searchIndex = keys.BinarySearch(index);
+            if (searchIndex < 0)
+            {
+                searchIndex = ~searchIndex;
+                if (searchIndex > 0)
+                    searchIndex--;
+            }
+
+            int key = keys[searchIndex];
+
+            // TODO: need to handle multiple results of the same name
+            AstNode containingNode = _body.Children[key];
+            if (containingNode != null)
+            {
+                if (containingNode is IFunctionResult)
+                {
+                    IFunctionResult func = containingNode as IFunctionResult;
+                    res = res.Union(func.Variables.Keys.Select(x => new MemberResult(x, GeneroMemberType.Instance, this)));
+                    res = res.Union(func.Types.Keys.Select(x => new MemberResult(x, GeneroMemberType.Class, this)));
+                    res = res.Union(func.Constants.Keys.Select(x => new MemberResult(x, GeneroMemberType.Constant, this)));
+                }
+
+                if (_body is IModuleResult)
+                {
+                    // check for module vars, types, and constants (and globals defined in this module)
+                    IModuleResult mod = _body as IModuleResult;
+                    res = res.Union(mod.Variables.Keys.Select(x => new MemberResult(x, GeneroMemberType.Module, this)));
+                    res = res.Union(mod.Types.Keys.Select(x => new MemberResult(x, GeneroMemberType.Class, this)));
+                    res = res.Union(mod.Constants.Keys.Select(x => new MemberResult(x, GeneroMemberType.Constant, this)));
+                    res = res.Union(mod.GlobalVariables.Keys.Select(x => new MemberResult(x, GeneroMemberType.Module, this)));
+                    res = res.Union(mod.GlobalTypes.Keys.Select(x => new MemberResult(x, GeneroMemberType.Class, this)));
+                    res = res.Union(mod.GlobalConstants.Keys.Select(x => new MemberResult(x, GeneroMemberType.Constant, this)));
+
+                    // check for cursors in this module
+                    res = res.Union(mod.Cursors.Keys.Select(x => new MemberResult(x, GeneroMemberType.Unknown, this)));
+
+                    // check for module functio
+                    res = res.Union(mod.Functions.Keys.Select(x => new MemberResult(x, GeneroMemberType.Method, this)));
+                }
+
+                // TODO: this could probably be done more efficiently by having each GeneroAst load globals and functions into
+                // dictionaries stored on the IGeneroProject, instead of in each project entry.
+                // However, this does required more upkeep when changes occur. Will look into it...
+                if (_projEntry != null && _projEntry is IGeneroProjectEntry)
+                {
+                    IGeneroProjectEntry genProj = _projEntry as IGeneroProjectEntry;
+                    if (genProj.ParentProject != null)
+                    {
+                        foreach (var projEntry in genProj.ParentProject.ProjectEntries.Where(x => x.Value != genProj))
+                        {
+                            if (projEntry.Value.Analysis != null &&
+                               projEntry.Value.Analysis.Body != null)
+                            {
+                                IModuleResult modRes = projEntry.Value.Analysis.Body as IModuleResult;
+                                if (modRes != null)
+                                {
+                                    // check global vars, types, and constants
+                                    res = res.Union(modRes.Variables.Keys.Select(x => new MemberResult(x, GeneroMemberType.Module, this)));
+                                    res = res.Union(modRes.Types.Keys.Select(x => new MemberResult(x, GeneroMemberType.Class, this)));
+                                    res = res.Union(modRes.Constants.Keys.Select(x => new MemberResult(x, GeneroMemberType.Constant, this)));
+                                    res = res.Union(modRes.GlobalVariables.Keys.Select(x => new MemberResult(x, GeneroMemberType.Module, this)));
+                                    res = res.Union(modRes.GlobalTypes.Keys.Select(x => new MemberResult(x, GeneroMemberType.Class, this)));
+                                    res = res.Union(modRes.GlobalConstants.Keys.Select(x => new MemberResult(x, GeneroMemberType.Constant, this)));
+
+                                    // check for cursors in this module
+                                    res = res.Union(modRes.Cursors.Keys.Select(x => new MemberResult(x, GeneroMemberType.Unknown, this)));
+
+                                    // check for module functions
+                                    res = res.Union(modRes.Functions.Keys.Select(x => new MemberResult(x, GeneroMemberType.Method, this)));
+                                }
+                            }
+                        }
+                    }
+                }
+
+                /* TODO:
+                 * Need to check for:
+                 * 1) Temp tables
+                 * 2) DB Tables and columns
+                 * 3) Record fields
+                 * 7) Public functions
+                 */
+            }
+
+            return res;
         }
 
         /// <summary>
@@ -407,6 +497,35 @@ namespace VSGenero.Analysis.Parsing.AST
             //var unit = GetNearestEnclosingAnalysisUnit(scope);
             //var lookup = new ExpressionEvaluator(unit.CopyForEval(), scope, mergeScopes: true).Evaluate(expr);
             //return GetMemberResults(lookup, scope, options);
+        }
+
+        private IEnumerable<MemberResult> GetKeywordMembers(GetMemberOptions options/*, InterpreterScope scope*/)
+        {
+            IEnumerable<string> keywords = null;
+
+            keywords = Tokens.Keywords.Keys;
+
+            //if (options.ExpressionKeywords())
+            //{
+            //    // keywords available in any context
+            //    keywords = PythonKeywords.Expression(ProjectState.LanguageVersion);
+            //}
+            //else
+            //{
+            //    keywords = Enumerable.Empty<string>();
+            //}
+
+            //if (options.StatementKeywords())
+            //{
+            //    keywords = keywords.Union(PythonKeywords.Statement(ProjectState.LanguageVersion));
+            //}
+
+            //if (!(scope is FunctionScope))
+            //{
+            //    keywords = keywords.Except(PythonKeywords.InvalidOutsideFunction(ProjectState.LanguageVersion));
+            //}
+
+            return keywords.Select(kw => new MemberResult(kw, GeneroMemberType.Keyword, this));
         }
 
         /// <summary>

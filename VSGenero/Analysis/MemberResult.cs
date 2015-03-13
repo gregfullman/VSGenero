@@ -93,12 +93,12 @@ namespace VSGenero.Analysis
 
                 var doc = new StringBuilder();
                 var ns = _var();
-                var docString = ns.Documentation;
+                var docString = ns == null ? "" : ns.Documentation;
                 if (docSeen.Add(docString))
                 {
                     docs.Add(docString);
                 }
-                var typeString = ns.ShortDescription;
+                var typeString = ns == null ? "" : ns.ShortDescription;
                 if (typeSeen.Add(typeString))
                 {
                     types.Add(typeString);
