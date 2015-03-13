@@ -309,6 +309,7 @@
     </COMReference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Analysis\AnalysisVariable.cs" />
     <Compile Include="Analysis\GeneroKeywords.cs" />
     <Compile Include="Analysis\ILocatedMember.cs" />
     <Compile Include="Analysis\IReferenceableContainer.cs" />

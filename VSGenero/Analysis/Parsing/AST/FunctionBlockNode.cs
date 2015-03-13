@@ -413,5 +413,11 @@ namespace VSGenero.Analysis.Parsing.AST
         {
             get { return ""; }  // TODO: Provide source doc documentation
         }
+
+
+        public int LocationIndex
+        {
+            get { return StartIndex; }
+        }
     }
 }

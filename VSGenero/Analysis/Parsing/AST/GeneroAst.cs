@@ -110,16 +110,26 @@ namespace VSGenero.Analysis.Parsing.AST
 
         LocationInfo ILocationResolver.ResolveLocation(IProjectEntry project, object location)
         {
-            AstNode node = (AstNode)location;
-            var span = node.GetSpan(this);
-            return new LocationInfo(project, span.Start.Line, span.Start.Column);
+            IAnalysisResult result = location as IAnalysisResult;
+            if (result != null)
+            {
+                var locIndex = result.LocationIndex;
+                var loc = IndexToLocation(locIndex);
+                return new LocationInfo(project, loc.Line, loc.Column);
+            }
+            return null;
         }
 
         public LocationInfo ResolveLocation(object location)
         {
-            AstNode node = (AstNode)location;
-            var span = node.GetSpan(this);
-            return _projEntry == null ? new LocationInfo(_filename, span.Start.Line, span.Start.Column) : new LocationInfo(_projEntry, span.Start.Line, span.Start.Column);
+            IAnalysisResult result = location as IAnalysisResult;
+            if(result != null)
+            {
+                var locIndex = result.LocationIndex;
+                var loc = IndexToLocation(locIndex);
+                return _projEntry == null ? new LocationInfo(_filename, loc.Line, loc.Column) : new LocationInfo(_projEntry, loc.Line, loc.Column);
+            }
+            return null;
         }
 
         public MemberResult[] GetModules(bool topLevelOnly = false)
@@ -566,43 +576,157 @@ namespace VSGenero.Analysis.Parsing.AST
         /// </summary>
         public IEnumerable<IAnalysisVariable> GetVariablesByIndex(string exprText, int index)
         {
-            List<IAnalysisVariable> results = new List<IAnalysisVariable>();
-            return results;
-            //var scope = FindScope(index);
-            //string privatePrefix = GetPrivatePrefixClassName(scope);
-            //var expr = Statement.GetExpression(GetAstFromText(exprText, privatePrefix).Body);
+            List<IAnalysisVariable> vars = new List<IAnalysisVariable>();
 
-            //var unit = GetNearestEnclosingAnalysisUnit(scope);
-            //NameExpression name = expr as NameExpression;
-            //if (name != null)
-            //{
-            //    var defScope = scope.EnumerateTowardsGlobal.FirstOrDefault(s =>
-            //        s.Variables.ContainsKey(name.Name) && (s == scope || s.VisibleToChildren || IsFirstLineOfFunction(scope, s, index)));
+            // do a binary search to determine what node we're in
+            List<int> keys = _body.Children.Select(x => x.Key).ToList();
+            int searchIndex = keys.BinarySearch(index);
+            if (searchIndex < 0)
+            {
+                searchIndex = ~searchIndex;
+                if (searchIndex > 0)
+                    searchIndex--;
+            }
 
-            //    if (defScope == null)
-            //    {
-            //        var variables = _unit.ProjectState.BuiltinModule.GetDefinitions(name.Name);
-            //        return variables.SelectMany(ToVariables);
-            //    }
+            int key = keys[searchIndex];
 
-            //    return GetVariablesInScope(name, defScope).Distinct();
-            //}
+            AstNode containingNode = _body.Children[key];
+            if (containingNode != null)
+            {
+                if (containingNode is IFunctionResult)
+                {
+                    // Check for local vars, types, and constants
+                    IFunctionResult func = containingNode as IFunctionResult;
+                    IAnalysisResult res;
 
-            //MemberExpression member = expr as MemberExpression;
-            //if (member != null)
-            //{
-            //    var eval = new ExpressionEvaluator(unit.CopyForEval(), scope, mergeScopes: true);
-            //    var objects = eval.Evaluate(member.Target);
+                    if (func.Variables.TryGetValue(exprText, out res))
+                    {
+                        vars.Add(new AnalysisVariable(this.ResolveLocation(res), VariableType.Definition));
+                    }
+                     
+                    if(func.Types.TryGetValue(exprText, out res))
+                    {
+                        vars.Add(new AnalysisVariable(this.ResolveLocation(res), VariableType.Definition));
+                    }
+                    
+                    if(func.Constants.TryGetValue(exprText, out res))
+                    {
+                        vars.Add(new AnalysisVariable(this.ResolveLocation(res), VariableType.Definition));
+                    }
+                }
 
-            //    foreach (var v in objects)
-            //    {
-            //        var container = v as IReferenceableContainer;
-            //        if (container != null)
-            //        {
-            //            return ReferencablesToVariables(container.GetDefinitions(member.Name));
-            //        }
-            //    }
-            //}
+                if (_body is IModuleResult)
+                {
+                    // check for module vars, types, and constants (and globals defined in this module)
+                    IModuleResult mod = _body as IModuleResult;
+                    IAnalysisResult res;
+
+                    if (mod.Variables.TryGetValue(exprText, out res))
+                    {
+                        vars.Add(new AnalysisVariable(this.ResolveLocation(res), VariableType.Definition));
+                    }
+
+                    if (mod.Types.TryGetValue(exprText, out res))
+                    {
+                        vars.Add(new AnalysisVariable(this.ResolveLocation(res), VariableType.Definition));
+                    }
+
+                    if (mod.Constants.TryGetValue(exprText, out res))
+                    {
+                        vars.Add(new AnalysisVariable(this.ResolveLocation(res), VariableType.Definition));
+                    }
+
+                    if (mod.GlobalVariables.TryGetValue(exprText, out res))
+                    {
+                        vars.Add(new AnalysisVariable(this.ResolveLocation(res), VariableType.Definition));
+                    }
+
+                    if (mod.GlobalTypes.TryGetValue(exprText, out res))
+                    {
+                        vars.Add(new AnalysisVariable(this.ResolveLocation(res), VariableType.Definition));
+                    }
+
+                    if (mod.GlobalConstants.TryGetValue(exprText, out res))
+                    {
+                        vars.Add(new AnalysisVariable(this.ResolveLocation(res), VariableType.Definition));
+                    }
+
+                    // check for cursors in this module
+                    if (mod.Cursors.TryGetValue(exprText, out res))
+                    {
+                        vars.Add(new AnalysisVariable(this.ResolveLocation(res), VariableType.Definition));
+                    }
+
+                    // check for module functions
+                    IFunctionResult funcRes;
+                    if (mod.Functions.TryGetValue(exprText, out funcRes))
+                    {
+                        vars.Add(new AnalysisVariable(this.ResolveLocation(funcRes), VariableType.Definition));
+                    }
+                }
+
+                // TODO: this could probably be done more efficiently by having each GeneroAst load globals and functions into
+                // dictionaries stored on the IGeneroProject, instead of in each project entry.
+                // However, this does required more upkeep when changes occur. Will look into it...
+                if (_projEntry != null && _projEntry is IGeneroProjectEntry)
+                {
+                    IGeneroProjectEntry genProj = _projEntry as IGeneroProjectEntry;
+                    if (genProj.ParentProject != null)
+                    {
+                        foreach (var projEntry in genProj.ParentProject.ProjectEntries.Where(x => x.Value != genProj))
+                        {
+                            if (projEntry.Value.Analysis != null &&
+                               projEntry.Value.Analysis.Body != null)
+                            {
+                                IModuleResult modRes = projEntry.Value.Analysis.Body as IModuleResult;
+                                if (modRes != null)
+                                {
+                                    // check global vars, types, and constants
+                                    IAnalysisResult res;
+                                    if (modRes.GlobalVariables.TryGetValue(exprText, out res))
+                                    {
+                                        vars.Add(new AnalysisVariable(projEntry.Value.Analysis.ResolveLocation(res), VariableType.Definition));
+                                    }
+
+                                    if (modRes.GlobalTypes.TryGetValue(exprText, out res))
+                                    {
+                                        vars.Add(new AnalysisVariable(projEntry.Value.Analysis.ResolveLocation(res), VariableType.Definition));
+                                    }
+
+                                    if (modRes.GlobalConstants.TryGetValue(exprText, out res))
+                                    {
+                                        vars.Add(new AnalysisVariable(projEntry.Value.Analysis.ResolveLocation(res), VariableType.Definition));
+                                    }
+
+                                    // check for cursors in this module
+                                    if (modRes.Cursors.TryGetValue(exprText, out res))
+                                    {
+                                        vars.Add(new AnalysisVariable(projEntry.Value.Analysis.ResolveLocation(res), VariableType.Definition));
+                                    }
+
+                                    // check for module functions
+                                    IFunctionResult funcRes;
+                                    if (modRes.Functions.TryGetValue(exprText, out funcRes))
+                                    {
+                                        vars.Add(new AnalysisVariable(projEntry.Value.Analysis.ResolveLocation(funcRes), VariableType.Definition));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                /* TODO:
+                 * Need to check for:
+                 * 1) Temp tables
+                 * 2) DB Tables and columns
+                 * 3) Record fields
+                 * 7) Public functions
+                 */
+            }
+
+
+            return vars;
         }
     }
 }

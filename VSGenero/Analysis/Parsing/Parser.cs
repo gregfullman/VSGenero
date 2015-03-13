@@ -396,6 +396,19 @@ namespace VSGenero.Analysis.Parsing
             return _lookaheads[(int)aheadBy - 1].Token;
         }
 
+        internal TokenWithSpan PeekTokenWithSpan(uint aheadBy = 1)
+        {
+            if (aheadBy == 0)
+            {
+                throw new InvalidOperationException("Cannot peek at the current token");
+            }
+            while (_lookaheads.Count < aheadBy)
+            {
+                FetchLookahead();
+            }
+            return _lookaheads[(int)aheadBy - 1];
+        }
+
         internal void FetchLookahead()
         {
             // for right now we don't want to see whitespace chars

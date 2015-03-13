@@ -83,16 +83,7 @@ namespace VSGenero.VS2013_Specific
                         session.TextView.TextBuffer.Properties.AddProperty(typeof(ITextDocument), document);
                     }
 
-                    IEnumerable<LocationInfo> locations = EditFilter.GetLocations(session.TextView);
-                    if(locations.Count() == 1)
-                    {
-                        // TODO: need to create a peekable item using a peek item factory
-                        peekableItems.Add(new PeekableItem(locations.ElementAt(0), _factory));
-                    }
-                    else
-                    {
-                        // TODO: need to figure out what to do with multiple locations found...
-                    }
+                    peekableItems.Add(new PeekableItem(EditFilter.GetLocations(session.TextView, EditFilter.GetLocationOptions.Definitions), _factory));
                 }
             }
         }

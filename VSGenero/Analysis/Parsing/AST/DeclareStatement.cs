@@ -189,5 +189,11 @@ namespace VSGenero.Analysis.Parsing.AST
                 return sb.ToString();
             }
         }
+
+
+        public int LocationIndex
+        {
+            get { return StartIndex; }
+        }
     }
 }

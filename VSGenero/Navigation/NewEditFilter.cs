@@ -46,7 +46,14 @@ namespace VSGenero.Navigation
             }
         }
 
-        public static IEnumerable<LocationInfo> GetLocations(ITextView textView)
+        public enum GetLocationOptions
+        {
+            Definitions = 1,
+            References = 2,
+            Values = 4
+        }
+
+        public static IEnumerable<LocationInfo> GetLocations(ITextView textView, GetLocationOptions options = GetLocationOptions.Definitions | GetLocationOptions.References | GetLocationOptions.Values)
         {
             List<LocationInfo> locations = new List<LocationInfo>();
             var analysis = textView.GetExpressionAnalysis();
@@ -54,25 +61,30 @@ namespace VSGenero.Navigation
             Dictionary<LocationInfo, SimpleLocationInfo> references, definitions, values;
             GetDefsRefsAndValues(analysis, out definitions, out references, out values);
 
-            if ((values.Count + definitions.Count) == 1)
+            if (options.HasFlag(GetLocationOptions.Values))
             {
-                if (values.Count != 0)
+                foreach (var location in values.Keys)
                 {
-                    foreach (var location in values.Keys)
-                    {
-                        locations.Add(location);
-                        break;
-                    }
-                }
-                else
-                {
-                    foreach (var location in definitions.Keys)
-                    {
-                        locations.Add(location);
-                        break;
-                    }
+                    locations.Add(location);
                 }
             }
+
+            if (options.HasFlag(GetLocationOptions.Definitions))
+            {
+                foreach (var location in definitions.Keys)
+                {
+                    locations.Add(location);
+                }
+            }
+
+            if (options.HasFlag(GetLocationOptions.References))
+            {
+                foreach (var location in references.Keys)
+                {
+                    locations.Add(location);
+                }
+            }
+
             return locations;
         }
 
@@ -256,7 +268,7 @@ namespace VSGenero.Navigation
 
                 Guid guid = Guid.Empty;
                 //  new Guid("{a5a527ea-cf0a-4abf-b501-eafe6b3ba5c6}")
-                ErrorHandler.ThrowOnFailure(findSym.DoSearch(new Guid(VSGeneroConstants.LibraryManagerGuid), new VSOBSEARCHCRITERIA2[] { searchCriteria }));
+                ErrorHandler.ThrowOnFailure(findSym.DoSearch(new Guid(CommonConstants.LibraryGuid), new VSOBSEARCHCRITERIA2[] { searchCriteria }));
             }
             else
             {

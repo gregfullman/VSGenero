@@ -26,11 +26,11 @@ namespace VSGenero.VS2013_Specific
     class PeekResultSource : IPeekResultSource
     {
         private readonly PeekableItemSourceProvider _factory;
-        private readonly LocationInfo _location;
+        private readonly IEnumerable<LocationInfo> _locations;
 
-        public PeekResultSource(LocationInfo location, PeekableItemSourceProvider factory)
+        public PeekResultSource(IEnumerable<LocationInfo> locations, PeekableItemSourceProvider factory)
         {
-            _location = location;
+            _locations = locations;
             _factory = factory;
         }
 
@@ -38,24 +38,31 @@ namespace VSGenero.VS2013_Specific
         {
             if(relationshipName == PredefinedPeekRelationships.Definitions.Name)
             {
-                IPeekResult result = CreatePeekResult(resultCollection, _location);
-                if(result != null)
+                foreach (var location in _locations)
                 {
-                    resultCollection.Add(result);
+                    IPeekResult result = CreatePeekResult(resultCollection, location);
+                    if (result != null)
+                    {
+                        resultCollection.Add(result);
+                    }
                 }
             }
         }
 
         private string BuildTitle(LocationInfo location)
         {
-            // TODO: build the title
             return Path.GetFileName(location.FilePath);
+        }
+
+        private string BuildLabel(LocationInfo location)
+        {
+            return string.Format("{0}, {1}", BuildTitle(location), location.Line);
         }
 
         private IPeekResult CreatePeekResult(IPeekResultCollection resultCollection, LocationInfo location)
         {
             string path = location.FilePath;
-            PeekResultDisplayInfo displayInfo = new PeekResultDisplayInfo("Test", path, BuildTitle(location), path);
+            PeekResultDisplayInfo displayInfo = new PeekResultDisplayInfo(BuildLabel(location), path, BuildTitle(location), path);
             // TODO: the location stuff doesn't work 100% correctly. This needs to be fixed
             int line = location.Line - 1;   // start line
             if (line < 0)

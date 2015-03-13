@@ -12,10 +12,11 @@ namespace VSGenero.Analysis.Parsing.AST
         public string Name { get; private set; }
         public TypeReference Type { get; private set; }
 
-        public VariableDef(string name, TypeReference type)
+        public VariableDef(string name, TypeReference type, int location)
         {
             Name = name;
             Type = type;
+            _locationIndex = location;
         }
 
         public string Documentation
@@ -44,6 +45,12 @@ namespace VSGenero.Analysis.Parsing.AST
                 _scope = value;
             }
         }
+
+        private int _locationIndex;
+        public int LocationIndex
+        {
+            get { return _locationIndex; }
+        }
     }
 
     /// <summary>
@@ -54,14 +61,14 @@ namespace VSGenero.Analysis.Parsing.AST
     /// </summary>
     public class VariableDefinitionNode : AstNode
     {
-        private HashSet<string> _identifiers;
-        public HashSet<string> Identifiers
+        private List<Tuple<string, int>> _identifiers;
+        public List<Tuple<string, int>> Identifiers
         {
             get
             {
                 if(_identifiers == null)
                 {
-                    _identifiers = new HashSet<string>();
+                    _identifiers = new List<Tuple<string, int>>();
                 }
                 return _identifiers;
             }
@@ -87,19 +94,19 @@ namespace VSGenero.Analysis.Parsing.AST
             defNode = null;
             bool result = false;
             uint peekaheadCount = 1;
-            List<string> identifiers = new List<string>();
+            List<Tuple<string, int>> identifiers = new List<Tuple<string, int>>();
 
-            var tok = parser.PeekToken(peekaheadCount);
-            var cat = Tokenizer.GetTokenInfo(tok).Category;
-            while (cat == TokenCategory.Identifier || cat == TokenCategory.Keyword)
+            var tok = parser.PeekTokenWithSpan(peekaheadCount);
+            var tokInfo = Tokenizer.GetTokenInfo(tok.Token);
+            while (tokInfo.Category == TokenCategory.Identifier || tokInfo.Category == TokenCategory.Keyword)
             {
-                identifiers.Add(tok.Value.ToString());
+                identifiers.Add(new Tuple<string, int>(tok.Token.Value.ToString(), tok.Span.Start));
                 peekaheadCount++;
                 if (!parser.PeekToken(TokenKind.Comma, peekaheadCount))
                     break;
                 peekaheadCount++;
-                tok = parser.PeekToken(peekaheadCount);
-                cat = Tokenizer.GetTokenInfo(tok).Category;
+                tok = parser.PeekTokenWithSpan(peekaheadCount);
+                tokInfo = Tokenizer.GetTokenInfo(tok.Token);
             }
 
             if (identifiers.Count > 0)
@@ -107,7 +114,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 result = true;
                 defNode = new VariableDefinitionNode();
                 defNode.StartIndex = parser.Token.Span.Start;
-                defNode.Identifiers = new HashSet<string>(identifiers);
+                defNode.Identifiers = new List<Tuple<string, int>>(identifiers);
                 while (peekaheadCount > 1)
                 {
                     parser.NextToken();
@@ -130,7 +137,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 {
                     foreach (var ident in defNode.Identifiers)
                     {
-                        var varDef = new VariableDef(ident, typeRef);
+                        var varDef = new VariableDef(ident.Item1, typeRef, ident.Item2);
                         defNode.VariableDefinitions.Add(varDef);
                         if(binder != null)
                         {

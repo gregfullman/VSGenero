@@ -25,11 +25,11 @@ namespace VSGenero.VS2013_Specific
     class PeekableItem : IPeekableItem
     {
         private readonly PeekableItemSourceProvider _factory;
-        private readonly LocationInfo _location;
+        private readonly IEnumerable<LocationInfo> _locations;
 
-        public PeekableItem(LocationInfo location, PeekableItemSourceProvider factory)
+        public PeekableItem(IEnumerable<LocationInfo> locations, PeekableItemSourceProvider factory)
         {
-            _location = location;
+            _locations = locations;
             _factory = factory;
         }
 
@@ -40,7 +40,7 @@ namespace VSGenero.VS2013_Specific
 
         public IPeekResultSource GetOrCreateResultSource(string relationshipName)
         {
-            return new PeekResultSource(this._location, this._factory);
+            return new PeekResultSource(this._locations, this._factory);
         }
 
         public IEnumerable<IPeekRelationship> Relationships

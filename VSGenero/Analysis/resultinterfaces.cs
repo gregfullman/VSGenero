@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using VSGenero.Analysis.Parsing;
 
 namespace VSGenero.Analysis
 {
@@ -11,6 +12,7 @@ namespace VSGenero.Analysis
         string Scope { get; set; }
         string Name { get; }
         string Documentation { get; }
+        int LocationIndex { get; }
     }
 
     public interface IAnalysisResultContainer
