@@ -165,18 +165,250 @@ namespace VSGenero.Analysis.Parsing.AST
             return res.ToArray();
         }
 
+        #region Completion Members
+
         public IEnumerable<MemberResult> GetContextMembersByIndex(int index, IReverseTokenizer revTokenizer, GetMemberOptions options = GetMemberOptions.IntersectMultipleResults)
         {
             /**********************************************************************************************************************************
              * Using the specified index, we can attempt to determine what our scope is. Then, using the reverse tokenizer, we can attempt to
              * determine where within the scope we are, and attempt to provide a set of context-sensitive members based on that.
              **********************************************************************************************************************************/
-            var members = _body.GetValidMembersByContext(index, revTokenizer, this, options);
+            List<MemberResult> members = new List<MemberResult>();
+            if(TryPreprocessorContext(index, revTokenizer, out members))
+            {
+                return members;
+            }
+            else if(TryFunctionDefContext(index, revTokenizer, out members))
+            {
+                return members;
+            }
+
+            List<MemberResult> accessMods;
+            bool allowAccessModifiers = TryAllowAccessModifiers(index, revTokenizer, out accessMods);
+            members.AddRange(accessMods);
 
             // TODO: need some way of knowing whether to include global members outside the scope of _body
-
+            members.AddRange(ValidStatementKeywords.Take(allowAccessModifiers ? ValidStatementKeywords.Length : 6)
+                                                   .Select(x => new MemberResult(Tokens.TokenKinds[x], GeneroMemberType.Keyword, this)));
             return members;
         }
+
+        private enum FunctionDefStatus
+        {
+            None,
+            FuncKeyword,
+            Comma,
+            LParen,
+            IdentOrKeyword
+        }
+
+        private bool TryFunctionDefContext(int index, IReverseTokenizer revTokenizer, out List<MemberResult> results)
+        {
+            results = new List<MemberResult>();
+            FunctionDefStatus status = FunctionDefStatus.None;
+            bool quit = false;
+            foreach (var tokInfo in revTokenizer.GetReversedTokens().Where(x => x.SourceSpan.Start.Index < index))
+            {
+                if (tokInfo.Equals(default(TokenInfo)))
+                    continue;   // linebreak
+                switch(status)
+                {
+                    case FunctionDefStatus.None:
+                        {
+                            if(tokInfo.Category == TokenCategory.Identifier || 
+                               (tokInfo.Category == TokenCategory.Keyword && tokInfo.Token.Kind != TokenKind.FunctionKeyword && tokInfo.Token.Kind != TokenKind.ReportKeyword))
+                            {
+                                status = FunctionDefStatus.IdentOrKeyword;
+                            }
+                            else if(tokInfo.Token.Kind == TokenKind.FunctionKeyword || tokInfo.Token.Kind == TokenKind.ReportKeyword)
+                            {
+                                status = FunctionDefStatus.FuncKeyword;
+                                quit = true;
+                            }
+                            else if(tokInfo.Token.Kind == TokenKind.Comma)
+                            {
+                                status = FunctionDefStatus.Comma;
+                            }
+                            else if(tokInfo.Token.Kind == TokenKind.LeftParenthesis)
+                            {
+                                status = FunctionDefStatus.LParen;
+                            }
+                            else
+                            {
+                                quit = true;
+                            }
+                            break;
+                        }
+                    case FunctionDefStatus.Comma:
+                        {
+                            if (tokInfo.Category == TokenCategory.Identifier ||
+                               (tokInfo.Category == TokenCategory.Keyword && tokInfo.Token.Kind != TokenKind.FunctionKeyword && tokInfo.Token.Kind != TokenKind.ReportKeyword))
+                            {
+                                status = FunctionDefStatus.IdentOrKeyword;
+                            }
+                            else
+                            {
+                                quit = true;
+                            }
+                            break;
+                        }
+                    case FunctionDefStatus.IdentOrKeyword:
+                            {
+                                if (tokInfo.Token.Kind == TokenKind.FunctionKeyword || tokInfo.Token.Kind == TokenKind.ReportKeyword)
+                                {
+                                    status = FunctionDefStatus.FuncKeyword;
+                                    quit = true;
+                                }
+                                else if(tokInfo.Token.Kind == TokenKind.Comma)
+                                {
+                                    status = FunctionDefStatus.Comma;
+                                }
+                                else if(tokInfo.Token.Kind == TokenKind.LeftParenthesis)
+                                {
+                                    status = FunctionDefStatus.LParen;
+                                }
+                                else
+                                {
+                                    quit = true;
+                                }
+                                break;
+                            }
+                    case FunctionDefStatus.LParen:
+                            {
+                                if (tokInfo.Category == TokenCategory.Identifier ||
+                                    (tokInfo.Category == TokenCategory.Keyword && tokInfo.Token.Kind != TokenKind.FunctionKeyword && tokInfo.Token.Kind != TokenKind.ReportKeyword))
+                                {
+                                    status = FunctionDefStatus.IdentOrKeyword;
+                                }
+                                else
+                                {
+                                    quit = true;
+                                }
+                                break;
+                            }
+                    default:
+                            quit = true;
+                            break;
+                }
+
+                if(quit)
+                {
+                    break;
+                }
+            }
+
+            return status == FunctionDefStatus.FuncKeyword;
+        }
+
+        private bool TryPreprocessorContext(int index, IReverseTokenizer revTokenizer, out List<MemberResult> results)
+        {
+            bool isAmpersand = false;
+            foreach (var tokInfo in revTokenizer.GetReversedTokens().Where(x => x.SourceSpan.Start.Index < index))
+            {
+                if (tokInfo.Equals(default(TokenInfo)))
+                    break;
+                if(tokInfo.Token.Kind == TokenKind.Ampersand)
+                {
+                    isAmpersand = true;
+                    break;
+                }
+                break;
+            }
+
+            if(isAmpersand)
+            {
+                results = new List<MemberResult>()
+                {
+                    new MemberResult(Tokens.TokenKinds[TokenKind.IncludeKeyword], GeneroMemberType.Keyword, this),
+                    new MemberResult(Tokens.TokenKinds[TokenKind.DefineKeyword], GeneroMemberType.Keyword, this),
+                    new MemberResult(Tokens.TokenKinds[TokenKind.UndefKeyword], GeneroMemberType.Keyword, this),
+                    new MemberResult(Tokens.TokenKinds[TokenKind.IfdefKeyword], GeneroMemberType.Keyword, this),
+                    new MemberResult(Tokens.TokenKinds[TokenKind.ElseKeyword], GeneroMemberType.Keyword, this),
+                    new MemberResult(Tokens.TokenKinds[TokenKind.EndifKeyword], GeneroMemberType.Keyword, this)
+                };
+            }
+            else
+            {
+                results = new List<MemberResult>();
+            }
+            return isAmpersand;
+        }
+
+        private static TokenKind[] ValidStatementKeywords = new TokenKind[]
+        {
+            // keywords that are valid after an access mod
+            TokenKind.ConstantKeyword,
+            TokenKind.TypeKeyword,
+            TokenKind.DefineKeyword,
+            TokenKind.MainKeyword,
+            TokenKind.FunctionKeyword,
+            TokenKind.ReportKeyword,
+
+            // Valid keywords within the module
+            TokenKind.OptionsKeyword,
+            TokenKind.ImportKeyword,
+            TokenKind.SchemaKeyword,
+            TokenKind.DescribeKeyword,
+            TokenKind.DatabaseKeyword,
+            TokenKind.GlobalsKeyword,
+
+            // Valid keywords that apply to the module keywords
+            TokenKind.EndKeyword,
+
+            // Valid statement start keywords (TODO: definitely missing some here...)
+            TokenKind.CallKeyword,
+            TokenKind.LetKeyword,
+            TokenKind.IfKeyword,
+            TokenKind.ElseKeyword,
+            TokenKind.ForKeyword,
+            TokenKind.ForeachKeyword,
+            TokenKind.WhileKeyword,
+            TokenKind.DoKeyword
+        };
+
+        /// <summary>
+        /// Determines whether we're just after an access modifier (private or public)
+        /// </summary>
+        /// <param name="index"></param>
+        /// <param name="revTokenizer"></param>
+        /// <returns></returns>
+        private bool TryAllowAccessModifiers(int index, IReverseTokenizer revTokenizer, out List<MemberResult> results)
+        {
+            results = new List<MemberResult>();
+            bool isPrevTokenPublicOrPrivate = false;
+            foreach (var tokInfo in revTokenizer.GetReversedTokens().Where(x => x.SourceSpan.Start.Index < index))
+            {
+                if (tokInfo.Equals(default(TokenInfo)))
+                    continue;
+                if (tokInfo.Category == TokenCategory.WhiteSpace)
+                    continue;
+                if (tokInfo.Token.Kind == TokenKind.PrivateKeyword || tokInfo.Token.Kind == TokenKind.PublicKeyword)
+                {
+                    isPrevTokenPublicOrPrivate = true;
+                    break;
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            if(!isPrevTokenPublicOrPrivate)
+            {
+                results.AddRange(new MemberResult[]
+                {
+                    new MemberResult(Tokens.TokenKinds[TokenKind.PrivateKeyword], GeneroMemberType.Keyword, this),
+                    new MemberResult(Tokens.TokenKinds[TokenKind.PublicKeyword], GeneroMemberType.Keyword, this)
+                });
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        
+        #endregion
 
         /// <summary>
         /// Gets the available names at the given location.  This includes built-in variables, global variables, and locals.
@@ -318,8 +550,15 @@ namespace VSGenero.Analysis.Parsing.AST
         /// </summary>
         /// <param name="exprText">The expression to get signatures for.</param>
         /// <param name="index">The 0-based absolute index into the file.</param>
-        public IEnumerable<IFunctionResult> GetSignaturesByIndex(string exprText, int index)
+        public IEnumerable<IFunctionResult> GetSignaturesByIndex(string exprText, int index, IReverseTokenizer revTokenizer)
         {
+            // First see if we're in the process of defining a function
+            List<MemberResult> dummyList;
+            if (TryFunctionDefContext(index, revTokenizer, out dummyList))
+            {
+                return null;
+            }
+
             /*
              * Need to check for:
              * 1) Functions within the current module

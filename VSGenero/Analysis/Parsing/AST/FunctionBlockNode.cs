@@ -42,14 +42,14 @@ namespace VSGenero.Analysis.Parsing.AST
                 foreach (var varDef in _arguments.OrderBy(x => x.Key.Span.Start))
                 {
                     if (varDef.Value != null)
-                    {
                         sb.AppendFormat("{0} {1}", varDef.Value.Type.ToString(), varDef.Value.Name);
-                        if (i + 1 < total)
-                        {
-                            sb.Append(", ");
-                        }
-                        i++;
+                    else
+                        sb.AppendFormat("{0}", varDef.Key.Token.Value.ToString());
+                    if (i + 1 < total)
+                    {
+                        sb.Append(", ");
                     }
+                    i++;
                 }
 
                 sb.Append(')');
@@ -345,6 +345,7 @@ namespace VSGenero.Analysis.Parsing.AST
             get 
             {
                 return _arguments.OrderBy(x => x.Key.Span.Start)
+                                 .Where(x => x.Value != null)
                                  .Select(x => new ParameterResult(x.Value.Name, x.Value.Documentation, x.Value.Type.ToString()))
                                  .ToArray();
             }

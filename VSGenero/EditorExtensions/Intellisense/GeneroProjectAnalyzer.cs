@@ -362,7 +362,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                     IEnumerable<IFunctionResult> sigs = null;
                     lock (snapshot.TextBuffer.GetAnalyzer())
                     {
-                        sigs = analysis.GetSignaturesByIndex(text, index);
+                        sigs = analysis.GetSignaturesByIndex(text, index, parser);
                     }
                     var end = Stopwatch.ElapsedMilliseconds;
 

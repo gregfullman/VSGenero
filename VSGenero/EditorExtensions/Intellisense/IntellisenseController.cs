@@ -591,7 +591,8 @@ namespace VSGenero.EditorExtensions.Intellisense
                 if (_activeSession != null && !_activeSession.IsDismissed)
                 {
                     if (_activeSession.SelectedCompletionSet.SelectionStatus.IsSelected &&
-                        VSGeneroPackage.Instance.IntellisenseOptions4GLPage.CompletionCommittedBy.IndexOf(ch) != -1)
+                        (VSGeneroPackage.Instance.IntellisenseOptions4GLPage.CompletionCommittedBy.IndexOf(ch) != -1 ||
+                         (ch == ' ' && VSGeneroPackage.Instance.IntellisenseOptions4GLPage.SpaceCommitsIntellisense)))
                     {
                         _activeSession.Commit();
                     }

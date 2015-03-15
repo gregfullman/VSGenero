@@ -43,24 +43,6 @@ namespace VSGenero.Analysis.Parsing.AST
             Body
         }
 
-        private static TokenKind[] ValidKeywords = new TokenKind[]
-        {
-            TokenKind.OptionsKeyword,
-            TokenKind.ImportKeyword,
-            TokenKind.SchemaKeyword,
-            TokenKind.DescribeKeyword,
-            TokenKind.DatabaseKeyword,
-            TokenKind.GlobalsKeyword,
-            TokenKind.ConstantKeyword,
-            TokenKind.TypeKeyword,
-            TokenKind.DefineKeyword,
-            TokenKind.MainKeyword,
-            TokenKind.FunctionKeyword,
-            TokenKind.ReportKeyword,
-            TokenKind.PrivateKeyword,
-            TokenKind.PublicKeyword
-        };
-
         private static bool CheckForPreprocessorNode(Parser parser)
         {
             PreprocessorNode preNode;
@@ -76,7 +58,7 @@ namespace VSGenero.Analysis.Parsing.AST
         {
             defNode = new ModuleNode();
             NodesProcessed processed = NodesProcessed.None;
-            
+
             while (!parser.PeekToken(TokenKind.EndOfFile))
             {
                 if (CheckForPreprocessorNode(parser))
@@ -94,7 +76,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         parser.ReportSyntaxError("Compiler options statement found in incorrect position.");
                     }
                 }
-                if(processed == NodesProcessed.None)
+                if (processed == NodesProcessed.None)
                     processed = NodesProcessed.CompilerOption;
 
                 if (CheckForPreprocessorNode(parser))
@@ -113,7 +95,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         parser.ReportSyntaxError("Import statement found in incorrect position.");
                     }
                 }
-                if(processed == NodesProcessed.CompilerOption)
+                if (processed == NodesProcessed.CompilerOption)
                     processed = NodesProcessed.Imports;
 
                 if (CheckForPreprocessorNode(parser))
@@ -152,14 +134,14 @@ namespace VSGenero.Analysis.Parsing.AST
                         }
                         foreach (var tGlobKVP in globalNode.Types)
                         {
-                            if(!defNode.GlobalTypes.ContainsKey(tGlobKVP.Key))
+                            if (!defNode.GlobalTypes.ContainsKey(tGlobKVP.Key))
                                 defNode.GlobalTypes.Add(tGlobKVP);
                             else
                                 parser.ReportSyntaxError(tGlobKVP.Value.LocationIndex, tGlobKVP.Value.LocationIndex + tGlobKVP.Value.Name.Length, string.Format("Global type {0} defined more than once.", tGlobKVP.Key));
                         }
                         foreach (var vGlobKVP in globalNode.Variables)
                         {
-                            if(!defNode.GlobalVariables.ContainsKey(vGlobKVP.Key))
+                            if (!defNode.GlobalVariables.ContainsKey(vGlobKVP.Key))
                                 defNode.GlobalVariables.Add(vGlobKVP);
                             else
                                 parser.ReportSyntaxError(vGlobKVP.Value.LocationIndex, vGlobKVP.Value.LocationIndex + vGlobKVP.Value.Name.Length, string.Format("Global variable {0} defined more than once.", vGlobKVP.Key));
@@ -194,7 +176,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         foreach (var def in constNode.GetDefinitions())
                         {
                             def.Scope = "module constant";
-                            if(!defNode.Constants.ContainsKey(def.Name))
+                            if (!defNode.Constants.ContainsKey(def.Name))
                                 defNode.Constants.Add(def.Name, def);
                             else
                                 parser.ReportSyntaxError(def.LocationIndex, def.LocationIndex + def.Name.Length, string.Format("Module constant {0} defined more than once.", def.Name));
@@ -229,7 +211,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         foreach (var def in typeNode.GetDefinitions())
                         {
                             def.Scope = "module type";
-                            if(!defNode.Types.ContainsKey(def.Name))
+                            if (!defNode.Types.ContainsKey(def.Name))
                                 defNode.Types.Add(def.Name, def);
                             else
                                 parser.ReportSyntaxError(def.LocationIndex, def.LocationIndex + def.Name.Length, string.Format("Module type {0} defined more than once.", def.Name));
@@ -260,11 +242,11 @@ namespace VSGenero.Analysis.Parsing.AST
                     if (processed == NodesProcessed.TypeDefs)
                     {
                         defNode.Children.Add(defineNode.StartIndex, defineNode);
-                        foreach(var def in defineNode.GetDefinitions())
+                        foreach (var def in defineNode.GetDefinitions())
                             foreach (var vardef in def.VariableDefinitions)
                             {
                                 vardef.Scope = "module variable";
-                                if(!defNode.Variables.ContainsKey(vardef.Name))
+                                if (!defNode.Variables.ContainsKey(vardef.Name))
                                     defNode.Variables.Add(vardef.Name, vardef);
                                 else
                                     parser.ReportSyntaxError(vardef.LocationIndex, vardef.LocationIndex + vardef.Name.Length, string.Format("Module variable {0} defined more than once.", vardef.Name));
@@ -288,10 +270,10 @@ namespace VSGenero.Analysis.Parsing.AST
                     {
                         defNode.Children.Add(mainBlock.StartIndex, mainBlock);
                         defNode.Functions.Add(mainBlock.Name, mainBlock);
-                        foreach(var cursor in mainBlock.Children.Values.Where(x => x is PrepareStatement || x is DeclareStatement))
+                        foreach (var cursor in mainBlock.Children.Values.Where(x => x is PrepareStatement || x is DeclareStatement))
                         {
                             IAnalysisResult curRes = cursor as IAnalysisResult;
-                            if(!defNode.Cursors.ContainsKey(curRes.Name))
+                            if (!defNode.Cursors.ContainsKey(curRes.Name))
                                 defNode.Cursors.Add(curRes.Name, curRes);
                             else
                                 parser.ReportSyntaxError(curRes.LocationIndex, curRes.LocationIndex + curRes.Name.Length, string.Format("Module variable {0} defined more than once.", curRes.Name));
@@ -442,7 +424,7 @@ namespace VSGenero.Analysis.Parsing.AST
 
         private void BindCursorResult(IAnalysisResult cursorResult)
         {
-            if(!Cursors.ContainsKey(cursorResult.Name))
+            if (!Cursors.ContainsKey(cursorResult.Name))
             {
                 Cursors.Add(cursorResult.Name, cursorResult);
             }
@@ -451,9 +433,9 @@ namespace VSGenero.Analysis.Parsing.AST
         private PrepareStatement PreparedCursorResolver(string prepIdent)
         {
             IAnalysisResult prepRes;
-            if(Cursors.TryGetValue(prepIdent, out prepRes))
+            if (Cursors.TryGetValue(prepIdent, out prepRes))
             {
-                if(prepRes is PrepareStatement)
+                if (prepRes is PrepareStatement)
                 {
                     return prepRes as PrepareStatement;
                 }
@@ -471,62 +453,5 @@ namespace VSGenero.Analysis.Parsing.AST
                 return _cursors;
             }
         }
-
-        public override IEnumerable<MemberResult> GetValidMembersByContext(int index, IReverseTokenizer revTokenizer, GeneroAst ast, GetMemberOptions options = GetMemberOptions.IntersectMultipleResults)
-        {
-            // do a binary search to determine what node we're in
-            List<int> keys = Children.Select(x => x.Key).ToList();
-            int searchIndex = keys.BinarySearch(index);
-            if (searchIndex < 0)
-            {
-                searchIndex = ~searchIndex;
-                if (searchIndex > 0)
-                    searchIndex--;
-            }
-
-            int key = keys[searchIndex];
-
-            // TODO: need to handle multiple results of the same name
-            AstNode containingNode = Children[key];
-            if (containingNode != null)
-            {
-                if (containingNode.StartIndex < index && containingNode.EndIndex >= index)
-                {
-                    return containingNode.GetValidMembersByContext(index, revTokenizer, ast, options);
-                }
-                else
-                {
-                    // try to narrow down valid keywords by checking the previous node
-                    int tokenKindLimit = 0;
-                    if (containingNode is CompilerOptionsNode)
-                        tokenKindLimit = 1;
-                    else if (containingNode is ImportModuleNode)
-                        tokenKindLimit = 2;
-                    else if (containingNode is SchemaSpecificationNode)
-                        tokenKindLimit = 5;
-                    else if (containingNode is GlobalsNode)
-                        tokenKindLimit = 5;
-                    else if (containingNode is ConstantDefNode)
-                        tokenKindLimit = 6;
-                    else if (containingNode is TypeDefNode)
-                        tokenKindLimit = 7;
-                    else if (containingNode is DefineNode)
-                        tokenKindLimit = 8;
-                    else if (containingNode is MainBlockNode)
-                        tokenKindLimit = 10;
-                    else
-                        tokenKindLimit = 10;
-                    return ValidKeywords.SubArray(tokenKindLimit, ValidKeywords.Length - tokenKindLimit)
-                                        .Select(x => new MemberResult(Tokens.TokenKinds[x], GeneroMemberType.Keyword, ast));
-                }
-            }
-            else
-            {
-                // TODO: return all valid keywords 
-                return ValidKeywords.Select(x => new MemberResult(Tokens.TokenKinds[x], GeneroMemberType.Keyword, ast));
-            }
-        }
-
-
     }
 }
