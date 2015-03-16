@@ -30,7 +30,7 @@ namespace VSGenero.Analysis.Parsing.AST
                        new TypeConstraintPiece(TokenKind.LeftParenthesis, 0, true),
                        new TypeConstraintPiece(TokenCategory.NumericLiteral, 0, true),
                        new TypeConstraintPiece(TokenKind.Comma, 1, true),
-                       new TypeConstraintPiece(TokenKind.NumericKeyword, 1, true),
+                       new TypeConstraintPiece(TokenCategory.NumericLiteral, 1, true),
                        new TypeConstraintPiece(TokenKind.RightParenthesis, 0, true)
                     }));
                         _typeConstraints.Add(TokenKind.DatetimeKeyword, new TypeConstraint(TokenKind.DatetimeKeyword, new[] 

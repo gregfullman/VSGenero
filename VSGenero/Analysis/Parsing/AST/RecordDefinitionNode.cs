@@ -97,7 +97,10 @@ namespace VSGenero.Analysis.Parsing.AST
                         TypeReference tr;
                         if (TypeReference.TryParseNode(parser, out tr, true))
                         {
-                            defNode.MemberDictionary.Add(tok.Value.ToString(), tr);
+                            if (!defNode.MemberDictionary.ContainsKey(tok.Value.ToString()))
+                                defNode.MemberDictionary.Add(tok.Value.ToString(), tr);
+                            else
+                                parser.ReportSyntaxError(string.Format("Record field {0} defined more than once.", tok.Value.ToString()));
                         }
 
                         if (parser.MaybeEat(TokenKind.Comma))

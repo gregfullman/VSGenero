@@ -313,7 +313,6 @@
     <Compile Include="Analysis\GeneroKeywords.cs" />
     <Compile Include="Analysis\ILocatedMember.cs" />
     <Compile Include="Analysis\IReferenceableContainer.cs" />
-    <Compile Include="Analysis\BuiltinTypeId.cs" />
     <Compile Include="Analysis\IReverseTokenizer.cs" />
     <Compile Include="Analysis\Parsing\AST\AstNodeAttributes.cs" />
     <Compile Include="Analysis\Parsing\AST\DeclareStatement.cs" />
