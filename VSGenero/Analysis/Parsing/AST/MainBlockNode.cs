@@ -65,7 +65,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                     foreach (var def in typeNode.GetDefinitions())
                                     {
                                         def.Scope = "local type";
-                                        defNode.Types.Add(def.Name, def); if (!defNode.Types.ContainsKey(def.Name))
+                                        if (!defNode.Types.ContainsKey(def.Name))
                                             defNode.Types.Add(def.Name, def);
                                         else
                                             parser.ReportSyntaxError(def.LocationIndex, def.LocationIndex + def.Name.Length, string.Format("Type {0} defined more than once.", def.Name));
