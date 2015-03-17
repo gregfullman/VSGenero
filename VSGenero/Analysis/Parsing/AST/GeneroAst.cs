@@ -35,13 +35,13 @@ namespace VSGenero.Analysis.Parsing.AST
         private void InitializeCompletionContextMaps()
         {
             // 1) Define statement map
-            _defineStatementMap = new CompletionContextMap(TokenKind.DefineKeyword);
+            _defineStatementMap = new CompletionContextMap(new HashSet<TokenKind>(new[] { TokenKind.DefineKeyword, TokenKind.TypeKeyword }));
             _defineStatementMap.Map.Add(TokenKind.Comma, new List<CompletionPossibility>
                 {
                     new TokenKindCompletionPossiblity(TokenKind.Multiply, new List<TokenKindWithConstraint>()),
                     new TokenKindCompletionPossiblity(TokenKind.RecordKeyword, new List<TokenKindWithConstraint>()),
-                    new CategoryCompletionPossiblity(new List<TokenCategory> { TokenCategory.NumericLiteral }, new List<TokenKindWithConstraint>()),
-                    new CategoryCompletionPossiblity(new List<TokenCategory> { TokenCategory.Keyword, TokenCategory.Identifier }, new List<TokenKindWithConstraint>())
+                    new CategoryCompletionPossiblity(new HashSet<TokenCategory> { TokenCategory.NumericLiteral }, new List<TokenKindWithConstraint>()),
+                    new CategoryCompletionPossiblity(new HashSet<TokenCategory> { TokenCategory.Keyword, TokenCategory.Identifier }, new List<TokenKindWithConstraint>())
                 });
             _defineStatementMap.Map.Add(TokenCategory.NumericLiteral, new List<CompletionPossibility>
                 {
@@ -60,7 +60,7 @@ namespace VSGenero.Analysis.Parsing.AST
             _defineStatementMap.Map.Add(TokenKind.ArrayKeyword, new List<CompletionPossibility>
                 {
                     new TokenKindCompletionPossiblity(TokenKind.DynamicKeyword, new List<TokenKindWithConstraint>()),
-                    new CategoryCompletionPossiblity(new List<TokenCategory> { TokenCategory.Keyword, TokenCategory.Identifier },
+                    new CategoryCompletionPossiblity(new HashSet<TokenCategory> { TokenCategory.Keyword, TokenCategory.Identifier },
                         new List<TokenKindWithConstraint>
                         {
                             new TokenKindWithConstraint(TokenKind.WithKeyword, TokenKind.DynamicKeyword, 1),
@@ -69,7 +69,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 });
             _defineStatementMap.Map.Add(TokenKind.DynamicKeyword, new List<CompletionPossibility>
                 {
-                    new CategoryCompletionPossiblity(new List<TokenCategory> { TokenCategory.Keyword, TokenCategory.Identifier },
+                    new CategoryCompletionPossiblity(new HashSet<TokenCategory> { TokenCategory.Keyword, TokenCategory.Identifier },
                         new List<TokenKindWithConstraint>
                         {
                             new TokenKindWithConstraint(TokenKind.ArrayKeyword),
@@ -82,7 +82,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         {
                             new TokenKindWithConstraint(TokenKind.OfKeyword)
                         }),
-                    new CategoryCompletionPossiblity(new List<TokenCategory> { TokenCategory.NumericLiteral },
+                    new CategoryCompletionPossiblity(new HashSet<TokenCategory> { TokenCategory.NumericLiteral },
                         new List<TokenKindWithConstraint>
                         {
                             new TokenKindWithConstraint(TokenKind.OfKeyword)
@@ -114,7 +114,7 @@ namespace VSGenero.Analysis.Parsing.AST
                             new TokenKindWithConstraint(TokenKind.RecordKeyword),
                             new TokenKindWithConstraint(TokenKind.LikeKeyword)
                         }, GetTypesForIndex),
-                    new CategoryCompletionPossiblity(new List<TokenCategory> { TokenCategory.NumericLiteral },
+                    new CategoryCompletionPossiblity(new HashSet<TokenCategory> { TokenCategory.NumericLiteral },
                         new List<TokenKindWithConstraint>
                         {
                             new TokenKindWithConstraint(TokenKind.RecordKeyword),
@@ -124,7 +124,7 @@ namespace VSGenero.Analysis.Parsing.AST
             _defineStatementMap.Map.Add(TokenKind.LikeKeyword, new List<CompletionPossibility>
                 {
                     new TokenKindCompletionPossiblity(TokenKind.RecordKeyword, new List<TokenKindWithConstraint>(), (i) => new List<MemberResult>()   /* TODO: table completions  */),
-                    new CategoryCompletionPossiblity(new List<TokenCategory> { TokenCategory.Keyword, TokenCategory.Identifier },
+                    new CategoryCompletionPossiblity(new HashSet<TokenCategory> { TokenCategory.Keyword, TokenCategory.Identifier },
                         new List<TokenKindWithConstraint>(), (i) => new List<MemberResult>()   /* TODO: table completions  */)
                 });
             _defineStatementMap.Map.Add(TokenKind.RecordKeyword, new List<CompletionPossibility>
@@ -135,7 +135,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         {
                             new TokenKindWithConstraint(TokenKind.LikeKeyword),
                         }),
-                    new CategoryCompletionPossiblity(new List<TokenCategory> { TokenCategory.Keyword, TokenCategory.Identifier },
+                    new CategoryCompletionPossiblity(new HashSet<TokenCategory> { TokenCategory.Keyword, TokenCategory.Identifier },
                         new List<TokenKindWithConstraint>
                         {
                             new TokenKindWithConstraint(TokenKind.LikeKeyword),
@@ -153,7 +153,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         {
                             new TokenKindWithConstraint(TokenKind.RecordKeyword),
                         }),
-                    new CategoryCompletionPossiblity(new List<TokenCategory> { TokenCategory.Keyword, TokenCategory.Identifier },
+                    new CategoryCompletionPossiblity(new HashSet<TokenCategory> { TokenCategory.Keyword, TokenCategory.Identifier },
                         new List<TokenKindWithConstraint>
                         {
                             new TokenKindWithConstraint(TokenKind.RecordKeyword),
@@ -163,7 +163,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 {
                     new TokenKindCompletionPossiblity(TokenKind.Multiply, new List<TokenKindWithConstraint>()),
                     new TokenKindCompletionPossiblity(TokenKind.Dot, new List<TokenKindWithConstraint>()) { IsBreakingStateOnFirstPrevious = true },
-                    new TokenKindCompletionPossiblity(TokenKind.DefineKeyword, 
+                    new TokenKindCompletionPossiblity(new HashSet<TokenKind> { TokenKind.DefineKeyword, TokenKind.TypeKeyword }, 
                         new List<TokenKindWithConstraint>
                         {
                             new TokenKindWithConstraint(TokenKind.RecordKeyword),
@@ -181,13 +181,13 @@ namespace VSGenero.Analysis.Parsing.AST
                             new TokenKindWithConstraint(TokenKind.RecordKeyword),
                             new TokenKindWithConstraint(TokenKind.LikeKeyword)
                         }, GetTypesForIndex),
-                    new CategoryCompletionPossiblity(new List<TokenCategory> { TokenCategory.Keyword, TokenCategory.Identifier }, new List<TokenKindWithConstraint>())
+                    new CategoryCompletionPossiblity(new HashSet<TokenCategory> { TokenCategory.Keyword, TokenCategory.Identifier }, new List<TokenKindWithConstraint>())
                 };
             _defineStatementMap.Map.Add(TokenCategory.Keyword, keywordAndIdentPossibilities);
             _defineStatementMap.Map.Add(TokenCategory.Identifier, keywordAndIdentPossibilities);
             _defineStatementMap.Map.Add(TokenKind.Dot, new List<CompletionPossibility>
                 {
-                    new CategoryCompletionPossiblity(new List<TokenCategory> { TokenCategory.Keyword, TokenCategory.Identifier }, new List<TokenKindWithConstraint>())
+                    new CategoryCompletionPossiblity(new HashSet<TokenCategory> { TokenCategory.Keyword, TokenCategory.Identifier }, new List<TokenKindWithConstraint>())
                 });
             // end Define statement map
 
@@ -478,7 +478,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     var entry = possibilities.FirstOrDefault(x =>
                         {
                             if (x is TokenKindCompletionPossiblity)
-                                return (x as TokenKindCompletionPossiblity).Kind == tokInfo.Token.Kind;
+                                return (x as TokenKindCompletionPossiblity).MultipleKinds.Contains(tokInfo.Token.Kind);
                             else
                                 return (x as CategoryCompletionPossiblity).Categories.Contains(tokInfo.Category);
                         });
@@ -536,7 +536,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 }
 
                 // handle the Define token
-                if (tokInfo.Token.Kind == _defineStatementMap.StatementStartToken)
+                if (_defineStatementMap.StatementStartTokens.Contains(tokInfo.Token.Kind))
                 {
                     if ((currKeywordsOrIdentsBackToBack >= maxKeywordsOrIdentsBackToBack) ||
                         (isFirstTokenHitRecord.HasValue && isFirstTokenHitRecord.Value))
@@ -1397,8 +1397,8 @@ namespace VSGenero.Analysis.Parsing.AST
 
     public class CompletionContextMap
     {
-        private readonly TokenKind _statementStartToken;
-        public TokenKind StatementStartToken { get { return _statementStartToken; } }
+        private readonly HashSet<TokenKind> _statementStartTokens;
+        public HashSet<TokenKind> StatementStartTokens { get { return _statementStartTokens; } }
 
         private Dictionary<object, IList<CompletionPossibility>> _map;
         public IDictionary<object, IList<CompletionPossibility>> Map
@@ -1406,9 +1406,9 @@ namespace VSGenero.Analysis.Parsing.AST
             get { return _map; }
         }
 
-        public CompletionContextMap(TokenKind startToken, IDictionary<object, IList<CompletionPossibility>> mapContents = null)
+        public CompletionContextMap(HashSet<TokenKind> startTokens, IDictionary<object, IList<CompletionPossibility>> mapContents = null)
         {
-            _statementStartToken = startToken;
+            _statementStartTokens = startTokens;
             _map = new Dictionary<object, IList<CompletionPossibility>>(mapContents ?? new Dictionary<object, IList<CompletionPossibility>>());
         }
     }
@@ -1428,9 +1428,9 @@ namespace VSGenero.Analysis.Parsing.AST
 
     public class CategoryCompletionPossiblity : CompletionPossibility
     {
-        public List<TokenCategory> Categories { get; private set; }
+        public HashSet<TokenCategory> Categories { get; private set; }
 
-        public CategoryCompletionPossiblity(List<TokenCategory> categories, IEnumerable<TokenKindWithConstraint> keywordCompletions, Func<int, IEnumerable<MemberResult>> additionalCompletionsProvider = null)
+        public CategoryCompletionPossiblity(HashSet<TokenCategory> categories, IEnumerable<TokenKindWithConstraint> keywordCompletions, Func<int, IEnumerable<MemberResult>> additionalCompletionsProvider = null)
             : base(keywordCompletions, additionalCompletionsProvider)
         {
             Categories = categories;
@@ -1451,10 +1451,27 @@ namespace VSGenero.Analysis.Parsing.AST
     {
         public TokenKind Kind { get; private set; }
 
+        private HashSet<TokenKind> _multiKinds;
+        public HashSet<TokenKind> MultipleKinds
+        {
+            get
+            {
+                if (_multiKinds == null)
+                    _multiKinds = new HashSet<TokenKind>() { Kind };
+                return _multiKinds;
+            }
+        }
+
         public TokenKindCompletionPossiblity(TokenKind kind, IEnumerable<TokenKindWithConstraint> keywordCompletions, Func<int, IEnumerable<MemberResult>> additionalCompletionsProvider = null)
             : base(keywordCompletions, additionalCompletionsProvider)
         {
             Kind = kind;
+        }
+
+        public TokenKindCompletionPossiblity(HashSet<TokenKind> kinds, IEnumerable<TokenKindWithConstraint> keywordCompletions, Func<int, IEnumerable<MemberResult>> additionalCompletionsProvider = null)
+            : base(keywordCompletions, additionalCompletionsProvider)
+        {
+            _multiKinds = kinds;
         }
     }
 

@@ -19,12 +19,14 @@ namespace VSGenero.Analysis.Parsing.AST
                     if (_typeConstraints == null)
                     {
                         _typeConstraints = new Dictionary<TokenKind, TypeConstraint>();
-                        _typeConstraints.Add(TokenKind.CharKeyword, new TypeConstraint(TokenKind.CharKeyword, new[] 
+                        var charConstraint = new TypeConstraint(TokenKind.CharKeyword, new[] 
                     {
                        new TypeConstraintPiece(TokenKind.LeftParenthesis, 0, true),
                        new TypeConstraintPiece(TokenCategory.NumericLiteral, 0, true),
                        new TypeConstraintPiece(TokenKind.RightParenthesis, 0, true)
-                    }));
+                    });
+                        _typeConstraints.Add(TokenKind.CharKeyword, charConstraint);
+                        _typeConstraints.Add(TokenKind.CharacterKeyword, charConstraint);
                         _typeConstraints.Add(TokenKind.VarcharKeyword, new TypeConstraint(TokenKind.VarcharKeyword, new[] 
                     {
                        new TypeConstraintPiece(TokenKind.LeftParenthesis, 0, true),
@@ -73,6 +75,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     });
                         _typeConstraints.Add(TokenKind.DecimalKeyword, decConstraint);
                         _typeConstraints.Add(TokenKind.DecKeyword, decConstraint);
+                        _typeConstraints.Add(TokenKind.NumericKeyword, decConstraint);
                         _typeConstraints.Add(TokenKind.MoneyKeyword, new TypeConstraint(TokenKind.MoneyKeyword, new[] 
                     {
                        new TypeConstraintPiece(TokenKind.LeftParenthesis, 0, true),
