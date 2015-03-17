@@ -34,9 +34,7 @@ namespace VSGenero.Analysis.Parsing.AST
 
         public static bool VerifyValidConstraint(IParser parser, out string typeConstraintString)
         {
-            bool result = true;
             typeConstraintString = null;
-
             StringBuilder sb = new StringBuilder();
             if(ConstrainedTypes.Contains(parser.Token.Token.Kind))
             {
@@ -237,7 +235,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 }
             }
 
-            return result;
+            return false;
         }
     }
 }

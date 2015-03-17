@@ -705,14 +705,14 @@ namespace VSGenero.EditorExtensions.Intellisense
             var start = snapSpan.Start;
 
             var parser = new Genero4glReverseParser(snapshot, buffer, span);
-            if (parser.IsInGrouping())
-            {
-                var range = parser.GetExpressionRange(nesting: 1);
-                if (range != null)
-                {
-                    start = range.Value.Start;
-                }
-            }
+            //if (parser.IsInGrouping())
+            //{
+            //    var range = parser.GetExpressionRange(nesting: 1);
+            //    if (range != null)
+            //    {
+            //        start = range.Value.Start;
+            //    }
+            //}
 
             // TODO: need to figure out how to get a statement that spans more than one line
             var tokens = classifier.GetClassificationSpans(new SnapshotSpan(start.GetContainingLine().Start, snapSpan.Start));
