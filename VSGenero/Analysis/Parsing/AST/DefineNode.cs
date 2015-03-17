@@ -29,7 +29,7 @@ namespace VSGenero.Analysis.Parsing.AST
                            .Select(x => x.Value as VariableDefinitionNode);
         }
 
-        public static bool TryParseDefine(Parser parser, out DefineNode defNode, out bool matchedBreakSequence, List<List<TokenKind>> breakSequences = null, Action<VariableDef> binder = null)
+        public static bool TryParseDefine(IParser parser, out DefineNode defNode, out bool matchedBreakSequence, List<List<TokenKind>> breakSequences = null, Action<VariableDef> binder = null)
         {
             defNode = null;
             bool result = false;

@@ -330,6 +330,8 @@
     <Compile Include="Analysis\FileCookie.cs" />
     <Compile Include="Analysis\GetMemberOptions.cs" />
     <Compile Include="Analysis\IAnalysisVariable.cs" />
+    <Compile Include="Analysis\Parsing\IParser.cs" />
+    <Compile Include="Analysis\Parsing\TokenListParser.cs" />
     <Compile Include="Analysis\ResultInterfaces.cs" />
     <Compile Include="Analysis\MemberResult.cs" />
     <Compile Include="Analysis\ParameterResult.cs" />

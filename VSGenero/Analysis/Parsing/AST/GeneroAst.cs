@@ -18,6 +18,7 @@ namespace VSGenero.Analysis.Parsing.AST
         private readonly Dictionary<AstNode, Dictionary<object, object>> _attributes = new Dictionary<AstNode, Dictionary<object, object>>();
 
         private CompletionContextMap _defineStatementMap;
+        private CompletionContextMap _typeConstraintsMap;
 
         public GeneroAst(AstNode body, int[] lineLocations, GeneroLanguageVersion langVersion = GeneroLanguageVersion.None, IProjectEntry projEntry = null, string filename = null)
         {
@@ -191,6 +192,96 @@ namespace VSGenero.Analysis.Parsing.AST
                 });
             // end Define statement map
 
+            // 2) Type constraint map
+            _typeConstraintsMap = new CompletionContextMap(new HashSet<TokenKind>
+                {
+                    TokenKind.DecimalKeyword,
+                    TokenKind.DecKeyword,
+                    TokenKind.NumericKeyword,
+                    TokenKind.MoneyKeyword,
+                    TokenKind.FloatKeyword,
+                    TokenKind.VarcharKeyword,
+                    TokenKind.CharKeyword,
+                    TokenKind.CharacterKeyword,
+                    TokenKind.DatetimeKeyword,
+                    TokenKind.IntervalKeyword
+                });
+            List<TokenKind> dtAndIntervalCompletions = new List<TokenKind> 
+            { 
+                TokenKind.MonthKeyword, TokenKind.YearKeyword, TokenKind.FractionKeyword, TokenKind.SecondKeyword, TokenKind.MinuteKeyword, TokenKind.HourKeyword, TokenKind.DayKeyword
+            };
+            _typeConstraintsMap.CompletionsForStartToken.Add(TokenKind.IntervalKeyword, dtAndIntervalCompletions);
+            _typeConstraintsMap.CompletionsForStartToken.Add(TokenKind.DatetimeKeyword, dtAndIntervalCompletions);
+            _typeConstraintsMap.Map.Add(TokenKind.RightParenthesis, new List<CompletionPossibility>
+                {
+                    new CategoryCompletionPossiblity(new HashSet<TokenCategory> { TokenCategory.NumericLiteral }, new List<TokenKindWithConstraint>
+                        {
+                            new TokenKindWithConstraint(TokenKind.ToKeyword, TokenKind.IntervalKeyword, 5)
+                        })
+                });
+            _typeConstraintsMap.Map.Add(TokenCategory.NumericLiteral, new List<CompletionPossibility>
+                {
+                    new TokenKindCompletionPossiblity(TokenKind.Comma, new List<TokenKindWithConstraint>()),
+                    new TokenKindCompletionPossiblity(TokenKind.LeftParenthesis, new List<TokenKindWithConstraint>())
+                });
+            _typeConstraintsMap.Map.Add(TokenKind.Comma, new List<CompletionPossibility>
+                {
+                    new CategoryCompletionPossiblity(new HashSet<TokenCategory> { TokenCategory.NumericLiteral }, new List<TokenKindWithConstraint>())
+                });
+            _typeConstraintsMap.Map.Add(TokenKind.LeftParenthesis, new List<CompletionPossibility>
+                {
+                    new TokenKindCompletionPossiblity(TokenKind.DecimalKeyword, new List<TokenKindWithConstraint>()),
+                    new TokenKindCompletionPossiblity(TokenKind.DecKeyword, new List<TokenKindWithConstraint>()),
+                    new TokenKindCompletionPossiblity(TokenKind.NumericKeyword, new List<TokenKindWithConstraint>()),
+                    new TokenKindCompletionPossiblity(TokenKind.MoneyKeyword, new List<TokenKindWithConstraint>()),
+                    new TokenKindCompletionPossiblity(TokenKind.FloatKeyword, new List<TokenKindWithConstraint>()),
+                    new TokenKindCompletionPossiblity(TokenKind.FractionKeyword, new List<TokenKindWithConstraint>()),
+                    new TokenKindCompletionPossiblity(TokenKind.VarcharKeyword, new List<TokenKindWithConstraint>()),
+                    new TokenKindCompletionPossiblity(TokenKind.CharKeyword, new List<TokenKindWithConstraint>()),
+                    new TokenKindCompletionPossiblity(TokenKind.CharacterKeyword, new List<TokenKindWithConstraint>()),
+                    new TokenKindCompletionPossiblity(TokenKind.YearKeyword, new List<TokenKindWithConstraint>()),
+                    new TokenKindCompletionPossiblity(TokenKind.MonthKeyword, new List<TokenKindWithConstraint>()),
+                    new TokenKindCompletionPossiblity(TokenKind.DayKeyword, new List<TokenKindWithConstraint>()),
+                    new TokenKindCompletionPossiblity(TokenKind.HourKeyword, new List<TokenKindWithConstraint>()),
+                    new TokenKindCompletionPossiblity(TokenKind.MinuteKeyword, new List<TokenKindWithConstraint>()),
+                    new TokenKindCompletionPossiblity(TokenKind.SecondKeyword, new List<TokenKindWithConstraint>()),
+                });
+            var toDtList = new List<TokenKindWithConstraint>
+                        {
+                            new TokenKindWithConstraint(TokenKind.MonthKeyword),
+                            new TokenKindWithConstraint(TokenKind.YearKeyword),
+                            new TokenKindWithConstraint(TokenKind.FractionKeyword),
+                            new TokenKindWithConstraint(TokenKind.SecondKeyword),
+                            new TokenKindWithConstraint(TokenKind.MinuteKeyword),
+                            new TokenKindWithConstraint(TokenKind.HourKeyword),
+                            new TokenKindWithConstraint(TokenKind.DayKeyword)
+                        };
+            _typeConstraintsMap.Map.Add(TokenKind.ToKeyword, new List<CompletionPossibility>
+                {
+                    new TokenKindCompletionPossiblity(TokenKind.RightParenthesis, toDtList),
+                    new TokenKindCompletionPossiblity(TokenKind.YearKeyword, toDtList),
+                    new TokenKindCompletionPossiblity(TokenKind.MonthKeyword, toDtList),
+                    new TokenKindCompletionPossiblity(TokenKind.DayKeyword, toDtList),
+                    new TokenKindCompletionPossiblity(TokenKind.HourKeyword, toDtList),
+                    new TokenKindCompletionPossiblity(TokenKind.MinuteKeyword, toDtList),
+                    new TokenKindCompletionPossiblity(TokenKind.SecondKeyword, toDtList),
+                    new TokenKindCompletionPossiblity(TokenKind.FractionKeyword, toDtList)
+                });
+            var toDtList2 = new List<CompletionPossibility> 
+                { 
+                    new TokenKindCompletionPossiblity(TokenKind.IntervalKeyword, new List<TokenKindWithConstraint> { new TokenKindWithConstraint(TokenKind.ToKeyword) }),
+                    new TokenKindCompletionPossiblity(TokenKind.DatetimeKeyword, new List<TokenKindWithConstraint> { new TokenKindWithConstraint(TokenKind.ToKeyword) }),
+                    new TokenKindCompletionPossiblity(TokenKind.ToKeyword, new List<TokenKindWithConstraint>())
+                };
+            _typeConstraintsMap.Map.Add(TokenKind.FractionKeyword, toDtList2);
+            _typeConstraintsMap.Map.Add(TokenKind.YearKeyword, toDtList2);
+            _typeConstraintsMap.Map.Add(TokenKind.MonthKeyword, toDtList2);
+            _typeConstraintsMap.Map.Add(TokenKind.DayKeyword, toDtList2);
+            _typeConstraintsMap.Map.Add(TokenKind.HourKeyword, toDtList2);
+            _typeConstraintsMap.Map.Add(TokenKind.MinuteKeyword, toDtList2);
+            _typeConstraintsMap.Map.Add(TokenKind.SecondKeyword, toDtList2);
+            // end Type constraint map
+
 
         }
 
@@ -340,6 +431,12 @@ namespace VSGenero.Analysis.Parsing.AST
              * determine where within the scope we are, and attempt to provide a set of context-sensitive members based on that.
              **********************************************************************************************************************************/
             List<MemberResult> members = new List<MemberResult>();
+            int dummyIndex;
+            // If any type constraint completions come back, we know that a constraint has not been completed, so we bypass searching for other completions
+            if (TryTypeConstraintContext(index, revTokenizer, out members, out dummyIndex) && members.Count > 0)
+            {
+                return members;
+            }
             if(TryPreprocessorContext(index, revTokenizer, out members) ||
                TryFunctionDefContext(index, revTokenizer, out members) ||
                TryDefineDefContext(index, revTokenizer, out members, new List<TokenKind> { TokenKind.PublicKeyword, TokenKind.PrivateKeyword, TokenKind.GlobalsKeyword, TokenKind.FunctionKeyword }))
@@ -419,19 +516,123 @@ namespace VSGenero.Analysis.Parsing.AST
             return members;
         }
 
-        #region Define Member Context
+        #region Type Constraint Member Context
 
-        private enum DefineDefStatus
+        private bool TryTypeConstraintContext(int index, IReverseTokenizer revTokenizer, out List<MemberResult> results, out int startingIndex)
         {
-            None,
-            DefineKeyword,
-            IdentOrKeyword,
-            Comma,
-            TypeIdentOrKeyword,
-            LikeKeyword,
-            RecordKeyword,
+            bool completionsSupplied = false;
+            results = new List<MemberResult>();
+            IList<CompletionPossibility> possibilities = null;
+            List<TokenKindWithConstraint> tokensAwaitingValidation = new List<TokenKindWithConstraint>();
+            bool firstPreviousToken = true;
+            bool isFirstToken = true;
+            startingIndex = index;
 
+            foreach(var tokInfo in revTokenizer.GetReversedTokens().Where(x => x.SourceSpan.Start.Index < index))
+            {
+                if (tokInfo.Equals(default(TokenInfo)) || tokInfo.Token.Kind == TokenKind.NewLine || tokInfo.Token.Kind == TokenKind.NLToken)
+                    continue;   // linebreak
+
+                if (possibilities != null)
+                {
+                    // we have a set of possiblities from the token before. Let's try to match something out of it
+                    var entry = possibilities.FirstOrDefault(x =>
+                    {
+                        if (x is TokenKindCompletionPossiblity)
+                            return (x as TokenKindCompletionPossiblity).MultipleKinds.Contains(tokInfo.Token.Kind);
+                        else
+                            return (x as CategoryCompletionPossiblity).Categories.Contains(tokInfo.Category);
+                    });
+                    if (entry == null)
+                    {
+                        results.Clear();
+                        return false;
+                    }
+
+                    // we only want to supply completions from the position we're in, based on the previous token.
+                    if (!completionsSupplied)
+                    {
+                        // ok, we have an entry with zero or more completion members
+                        foreach (var poss in entry.KeywordCompletions)
+                        {
+                            if (poss.TokenKindToCheck != TokenKind.EndOfFile && poss.TokensPreviousToCheck > 0)
+                                tokensAwaitingValidation.Add(poss);
+                            else
+                                results.Add(new MemberResult(Tokens.TokenKinds[poss.Kind], GeneroMemberType.Keyword, this));
+                        }
+
+                        // check to see if additional completions can be added via provider delegate
+                        if (entry.AdditionalCompletionsProvider != null)
+                        {
+                            results.AddRange(entry.AdditionalCompletionsProvider(index));
+                        }
+                        completionsSupplied = true;
+                    }
+
+                    // go through the tokens that are awaiting validation before being added to the result set
+                    for (int i = tokensAwaitingValidation.Count - 1; i >= 0; i--)
+                    {
+                        tokensAwaitingValidation[i].DecrementPreviousToCheck();
+                        if (tokensAwaitingValidation[i].TokensPreviousToCheck == 0)
+                        {
+                            // check for the token kind we're supposed to check for
+                            if (tokInfo.Token.Kind == tokensAwaitingValidation[i].TokenKindToCheck)
+                            {
+                                results.Add(new MemberResult(Tokens.TokenKinds[tokensAwaitingValidation[i].Kind], GeneroMemberType.Keyword, this));
+                            }
+                            // and remove the token
+                            tokensAwaitingValidation.RemoveAt(i);
+                        }
+                    }
+
+                    if (firstPreviousToken)
+                    {
+                        firstPreviousToken = false;
+                        if (entry.IsBreakingStateOnFirstPrevious)
+                        {
+                            results.Clear();
+                            return false;
+                        }
+                    }
+                }
+
+                if (_typeConstraintsMap.StatementStartTokens.Contains(tokInfo.Token.Kind))
+                {
+                    if (isFirstToken)
+                    {
+                        IList<TokenKind> stmtStartCompletions;
+                        if(_typeConstraintsMap.CompletionsForStartToken.TryGetValue(tokInfo.Token.Kind, out stmtStartCompletions))
+                        {
+                            foreach(var tok in stmtStartCompletions)
+                                results.Add(new MemberResult(Tokens.TokenKinds[tok], GeneroMemberType.Keyword, this));
+                        }
+                    }
+                    startingIndex = tokInfo.SourceSpan.Start.Index;
+                    return true;
+                }
+
+                if (_typeConstraintsMap.Map.TryGetValue(tokInfo.Token.Kind, out possibilities))
+                {
+                }
+                else if (_typeConstraintsMap.Map.TryGetValue(tokInfo.Category, out possibilities))
+                {
+                }
+                else
+                {
+                    // no matches found, not in a valid define statement
+                    results.Clear();
+                    return false;
+                }
+                isFirstToken = false;
+            }
+
+            results.Clear();
+            return false;
         }
+
+        #endregion
+
+        #region Define Member Context
 
         // The logic in here isn't exactly pretty, but it seems to work for most cases. It would probably be good to define a formal set of unit
         // tests to exercise this better. Still need to account for types that have constraints (e.g. datetime ___ TO ____).
@@ -439,11 +640,13 @@ namespace VSGenero.Analysis.Parsing.AST
         {
             bool completionsSupplied = false;
             results = new List<MemberResult>();
+            List<TokenWithSpan> tokensCollected = new List<TokenWithSpan>();
             IList<CompletionPossibility> possibilities = null;
             List<TokenKindWithConstraint> tokensAwaitingValidation = new List<TokenKindWithConstraint>();
             int maxKeywordsOrIdentsBackToBack = 2;
             int currKeywordsOrIdentsBackToBack = 0;
             bool firstPreviousToken = true;
+            bool isFirstToken = true;
             bool skipMovingNext = false;
             int nestedRecordDefCount = 0;
             var enumerator = revTokenizer.GetReversedTokens().Where(x => x.SourceSpan.Start.Index < index).GetEnumerator();
@@ -463,7 +666,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     skipMovingNext = false; // reset
                 }
                 var tokInfo = enumerator.Current;
-                if (tokInfo.Equals(default(TokenInfo)) || tokInfo.Token.Kind == TokenKind.NewLine)
+                if (tokInfo.Equals(default(TokenInfo)) || tokInfo.Token.Kind == TokenKind.NewLine || tokInfo.Token.Kind == TokenKind.NLToken)
                     continue;   // linebreak
 
                 if(failingKeywords != null && failingKeywords.Contains(tokInfo.Token.Kind))
@@ -484,6 +687,33 @@ namespace VSGenero.Analysis.Parsing.AST
                         });
                     if(entry == null)
                     {
+                        List<MemberResult> dummyList2;
+                        List<TokenWithSpan> tokenList;
+                        int typeConstraintStartingIndex2;
+                        if (TryTypeConstraintContext((tokInfo.SourceSpan.Start.Index + 1), revTokenizer, out dummyList2, out typeConstraintStartingIndex2))
+                        {
+                            // move us past the type constraint
+                            while (tokInfo.Equals(default(TokenInfo)) ||
+                                    tokInfo.Token.Kind == TokenKind.NewLine ||
+                                    tokInfo.Token.Kind == TokenKind.NLToken ||
+                                    tokInfo.SourceSpan.Start.Index > typeConstraintStartingIndex2)
+                            {
+                                if (!enumerator.MoveNext())
+                                {
+                                    results.Clear();
+                                    return false;
+                                }
+                                tokInfo = enumerator.Current;
+                                if (!(tokInfo.Equals(default(TokenInfo)) ||
+                                    tokInfo.Token.Kind == TokenKind.NewLine ||
+                                    tokInfo.Token.Kind == TokenKind.NLToken))
+                                {
+                                    tokensCollected.Insert(0, tokInfo.ToTokenWithSpan());
+                                }
+                            }
+                            continue;
+                        }
+
                         results.Clear();
                         return false;
                     }
@@ -538,16 +768,75 @@ namespace VSGenero.Analysis.Parsing.AST
                 // handle the Define token
                 if (_defineStatementMap.StatementStartTokens.Contains(tokInfo.Token.Kind))
                 {
-                    if ((currKeywordsOrIdentsBackToBack >= maxKeywordsOrIdentsBackToBack) ||
-                        (isFirstTokenHitRecord.HasValue && isFirstTokenHitRecord.Value))
+                    if (tokensCollected.Count > 0)
+                    {
+                        if (tokensCollected.Last().Token.Kind == TokenKind.Comma)
+                        {
+                            results.Clear();
+                            return true;
+                        }
+                        else if(tokensCollected.Last().Token.Kind == TokenKind.RecordKeyword &&
+                                tokensCollected.ElementAt(tokensCollected.Count - 2).Token.Kind != TokenKind.EndKeyword)
+                        {
+                            return true;
+                        }
+                    }
+                    if (isFirstToken)
                     {
                         results.Clear();
-                        return false;
+                        return true;
                     }
+                    //if (/*(currKeywordsOrIdentsBackToBack >= maxKeywordsOrIdentsBackToBack) ||*/
+                    //    (isFirstTokenHitRecord.HasValue && isFirstTokenHitRecord.Value))
+                    //{
+                    //    results.Clear();
+                    //    return false;
+                    //}
+                    tokensCollected.Insert(0, tokInfo.ToTokenWithSpan());
+                    tokensCollected.Insert(0, default(TokenWithSpan));
+                    // Now Forward parse the collected tokens and see if the define statement is complete.
+                    // If so, we're not actually IN the statement
+                    TokenListParser parser = new TokenListParser(tokensCollected);
+                    DefineNode defNode;
+                    bool dummy;
+                    if (DefineNode.TryParseDefine(parser, out defNode, out dummy) && (parser.ErrorSink as StubErrorSink).ErrorCount == 0)
+                        return false;
+                    TypeDefNode typeDefNode;
+                    parser.Reset();
+                    if (TypeDefNode.TryParseNode(parser, out typeDefNode, out dummy) && (parser.ErrorSink as StubErrorSink).ErrorCount == 0)
+                        return false;
+
                     return true;
                 }
 
-                if(_defineStatementMap.Map.TryGetValue(tokInfo.Token.Kind, out possibilities))
+                // try reverse parsing a type constraint
+                List<MemberResult> dummyList;
+                int typeConstraintStartingIndex;
+                if (TryTypeConstraintContext((tokInfo.SourceSpan.Start.Index + 1), revTokenizer, out dummyList, out typeConstraintStartingIndex))
+                {
+                    tokensCollected.Insert(0, tokInfo.ToTokenWithSpan());
+                    // move us past the type constraint
+                    while (tokInfo.Equals(default(TokenInfo)) || 
+                            tokInfo.Token.Kind == TokenKind.NewLine ||
+                            tokInfo.Token.Kind == TokenKind.NLToken ||
+                            tokInfo.SourceSpan.Start.Index > typeConstraintStartingIndex)
+                    {
+                        if (!enumerator.MoveNext())
+                        {
+                            results.Clear();
+                            return false;
+                        }
+                        tokInfo = enumerator.Current;
+                        if (!(tokInfo.Equals(default(TokenInfo)) ||
+                            tokInfo.Token.Kind == TokenKind.NewLine ||
+                            tokInfo.Token.Kind == TokenKind.NLToken))
+                        {
+                            tokensCollected.Insert(0, tokInfo.ToTokenWithSpan());
+                        }
+                    }
+                    continue;
+                }
+                else if(_defineStatementMap.Map.TryGetValue(tokInfo.Token.Kind, out possibilities))
                 {
                     currKeywordsOrIdentsBackToBack = 0;
                     if(tokInfo.Token.Kind == TokenKind.RecordKeyword)
@@ -596,6 +885,8 @@ namespace VSGenero.Analysis.Parsing.AST
                 {
                     isFirstTokenHitRecord = false;
                 }
+                isFirstToken = false;
+                tokensCollected.Insert(0, tokInfo.ToTokenWithSpan());
             }
 
             results.Clear();
@@ -1410,6 +1701,17 @@ namespace VSGenero.Analysis.Parsing.AST
         {
             _statementStartTokens = startTokens;
             _map = new Dictionary<object, IList<CompletionPossibility>>(mapContents ?? new Dictionary<object, IList<CompletionPossibility>>());
+        }
+
+        private Dictionary<TokenKind, IList<TokenKind>> _completionsForStartToken;
+        public Dictionary<TokenKind, IList<TokenKind>> CompletionsForStartToken
+        {
+            get
+            {
+                if (_completionsForStartToken == null)
+                    _completionsForStartToken = new Dictionary<TokenKind, IList<TokenKind>>();
+                return _completionsForStartToken;
+            }
         }
     }
 

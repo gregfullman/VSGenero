@@ -72,7 +72,7 @@ namespace VSGenero.Analysis.Parsing.AST
             }
         }
 
-        public static bool TryParseNode(Parser parser, out TypeReference defNode, bool mimickingRecord = false)
+        public static bool TryParseNode(IParser parser, out TypeReference defNode, bool mimickingRecord = false)
         {
             defNode = null;
             bool result = false;
@@ -189,7 +189,6 @@ namespace VSGenero.Analysis.Parsing.AST
                                     // if it's not required, then skip it
                                     if (constPiece.Optional)
                                     {
-                                        parser.NextToken();
                                         continue;
                                     }
                                     else

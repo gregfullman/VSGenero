@@ -19,7 +19,7 @@ namespace VSGenero.Analysis.Parsing.AST
             }
         }
 
-        public static bool TryParseNode(Parser parser, out AttributeSpecifier node)
+        public static bool TryParseNode(IParser parser, out AttributeSpecifier node)
         {
             node = null;
             bool result = false;

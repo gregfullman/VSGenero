@@ -201,7 +201,9 @@ namespace VSGenero.Analysis.Parsing.AST
                         new List<TokenKind> { TokenKind.TypeKeyword },
                         new List<TokenKind> { TokenKind.FunctionKeyword },
                         new List<TokenKind> { TokenKind.MainKeyword },
-                        new List<TokenKind> { TokenKind.ReportKeyword }
+                        new List<TokenKind> { TokenKind.ReportKeyword },
+                        new List<TokenKind> { TokenKind.PublicKeyword },
+                        new List<TokenKind> { TokenKind.PrivateKeyword }
                     };
                 while (TypeDefNode.TryParseNode(parser, out typeNode, out matchedBreakSequence, breakSequences))
                 {

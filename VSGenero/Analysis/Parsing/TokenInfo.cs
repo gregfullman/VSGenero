@@ -59,5 +59,10 @@ namespace VSGenero.Analysis.Parsing
         {
             return String.Format("TokenInfo: {0}, {1}, {2}", _span, _category, _trigger);
         }
+
+        public TokenWithSpan ToTokenWithSpan()
+        {
+            return new TokenWithSpan(Token, new IndexSpan(SourceSpan.Start.Index, SourceSpan.Length));
+        }
     }
 }

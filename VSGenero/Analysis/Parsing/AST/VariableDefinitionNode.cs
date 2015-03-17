@@ -89,7 +89,7 @@ namespace VSGenero.Analysis.Parsing.AST
             }
         }
 
-        public static bool TryParseNode(Parser parser, out VariableDefinitionNode defNode, Action<VariableDef> binder = null)
+        public static bool TryParseNode(IParser parser, out VariableDefinitionNode defNode, Action<VariableDef> binder = null)
         {
             defNode = null;
             bool result = false;

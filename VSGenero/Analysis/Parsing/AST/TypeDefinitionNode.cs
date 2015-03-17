@@ -19,7 +19,7 @@ namespace VSGenero.Analysis.Parsing.AST
     {
         public string Identifier { get; private set; }
 
-        public static bool TryParseDefine(Parser parser, out TypeDefinitionNode defNode)
+        public static bool TryParseDefine(IParser parser, out TypeDefinitionNode defNode)
         {
             defNode = null;
             bool result = false;

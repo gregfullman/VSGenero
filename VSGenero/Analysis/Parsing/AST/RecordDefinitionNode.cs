@@ -45,7 +45,7 @@ namespace VSGenero.Analysis.Parsing.AST
             return sb.ToString();
         }
 
-        public new static bool TryParseNode(Parser parser, out RecordDefinitionNode defNode)
+        public new static bool TryParseNode(IParser parser, out RecordDefinitionNode defNode)
         {
             defNode = null;
             bool result = false;
@@ -90,9 +90,20 @@ namespace VSGenero.Analysis.Parsing.AST
                         defNode.Attribute = attribSpec;
                     }
 
+                    bool advance = true;
+                    Token tok = Tokens.EndOfFileToken;
                     while (parser.PeekToken(TokenCategory.Identifier) || parser.PeekToken(TokenCategory.Keyword))
                     {
-                        var tok = parser.NextToken();
+                        //if (advance)
+                        //{
+                            tok = parser.NextToken();
+                        //}
+                        //else
+                        //{
+                        //    // reset
+                        //    tok = parser.Token.Token;
+                        //    advance = true;
+                        //}
 
                         TypeReference tr;
                         if (TypeReference.TryParseNode(parser, out tr, true))
@@ -105,6 +116,7 @@ namespace VSGenero.Analysis.Parsing.AST
 
                         if (parser.MaybeEat(TokenKind.Comma))
                         {
+                            //advance = false;
                             continue;
                         }
                         else if (parser.MaybeEat(TokenKind.EndKeyword))

@@ -10,7 +10,7 @@ using VSGenero.Analysis.Parsing.AST;
 
 namespace VSGenero.Analysis.Parsing
 {
-    public class Parser : IDisposable
+    public class Parser : IDisposable, IParser
     {
         // immutable properties:
         private readonly Tokenizer _tokenizer;
@@ -43,7 +43,7 @@ namespace VSGenero.Analysis.Parsing
 
         public readonly FglStatementFactory StatementFactory;
 
-        internal ErrorSink ErrorSink
+        public ErrorSink ErrorSink
         {
             get
             {
@@ -56,12 +56,12 @@ namespace VSGenero.Analysis.Parsing
             }
         }
 
-        internal TokenWithSpan Token
+        public TokenWithSpan Token
         {
             get { return _token; }
         }
 
-        internal Tokenizer Tokenizer
+        public Tokenizer Tokenizer
         {
             get { return _tokenizer; }
         }
@@ -207,7 +207,7 @@ namespace VSGenero.Analysis.Parsing
             return msg;
         }
 
-        internal void ReportSyntaxError(string message)
+        public void ReportSyntaxError(string message)
         {
             if (_lookaheads.Count > 0)
             {
@@ -215,12 +215,12 @@ namespace VSGenero.Analysis.Parsing
             }
         }
 
-        internal void ReportSyntaxError(int start, int end, string message)
+        public void ReportSyntaxError(int start, int end, string message)
         {
             ReportSyntaxError(start, end, message, ErrorCodes.SyntaxError);
         }
 
-        internal void ReportSyntaxError(int start, int end, string message, int errorCode)
+        public void ReportSyntaxError(int start, int end, string message, int errorCode)
         {
             // save the first one, the next error codes may be induced errors:
             if (_errorCode == 0)
@@ -237,16 +237,16 @@ namespace VSGenero.Analysis.Parsing
 
         #endregion
 
-        public void ParseSingleStatement()
-        {
-            StartParsing();
+        //public void ParseSingleStatement()
+        //{
+        //    StartParsing();
 
-            MaybeEatNewLine();
-            //Statement statement = ParseStmt();
-            // TODO: parse the statement
-            EatEndOfInput();
-            //return CreateAst(statement);
-        }
+        //    MaybeEatNewLine();
+        //    //Statement statement = ParseStmt();
+        //    // TODO: parse the statement
+        //    EatEndOfInput();
+        //    //return CreateAst(statement);
+        //}
 
         public GeneroAst ParseFile()
         {
@@ -336,7 +336,7 @@ namespace VSGenero.Analysis.Parsing
             //return CreateAst(ret);
         }
 
-        internal void StartParsing()
+        private void StartParsing()
         {
             if (_parsingStarted)
                 throw new InvalidOperationException("Parsing already started. Use Restart to start again.");
@@ -370,7 +370,7 @@ namespace VSGenero.Analysis.Parsing
             return _token.Span.Start;
         }
 
-        internal Token NextToken()
+        public Token NextToken()
         {
             _token = _lookaheads[0];
             _tokenWhiteSpace = _lookaheadWhiteSpaces[0];
@@ -383,7 +383,7 @@ namespace VSGenero.Analysis.Parsing
             return _token.Token;
         }
 
-        internal Token PeekToken(uint aheadBy = 1)
+        public Token PeekToken(uint aheadBy = 1)
         {
             if(aheadBy == 0)
             {
@@ -396,7 +396,7 @@ namespace VSGenero.Analysis.Parsing
             return _lookaheads[(int)aheadBy - 1].Token;
         }
 
-        internal TokenWithSpan PeekTokenWithSpan(uint aheadBy = 1)
+        public TokenWithSpan PeekTokenWithSpan(uint aheadBy = 1)
         {
             if (aheadBy == 0)
             {
@@ -409,7 +409,7 @@ namespace VSGenero.Analysis.Parsing
             return _lookaheads[(int)aheadBy - 1];
         }
 
-        internal void FetchLookahead()
+        private void FetchLookahead()
         {
             // for right now we don't want to see whitespace chars
             var tok = _tokenizer.GetNextToken();
@@ -420,23 +420,23 @@ namespace VSGenero.Analysis.Parsing
             _lookaheadWhiteSpaces.Add(_tokenizer.PreceedingWhiteSpace);
         }
 
-        internal bool PeekToken(TokenKind kind, uint aheadBy = 1)
+        public bool PeekToken(TokenKind kind, uint aheadBy = 1)
         {
             return PeekToken(aheadBy).Kind == kind;
         }
 
-        internal bool PeekToken(Token check, uint aheadBy = 1)
+        public bool PeekToken(Token check, uint aheadBy = 1)
         {
             return PeekToken(aheadBy) == check;
         }
 
-        internal bool PeekToken(TokenCategory category, uint aheadBy = 1)
+        public bool PeekToken(TokenCategory category, uint aheadBy = 1)
         {
             var tok = PeekToken(aheadBy);
             return Tokenizer.GetTokenInfo(tok).Category == category;
         }
 
-        internal bool Eat(TokenKind kind)
+        public bool Eat(TokenKind kind)
         {
             Token next = PeekToken();
             if (next.Kind != kind)
@@ -463,7 +463,7 @@ namespace VSGenero.Analysis.Parsing
             return true;
         }
 
-        internal bool MaybeEat(TokenKind kind)
+        public bool MaybeEat(TokenKind kind)
         {
             if (PeekToken().Kind == kind)
             {

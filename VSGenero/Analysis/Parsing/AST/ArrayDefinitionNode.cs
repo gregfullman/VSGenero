@@ -135,7 +135,7 @@ namespace VSGenero.Analysis.Parsing.AST
             return sb.ToString();
         }
 
-        public static bool TryParseNode(Parser parser, out ArrayTypeReference defNode)
+        public static bool TryParseNode(IParser parser, out ArrayTypeReference defNode)
         {
             defNode = null;
             bool result = false;
