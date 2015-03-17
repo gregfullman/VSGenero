@@ -8,112 +8,236 @@ namespace VSGenero.Analysis.Parsing.AST
 {
     public static class TypeConstraints
     {
-        private static object _objLock = new object();
-        private static Dictionary<TokenKind, TypeConstraint> _typeConstraints;
-        public static Dictionary<TokenKind, TypeConstraint> Constraints
+        public static HashSet<TokenKind> ConstrainedTypes = new HashSet<TokenKind>
         {
-            get
+            TokenKind.CharKeyword,
+            TokenKind.CharacterKeyword,
+            TokenKind.VarcharKeyword,
+            TokenKind.DecKeyword,
+            TokenKind.DecimalKeyword,
+            TokenKind.NumericKeyword,
+            TokenKind.MoneyKeyword,
+            TokenKind.DatetimeKeyword,
+            TokenKind.IntervalKeyword
+        };
+
+        private static HashSet<TokenKind> _dtQuals = new HashSet<TokenKind>
+        {
+            TokenKind.YearKeyword,
+            TokenKind.MonthKeyword,
+            TokenKind.DayKeyword,
+            TokenKind.HourKeyword,
+            TokenKind.MinuteKeyword,
+            TokenKind.SecondKeyword,
+            TokenKind.FractionKeyword
+        };
+
+        public static bool VerifyValidConstraint(IParser parser, out string typeConstraintString)
+        {
+            bool result = true;
+            typeConstraintString = null;
+
+            StringBuilder sb = new StringBuilder();
+            if(ConstrainedTypes.Contains(parser.Token.Token.Kind))
             {
-                lock (_objLock)
+                sb.Append(Tokens.TokenKinds[parser.Token.Token.Kind]);
+                switch(parser.Token.Token.Kind)
                 {
-                    if (_typeConstraints == null)
-                    {
-                        _typeConstraints = new Dictionary<TokenKind, TypeConstraint>();
-                        var charConstraint = new TypeConstraint(TokenKind.CharKeyword, new[] 
-                    {
-                       new TypeConstraintPiece(TokenKind.LeftParenthesis, 0, true),
-                       new TypeConstraintPiece(TokenCategory.NumericLiteral, 0, true),
-                       new TypeConstraintPiece(TokenKind.RightParenthesis, 0, true)
-                    });
-                        _typeConstraints.Add(TokenKind.CharKeyword, charConstraint);
-                        _typeConstraints.Add(TokenKind.CharacterKeyword, charConstraint);
-                        _typeConstraints.Add(TokenKind.VarcharKeyword, new TypeConstraint(TokenKind.VarcharKeyword, new[] 
-                    {
-                       new TypeConstraintPiece(TokenKind.LeftParenthesis, 0, true),
-                       new TypeConstraintPiece(TokenCategory.NumericLiteral, 0, true),
-                       new TypeConstraintPiece(TokenKind.Comma, 1, true),
-                       new TypeConstraintPiece(TokenCategory.NumericLiteral, 1, true),
-                       new TypeConstraintPiece(TokenKind.RightParenthesis, 0, true)
-                    }));
-                        _typeConstraints.Add(TokenKind.DatetimeKeyword, new TypeConstraint(TokenKind.DatetimeKeyword, new[] 
-                    {
-                       new TypeConstraintPiece(TokenCategory.Keyword, 0, false),
-                       new TypeConstraintPiece(TokenKind.ToKeyword, 0, false),
-                       new TypeConstraintPiece(TokenCategory.Keyword, 0, false)
-                    }));
-                        _typeConstraints.Add(TokenKind.FractionKeyword, new TypeConstraint(TokenKind.FractionKeyword, new[] 
-                    {
-                       new TypeConstraintPiece(TokenKind.LeftParenthesis, 0, false),
-                       new TypeConstraintPiece(TokenCategory.NumericLiteral, 0, false),
-                       new TypeConstraintPiece(TokenKind.RightParenthesis, 0, false)
-                    }));
-                        _typeConstraints.Add(TokenKind.IntervalKeyword, new TypeConstraint(TokenKind.IntervalKeyword, new[] 
-                    {
-                       new TypeConstraintPiece(TokenCategory.Keyword, 0, false),
-                       new TypeConstraintPiece(TokenKind.LeftParenthesis, 1, true),
-                       new TypeConstraintPiece(TokenCategory.NumericLiteral, 1, true),
-                       new TypeConstraintPiece(TokenKind.RightParenthesis, 1, true),
-                       new TypeConstraintPiece(TokenKind.ToKeyword, 0, false),
-                       new TypeConstraintPiece(TokenCategory.Keyword, 0, false),
-                       new TypeConstraintPiece(TokenKind.LeftParenthesis, 1, true),
-                       new TypeConstraintPiece(TokenCategory.NumericLiteral, 1, true),
-                       new TypeConstraintPiece(TokenKind.RightParenthesis, 1, true)
-                    }));
-                        _typeConstraints.Add(TokenKind.FloatKeyword, new TypeConstraint(TokenKind.FloatKeyword, new[] 
-                    {
-                       new TypeConstraintPiece(TokenKind.LeftParenthesis, 0, true),
-                       new TypeConstraintPiece(TokenCategory.NumericLiteral, 0, true),
-                       new TypeConstraintPiece(TokenKind.RightParenthesis, 0, true)
-                    }));
-                        var decConstraint = new TypeConstraint(TokenKind.DecimalKeyword, new[] 
-                    {
-                       new TypeConstraintPiece(TokenKind.LeftParenthesis, 0, true),
-                       new TypeConstraintPiece(TokenCategory.NumericLiteral, 0, true),
-                       new TypeConstraintPiece(TokenKind.Comma, 1, true),
-                       new TypeConstraintPiece(TokenCategory.NumericLiteral, 1, true),
-                       new TypeConstraintPiece(TokenKind.RightParenthesis, 0, true)
-                    });
-                        _typeConstraints.Add(TokenKind.DecimalKeyword, decConstraint);
-                        _typeConstraints.Add(TokenKind.DecKeyword, decConstraint);
-                        _typeConstraints.Add(TokenKind.NumericKeyword, decConstraint);
-                        _typeConstraints.Add(TokenKind.MoneyKeyword, new TypeConstraint(TokenKind.MoneyKeyword, new[] 
-                    {
-                       new TypeConstraintPiece(TokenKind.LeftParenthesis, 0, true),
-                       new TypeConstraintPiece(TokenCategory.NumericLiteral, 0, true),
-                       new TypeConstraintPiece(TokenKind.Comma, 1, true),
-                       new TypeConstraintPiece(TokenCategory.NumericLiteral, 1, true),
-                       new TypeConstraintPiece(TokenKind.RightParenthesis, 0, true)
-                    }));
-                    }
+                    case TokenKind.CharKeyword:
+                    case TokenKind.CharacterKeyword:
+                    case TokenKind.VarcharKeyword:
+                        {
+                            if(parser.PeekToken(TokenKind.LeftParenthesis))
+                            {
+                                parser.NextToken();
+                                sb.Append("(");
+                                if(parser.PeekToken(TokenCategory.NumericLiteral))
+                                {
+                                    parser.NextToken();
+                                    sb.Append(parser.Token.Token.Value.ToString());
+                                    if(parser.PeekToken(TokenKind.RightParenthesis))
+                                    {
+                                        parser.NextToken();
+                                        sb.Append(")");
+                                        typeConstraintString = sb.ToString();
+                                        return true;
+                                    }
+                                }
+                                parser.ReportSyntaxError("Incomplete character-type size specification found.");
+                                return false;
+                            }
+                            break;
+                        }
+                    case TokenKind.DecKeyword:
+                    case TokenKind.DecimalKeyword:
+                    case TokenKind.MoneyKeyword:
+                        {
+                            if (parser.PeekToken(TokenKind.LeftParenthesis))
+                            {
+                                parser.NextToken();
+                                sb.Append("(");
+                                if (parser.PeekToken(TokenCategory.NumericLiteral))
+                                {
+                                    parser.NextToken();
+                                    sb.Append(parser.Token.Token.Value.ToString());
+
+                                    if(parser.PeekToken(TokenKind.Comma))
+                                    {
+                                        parser.NextToken();
+                                        sb.Append(", ");
+                                        if (parser.PeekToken(TokenCategory.NumericLiteral))
+                                        {
+                                            parser.NextToken();
+                                            sb.Append(parser.Token.Token.Value.ToString());
+                                        }
+                                        else
+                                        {
+                                            parser.ReportSyntaxError("Incomplete decimal/money-type scale specification found.");
+                                            return false;
+                                        }
+                                    }
+
+                                    if (parser.PeekToken(TokenKind.RightParenthesis))
+                                    {
+                                        parser.NextToken();
+                                        sb.Append(")");
+                                        typeConstraintString = sb.ToString();
+                                        return true;
+                                    }
+                                }
+                                parser.ReportSyntaxError("Incomplete decimal/money-type precision specification found.");
+                                return false;
+                            }
+                            break;
+                        }
+                    case TokenKind.DatetimeKeyword:
+                        {
+                            if(_dtQuals.Contains(parser.PeekToken().Kind))
+                            {
+                                parser.NextToken();
+                                sb.AppendFormat(" {0}", parser.Token.Token.Value.ToString());
+
+                                if(parser.PeekToken(TokenKind.ToKeyword))
+                                {
+                                    parser.NextToken();
+                                    sb.AppendFormat(" {0}", parser.Token.Token.Value.ToString());
+
+                                    if (_dtQuals.Contains(parser.PeekToken().Kind))
+                                    {
+                                        parser.NextToken();
+                                        sb.AppendFormat(" {0}", parser.Token.Token.Value.ToString());
+
+                                        if(parser.Token.Token.Kind == TokenKind.FractionKeyword && parser.PeekToken(TokenKind.LeftParenthesis))
+                                        {
+                                            parser.NextToken();
+                                            sb.Append("(");
+
+                                            if(parser.PeekToken(TokenCategory.NumericLiteral))
+                                            {
+                                                parser.NextToken();
+                                                sb.Append(parser.Token.Token.Value.ToString());
+
+                                                if(parser.PeekToken(TokenKind.RightParenthesis))
+                                                {
+                                                    parser.NextToken();
+                                                    sb.Append(")");
+                                                    typeConstraintString = sb.ToString();
+                                                    return true;
+                                                }
+                                            }
+                                            parser.ReportSyntaxError("Invalid datetime fraction specification found.");
+                                            return false;
+                                        }
+
+                                        typeConstraintString = sb.ToString();
+                                        return true;
+                                    }
+                                }
+                            }
+                            parser.ReportSyntaxError("Invalid datetime specification found.");
+                            return false;
+                        }
+                    case TokenKind.IntervalKeyword:
+                        {
+                            if (_dtQuals.Contains(parser.PeekToken().Kind))
+                            {
+                                parser.NextToken();
+                                sb.AppendFormat(" {0}", parser.Token.Token.Value.ToString());
+
+                                if(parser.Token.Token.Kind == TokenKind.FractionKeyword && parser.PeekToken(TokenKind.LeftParenthesis))
+                                {
+                                    parser.ReportSyntaxError("A scale cannot be defined on the first span of the interval.");
+                                    return false;
+                                }
+
+                                if(parser.PeekToken(TokenKind.LeftParenthesis))
+                                {
+                                    parser.NextToken();
+                                    sb.Append("(");
+                                    if (parser.PeekToken(TokenCategory.NumericLiteral))
+                                    {
+                                        parser.NextToken();
+                                        sb.Append(parser.Token.Token.Value.ToString());
+                                        if (parser.PeekToken(TokenKind.RightParenthesis))
+                                        {
+                                            parser.NextToken();
+                                            sb.Append(")");
+                                        }
+                                        else
+                                        {
+                                            parser.ReportSyntaxError("Invalid interval specification found.");
+                                            return false;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        parser.ReportSyntaxError("Invalid interval specification found.");
+                                        return false;
+                                    }
+                                }
+
+                                if(parser.PeekToken(TokenKind.ToKeyword))
+                                {
+                                    parser.NextToken();
+                                    sb.Append(" to");
+
+                                    if (_dtQuals.Contains(parser.PeekToken().Kind))
+                                    {
+                                        parser.NextToken();
+                                        sb.AppendFormat(" {0}", parser.Token.Token.Value.ToString());
+
+                                        if (parser.Token.Token.Kind == TokenKind.FractionKeyword && parser.PeekToken(TokenKind.LeftParenthesis))
+                                        {
+                                            parser.NextToken();
+                                            sb.Append("(");
+                                            if (parser.PeekToken(TokenCategory.NumericLiteral))
+                                            {
+                                                parser.NextToken();
+                                                sb.Append(parser.Token.Token.Value.ToString());
+                                                if (parser.PeekToken(TokenKind.RightParenthesis))
+                                                {
+                                                    parser.NextToken();
+                                                    sb.Append(")");
+                                                    typeConstraintString = sb.ToString();
+                                                    return true;
+                                                }
+                                            }
+                                            parser.ReportSyntaxError("Invalid fraction scale specification found.");
+                                            return false;
+                                        }
+
+                                        typeConstraintString = sb.ToString();
+                                        return true;
+                                    }
+                                }
+                            }
+                            parser.ReportSyntaxError("Invalid interval specification found.");
+                            return false;
+                        }
                 }
-                return _typeConstraints;
             }
-        }
-    }
 
-    public class TypeConstraint
-    {
-        public TokenKind Type { get; private set; }
-        public List<TypeConstraintPiece> Pieces { get; private set; }
-
-        public TypeConstraint(TokenKind type, IEnumerable<TypeConstraintPiece> pieces)
-        {
-            Type = type;
-            Pieces = new List<TypeConstraintPiece>(pieces);
-        }
-    }
-
-    public class TypeConstraintPiece
-    {
-        public object KindOrCategory { get; private set; }
-        public int Group { get; private set; }
-        public bool Optional { get; private set; }
-
-        public TypeConstraintPiece(object kindOrCategory, int group, bool optional)
-        {
-            KindOrCategory = kindOrCategory;
-            Group = group;
-            Optional = optional;
+            return result;
         }
     }
 }

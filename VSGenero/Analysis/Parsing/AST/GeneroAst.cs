@@ -834,6 +834,10 @@ namespace VSGenero.Analysis.Parsing.AST
                             tokensCollected.Insert(0, tokInfo.ToTokenWithSpan());
                         }
                     }
+                    possibilities = new List<CompletionPossibility>() 
+                    { 
+                        new CategoryCompletionPossiblity(new HashSet<TokenCategory> { TokenCategory.Identifier, TokenCategory.Keyword }, new List<TokenKindWithConstraint>()) 
+                    };
                     continue;
                 }
                 else if(_defineStatementMap.Map.TryGetValue(tokInfo.Token.Kind, out possibilities))

@@ -22,25 +22,16 @@ namespace VSGenero.Analysis.Parsing.AST
     {
         public AttributeSpecifier Attribute { get; private set; }
 
-        private List<Token> _typeNameTokens;
-        public List<Token> TypeNameTokens
-        {
-            get
-            {
-                if (_typeNameTokens == null)
-                    _typeNameTokens = new List<Token>();
-                return _typeNameTokens;
-            }
-        }
+        private string _typeNameString;
         public string DatabaseName { get; private set; }
         public string TableName { get; private set; }
         public string ColumnName { get; private set; }
 
         public override string ToString()
         {
-            if(Children.Count > 0)
+            if (Children.Count > 0)
             {
-                if(Children.Count == 1)
+                if (Children.Count == 1)
                 {
                     return Children[Children.Keys[0]].ToString();
                 }
@@ -64,8 +55,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 }
                 else
                 {
-                    foreach (var tok in TypeNameTokens)
-                        sb.Append(tok.Value.ToString());
+                    return _typeNameString;
                 }
 
                 return sb.ToString();
@@ -79,7 +69,7 @@ namespace VSGenero.Analysis.Parsing.AST
 
             ArrayTypeReference arrayType;
             RecordDefinitionNode recordDef;
-            if(ArrayTypeReference.TryParseNode(parser, out arrayType))
+            if (ArrayTypeReference.TryParseNode(parser, out arrayType))
             {
                 result = true;
                 defNode = new TypeReference();
@@ -87,7 +77,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 defNode.EndIndex = arrayType.EndIndex;
                 defNode.Children.Add(arrayType.StartIndex, arrayType);
             }
-            else if(RecordDefinitionNode.TryParseNode(parser, out recordDef))
+            else if (RecordDefinitionNode.TryParseNode(parser, out recordDef))
             {
                 result = true;
                 defNode = new TypeReference();
@@ -95,7 +85,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 defNode.EndIndex = recordDef.EndIndex;
                 defNode.Children.Add(recordDef.StartIndex, recordDef);
             }
-            else if(parser.PeekToken(TokenKind.LikeKeyword))
+            else if (parser.PeekToken(TokenKind.LikeKeyword))
             {
                 result = true;
                 parser.NextToken();
@@ -124,7 +114,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     parser.NextToken(); // advance to the dot
                     parser.NextToken(); // advance to the columne name (or dot)
                     defNode.ColumnName = parser.Token.Token.Value.ToString();
-                    if(!mimickingRecord && defNode.ColumnName == "*")
+                    if (!mimickingRecord && defNode.ColumnName == "*")
                     {
                         parser.ReportSyntaxError("A variable cannot mimic an entire table without being a record. The variable must be defined as a mimicking record.");
                     }
@@ -134,87 +124,38 @@ namespace VSGenero.Analysis.Parsing.AST
             {
                 var tok = parser.PeekToken();
                 var cat = Tokenizer.GetTokenInfo(tok).Category;
-                if(cat == TokenCategory.Keyword || cat == TokenCategory.Identifier)
+                if (cat == TokenCategory.Keyword || cat == TokenCategory.Identifier)
                 {
+                    StringBuilder sb = new StringBuilder();
                     result = true;
                     parser.NextToken();
                     defNode = new TypeReference();
                     defNode.StartIndex = parser.Token.Span.Start;
-                    defNode.TypeNameTokens.Add(parser.Token.Token);
+                    sb.Append(parser.Token.Token.Value.ToString());
                     defNode.EndIndex = parser.Token.Span.End;
 
                     // determine if there are any constraints on the type keyword
-                    TypeConstraint constraint;
-                    if(TypeConstraints.Constraints.TryGetValue(parser.Token.Token.Kind, out constraint))
+                    string typeString;
+                    if (TypeConstraints.VerifyValidConstraint(parser, out typeString))
                     {
-                        //parser.NextToken();
-                        
-                        // parse them off
-                        int group = -1;
-                        foreach(var constPiece in constraint.Pieces)
-                        {
-                            tok = parser.PeekToken();
-                            if(constPiece.KindOrCategory is TokenKind)
-                            {
-                                TokenKind kind = (TokenKind)constPiece.KindOrCategory;
-                                if(tok.Kind == kind)
-                                {
-                                    parser.NextToken();
-                                    defNode.TypeNameTokens.Add(parser.Token.Token);
-                                }
-                                else
-                                {
-                                    // if it's not required, then skip it
-                                    if(constPiece.Optional)
-                                    {
-                                        continue;
-                                    }
-                                    else
-                                    {
-                                        parser.ReportSyntaxError("Missing token in type reference.");
-                                        parser.NextToken();
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                TokenCategory ccat = (TokenCategory)constPiece.KindOrCategory;
-                                if (Tokenizer.GetTokenInfo(tok).Category == ccat)
-                                {
-                                    parser.NextToken();
-                                    defNode.TypeNameTokens.Add(parser.Token.Token);
-                                }
-                                else
-                                {
-                                    // if it's not required, then skip it
-                                    if (constPiece.Optional)
-                                    {
-                                        continue;
-                                    }
-                                    else
-                                    {
-                                        parser.ReportSyntaxError("Missing token in type reference.");
-                                        parser.NextToken();
-                                    }
-                                }
-                            }
-                        }
+                        defNode._typeNameString = typeString;
                     }
                     else
                     {
                         // see if we're referencing an extension type (dotted name)
-                        while(parser.PeekToken(TokenKind.Dot))
+                        while (parser.PeekToken(TokenKind.Dot))
                         {
-                            defNode.TypeNameTokens.Add(parser.NextToken());
-                            if(parser.PeekToken(TokenCategory.Keyword) || parser.PeekToken(TokenCategory.Identifier))
+                            sb.Append(parser.NextToken().Value.ToString());
+                            if (parser.PeekToken(TokenCategory.Keyword) || parser.PeekToken(TokenCategory.Identifier))
                             {
-                                defNode.TypeNameTokens.Add(parser.NextToken());
+                                sb.Append(parser.NextToken().Value.ToString());
                             }
                             else
                             {
                                 parser.ReportSyntaxError("Unexpected token in type reference.");
                             }
                         }
+                        defNode._typeNameString = sb.ToString();
                     }
 
                     AttributeSpecifier attribSpec;
@@ -223,7 +164,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         defNode.Attribute = attribSpec;
                     }
                 }
-                else if(cat == TokenCategory.EndOfStream)
+                else if (cat == TokenCategory.EndOfStream)
                 {
                     parser.ReportSyntaxError("Unexpected end of type definition");
                     result = false;
