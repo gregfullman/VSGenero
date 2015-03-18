@@ -516,6 +516,26 @@ namespace VSGenero.Analysis.Parsing.AST
             return members;
         }
 
+        #region Constant Member Context
+
+        //private bool TryConstantContext(int index, IReverseTokenizer revTokenizer, out List<MemberResult> results)
+        //{
+        //    results = new List<MemberResult>();
+        //    bool isFirstToken = true;
+        //    foreach (var tokInfo in revTokenizer.GetReversedTokens().Where(x => x.SourceSpan.Start.Index < index))
+        //    {
+        //        if (tokInfo.Equals(default(TokenInfo)) || tokInfo.Token.Kind == TokenKind.NewLine || tokInfo.Token.Kind == TokenKind.NLToken)
+        //            continue;   // linebreak
+
+        //        if(tokInfo.Token.Kind == TokenKind.ConstantKeyword)
+        //        {
+        //            // 
+        //        }
+        //    }
+        //}
+
+        #endregion
+
         #region Type Constraint Member Context
 
         private bool TryTypeConstraintContext(int index, IReverseTokenizer revTokenizer, out List<MemberResult> results, out int startingIndex)

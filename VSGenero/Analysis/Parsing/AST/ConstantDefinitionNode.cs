@@ -36,6 +36,12 @@ namespace VSGenero.Analysis.Parsing.AST
                 {
                     parser.NextToken();
                     defNode.SpecifiedType = parser.Token.Token.Value.ToString();
+
+                    string typeStr;
+                    if(TypeConstraints.VerifyValidConstraint(parser, out typeStr))
+                    {
+                        defNode.SpecifiedType = typeStr;
+                    }
                 }
 
                 if(!parser.PeekToken(TokenKind.Equals) && !(parser.PeekToken(2) is ConstantValueToken))
