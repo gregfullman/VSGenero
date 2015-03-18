@@ -772,8 +772,53 @@ namespace VSGenero.Analysis.Parsing.AST
                     }
                     else
                     {
-                        results.Clear();
-                        return false;
+                        List<MemberResult> dummyResults;
+                        if (TryTypeConstraintContext((tokInfo.SourceSpan.Start.Index + 1), revTokenizer, out dummyResults, out startIndex))
+                        {
+                            if (firstStatus == ConstantDefStatus.None)
+                                firstStatus = ConstantDefStatus.TypeConstraint;
+                            tokensCollected.Insert(0, tokInfo.ToTokenWithSpan());
+                            // move us past the type constraint
+                            while (tokInfo.Equals(default(TokenInfo)) ||
+                                    tokInfo.Token.Kind == TokenKind.NewLine ||
+                                    tokInfo.Token.Kind == TokenKind.NLToken ||
+                                    tokInfo.SourceSpan.Start.Index > startIndex)
+                            {
+                                if (!enumerator.MoveNext())
+                                {
+                                    results.Clear();
+                                    return false;
+                                }
+                                tokInfo = enumerator.Current;
+                                if (!(tokInfo.Equals(default(TokenInfo)) ||
+                                    tokInfo.Token.Kind == TokenKind.NewLine ||
+                                    tokInfo.Token.Kind == TokenKind.NLToken))
+                                {
+                                    tokensCollected.Insert(0, tokInfo.ToTokenWithSpan());
+                                }
+                            }
+
+                            if (currStatus == ConstantDefStatus.None)
+                            {
+                                results.AddRange(dummyResults);
+                                currStatus = ConstantDefStatus.TypeConstraint;
+                            }
+                            else if (currStatus == ConstantDefStatus.Equals ||
+                                    currStatus == ConstantDefStatus.Comma)
+                            {
+                                currStatus = ConstantDefStatus.TypeConstraint;
+                            }
+                            else
+                            {
+                                results.Clear();
+                                return false;
+                            }
+                        }
+                        else
+                        {
+                            results.Clear();
+                            return false;
+                        }
                     }
                 }
                 else
@@ -1091,6 +1136,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         int typeConstraintStartingIndex2;
                         if (TryTypeConstraintContext((tokInfo.SourceSpan.Start.Index + 1), revTokenizer, out dummyList2, out typeConstraintStartingIndex2))
                         {
+                            tokensCollected.Insert(0, tokInfo.ToTokenWithSpan());
                             // move us past the type constraint
                             while (tokInfo.Equals(default(TokenInfo)) ||
                                     tokInfo.Token.Kind == TokenKind.NewLine ||
