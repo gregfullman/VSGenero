@@ -92,13 +92,12 @@ namespace VSGenero.Analysis.Parsing.AST
                 else
                     parser.NextToken();
 
-                List<List<TokenKind>> breakSequences = new List<List<TokenKind>>() 
+                List<List<TokenKind>> breakSequences =
+                    new List<List<TokenKind>>(GeneroAst.ValidStatementKeywords
+                        .Where(x => x != TokenKind.EndKeyword && x != TokenKind.ReportKeyword)
+                        .Select(x => new List<TokenKind> { x }))
                     { 
-                        new List<TokenKind> { TokenKind.EndKeyword, TokenKind.ReportKeyword },
-                        new List<TokenKind> { TokenKind.ConstantKeyword },
-                        new List<TokenKind> { TokenKind.DefineKeyword },
-                        new List<TokenKind> { TokenKind.TypeKeyword },
-                        new List<TokenKind> { TokenKind.LetKeyword }
+                        new List<TokenKind> { TokenKind.EndKeyword, TokenKind.ReportKeyword }
                     };
                 // try to parse one or more declaration statements
                 while (!parser.PeekToken(TokenKind.EndOfFile) &&

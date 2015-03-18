@@ -39,13 +39,12 @@ namespace VSGenero.Analysis.Parsing.AST
                 defNode.DecoratorEnd = defNode.StartIndex + 4;
                 defNode.AccessModifier = AccessModifier.Private;
 
-                List<List<TokenKind>> breakSequences = new List<List<TokenKind>>() 
+                List<List<TokenKind>> breakSequences = 
+                    new List<List<TokenKind>>(GeneroAst.ValidStatementKeywords
+                        .Where(x => x != TokenKind.EndKeyword && x != TokenKind.MainKeyword)
+                        .Select(x => new List<TokenKind> { x }))
                     { 
-                        new List<TokenKind> { TokenKind.EndKeyword, TokenKind.MainKeyword },
-                        new List<TokenKind> { TokenKind.ConstantKeyword },
-                        new List<TokenKind> { TokenKind.DefineKeyword },
-                        new List<TokenKind> { TokenKind.TypeKeyword },
-                        new List<TokenKind> { TokenKind.LetKeyword }
+                        new List<TokenKind> { TokenKind.EndKeyword, TokenKind.MainKeyword }
                     };
                 // try to parse one or more declaration statements
                 while (!parser.PeekToken(TokenKind.EndOfFile) &&

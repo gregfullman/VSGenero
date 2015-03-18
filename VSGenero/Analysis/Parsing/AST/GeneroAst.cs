@@ -1044,7 +1044,7 @@ namespace VSGenero.Analysis.Parsing.AST
             return isAmpersand;
         }
 
-        private static TokenKind[] ValidStatementKeywords = new TokenKind[]
+        public static TokenKind[] ValidStatementKeywords = new TokenKind[]
         {
             // keywords that are valid after an access mod
             TokenKind.ConstantKeyword,
@@ -1073,7 +1073,8 @@ namespace VSGenero.Analysis.Parsing.AST
             TokenKind.ForKeyword,
             TokenKind.ForeachKeyword,
             TokenKind.WhileKeyword,
-            TokenKind.DoKeyword
+            TokenKind.DoKeyword,
+            TokenKind.DeferKeyword
         };
 
         private static TokenKind[] BuiltinTypes = new TokenKind[]
