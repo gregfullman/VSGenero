@@ -19,7 +19,7 @@ namespace VSGenero.Analysis.Parsing.AST
         public string SpecifiedType { get; private set; }
         public string Literal { get; private set; }
 
-        public static bool TryParseNode(Parser parser, out ConstantDefinitionNode defNode)
+        public static bool TryParseNode(IParser parser, out ConstantDefinitionNode defNode)
         {
             defNode = null;
             bool result = false;
@@ -77,15 +77,36 @@ namespace VSGenero.Analysis.Parsing.AST
                             parser.NextToken();
                             sb.Append("(");
                             while(!parser.PeekToken(TokenKind.Comma))
+                            {
+                                if(parser.PeekToken(TokenCategory.Keyword) || parser.PeekToken(TokenCategory.Identifier))
+                                {
+                                    parser.ReportSyntaxError("Invalid token found in MDY specification.");
+                                    return result;
+                                }
                                 sb.Append(parser.NextToken().Value.ToString());
+                            }
                             sb.Append(", ");
                             parser.NextToken();
                             while (!parser.PeekToken(TokenKind.Comma))
+                            {
+                                if (parser.PeekToken(TokenCategory.Keyword) || parser.PeekToken(TokenCategory.Identifier))
+                                {
+                                    parser.ReportSyntaxError("Invalid token found in MDY specification.");
+                                    return result;
+                                }
                                 sb.Append(parser.NextToken().Value.ToString());
+                            }
                             sb.Append(", ");
                             parser.NextToken();
                             while (!parser.PeekToken(TokenKind.RightParenthesis))
+                            {
+                                if (parser.PeekToken(TokenCategory.Keyword) || parser.PeekToken(TokenCategory.Identifier))
+                                {
+                                    parser.ReportSyntaxError("Invalid token found in MDY specification.");
+                                    return result;
+                                }
                                 sb.Append(parser.NextToken().Value.ToString());
+                            }
                             sb.Append(")");
                             parser.NextToken();
                             defNode.Literal = sb.ToString();
@@ -101,7 +122,14 @@ namespace VSGenero.Analysis.Parsing.AST
                             parser.NextToken();
                             sb.Append("(");
                             while (!parser.PeekToken(TokenKind.RightParenthesis))
+                            {
+                                if (parser.PeekToken(TokenCategory.Keyword) || parser.PeekToken(TokenCategory.Identifier))
+                                {
+                                    parser.ReportSyntaxError("Invalid token found in MDY specification.");
+                                    return result;
+                                }
                                 sb.Append(parser.NextToken().Value.ToString());
+                            }
                             sb.Append(") ");
                             parser.NextToken();
 
@@ -125,7 +153,14 @@ namespace VSGenero.Analysis.Parsing.AST
                             parser.NextToken();
                             sb.Append("(");
                             while (!parser.PeekToken(TokenKind.RightParenthesis))
+                            {
+                                if(parser.PeekToken(TokenCategory.Keyword) || parser.PeekToken(TokenCategory.Identifier))
+                                {
+                                    parser.ReportSyntaxError("Invalid token found in MDY specification.");
+                                    return result;
+                                }
                                 sb.Append(parser.NextToken().Value.ToString());
+                            }
                             sb.Append(") ");
                             parser.NextToken();
 

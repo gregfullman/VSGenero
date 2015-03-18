@@ -25,7 +25,7 @@ namespace VSGenero.Analysis.Parsing.AST
                            .Select(x => x.Value as ConstantDefinitionNode);
         }
 
-        public static bool TryParseNode(Parser parser, out ConstantDefNode defNode, out bool matchedBreakSequence, List<List<TokenKind>> breakSequences = null)
+        public static bool TryParseNode(IParser parser, out ConstantDefNode defNode, out bool matchedBreakSequence, List<List<TokenKind>> breakSequences = null)
         {
             defNode = null;
             bool result = false;

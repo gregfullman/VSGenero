@@ -281,8 +281,6 @@ namespace VSGenero.Analysis.Parsing.AST
             _typeConstraintsMap.Map.Add(TokenKind.MinuteKeyword, toDtList2);
             _typeConstraintsMap.Map.Add(TokenKind.SecondKeyword, toDtList2);
             // end Type constraint map
-
-
         }
 
         public AstNode Body
@@ -437,8 +435,14 @@ namespace VSGenero.Analysis.Parsing.AST
             {
                 return members;
             }
+            bool isWithinIncompleteLiteralMacro;
+            if(TryLiteralMacro(index, revTokenizer, out isWithinIncompleteLiteralMacro, out dummyIndex) && isWithinIncompleteLiteralMacro)
+            {
+                return members;
+            }
             if(TryPreprocessorContext(index, revTokenizer, out members) ||
                TryFunctionDefContext(index, revTokenizer, out members) ||
+               TryConstantContext(index, revTokenizer, out members) ||
                TryDefineDefContext(index, revTokenizer, out members, new List<TokenKind> { TokenKind.PublicKeyword, TokenKind.PrivateKeyword, TokenKind.GlobalsKeyword, TokenKind.FunctionKeyword }))
             {
                 return members;
@@ -518,21 +522,357 @@ namespace VSGenero.Analysis.Parsing.AST
 
         #region Constant Member Context
 
-        //private bool TryConstantContext(int index, IReverseTokenizer revTokenizer, out List<MemberResult> results)
-        //{
-        //    results = new List<MemberResult>();
-        //    bool isFirstToken = true;
-        //    foreach (var tokInfo in revTokenizer.GetReversedTokens().Where(x => x.SourceSpan.Start.Index < index))
-        //    {
-        //        if (tokInfo.Equals(default(TokenInfo)) || tokInfo.Token.Kind == TokenKind.NewLine || tokInfo.Token.Kind == TokenKind.NLToken)
-        //            continue;   // linebreak
+        private enum ConstantDefStatus
+        {
+            None,
+            ConstantKeyword,
+            Equals,
+            BuiltinType,
+            TypeConstraint,
+            LiteralMacro,
+            Literal,
+            IdentOrKeyword,
+            Comma
+        }
 
-        //        if(tokInfo.Token.Kind == TokenKind.ConstantKeyword)
-        //        {
-        //            // 
-        //        }
-        //    }
-        //}
+        private enum LiteralMacroStatus
+        {
+            None,
+            LeftParen,
+            RightParen
+        }
+
+        private bool TryLiteralMacro(int index, IReverseTokenizer revTokenizer, out bool isWithinIncompleteMacro, out int startIndex)
+        {
+            startIndex = index;
+            isWithinIncompleteMacro = false;
+            LiteralMacroStatus firstStatus = LiteralMacroStatus.None;
+            LiteralMacroStatus currStatus = LiteralMacroStatus.None;
+            foreach (var tokInfo in revTokenizer.GetReversedTokens().Where(x => x.SourceSpan.Start.Index < index))
+            {
+                if (tokInfo.Equals(default(TokenInfo)) || tokInfo.Token.Kind == TokenKind.NewLine || tokInfo.Token.Kind == TokenKind.NLToken)
+                    continue;   // linebreak
+
+                if(tokInfo.Token.Kind == TokenKind.MdyKeyword ||
+                   tokInfo.Token.Kind == TokenKind.DatetimeKeyword ||
+                   tokInfo.Token.Kind == TokenKind.IntervalKeyword)
+                {
+                    if (currStatus != LiteralMacroStatus.LeftParen)
+                    {
+                        return false;
+                    }
+                    if(firstStatus != LiteralMacroStatus.RightParen && firstStatus != LiteralMacroStatus.None)
+                    {
+                        isWithinIncompleteMacro = true;
+                    }
+                    startIndex = tokInfo.SourceSpan.Start.Index;
+                    return true;
+                }
+                else if(tokInfo.Token.Kind == TokenKind.LeftParenthesis)
+                {
+                    if (firstStatus == LiteralMacroStatus.None)
+                        firstStatus = LiteralMacroStatus.LeftParen;
+                    if (currStatus == LiteralMacroStatus.None ||
+                       currStatus == LiteralMacroStatus.RightParen)
+                    {
+                        currStatus = LiteralMacroStatus.LeftParen;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+                else if(tokInfo.Token.Kind == TokenKind.RightParenthesis)
+                {
+                    if (firstStatus == LiteralMacroStatus.None)
+                        firstStatus = LiteralMacroStatus.RightParen;
+                    if (currStatus == LiteralMacroStatus.None)
+                    {
+                        currStatus = LiteralMacroStatus.RightParen;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+                else if(tokInfo.Category == TokenCategory.Identifier || tokInfo.Category == TokenCategory.Keyword)
+                {
+                    return false;
+                }
+            }
+
+            return false;
+        }
+
+        private bool TryConstantContext(int index, IReverseTokenizer revTokenizer, out List<MemberResult> results)
+        {
+            results = new List<MemberResult>();
+            ConstantDefStatus currStatus = ConstantDefStatus.None;
+            ConstantDefStatus firstStatus = ConstantDefStatus.None;
+            List<TokenWithSpan> tokensCollected = new List<TokenWithSpan>();
+            var enumerator = revTokenizer.GetReversedTokens().Where(x => x.SourceSpan.Start.Index < index).GetEnumerator();
+            while(true)
+            {
+                if (!enumerator.MoveNext())
+                {
+                    results.Clear();
+                    return false;
+                }
+
+                var tokInfo = enumerator.Current;
+                if (tokInfo.Equals(default(TokenInfo)) || tokInfo.Token.Kind == TokenKind.NewLine || tokInfo.Token.Kind == TokenKind.NLToken)
+                    continue;   // linebreak
+
+                if (tokInfo.Token.Kind == TokenKind.ConstantKeyword)
+                {
+                    if(currStatus != ConstantDefStatus.IdentOrKeyword &&
+                       currStatus != ConstantDefStatus.None)
+                    {
+                        results.Clear();
+                        return false;
+                    }
+
+                    // parse out the constant definition to see if we're actually within it
+                    tokensCollected.Insert(0, tokInfo.ToTokenWithSpan());
+                    tokensCollected.Insert(0, default(TokenWithSpan));
+                    TokenListParser parser = new TokenListParser(tokensCollected);
+                    ConstantDefNode defNode;
+                    bool dummy;
+                    if (ConstantDefNode.TryParseNode(parser, out defNode, out dummy) && (parser.ErrorSink as StubErrorSink).ErrorCount == 0)
+                    {
+                        if(firstStatus != ConstantDefStatus.None &&
+                           firstStatus != ConstantDefStatus.IdentOrKeyword &&
+                           firstStatus != ConstantDefStatus.Equals &&
+                           firstStatus != ConstantDefStatus.Comma)
+                        {
+                            return false;
+                        }
+                    }
+
+                    return true;
+                }
+                else if(tokInfo.Token.Kind == TokenKind.Comma)
+                {
+                    if (firstStatus == ConstantDefStatus.None)
+                        firstStatus = ConstantDefStatus.Comma;
+                    if(currStatus == ConstantDefStatus.None ||
+                       currStatus == ConstantDefStatus.IdentOrKeyword)
+                    {
+                        currStatus = ConstantDefStatus.Comma;
+                        tokensCollected.Insert(0, tokInfo.ToTokenWithSpan());
+                    }
+                    else
+                    {
+                        results.Clear();
+                        return false;
+                    }
+                }
+                else if(tokInfo.Token.Kind == TokenKind.Equals)
+                {
+                    if (firstStatus == ConstantDefStatus.None)
+                        firstStatus = ConstantDefStatus.Equals;
+                    tokensCollected.Insert(0, tokInfo.ToTokenWithSpan());
+                    if (currStatus == ConstantDefStatus.None)
+                    {
+                        TokenKind[] kinds = new TokenKind[] { TokenKind.MdyKeyword, TokenKind.DatetimeKeyword, TokenKind.IntervalKeyword };
+                        results.AddRange(kinds.Select(x => new MemberResult(Tokens.TokenKinds[x], GeneroMemberType.Keyword, this)));
+                        currStatus = ConstantDefStatus.Equals;
+                    }
+                    else if (currStatus == ConstantDefStatus.LiteralMacro ||
+                             currStatus == ConstantDefStatus.Literal ||
+                             currStatus == ConstantDefStatus.TypeConstraint)
+                    {
+                        currStatus = ConstantDefStatus.Equals;
+                    }
+                    else
+                    {
+                        results.Clear();
+                        return false;
+                    }
+                }
+                else if(tokInfo.Category == TokenCategory.CharacterLiteral ||
+                        tokInfo.Category == TokenCategory.NumericLiteral ||
+                        tokInfo.Category == TokenCategory.StringLiteral)
+                {
+                    if (firstStatus == ConstantDefStatus.None)
+                        firstStatus = ConstantDefStatus.Literal;
+                    tokensCollected.Insert(0, tokInfo.ToTokenWithSpan());
+                    if(currStatus == ConstantDefStatus.None ||
+                       currStatus == ConstantDefStatus.Comma)
+                    {
+                        currStatus = ConstantDefStatus.Literal;
+                    }
+                    else
+                    {
+                        results.Clear();
+                        return false;
+                    }
+                }
+                else if(tokInfo.Category == TokenCategory.IncompleteMultiLineStringLiteral)
+                {
+                    if (firstStatus == ConstantDefStatus.None)
+                        firstStatus = ConstantDefStatus.Literal;
+                    tokensCollected.Insert(0, tokInfo.ToTokenWithSpan());
+                    if (currStatus == ConstantDefStatus.None ||
+                       currStatus == ConstantDefStatus.Comma ||
+                        currStatus == ConstantDefStatus.Literal)
+                    {
+                        currStatus = ConstantDefStatus.Literal;
+                    }
+                    else
+                    {
+                        results.Clear();
+                        return false;
+                    }
+                }
+                else if(tokInfo.Token.Kind == TokenKind.RightParenthesis)
+                {
+                    bool dummyIsWithin;
+                    int startIndex;
+                    if(TryLiteralMacro((tokInfo.SourceSpan.Start.Index + 1), revTokenizer, out dummyIsWithin, out startIndex))
+                    {
+                        if (firstStatus == ConstantDefStatus.None)
+                            firstStatus = ConstantDefStatus.LiteralMacro;
+                        tokensCollected.Insert(0, tokInfo.ToTokenWithSpan());
+                        while (tokInfo.Equals(default(TokenInfo)) ||
+                                tokInfo.Token.Kind == TokenKind.NewLine ||
+                                tokInfo.Token.Kind == TokenKind.NLToken ||
+                                tokInfo.SourceSpan.Start.Index > startIndex)
+                        {
+                            if (!enumerator.MoveNext())
+                            {
+                                results.Clear();
+                                return false;
+                            }
+                            tokInfo = enumerator.Current;
+                            if (!(tokInfo.Equals(default(TokenInfo)) ||
+                                    tokInfo.Token.Kind == TokenKind.NewLine ||
+                                    tokInfo.Token.Kind == TokenKind.NLToken))
+                            {
+                                tokensCollected.Insert(0, tokInfo.ToTokenWithSpan());
+                            }
+                        }
+
+                        if (currStatus == ConstantDefStatus.None)
+                        {
+                            TokenKind[] kinds = new TokenKind[] { TokenKind.DatetimeKeyword, TokenKind.IntervalKeyword };
+                            results.AddRange(kinds.Select(x => new MemberResult(Tokens.TokenKinds[x], GeneroMemberType.Keyword, this)));
+                            currStatus = ConstantDefStatus.LiteralMacro;
+                        }
+                        else if(currStatus == ConstantDefStatus.TypeConstraint ||
+                                currStatus == ConstantDefStatus.Comma)
+                        {
+                            currStatus = ConstantDefStatus.LiteralMacro;
+                        }
+                        else
+                        {
+                            results.Clear();
+                            return false;
+                        }
+                    }
+                    else
+                    {
+                        results.Clear();
+                        return false;
+                    }
+                }
+                else
+                {
+                    List<MemberResult> dummyResults;
+                    int startIndex;
+                    if(TryTypeConstraintContext((tokInfo.SourceSpan.Start.Index + 1), revTokenizer, out dummyResults, out startIndex))
+                    {
+                        if (firstStatus == ConstantDefStatus.None)
+                            firstStatus = ConstantDefStatus.TypeConstraint;
+                        tokensCollected.Insert(0, tokInfo.ToTokenWithSpan());
+                        // move us past the type constraint
+                        while (tokInfo.Equals(default(TokenInfo)) ||
+                                tokInfo.Token.Kind == TokenKind.NewLine ||
+                                tokInfo.Token.Kind == TokenKind.NLToken ||
+                                tokInfo.SourceSpan.Start.Index > startIndex)
+                        {
+                            if (!enumerator.MoveNext())
+                            {
+                                results.Clear();
+                                return false;
+                            }
+                            tokInfo = enumerator.Current;
+                            if (!(tokInfo.Equals(default(TokenInfo)) ||
+                                tokInfo.Token.Kind == TokenKind.NewLine ||
+                                tokInfo.Token.Kind == TokenKind.NLToken))
+                            {
+                                tokensCollected.Insert(0, tokInfo.ToTokenWithSpan());
+                            }
+                        }
+
+                        if (currStatus == ConstantDefStatus.None)
+                        {
+                            results.AddRange(dummyResults);
+                            currStatus = ConstantDefStatus.TypeConstraint;
+                        }
+                        else if(currStatus == ConstantDefStatus.Equals ||
+                                currStatus == ConstantDefStatus.Comma)
+                        {
+                            currStatus = ConstantDefStatus.TypeConstraint;
+                        }
+                        else
+                        {
+                            results.Clear();
+                            return false;
+                        }
+                    }
+                    else if(BuiltinTypes.Where(x => x != TokenKind.TextKeyword && x != TokenKind.ByteKeyword)
+                                        .Contains(tokInfo.Token.Kind))
+                    {
+                        if (firstStatus == ConstantDefStatus.None)
+                            firstStatus = ConstantDefStatus.BuiltinType;
+                        tokensCollected.Insert(0, tokInfo.ToTokenWithSpan());
+                        if(currStatus == ConstantDefStatus.None ||
+                           currStatus == ConstantDefStatus.Equals)
+                        {
+                            currStatus = ConstantDefStatus.BuiltinType;
+                        }
+                        else
+                        {
+                            results.Clear();
+                            return false;
+                        }
+                    }
+                    else if(tokInfo.Category == TokenCategory.Identifier || tokInfo.Category == TokenCategory.Keyword)
+                    {
+                        if (firstStatus == ConstantDefStatus.None)
+                            firstStatus = ConstantDefStatus.IdentOrKeyword;
+                        tokensCollected.Insert(0, tokInfo.ToTokenWithSpan());
+
+                        if(currStatus == ConstantDefStatus.None)
+                        {
+                            currStatus = ConstantDefStatus.IdentOrKeyword;
+                            // insert built-in types to the completions (excluding text and byte)
+                            results.AddRange(BuiltinTypes.Where(x => x != TokenKind.ByteKeyword && x != TokenKind.TextKeyword)
+                                                         .Select(x => new MemberResult(Tokens.TokenKinds[x], GeneroMemberType.Keyword, this)));
+                        }
+                        else if(currStatus == ConstantDefStatus.BuiltinType ||
+                               currStatus == ConstantDefStatus.Equals ||
+                               currStatus == ConstantDefStatus.TypeConstraint)
+                        {
+                            currStatus = ConstantDefStatus.IdentOrKeyword;
+                        }
+                        else
+                        {
+                            results.Clear();
+                            return false;
+                        }
+                    }
+                    else
+                    {
+                        results.Clear();
+                        return false;
+                    }
+                }
+            }
+
+            return false;
+        }
 
         #endregion
 
@@ -548,10 +888,49 @@ namespace VSGenero.Analysis.Parsing.AST
             bool isFirstToken = true;
             startingIndex = index;
 
-            foreach(var tokInfo in revTokenizer.GetReversedTokens().Where(x => x.SourceSpan.Start.Index < index))
+            var enumerator = revTokenizer.GetReversedTokens().Where(x => x.SourceSpan.Start.Index < index).GetEnumerator();
+            bool skipGettingNext = false;
+            while(true)
             {
+                if (!skipGettingNext)
+                {
+                    if (!enumerator.MoveNext())
+                    {
+                        results.Clear();
+                        return false;
+                    }
+                }
+                else
+                {
+                    skipGettingNext = false;    //reset
+                }
+                var tokInfo = enumerator.Current;
                 if (tokInfo.Equals(default(TokenInfo)) || tokInfo.Token.Kind == TokenKind.NewLine || tokInfo.Token.Kind == TokenKind.NLToken)
                     continue;   // linebreak
+
+                if (tokInfo.Token.Kind == TokenKind.RightParenthesis)
+                {
+                    bool dummyIsWithin;
+                    int startIndex;
+                    if (TryLiteralMacro((tokInfo.SourceSpan.Start.Index + 1), revTokenizer, out dummyIsWithin, out startIndex))
+                    {
+                        while (tokInfo.Equals(default(TokenInfo)) ||
+                                tokInfo.Token.Kind == TokenKind.NewLine ||
+                                tokInfo.Token.Kind == TokenKind.NLToken ||
+                                tokInfo.SourceSpan.Start.Index > startIndex)
+                        {
+                            if (!enumerator.MoveNext())
+                            {
+                                results.Clear();
+                                return false;
+                            }
+                            tokInfo = enumerator.Current;
+                        }
+                        skipGettingNext = true;
+                        possibilities = null;
+                        continue;
+                    }
+                }
 
                 if (possibilities != null)
                 {
