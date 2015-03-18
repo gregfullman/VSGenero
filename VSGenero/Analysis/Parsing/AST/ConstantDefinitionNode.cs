@@ -51,8 +51,96 @@ namespace VSGenero.Analysis.Parsing.AST
                 else
                 {
                     parser.NextToken(); // advance to equals
-                    parser.NextToken(); // advance to value
-                    defNode.Literal = parser.Token.Token.Value.ToString();
+                    
+                    if(parser.PeekToken(TokenCategory.StringLiteral) ||
+                       parser.PeekToken(TokenCategory.NumericLiteral) ||
+                       parser.PeekToken(TokenCategory.CharacterLiteral))
+                    {
+                        parser.NextToken();
+                        defNode.Literal = parser.Token.Token.Value.ToString();
+                    }
+                    else if(parser.PeekToken(TokenCategory.IncompleteMultiLineStringLiteral))
+                    {
+                        StringBuilder sb = new StringBuilder(parser.NextToken().Value.ToString());
+                        while(parser.PeekToken(TokenCategory.IncompleteMultiLineStringLiteral))
+                        {
+                            parser.NextToken();
+                            sb.Append(parser.Token.Token.Value.ToString());
+                        }
+                        defNode.Literal = sb.ToString();
+                    }
+                    else if(parser.PeekToken(TokenKind.MdyKeyword))
+                    {
+                        StringBuilder sb = new StringBuilder(parser.NextToken().Value.ToString());
+                        if (parser.PeekToken(TokenKind.LeftParenthesis))
+                        {
+                            parser.NextToken();
+                            sb.Append("(");
+                            while(!parser.PeekToken(TokenKind.Comma))
+                                sb.Append(parser.NextToken().Value.ToString());
+                            sb.Append(", ");
+                            parser.NextToken();
+                            while (!parser.PeekToken(TokenKind.Comma))
+                                sb.Append(parser.NextToken().Value.ToString());
+                            sb.Append(", ");
+                            parser.NextToken();
+                            while (!parser.PeekToken(TokenKind.RightParenthesis))
+                                sb.Append(parser.NextToken().Value.ToString());
+                            sb.Append(")");
+                            parser.NextToken();
+                            defNode.Literal = sb.ToString();
+                        }
+                        else
+                            parser.ReportSyntaxError("Date constant found with an invalid MDY expression.");
+                    }
+                    else if(parser.PeekToken(TokenKind.DatetimeKeyword))
+                    {
+                        StringBuilder sb = new StringBuilder(parser.NextToken().Value.ToString());
+                        if (parser.PeekToken(TokenKind.LeftParenthesis))
+                        {
+                            parser.NextToken();
+                            sb.Append("(");
+                            while (!parser.PeekToken(TokenKind.RightParenthesis))
+                                sb.Append(parser.NextToken().Value.ToString());
+                            sb.Append(") ");
+                            parser.NextToken();
+
+                            string constraintStr;
+                            if(TypeConstraints.VerifyValidConstraint(parser, out constraintStr, TokenKind.DatetimeKeyword))
+                            {
+                                sb.Append(constraintStr);
+                                defNode.Literal = sb.ToString();
+                            }
+                            else
+                                parser.ReportSyntaxError("Datetime constant has an invalid constraint.");
+                        }
+                        else
+                            parser.ReportSyntaxError("Datetime constant found with an invalid expression.");
+                    }
+                    else if(parser.PeekToken(TokenKind.IntervalKeyword))
+                    {
+                        StringBuilder sb = new StringBuilder(parser.NextToken().Value.ToString());
+                        if (parser.PeekToken(TokenKind.LeftParenthesis))
+                        {
+                            parser.NextToken();
+                            sb.Append("(");
+                            while (!parser.PeekToken(TokenKind.RightParenthesis))
+                                sb.Append(parser.NextToken().Value.ToString());
+                            sb.Append(") ");
+                            parser.NextToken();
+
+                            string constraintStr;
+                            if (TypeConstraints.VerifyValidConstraint(parser, out constraintStr, TokenKind.IntervalKeyword))
+                            {
+                                sb.Append(constraintStr);
+                                defNode.Literal = sb.ToString();
+                            }
+                            else
+                                parser.ReportSyntaxError("Interval constant has an invalid constraint.");
+                        }
+                        else
+                            parser.ReportSyntaxError("Interval constant found with an invalid expression.");
+                    }
                 }
             }
             return result;
