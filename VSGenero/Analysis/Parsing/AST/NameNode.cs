@@ -38,12 +38,14 @@ namespace VSGenero.Analysis.Parsing.AST
                     {
                         node.Children.Add(memberAccess.StartIndex, memberAccess);
                         node.EndIndex = memberAccess.EndIndex;
+                        node.IsComplete = true;
                         sb.Append(memberAccess.ToString());
                     }
                     else if(ArrayIndexNameExpressionPiece.TryParse(parser, out arrayIndex, breakToken))
                     {
                         node.Children.Add(arrayIndex.StartIndex, arrayIndex);
                         node.EndIndex = arrayIndex.EndIndex;
+                        node.IsComplete = true;
                         sb.Append(arrayIndex.ToString());
                     }
                     else
@@ -108,6 +110,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 {
                     parser.NextToken();
                     node.EndIndex = parser.Token.Span.End;
+                    node.IsComplete = true;
                 }
             }
 
@@ -140,6 +143,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 {
                     node._text = parser.NextToken().Value.ToString();
                     node.EndIndex = parser.Token.Span.End;
+                    node.IsComplete = true;
                 }
                 else
                 {

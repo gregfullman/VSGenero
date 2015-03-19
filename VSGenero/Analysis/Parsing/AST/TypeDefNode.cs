@@ -111,6 +111,12 @@ namespace VSGenero.Analysis.Parsing.AST
                         }
                     }
                 }
+
+                if(defNode.Children.Count > 0 && defNode.Children.All(x => x.Value.IsComplete))
+                {
+                    defNode.EndIndex = defNode.Children.Last().Value.EndIndex;
+                    defNode.IsComplete = true;
+                }
             }
             return result;
         }

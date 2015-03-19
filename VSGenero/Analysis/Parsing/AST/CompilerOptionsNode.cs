@@ -36,6 +36,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 }
 
                 defNode.EndIndex = parser.Token.Span.End;
+                defNode.IsComplete = true;
 
                 return true;
             }

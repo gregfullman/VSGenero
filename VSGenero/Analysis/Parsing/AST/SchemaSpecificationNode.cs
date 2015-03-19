@@ -71,6 +71,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     {
                         defNode.SchemaName = parser.Token.Token.Value.ToString();
                         defNode.EndIndex = parser.Token.Span.End;
+                        defNode.IsComplete = true;
                     }
                     else
                     {

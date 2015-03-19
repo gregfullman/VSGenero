@@ -68,6 +68,7 @@ namespace VSGenero.Analysis.Parsing.AST
                             sb.Append(parser.Token.Token.Value.ToString());
                         }
                         defNode.Literal = sb.ToString();
+                        defNode.IsComplete = true;
                     }
                     else if(parser.PeekToken(TokenKind.MdyKeyword))
                     {
@@ -110,6 +111,7 @@ namespace VSGenero.Analysis.Parsing.AST
                             sb.Append(")");
                             parser.NextToken();
                             defNode.Literal = sb.ToString();
+                            defNode.IsComplete = true;
                         }
                         else
                             parser.ReportSyntaxError("Date constant found with an invalid MDY expression.");
@@ -138,6 +140,7 @@ namespace VSGenero.Analysis.Parsing.AST
                             {
                                 sb.Append(constraintStr);
                                 defNode.Literal = sb.ToString();
+                                defNode.IsComplete = true;
                             }
                             else
                                 parser.ReportSyntaxError("Datetime constant has an invalid constraint.");
@@ -169,6 +172,7 @@ namespace VSGenero.Analysis.Parsing.AST
                             {
                                 sb.Append(constraintStr);
                                 defNode.Literal = sb.ToString();
+                                defNode.IsComplete = true;
                             }
                             else
                                 parser.ReportSyntaxError("Interval constant has an invalid constraint.");

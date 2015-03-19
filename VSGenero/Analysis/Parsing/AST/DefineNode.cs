@@ -137,6 +137,10 @@ namespace VSGenero.Analysis.Parsing.AST
                     if (defNode.Children.Count > 0)
                     {
                         defNode.EndIndex = parser.Token.Span.End;
+                        if(defNode.Children.All(x => x.Value.IsComplete))
+                        {
+                            defNode.IsComplete = true;
+                        }
                     }
                     else
                     {

@@ -37,6 +37,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         {
                             defNode.Children.Add(exprNode.StartIndex, exprNode);
                             defNode.EndIndex = exprNode.EndIndex;
+                            defNode.IsComplete = true;
                         }
                         else
                         {

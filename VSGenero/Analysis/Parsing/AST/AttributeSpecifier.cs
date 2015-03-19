@@ -43,11 +43,13 @@ namespace VSGenero.Analysis.Parsing.AST
                         if(parser.PeekToken(TokenKind.EndOfFile))
                         {
                             parser.ReportSyntaxError("Unexpected end of attribute specifier.");
+                            return result;
                         }
                     }
                     if (parser.PeekToken(TokenKind.RightParenthesis))
                         parser.NextToken();
                     node.EndIndex = parser.Token.Span.End;
+                    node.IsComplete = true;
                 }
             }
 

@@ -125,6 +125,11 @@ namespace VSGenero.Analysis.Parsing.AST
                             {
                                 parser.ReportSyntaxError("Invalid end token in record definition");
                             }
+                            else
+                            {
+                                defNode.EndIndex = parser.Token.Span.End;
+                                defNode.IsComplete = true;
+                            }
                             break;
                         }
                         else

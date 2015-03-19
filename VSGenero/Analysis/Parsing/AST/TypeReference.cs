@@ -76,6 +76,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 defNode.StartIndex = arrayType.StartIndex;
                 defNode.EndIndex = arrayType.EndIndex;
                 defNode.Children.Add(arrayType.StartIndex, arrayType);
+                defNode.IsComplete = true;
             }
             else if (RecordDefinitionNode.TryParseNode(parser, out recordDef))
             {
@@ -84,6 +85,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 defNode.StartIndex = recordDef.StartIndex;
                 defNode.EndIndex = recordDef.EndIndex;
                 defNode.Children.Add(recordDef.StartIndex, recordDef);
+                defNode.IsComplete = true;
             }
             else if (parser.PeekToken(TokenKind.LikeKeyword))
             {
@@ -118,6 +120,8 @@ namespace VSGenero.Analysis.Parsing.AST
                     {
                         parser.ReportSyntaxError("A variable cannot mimic an entire table without being a record. The variable must be defined as a mimicking record.");
                     }
+                    defNode.IsComplete = true;
+                    defNode.EndIndex = parser.Token.Span.End;
                 }
             }
             else
@@ -132,8 +136,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     defNode = new TypeReference();
                     defNode.StartIndex = parser.Token.Span.Start;
                     sb.Append(parser.Token.Token.Value.ToString());
-                    defNode.EndIndex = parser.Token.Span.End;
-
+                    
                     // determine if there are any constraints on the type keyword
                     string typeString;
                     if (TypeConstraints.VerifyValidConstraint(parser, out typeString))
@@ -163,6 +166,9 @@ namespace VSGenero.Analysis.Parsing.AST
                     {
                         defNode.Attribute = attribSpec;
                     }
+
+                    defNode.EndIndex = parser.Token.Span.End;
+                    defNode.IsComplete = true;
                 }
                 else if (cat == TokenCategory.EndOfStream)
                 {

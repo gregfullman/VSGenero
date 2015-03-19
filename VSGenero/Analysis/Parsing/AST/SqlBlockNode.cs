@@ -43,6 +43,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     {
                         parser.NextToken();
                         node.EndIndex = parser.Token.Span.End;
+                        node.IsComplete = true;
                     }
                     else
                     {

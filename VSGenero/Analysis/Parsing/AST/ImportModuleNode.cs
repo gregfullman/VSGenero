@@ -44,6 +44,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     {
                         defNode.ImportName = tok.Value.ToString();
                         defNode.EndIndex = parser.Token.Span.End;
+                        defNode.IsComplete = true;
                     }
                     else
                     {
@@ -78,6 +79,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         {
                             defNode.ImportName = sb.ToString();
                             defNode.EndIndex = parser.Token.Span.End;
+                            defNode.IsComplete = true;
                         }
                     }
                 }
@@ -89,6 +91,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         parser.NextToken();
                         defNode.ImportName = parser.Token.Token.Value.ToString();
                         defNode.EndIndex = parser.Token.Span.End;
+                        defNode.IsComplete = true;
                     }
                     else
                     {

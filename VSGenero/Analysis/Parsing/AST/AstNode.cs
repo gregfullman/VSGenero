@@ -16,6 +16,7 @@ namespace VSGenero.Analysis.Parsing.AST
     {
         public AstNode Parent { get; protected set; }
         public IndexSpan _span;
+        public bool IsComplete { get; protected set; }
 
         public virtual GeneroMemberType MemberType
         {

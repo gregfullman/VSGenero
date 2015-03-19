@@ -35,6 +35,11 @@ namespace VSGenero.Analysis.Parsing.AST
                 if (TypeReference.TryParseNode(parser, out typeRef))
                 {
                     defNode.Children.Add(typeRef.StartIndex, typeRef);
+                    if (defNode.Children.All(x => x.Value.IsComplete))
+                    {
+                        defNode.EndIndex = defNode.Children.Last().Value.EndIndex;
+                        defNode.IsComplete = true;
+                    }
                 }
                 else
                 {

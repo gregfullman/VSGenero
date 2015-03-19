@@ -126,6 +126,10 @@ namespace VSGenero.Analysis.Parsing.AST
                 {
                     defNode.EndIndex = typeRef.EndIndex;
                     defNode.Children.Add(typeRef.StartIndex, typeRef);
+                    if(defNode.Children.Last().Value.IsComplete)
+                    {
+                        defNode.IsComplete = true;
+                    }
                 }
                 else
                 {

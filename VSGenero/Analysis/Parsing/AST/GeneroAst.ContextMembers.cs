@@ -300,6 +300,66 @@ namespace VSGenero.Analysis.Parsing.AST
 
         #region Member Provider Helpers
 
+		private IEnumerable<MemberResult> GetDefinedVariables(int index)
+        {
+            List<MemberResult> members = new List<MemberResult>();
+
+            // do a binary search to determine what node we're in
+            List<int> keys = _body.Children.Select(x => x.Key).ToList();
+            int searchIndex = keys.BinarySearch(index);
+            if (searchIndex < 0)
+            {
+                searchIndex = ~searchIndex;
+                if (searchIndex > 0)
+                    searchIndex--;
+            }
+
+            int key = keys[searchIndex];
+
+            // TODO: need to handle multiple results of the same name
+            AstNode containingNode = _body.Children[key];
+            if (containingNode != null)
+            {
+                if (containingNode is IFunctionResult)
+                {
+                    members.AddRange((containingNode as IFunctionResult).Variables.Keys.Select(x => new MemberResult(x, GeneroMemberType.Class, this)));
+                }
+
+                if (_body is IModuleResult)
+                {
+                    // check for module vars, types, and constants (and globals defined in this module)
+                    members.AddRange((_body as IModuleResult).Variables.Keys.Select(x => new MemberResult(x, GeneroMemberType.Class, this)));
+                    members.AddRange((_body as IModuleResult).GlobalVariables.Keys.Select(x => new MemberResult(x, GeneroMemberType.Class, this)));
+                }
+
+                // TODO: this could probably be done more efficiently by having each GeneroAst load globals and functions into
+                // dictionaries stored on the IGeneroProject, instead of in each project entry.
+                // However, this does required more upkeep when changes occur. Will look into it...
+                if (_projEntry != null && _projEntry is IGeneroProjectEntry)
+                {
+                    IGeneroProjectEntry genProj = _projEntry as IGeneroProjectEntry;
+                    if (genProj.ParentProject != null)
+                    {
+                        foreach (var projEntry in genProj.ParentProject.ProjectEntries.Where(x => x.Value != genProj))
+                        {
+                            if (projEntry.Value.Analysis != null &&
+                               projEntry.Value.Analysis.Body != null)
+                            {
+                                IModuleResult modRes = projEntry.Value.Analysis.Body as IModuleResult;
+                                if (modRes != null)
+                                {
+                                    // check global types
+                                    members.AddRange(modRes.GlobalVariables.Keys.Select(x => new MemberResult(x, GeneroMemberType.Class, this)));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return members;
+        }
+
         private IEnumerable<MemberResult> GetAdditionalUserDefinedTypes(int index)
         {
             List<MemberResult> members = new List<MemberResult>();
@@ -351,7 +411,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                 if (modRes != null)
                                 {
                                     // check global types
-                                    members.AddRange(modRes.Types.Keys.Select(x => new MemberResult(x, GeneroMemberType.Class, this)));
+                                    members.AddRange(modRes.GlobalTypes.Keys.Select(x => new MemberResult(x, GeneroMemberType.Class, this)));
                                 }
                             }
                         }
@@ -375,6 +435,26 @@ namespace VSGenero.Analysis.Parsing.AST
         #endregion
 
         #region Context Determiners
+
+        private bool TryVariable(int index, IReverseTokenizer revTokenizer, out List<MemberResult> results)
+        {
+            results = new List<MemberResult>();
+            var enumerator = revTokenizer.GetReversedTokens().Where(x => x.SourceSpan.Start.Index < index).GetEnumerator();
+            while (true)
+            {
+                if (!enumerator.MoveNext())
+                {
+                    results.Clear();
+                    return false;
+                }
+
+                var tokInfo = enumerator.Current;
+                if (tokInfo.Equals(default(TokenInfo)) || tokInfo.Token.Kind == TokenKind.NewLine || tokInfo.Token.Kind == TokenKind.NLToken)
+                    continue;   // linebreak
+
+
+            }
+        }
 
         private bool TryLiteralMacro(int index, IReverseTokenizer revTokenizer, out bool isWithinIncompleteMacro, out int startIndex)
         {
@@ -1342,6 +1422,51 @@ namespace VSGenero.Analysis.Parsing.AST
             }
         }
 
+		private bool TryLetStatement(int index, IReverseTokenizer revTokenizer, out List<MemberResult> results)
+        {
+            results = new List<MemberResult>();
+            bool firstToken = true;
+			var enumerator = revTokenizer.GetReversedTokens().Where(x => x.SourceSpan.Start.Index < index).GetEnumerator();
+            while (true)
+            {
+                if (!enumerator.MoveNext())
+                {
+                    results.Clear();
+                    return false;
+                }
+
+                var tokInfo = enumerator.Current;
+                if (tokInfo.Equals(default(TokenInfo)) || tokInfo.Token.Kind == TokenKind.NewLine || tokInfo.Token.Kind == TokenKind.NLToken)
+                    continue;   // linebreak
+
+                if (tokInfo.Token.Kind == TokenKind.LetKeyword)
+                {
+                    if (firstToken)
+                    {
+                        // For right now, return all variables available in this context
+                        results.AddRange(GetDefinedVariables(index));
+
+                        return true;
+                    }
+                    return false;
+                }
+                //else if(tokInfo.Token.Kind == TokenKind.Equals)
+                //{
+                //    if (firstToken)
+                //    {
+                //        results.AddRange(GetDefinedVariables(index));
+                //        // TODO: additional stuff, like functions, and things that have functions
+                //        return true;
+                //    }
+                //    return false;
+                //}
+                if (firstToken)
+                    firstToken = false;
+            }
+
+            return false;
+        }
+
         #endregion
 
         #region Enums
@@ -1458,6 +1583,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 return members;
             }
             if (TryPreprocessorContext(index, revTokenizer, out members) ||
+				TryLetStatement(index, revTokenizer, out members) ||
                TryFunctionDefContext(index, revTokenizer, out members) ||
                TryConstantContext(index, revTokenizer, out members) ||
                TryDefineDefContext(index, revTokenizer, out members, new List<TokenKind> { TokenKind.PublicKeyword, TokenKind.PrivateKeyword, TokenKind.GlobalsKeyword, TokenKind.FunctionKeyword }))

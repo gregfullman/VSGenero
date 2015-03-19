@@ -42,6 +42,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 parser.Tokenizer.AdjustOptions(options);
                 while(parser.PeekToken(TokenKind.NewLine))
                     parser.NextToken();
+                node.IsComplete = true;
             }
 
             return result;

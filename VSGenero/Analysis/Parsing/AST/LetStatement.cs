@@ -96,6 +96,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     {
                         defNode.Children.Add(mainExpression.StartIndex, mainExpression);
                         defNode.EndIndex = mainExpression.EndIndex;
+                        defNode.IsComplete = true;
                     }
                 }
             }

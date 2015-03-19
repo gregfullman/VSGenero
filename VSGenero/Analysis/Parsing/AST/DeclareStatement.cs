@@ -84,6 +84,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                 {
                                     defNode.Children.Add(sqlBlock.StartIndex, sqlBlock);
                                     defNode.EndIndex = sqlBlock.EndIndex;
+                                    defNode.IsComplete = true;
                                 }
                             }
                             else if(parser.PeekToken(TokenKind.SelectKeyword))
@@ -95,6 +96,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                 {
                                     defNode.Children.Add(sqlStmt.StartIndex, sqlStmt);
                                     defNode.EndIndex = sqlStmt.EndIndex;
+                                    defNode.IsComplete = true;
                                 }
                                 else
                                 {
@@ -107,6 +109,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                 parser.NextToken();
                                 defNode.PreparedStatementId = parser.Token.Token.Value.ToString();
                                 defNode.EndIndex = parser.Token.Span.End;
+                                defNode.IsComplete = true;
                             }
                             else
                             {
