@@ -436,24 +436,458 @@ namespace VSGenero.Analysis.Parsing.AST
 
         #region Context Determiners
 
-        private bool TryVariable(int index, IReverseTokenizer revTokenizer, out List<MemberResult> results)
+        private enum ExpressionState
         {
+            None,
+            LeftParen,
+            RightParen,
+            Operator,
+            Operand     // an operand can be a literal, a variable (or constant) reference, or a function call
+        }
+
+        private bool TryExpression(int index, IReverseTokenizer revTokenizer, int cursorIndex, out List<MemberResult> results, out int startIndex, TokenKind[] bannedOperators = null)
+        {
+            startIndex = index;
             results = new List<MemberResult>();
+            ExpressionState firstState = ExpressionState.None;
+            ExpressionState currState = ExpressionState.None;
+            bool skipGettingNext = false;
             var enumerator = revTokenizer.GetReversedTokens().Where(x => x.SourceSpan.Start.Index < index).GetEnumerator();
             while (true)
             {
-                if (!enumerator.MoveNext())
+                if (!skipGettingNext)
                 {
-                    results.Clear();
-                    return false;
+                    if (!enumerator.MoveNext())
+                    {
+                        results.Clear();
+                        return false;
+                    }
+                }
+                else
+                {
+                    skipGettingNext = false;
                 }
 
                 var tokInfo = enumerator.Current;
                 if (tokInfo.Equals(default(TokenInfo)) || tokInfo.Token.Kind == TokenKind.NewLine || tokInfo.Token.Kind == TokenKind.NLToken)
                     continue;   // linebreak
 
+                if((int)tokInfo.Token.Kind >= (int)TokenKind.FirstOperator &&
+                   (int)tokInfo.Token.Kind <= (int)TokenKind.LastOperator)
+                {
+                    if (firstState == ExpressionState.None)
+                    {
+                        firstState = ExpressionState.Operator;
+                        // TODO: provide valid variables, constants, and functions
+                    }
+                    if(currState == ExpressionState.None ||
+                       currState == ExpressionState.Operand ||
+                       currState == ExpressionState.LeftParen)
+                    {
+                        currState = ExpressionState.Operator;
+                    }
+                    else
+                    {
+                        results.Clear();
+                        return false;
+                    }
+                }
+                else if(tokInfo.Token.Kind == TokenKind.RightParenthesis)
+                {
+                    // TODO: check to see if it's a function call
+                    // if it is, we advance (reverse) past it and call it an operand
 
+                    // if it's not, there should be a grouping within the expression (if it's valid)
+                    if(firstState == ExpressionState.None)
+                    {
+                        firstState = ExpressionState.RightParen;
+                    }
+                    if(currState == ExpressionState.None ||
+                       currState == ExpressionState.Operator ||
+                       currState == ExpressionState.RightParen)
+                    {
+                        currState = ExpressionState.RightParen;
+                    }
+                    else
+                    {
+                        results.Clear();
+                        return false;
+                    }
+                }
+                else if(tokInfo.Token.Kind == TokenKind.LeftParenthesis)
+                {
+                    if(firstState == ExpressionState.None)
+                    {
+                        firstState = ExpressionState.LeftParen;
+                    }
+                    if(currState == ExpressionState.None ||
+                       currState == ExpressionState.Operand ||
+                       currState == ExpressionState.LeftParen)
+                    {
+                        currState = ExpressionState.LeftParen;
+                    }
+                    else
+                    {
+                        results.Clear();
+                        return false;
+                    }
+                }
+                else
+                {
+                    // function call is already covered in the RightParen case for that operand
+                    // So all we have left is variable and constant reference, and literals, the first two of which can be handled in the same way
+                    List<MemberResult> dummyList;
+                    int currIndex = tokInfo.SourceSpan.Start.Index + 1;
+                    int newIndex;
+                    if (!TryVariableReference(currIndex, revTokenizer, out dummyList, out newIndex))
+                    {
+                        if (newIndex < currIndex)
+                        {
+                            // we're not within a variable reference, but we reversed through one
+                            while (tokInfo.Equals(default(TokenInfo)) ||
+                                    tokInfo.Token.Kind == TokenKind.NewLine ||
+                                    tokInfo.Token.Kind == TokenKind.NLToken ||
+                                    tokInfo.SourceSpan.Start.Index > newIndex)
+                            {
+                                if (!enumerator.MoveNext())
+                                {
+                                    results.Clear();
+                                    return false;
+                                }
+                                tokInfo = enumerator.Current;
+                            }
+
+                            if (firstState == ExpressionState.None)
+                            {
+                                firstState = ExpressionState.Operand;
+                            }
+                            currState = ExpressionState.Operand;
+                        }
+                        else
+                        {
+                            // check for literals
+                            if(tokInfo.Category == TokenCategory.NumericLiteral ||
+                               tokInfo.Category == TokenCategory.CharacterLiteral)
+                            {
+                                if (firstState == ExpressionState.None)
+                                {
+                                    firstState = ExpressionState.Operand;
+                                }
+                                currState = ExpressionState.Operand;
+                                if (tokInfo.SourceSpan.End.Index == cursorIndex)
+                                {
+                                    results.Clear();
+                                    return true;
+                                }
+                            }
+                            else if(tokInfo.Category == TokenCategory.StringLiteral ||
+                                    tokInfo.Category == TokenCategory.IncompleteMultiLineStringLiteral)
+                            {
+                                if (firstState == ExpressionState.None)
+                                {
+                                    firstState = ExpressionState.Operand;
+                                }
+
+                                if (!enumerator.MoveNext())
+                                {
+                                    results.Clear();
+                                    return false;
+                                }
+                                skipGettingNext = true;
+                                TokenInfo backupToken = tokInfo;    // store the current (actual previous) token
+                                tokInfo = enumerator.Current;       // get the next (actually current)
+
+                                // try to collect the whole multi-line string
+                                while (tokInfo.Equals(default(TokenInfo)) ||
+                                        tokInfo.Token.Kind == TokenKind.NewLine ||
+                                        tokInfo.Token.Kind == TokenKind.NLToken ||
+                                        tokInfo.Category == TokenCategory.IncompleteMultiLineStringLiteral)
+                                {
+                                    if (!enumerator.MoveNext())
+                                    {
+                                        results.Clear();
+                                        return false;
+                                    }
+                                    backupToken = tokInfo;
+                                    tokInfo = enumerator.Current;
+                                }
+
+                                tokInfo = backupToken;  // restore the previous token
+
+                                currState = ExpressionState.Operand;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // we're actually within the variable reference, and should not be returning anything related to the let statement
+                        results.Clear();
+                        return false;
+                    }
+                }
+
+                // down here, we check for the operand token
+                if(currState == ExpressionState.Operand)
+                {
+                    // we need to peek backward and see if there's another operand behind us (or a left paren). If not, then the expression is complete
+                    if (!skipGettingNext)
+                    {
+                        if (!enumerator.MoveNext())
+                        {
+                            results.Clear();
+                            return false;
+                        }
+                    }
+                    else
+                    {
+                        skipGettingNext = false;
+                    }
+                    var dummyToken = enumerator.Current;
+
+                    if ((!(bannedOperators != null && bannedOperators.Contains(dummyToken.Token.Kind)) &&   // check to see if the operator is banned
+                        ((int)dummyToken.Token.Kind >= (int)TokenKind.FirstOperator && (int)dummyToken.Token.Kind <= (int)TokenKind.LastOperator)) ||
+                       dummyToken.Token.Kind == TokenKind.LeftParenthesis)
+                    {
+                        tokInfo = dummyToken;
+                        skipGettingNext = true;
+                    }
+                    else
+                    {
+                        // we're at the end of the expression. Now let's see if we reversed through the entire expression
+                        startIndex = tokInfo.SourceSpan.Start.Index;
+                        if(firstState == ExpressionState.Operand ||
+                           firstState == ExpressionState.RightParen)
+                        {
+                            results.Clear();
+                            return false;
+                        }
+                        return true;
+                    }
+                }
             }
+
+            return false;
+        }
+
+        private enum VariableReferenceState
+        {
+            None,
+            KeywordIdent,
+            Dot,
+            Star,
+            RightBracket,
+            LeftBracket,
+            FunctionCall,
+            Expression
+        }
+
+        private bool TryVariableReference(int index, IReverseTokenizer revTokenizer, out List<MemberResult> results, out int startIndex)
+        {
+            startIndex = index;
+            results = new List<MemberResult>();
+            VariableReferenceState firstState = VariableReferenceState.None;
+            VariableReferenceState currState = VariableReferenceState.None;
+            bool skipGetNext = false;
+            var enumerator = revTokenizer.GetReversedTokens().Where(x => x.SourceSpan.Start.Index < index).GetEnumerator();
+            while (true)
+            {
+                if (!skipGetNext)
+                {
+                    if (!enumerator.MoveNext())
+                    {
+                        results.Clear();
+                        return false;
+                    }
+                }
+                else
+                {
+                    skipGetNext = false;
+                }
+
+                var tokInfo = enumerator.Current;
+                if (tokInfo.Equals(default(TokenInfo)) || tokInfo.Token.Kind == TokenKind.NewLine || tokInfo.Token.Kind == TokenKind.NLToken)
+                    continue;   // linebreak
+
+                if (tokInfo.Token.Kind == TokenKind.Dot)
+                {
+                    if (firstState == VariableReferenceState.None)
+                    {
+                        firstState = VariableReferenceState.Dot;
+                        // TODO: provide members of the resulting variable
+                    }
+                    if(currState == VariableReferenceState.None ||
+                       currState == VariableReferenceState.KeywordIdent ||
+                       currState == VariableReferenceState.Star)
+                    {
+                        currState = VariableReferenceState.Dot;
+                    }
+                    else
+                    {
+                        results.Clear();
+                        return false;
+                    }
+                }
+                else if(tokInfo.Token.Kind == TokenKind.Multiply)
+                {
+                    if(firstState == VariableReferenceState.None)
+                    {
+                        firstState = VariableReferenceState.Star;
+                    }
+                    if(currState == VariableReferenceState.None)
+                    {
+                        currState = VariableReferenceState.Star;
+                    }
+                    else
+                    {
+                        results.Clear();
+                        return false;
+                    }
+                }
+                else if(tokInfo.Token.Kind == TokenKind.LeftBracket)
+                {
+                    if (firstState == VariableReferenceState.None)
+                    {
+                        firstState = VariableReferenceState.LeftBracket;
+                        // TODO: provide variables, constants, and functions
+                    }
+                    if (currState == VariableReferenceState.None)
+                    {
+                        currState = VariableReferenceState.LeftBracket;
+                    }
+                    else
+                    {
+                        results.Clear();
+                        return false;
+                    }
+                }
+                else if(tokInfo.Token.Kind == TokenKind.RightBracket)
+                {
+                    if(firstState == VariableReferenceState.None)
+                    {
+                        firstState = VariableReferenceState.RightBracket;
+                    }
+                    if(currState != VariableReferenceState.None &&
+                       currState != VariableReferenceState.Dot)
+                    {
+                        results.Clear();
+                        return false;
+                    }
+
+                    // TODO: now try to reverse parse an expression that defines the array index. If it fails, then we fail
+                    // for right now, just look for a numeric literal
+                    List<MemberResult> dummyList;
+                    int currIndex = tokInfo.SourceSpan.Start.Index + 1;
+                    int exprStartIndex;
+                    bool exprSuccess = TryExpression(currIndex, revTokenizer, index, out dummyList, out exprStartIndex);
+                    if (!exprSuccess)
+                    {
+                        if (exprStartIndex < currIndex)
+                        {
+                            // this means we're not positioned within the expression, but we reversed all the way through one.
+                            while (tokInfo.Equals(default(TokenInfo)) ||
+                                    tokInfo.Token.Kind == TokenKind.NewLine ||
+                                    tokInfo.Token.Kind == TokenKind.NLToken ||
+                                    tokInfo.SourceSpan.Start.Index > exprStartIndex)
+                            {
+                                if (!enumerator.MoveNext())
+                                {
+                                    results.Clear();
+                                    return false;
+                                }
+                                tokInfo = enumerator.Current;
+                            }
+
+                            if (tokInfo.Token.Kind != TokenKind.LeftBracket)
+                            {
+                                results.Clear();
+                                return false;
+                            }
+
+                            currState = VariableReferenceState.LeftBracket;
+                        }
+                        else
+                        {
+                            if (!enumerator.MoveNext())
+                            {
+                                results.Clear();
+                                return false;
+                            }
+
+                            tokInfo = enumerator.Current;
+                            if (tokInfo.Equals(default(TokenInfo)) || tokInfo.Token.Kind == TokenKind.NewLine || tokInfo.Token.Kind == TokenKind.NLToken)
+                                continue;   // linebreak
+
+                            if (tokInfo.Category != TokenCategory.NumericLiteral)
+                            {
+                                results.Clear();
+                                return false;
+                            }
+
+                            if (!enumerator.MoveNext())
+                            {
+                                results.Clear();
+                                return false;
+                            }
+
+                            tokInfo = enumerator.Current;
+                            if (tokInfo.Equals(default(TokenInfo)) || tokInfo.Token.Kind == TokenKind.NewLine || tokInfo.Token.Kind == TokenKind.NLToken)
+                                continue;   // linebreak
+
+                            if (tokInfo.Token.Kind != TokenKind.LeftBracket)
+                            {
+                                results.Clear();
+                                return false;
+                            }
+
+                            currState = VariableReferenceState.LeftBracket;
+                        }
+                    }
+                    else
+                    {
+                        results.Clear();
+                        return false;
+                    }
+                }
+                else if(tokInfo.Category == TokenCategory.Keyword || tokInfo.Category == TokenCategory.Identifier)
+                {
+                    if(firstState == VariableReferenceState.None)
+                    {
+                        firstState = VariableReferenceState.KeywordIdent;
+                    }
+
+                    if(currState == VariableReferenceState.None ||
+                       currState == VariableReferenceState.LeftBracket ||
+                       currState == VariableReferenceState.Dot)
+                    {
+                        startIndex = tokInfo.SourceSpan.Start.Index;
+                        // we're in the correct state. Now check to see if the first state indicates that we actually reverse parsed a complete variable reference
+                        if(firstState == VariableReferenceState.Star ||
+                           firstState == VariableReferenceState.RightBracket ||
+                           firstState == VariableReferenceState.KeywordIdent)
+                        {
+                            // we reverse parsed right through a variable reference
+                            results.Clear();
+                            return false;
+                        }
+                        else
+                        {
+                            return true;    // we're within an incomplete variable reference!
+                        }
+                    }
+                    else
+                    {
+                        results.Clear();
+                        return false;
+                    }
+                }
+                else
+                {
+                    results.Clear();
+                    return false;
+                }
+            }
+
+            return false;
         }
 
         private bool TryLiteralMacro(int index, IReverseTokenizer revTokenizer, out bool isWithinIncompleteMacro, out int startIndex)
@@ -1422,17 +1856,35 @@ namespace VSGenero.Analysis.Parsing.AST
             }
         }
 
+        private enum LetStatementState
+        {
+            None,
+            Let,
+            VariableReference,
+            Equals,
+            Expression
+        }
+
 		private bool TryLetStatement(int index, IReverseTokenizer revTokenizer, out List<MemberResult> results)
         {
             results = new List<MemberResult>();
-            bool firstToken = true;
+            LetStatementState firstState = LetStatementState.None;
+            LetStatementState currState = LetStatementState.None;
+            bool skipGettingNext = false;
 			var enumerator = revTokenizer.GetReversedTokens().Where(x => x.SourceSpan.Start.Index < index).GetEnumerator();
             while (true)
             {
-                if (!enumerator.MoveNext())
+                if (!skipGettingNext)
                 {
-                    results.Clear();
-                    return false;
+                    if (!enumerator.MoveNext())
+                    {
+                        results.Clear();
+                        return false;
+                    }
+                }
+                else
+                {
+                    skipGettingNext = true;
                 }
 
                 var tokInfo = enumerator.Current;
@@ -1441,27 +1893,116 @@ namespace VSGenero.Analysis.Parsing.AST
 
                 if (tokInfo.Token.Kind == TokenKind.LetKeyword)
                 {
-                    if (firstToken)
+                    if(currState == LetStatementState.None)
                     {
-                        // For right now, return all variables available in this context
                         results.AddRange(GetDefinedVariables(index));
-
+                        return true;
+                    }
+                    else if (firstState != LetStatementState.Expression)
+                    {
+                        // we're in a valid state
                         return true;
                     }
                     return false;
                 }
-                //else if(tokInfo.Token.Kind == TokenKind.Equals)
-                //{
-                //    if (firstToken)
-                //    {
-                //        results.AddRange(GetDefinedVariables(index));
-                //        // TODO: additional stuff, like functions, and things that have functions
-                //        return true;
-                //    }
-                //    return false;
-                //}
-                if (firstToken)
-                    firstToken = false;
+                else if (tokInfo.Token.Kind == TokenKind.Equals)
+                {
+                    if(firstState == LetStatementState.None)
+                    {
+                        firstState = LetStatementState.Equals;
+                        results.AddRange(GetDefinedVariables(index));
+                    }
+                    if (currState == LetStatementState.None ||
+                       currState == LetStatementState.Expression)
+                    {
+                        currState = LetStatementState.Equals;
+                    }
+                    else
+                    {
+                        results.Clear();
+                        return false;
+                    }
+                }
+                else
+                {
+                    // 1) See if we're within a variable reference
+                    List<MemberResult> dummyList;
+                    int currIndex = tokInfo.SourceSpan.Start.Index + 1;
+                    int newIndex;
+                    if(!TryVariableReference(currIndex, revTokenizer, out dummyList, out newIndex))
+                    {
+                        if (newIndex < currIndex)
+                        {
+                            // we're not within a variable reference, but we reversed through one
+                            while (tokInfo.Equals(default(TokenInfo)) ||
+                                    tokInfo.Token.Kind == TokenKind.NewLine ||
+                                    tokInfo.Token.Kind == TokenKind.NLToken ||
+                                    tokInfo.SourceSpan.Start.Index > newIndex)
+                            {
+                                if (!enumerator.MoveNext())
+                                {
+                                    results.Clear();
+                                    return false;
+                                }
+                                tokInfo = enumerator.Current;
+                                skipGettingNext = true;
+                            }
+
+                            if(firstState == LetStatementState.None)
+                            {
+                                firstState = LetStatementState.VariableReference;
+                            }
+                            currState = LetStatementState.VariableReference;
+                        }
+                        else
+                        {
+                            // 2) TODO: see if we're within an expression
+                            int exprStartIndex;
+                            bool exprSuccess = TryExpression(currIndex, revTokenizer, index, out dummyList, out exprStartIndex, new TokenKind[] { TokenKind.Equals });
+                            if (!exprSuccess)
+                            {
+                                if (exprStartIndex < currIndex)
+                                {
+                                    // this means we're not positioned within the expression, but we reversed all the way through one.
+                                    while (tokInfo.Equals(default(TokenInfo)) ||
+                                            tokInfo.Token.Kind == TokenKind.NewLine ||
+                                            tokInfo.Token.Kind == TokenKind.NLToken ||
+                                            tokInfo.SourceSpan.Start.Index > exprStartIndex)
+                                    {
+                                        if (!enumerator.MoveNext())
+                                        {
+                                            results.Clear();
+                                            return false;
+                                        }
+                                        tokInfo = enumerator.Current;
+                                    }
+
+                                    if (firstState == LetStatementState.None)
+                                    {
+                                        firstState = LetStatementState.Expression;
+                                    }
+                                    currState = LetStatementState.Expression;
+                                }
+                                else
+                                {
+                                    results.Clear();
+                                    return false;
+                                }
+                            }
+                            else
+                            {
+                                results.AddRange(dummyList);
+                                return true;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // we're actually within the variable reference, and should not be returning anything related to the let statement
+                        results.Clear();
+                        return false;
+                    }
+                }
             }
 
             return false;
