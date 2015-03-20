@@ -334,11 +334,11 @@ namespace VSGenero.Analysis.Parsing.AST
                 if (containingNode is IFunctionResult)
                 {
                     if(vars)
-                        members.AddRange((containingNode as IFunctionResult).Variables.Keys.Select(x => new MemberResult(x, GeneroMemberType.Instance, this)));
+                        members.AddRange((containingNode as IFunctionResult).Variables.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Variable, this)));
                     if(types)
-                        members.AddRange((containingNode as IFunctionResult).Types.Keys.Select(x => new MemberResult(x, GeneroMemberType.Class, this)));
+                        members.AddRange((containingNode as IFunctionResult).Types.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Class, this)));
                     if(consts)
-                        members.AddRange((containingNode as IFunctionResult).Constants.Keys.Select(x => new MemberResult(x, GeneroMemberType.Constant, this)));
+                        members.AddRange((containingNode as IFunctionResult).Constants.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Constant, this)));
                 }
 
                 if (_body is IModuleResult)
@@ -346,22 +346,22 @@ namespace VSGenero.Analysis.Parsing.AST
                     // check for module vars, types, and constants (and globals defined in this module)
                     if (vars)
                     {
-                        members.AddRange((_body as IModuleResult).Variables.Keys.Select(x => new MemberResult(x, GeneroMemberType.Instance, this)));
-                        members.AddRange((_body as IModuleResult).GlobalVariables.Keys.Select(x => new MemberResult(x, GeneroMemberType.Instance, this)));
+                        members.AddRange((_body as IModuleResult).Variables.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Variable, this)));
+                        members.AddRange((_body as IModuleResult).GlobalVariables.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Variable, this)));
                     }
                     if(types)
                     {
-                        members.AddRange((_body as IModuleResult).Types.Keys.Select(x => new MemberResult(x, GeneroMemberType.Class, this)));
-                        members.AddRange((_body as IModuleResult).GlobalTypes.Keys.Select(x => new MemberResult(x, GeneroMemberType.Class, this)));
+                        members.AddRange((_body as IModuleResult).Types.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Class, this)));
+                        members.AddRange((_body as IModuleResult).GlobalTypes.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Class, this)));
                     }
                     if(consts)
                     {
-                        members.AddRange((_body as IModuleResult).Constants.Keys.Select(x => new MemberResult(x, GeneroMemberType.Constant, this)));
-                        members.AddRange((_body as IModuleResult).GlobalConstants.Keys.Select(x => new MemberResult(x, GeneroMemberType.Constant, this)));
+                        members.AddRange((_body as IModuleResult).Constants.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Constant, this)));
+                        members.AddRange((_body as IModuleResult).GlobalConstants.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Constant, this)));
                     }
                     if(funcs)
                     {
-                        members.AddRange((_body as IModuleResult).Functions.Keys.Select(x => new MemberResult(x, GeneroMemberType.Method, this)));
+                        members.AddRange((_body as IModuleResult).Functions.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Method, this)));
                     }
                 }
 
@@ -383,13 +383,13 @@ namespace VSGenero.Analysis.Parsing.AST
                                 {
                                     // check global types
                                     if(vars)
-                                        members.AddRange(modRes.GlobalVariables.Keys.Select(x => new MemberResult(x, GeneroMemberType.Instance, this)));
+                                        members.AddRange(modRes.GlobalVariables.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Variable, this)));
                                     if(types)
-                                        members.AddRange(modRes.GlobalTypes.Keys.Select(x => new MemberResult(x, GeneroMemberType.Class, this)));
+                                        members.AddRange(modRes.GlobalTypes.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Class, this)));
                                     if(consts)
-                                        members.AddRange(modRes.GlobalConstants.Keys.Select(x => new MemberResult(x, GeneroMemberType.Constant, this)));
+                                        members.AddRange(modRes.GlobalConstants.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Constant, this)));
                                     if(funcs)
-                                        members.AddRange(modRes.Functions.Keys.Select(x => new MemberResult(x, GeneroMemberType.Method, this)));
+                                        members.AddRange(modRes.Functions.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Method, this)));
                                 }
                             }
                         }
@@ -2308,27 +2308,27 @@ namespace VSGenero.Analysis.Parsing.AST
                 if (containingNode is IFunctionResult)
                 {
                     IFunctionResult func = containingNode as IFunctionResult;
-                    res = res.Union(func.Variables.Keys.Select(x => new MemberResult(x, GeneroMemberType.Instance, this)));
-                    res = res.Union(func.Types.Keys.Select(x => new MemberResult(x, GeneroMemberType.Class, this)));
-                    res = res.Union(func.Constants.Keys.Select(x => new MemberResult(x, GeneroMemberType.Constant, this)));
+                    res = res.Union(func.Variables.Keys.Select(x => new MemberResult(x, x, GeneroMemberType.Instance, this)));
+                    res = res.Union(func.Types.Keys.Select(x => new MemberResult(x, x, GeneroMemberType.Class, this)));
+                    res = res.Union(func.Constants.Keys.Select(x => new MemberResult(x, x, GeneroMemberType.Constant, this)));
                 }
 
                 if (_body is IModuleResult)
                 {
                     // check for module vars, types, and constants (and globals defined in this module)
                     IModuleResult mod = _body as IModuleResult;
-                    res = res.Union(mod.Variables.Keys.Select(x => new MemberResult(x, GeneroMemberType.Module, this)));
-                    res = res.Union(mod.Types.Keys.Select(x => new MemberResult(x, GeneroMemberType.Class, this)));
-                    res = res.Union(mod.Constants.Keys.Select(x => new MemberResult(x, GeneroMemberType.Constant, this)));
-                    res = res.Union(mod.GlobalVariables.Keys.Select(x => new MemberResult(x, GeneroMemberType.Module, this)));
-                    res = res.Union(mod.GlobalTypes.Keys.Select(x => new MemberResult(x, GeneroMemberType.Class, this)));
-                    res = res.Union(mod.GlobalConstants.Keys.Select(x => new MemberResult(x, GeneroMemberType.Constant, this)));
+                    res = res.Union(mod.Variables.Keys.Select(x => new MemberResult(x, x, GeneroMemberType.Module, this)));
+                    res = res.Union(mod.Types.Keys.Select(x => new MemberResult(x, x, GeneroMemberType.Class, this)));
+                    res = res.Union(mod.Constants.Keys.Select(x => new MemberResult(x, x, GeneroMemberType.Constant, this)));
+                    res = res.Union(mod.GlobalVariables.Keys.Select(x => new MemberResult(x, x, GeneroMemberType.Module, this)));
+                    res = res.Union(mod.GlobalTypes.Keys.Select(x => new MemberResult(x, x, GeneroMemberType.Class, this)));
+                    res = res.Union(mod.GlobalConstants.Keys.Select(x => new MemberResult(x, x, GeneroMemberType.Constant, this)));
 
                     // check for cursors in this module
-                    res = res.Union(mod.Cursors.Keys.Select(x => new MemberResult(x, GeneroMemberType.Unknown, this)));
+                    res = res.Union(mod.Cursors.Keys.Select(x => new MemberResult(x, x, GeneroMemberType.Unknown, this)));
 
                     // check for module functio
-                    res = res.Union(mod.Functions.Keys.Select(x => new MemberResult(x, GeneroMemberType.Method, this)));
+                    res = res.Union(mod.Functions.Keys.Select(x => new MemberResult(x, x, GeneroMemberType.Method, this)));
                 }
 
                 // TODO: this could probably be done more efficiently by having each GeneroAst load globals and functions into

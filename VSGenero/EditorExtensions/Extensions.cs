@@ -353,6 +353,7 @@ namespace VSGenero.EditorExtensions
                 case GeneroMemberType.Instance: group = StandardGlyphGroup.GlyphGroupVariable; break;
                 case GeneroMemberType.Constant: group = StandardGlyphGroup.GlyphGroupVariable; break;
                 case GeneroMemberType.Keyword: group = StandardGlyphGroup.GlyphKeyword; break;
+                case GeneroMemberType.Variable: group = StandardGlyphGroup.GlyphGroupVariable; break;
                 case GeneroMemberType.Function:
                 case GeneroMemberType.Method:
                 default:

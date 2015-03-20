@@ -37,6 +37,8 @@ namespace VSGenero.Analysis.Parsing.AST
         /// <summary>
         /// The member represents a keyword
         /// </summary>
-        Keyword
+        Keyword,
+
+        Variable
     }
 }
