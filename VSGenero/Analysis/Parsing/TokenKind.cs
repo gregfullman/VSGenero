@@ -25,7 +25,6 @@ namespace VSGenero.Analysis.Parsing
         Subtract = 33,
         Multiply = 34,
         Divide   = 35,
-        Mod      = 36,
         Power    = 37,
 
         // boolean expression operators
