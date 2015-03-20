@@ -314,6 +314,10 @@ namespace VSGenero.Analysis.Parsing.AST
                 // Built-in types
                 members.AddRange(BuiltinTypes.Select(x => new MemberResult(Tokens.TokenKinds[x], GeneroMemberType.Keyword, this)));
             }
+            if (consts)
+                members.AddRange(SystemConstants.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Keyword, this)));
+            if (vars)
+                members.AddRange(SystemVariables.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Keyword, this)));
 
             // do a binary search to determine what node we're in
             List<int> keys = _body.Children.Select(x => x.Key).ToList();
@@ -849,9 +853,8 @@ namespace VSGenero.Analysis.Parsing.AST
                     }
 
                     // now try to reverse parse an expression that defines the array index. If it fails, then we fail
-                    // for right now, just look for a numeric literal
                     List<MemberResult> dummyList;
-                    int currIndex = tokInfo.SourceSpan.Start.Index + 1;
+                    int currIndex = tokInfo.SourceSpan.Start.Index;
                     int exprStartIndex;
                     bool exprSuccess = TryExpression(currIndex, revTokenizer, index, out dummyList, out exprStartIndex);
                     if (!exprSuccess)
@@ -871,7 +874,13 @@ namespace VSGenero.Analysis.Parsing.AST
                                 }
                                 tokInfo = enumerator.Current;
                             }
-
+                            // advance to the next token, which should be a left bracket
+                            if (!enumerator.MoveNext())
+                            {
+                                results.Clear();
+                                return false;
+                            }
+                            tokInfo = enumerator.Current;
                             if (tokInfo.Token.Kind != TokenKind.LeftBracket)
                             {
                                 results.Clear();
@@ -2090,7 +2099,6 @@ namespace VSGenero.Analysis.Parsing.AST
                                             return false;
                                         }
                                         tokInfo = enumerator.Current;
-                                        skipGettingNext = true;
                                     }
 
                                     if (firstState == LetStatementState.None)
@@ -2122,8 +2130,19 @@ namespace VSGenero.Analysis.Parsing.AST
                             else
                             {
                                 // we're actually within the variable reference, and should not be returning anything related to the let statement
-                                results.Clear();
-                                return false;
+                                // TODO: reinvestigate the comment above...I think it would only apply if we were doing the variable reference check by itself
+                                // (not nested in the let statement detection).
+                                if (dummyList.Count > 0)
+                                {
+                                    results.AddRange(dummyList);
+                                    return true;
+                                }
+                                else
+                                {
+                                    // This may still be valid.
+                                    results.Clear();
+                                    return false;
+                                }
                             }
                         }
                     }

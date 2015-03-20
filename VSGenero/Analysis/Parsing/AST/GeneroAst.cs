@@ -28,6 +28,7 @@ namespace VSGenero.Analysis.Parsing.AST
             _projEntry = projEntry;
 
             InitializeCompletionContextMaps();
+            InitializeBuiltins();
         }
 
         public AstNode Body

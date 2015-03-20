@@ -82,6 +82,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 parser.NextToken();
                 node.StartIndex = parser.Token.Span.Start;
 
+                StringBuilder sb = new StringBuilder();
                 // TODO: need to get an integer expression
                 // for right now, we'll just check for a constant or a ident/keyword
                 if(parser.PeekToken(TokenCategory.NumericLiteral) ||
@@ -89,11 +90,18 @@ namespace VSGenero.Analysis.Parsing.AST
                    parser.PeekToken(TokenCategory.Identifier))
                 {
                     parser.NextToken();
-                    node._expression = parser.Token.Token.Value.ToString();
+                    sb.Append(parser.Token.Token.Value.ToString());
                 }
                 else
                 {
                     parser.ReportSyntaxError("The parser is unable to parse a complex expression as an array index. This may not be a syntax error.");
+                }
+
+                // TODO: check for a nested array index access
+                ArrayIndexNameExpressionPiece arrayIndex;
+                if (ArrayIndexNameExpressionPiece.TryParse(parser, out arrayIndex, breakToken))
+                {
+                    sb.Append(arrayIndex._expression);
                 }
 
                 while(!parser.PeekToken(TokenKind.RightBracket))
@@ -104,13 +112,16 @@ namespace VSGenero.Analysis.Parsing.AST
                         break;
                     }
                     parser.NextToken();
+                    sb.Append(parser.Token.Token.Value.ToString());
                 }
 
                 if (parser.PeekToken(TokenKind.RightBracket))
                 {
                     parser.NextToken();
+                    sb.Append(parser.Token.Token.Value.ToString());
                     node.EndIndex = parser.Token.Span.End;
                     node.IsComplete = true;
+                    node._expression = sb.ToString();
                 }
             }
 

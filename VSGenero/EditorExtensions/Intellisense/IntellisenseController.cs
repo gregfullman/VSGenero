@@ -225,7 +225,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             {
                 if (point.Value.Position <= 1) return false;
                 string prevChar = _textView.TextSnapshot.GetText(new Span(point.Value.Position - 2, 1));
-                if (prevChar == "(")
+                if (prevChar == "(" || prevChar == "[")
                     return true;
                 return string.IsNullOrWhiteSpace(prevChar);
             }
