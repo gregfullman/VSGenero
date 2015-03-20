@@ -719,7 +719,8 @@ namespace VSGenero.Analysis.Parsing.AST
                     if ((!(bannedOperators != null && bannedOperators.Contains(dummyToken.Token.Kind)) &&   // check to see if the operator is banned
                         ((int)dummyToken.Token.Kind >= (int)TokenKind.FirstOperator && (int)dummyToken.Token.Kind <= (int)TokenKind.LastOperator)) ||
                        dummyToken.Token.Kind == TokenKind.LeftParenthesis ||
-                       dummyToken.Token.Kind == TokenKind.Comma)
+                       dummyToken.Token.Kind == TokenKind.Comma ||
+                        dummyToken.Token.Kind == TokenKind.ModKeyword)
                     {
                         tokInfo = dummyToken;
                         skipGettingNext = true;
@@ -2256,11 +2257,16 @@ namespace VSGenero.Analysis.Parsing.AST
             {
                 return members;
             }
+
             if (TryPreprocessorContext(index, revTokenizer, out members) ||
-				TryLetStatement(index, revTokenizer, out members) ||
                TryFunctionDefContext(index, revTokenizer, out members) ||
                TryConstantContext(index, revTokenizer, out members) ||
                TryDefineDefContext(index, revTokenizer, out members, new List<TokenKind> { TokenKind.PublicKeyword, TokenKind.PrivateKeyword, TokenKind.GlobalsKeyword, TokenKind.FunctionKeyword }))
+            {
+                return members;
+            }
+
+            if(TryLetStatement(index, revTokenizer, out members))
             {
                 return members;
             }
