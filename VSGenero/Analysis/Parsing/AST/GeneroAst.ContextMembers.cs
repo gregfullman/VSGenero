@@ -414,6 +414,67 @@ namespace VSGenero.Analysis.Parsing.AST
 
         #region Context Determiners
 
+        private bool TryMemberAccess(int index, IReverseTokenizer revTokenizer, out List<MemberResult> results)
+        {
+            results = new List<MemberResult>();
+            bool skipGettingNext = false;
+            var enumerator = revTokenizer.GetReversedTokens().Where(x => x.SourceSpan.Start.Index < index).GetEnumerator();
+            while (true)
+            {
+                if (!skipGettingNext)
+                {
+                    if (!enumerator.MoveNext())
+                    {
+                        results.Clear();
+                        return false;
+                    }
+                }
+                else
+                {
+                    skipGettingNext = false;
+                }
+
+                var tokInfo = enumerator.Current;
+                if (tokInfo.Equals(default(TokenInfo)) || tokInfo.Token.Kind == TokenKind.NewLine || tokInfo.Token.Kind == TokenKind.NLToken)
+                    continue;   // linebreak
+
+                if(tokInfo.Token.Kind == TokenKind.Dot)
+                {
+                    // we're trying to access a member...get the member
+                    List<MemberResult> dummyList;
+                    int currIndex = tokInfo.SourceSpan.Start.Index;
+                    int newIndex;
+                    if (!TryVariableReference(currIndex, revTokenizer, out dummyList, out newIndex))
+                    {
+                        if (newIndex < currIndex)
+                        {
+                            // we're not within a variable reference, but we reversed through one
+                            while (tokInfo.Equals(default(TokenInfo)) ||
+                                    tokInfo.Token.Kind == TokenKind.NewLine ||
+                                    tokInfo.Token.Kind == TokenKind.NLToken ||
+                                    tokInfo.SourceSpan.Start.Index > newIndex)
+                            {
+                                if (!enumerator.MoveNext())
+                                {
+                                    results.Clear();
+                                    return false;
+                                }
+                                tokInfo = enumerator.Current;
+                            }
+
+                            // now we need to analyze the variable reference to get its members
+                            int i = 0;
+                            return true;
+                        }
+                    }
+                }
+
+                return false;
+            }
+
+            return false;
+        }
+
         private enum ExpressionState
         {
             None,
@@ -450,7 +511,8 @@ namespace VSGenero.Analysis.Parsing.AST
                 if (tokInfo.Equals(default(TokenInfo)) || tokInfo.Token.Kind == TokenKind.NewLine || tokInfo.Token.Kind == TokenKind.NLToken)
                     continue;   // linebreak
 
-                if(tokInfo.Token.Kind == TokenKind.ModKeyword || 
+                 if(tokInfo.Token.Kind == TokenKind.ModKeyword ||
+                    tokInfo.Token.Kind == TokenKind.Comma ||            // TODO: if we add a function context detection this should be removed
                    ((int)tokInfo.Token.Kind >= (int)TokenKind.FirstOperator &&
                    (int)tokInfo.Token.Kind <= (int)TokenKind.LastOperator))
                 {
@@ -460,10 +522,23 @@ namespace VSGenero.Analysis.Parsing.AST
                         // provide valid variables, constants, and functions
                         results.AddRange(GetDefinedMembers(index, true, true, false, true));
                     }
+
                     if(currState == ExpressionState.None ||
                        currState == ExpressionState.Operand ||
                        currState == ExpressionState.LeftParen)
                     {
+                        if (bannedOperators != null && bannedOperators.Contains(tokInfo.Token.Kind))
+                        {
+                            startIndex = tokInfo.SourceSpan.End.Index + 1;
+                            if (firstState != ExpressionState.LeftParen &&
+                                firstState != ExpressionState.Operator)
+                            {
+                                results.Clear();
+                                return false;
+                            }
+                            return true;
+                        }
+
                         currState = ExpressionState.Operator;
                     }
                     else
@@ -613,6 +688,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 if(currState == ExpressionState.Operand)
                 {
                     // we need to peek backward and see if there's another operand behind us (or a left paren). If not, then the expression is complete
+                    TokenInfo dummyToken;
                     if (!skipGettingNext)
                     {
                         if (!enumerator.MoveNext())
@@ -620,26 +696,30 @@ namespace VSGenero.Analysis.Parsing.AST
                             results.Clear();
                             return false;
                         }
-                        while (tokInfo.Equals(default(TokenInfo)) ||
-                                tokInfo.Token.Kind == TokenKind.NewLine ||
-                                tokInfo.Token.Kind == TokenKind.NLToken)
+                        dummyToken = enumerator.Current;
+                        while (dummyToken.Equals(default(TokenInfo)) ||
+                                dummyToken.Token.Kind == TokenKind.NewLine ||
+                                dummyToken.Token.Kind == TokenKind.NLToken)
                         {
                             if (!enumerator.MoveNext())
                             {
                                 results.Clear();
                                 return false;
                             }
+                            dummyToken = enumerator.Current;
                         }
+                        dummyToken = enumerator.Current;
                     }
                     else
                     {
                         skipGettingNext = false;
                     }
-                    var dummyToken = enumerator.Current;
+                    dummyToken = enumerator.Current;
 
                     if ((!(bannedOperators != null && bannedOperators.Contains(dummyToken.Token.Kind)) &&   // check to see if the operator is banned
                         ((int)dummyToken.Token.Kind >= (int)TokenKind.FirstOperator && (int)dummyToken.Token.Kind <= (int)TokenKind.LastOperator)) ||
-                       dummyToken.Token.Kind == TokenKind.LeftParenthesis)
+                       dummyToken.Token.Kind == TokenKind.LeftParenthesis ||
+                       dummyToken.Token.Kind == TokenKind.Comma)
                     {
                         tokInfo = dummyToken;
                         skipGettingNext = true;
@@ -849,29 +929,49 @@ namespace VSGenero.Analysis.Parsing.AST
                         firstState = VariableReferenceState.KeywordIdent;
                     }
 
-                    if(currState == VariableReferenceState.None ||
-                       currState == VariableReferenceState.LeftBracket ||
-                       currState == VariableReferenceState.Dot)
+                    // check to see if the previous token is a dot
+                    skipGetNext = true;
+                    TokenInfo dummyInfo = tokInfo;
+                    do
                     {
-                        startIndex = tokInfo.SourceSpan.Start.Index;
-                        // we're in the correct state. Now check to see if the first state indicates that we actually reverse parsed a complete variable reference
-                        if(firstState == VariableReferenceState.Star ||
-                           firstState == VariableReferenceState.RightBracket ||
-                           firstState == VariableReferenceState.KeywordIdent)
+                        if (!enumerator.MoveNext())
                         {
-                            // we reverse parsed right through a variable reference
                             results.Clear();
                             return false;
                         }
+                        tokInfo = enumerator.Current;
+                    }
+                    while (tokInfo.Equals(default(TokenInfo)) ||
+                            tokInfo.Token.Kind == TokenKind.NewLine ||
+                            tokInfo.Token.Kind == TokenKind.NLToken);
+                    
+                    if (tokInfo.Token.Kind != TokenKind.Dot)
+                    {
+                        tokInfo = dummyInfo;
+                        if (currState == VariableReferenceState.None ||
+                           currState == VariableReferenceState.LeftBracket ||
+                           currState == VariableReferenceState.Dot)
+                        {
+                            startIndex = tokInfo.SourceSpan.Start.Index;
+                            // we're in the correct state. Now check to see if the first state indicates that we actually reverse parsed a complete variable reference
+                            if (firstState == VariableReferenceState.Star ||
+                               firstState == VariableReferenceState.RightBracket ||
+                               firstState == VariableReferenceState.KeywordIdent)
+                            {
+                                // we reverse parsed right through a variable reference
+                                results.Clear();
+                                return false;
+                            }
+                            else
+                            {
+                                return true;    // we're within an incomplete variable reference!
+                            }
+                        }
                         else
                         {
-                            return true;    // we're within an incomplete variable reference!
+                            results.Clear();
+                            return false;
                         }
-                    }
-                    else
-                    {
-                        results.Clear();
-                        return false;
                     }
                 }
                 else
@@ -2141,6 +2241,10 @@ namespace VSGenero.Analysis.Parsing.AST
              * determine where within the scope we are, and attempt to provide a set of context-sensitive members based on that.
              **********************************************************************************************************************************/
             List<MemberResult> members = new List<MemberResult>();
+            if(TryMemberAccess(index, revTokenizer, out members))
+            {
+                return members;
+            }
             int dummyIndex;
             // If any type constraint completions come back, we know that a constraint has not been completed, so we bypass searching for other completions
             if (TryTypeConstraintContext(index, revTokenizer, out members, out dummyIndex) && members.Count > 0)

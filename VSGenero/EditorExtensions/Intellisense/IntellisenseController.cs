@@ -224,7 +224,10 @@ namespace VSGenero.EditorExtensions.Intellisense
             if(point.HasValue)
             {
                 if (point.Value.Position <= 1) return false;
-                return string.IsNullOrWhiteSpace(_textView.TextSnapshot.GetText(new Span(point.Value.Position - 2, 1)));
+                string prevChar = _textView.TextSnapshot.GetText(new Span(point.Value.Position - 2, 1));
+                if (prevChar == "(")
+                    return true;
+                return string.IsNullOrWhiteSpace(prevChar);
             }
             return false;
         }
