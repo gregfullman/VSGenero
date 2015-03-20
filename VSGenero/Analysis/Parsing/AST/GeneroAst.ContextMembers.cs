@@ -2212,15 +2212,64 @@ namespace VSGenero.Analysis.Parsing.AST
             TokenKind.EndKeyword,
 
             // Valid statement start keywords (TODO: definitely missing some here...)
+            // Flow control
             TokenKind.CallKeyword,
-            TokenKind.LetKeyword,
-            TokenKind.IfKeyword,
-            TokenKind.ElseKeyword,
+            TokenKind.ReturnKeyword,
+            TokenKind.CaseKeyword,
+            TokenKind.ContinueKeyword,
+            TokenKind.ExitKeyword,
             TokenKind.ForKeyword,
-            TokenKind.ForeachKeyword,
+            TokenKind.GotoKeyword,
+            TokenKind.IfKeyword,
+            TokenKind.LabelKeyword,
+            TokenKind.SleepKeyword,
             TokenKind.WhileKeyword,
-            TokenKind.DoKeyword,
-            TokenKind.DeferKeyword
+            TokenKind.ElseKeyword,
+
+            // assignment
+            TokenKind.LetKeyword,
+
+            // exceptions
+            TokenKind.WheneverKeyword,
+            TokenKind.TryKeyword,
+            TokenKind.CatchKeyword,
+
+            // variable statements
+            TokenKind.InitializeKeyword,
+            TokenKind.LocateKeyword,
+            TokenKind.FreeKeyword,
+            TokenKind.ValidateKeyword,
+
+            // static sql
+            TokenKind.SelectKeyword,
+            TokenKind.UpdateKeyword,
+            TokenKind.DeleteKeyword,
+            TokenKind.InsertKeyword,
+            TokenKind.SqlKeyword,
+            TokenKind.CreateKeyword,
+            TokenKind.AlterKeyword,
+            TokenKind.DropKeyword,
+            TokenKind.RenameKeyword,
+
+            // dynamic sql
+            TokenKind.PrepareKeyword,
+            TokenKind.ExecuteKeyword,
+            TokenKind.DeclareKeyword,
+            TokenKind.OpenKeyword,
+            TokenKind.FetchKeyword,
+            TokenKind.CloseKeyword,
+            TokenKind.ForeachKeyword,
+            TokenKind.PutKeyword,
+            TokenKind.FlushKeyword,
+            TokenKind.LoadKeyword,
+            TokenKind.UnloadKeyword,
+
+
+            // config options
+            TokenKind.DeferKeyword,
+            
+            
+
         };
 
         private static TokenKind[] BuiltinTypes = new TokenKind[]
