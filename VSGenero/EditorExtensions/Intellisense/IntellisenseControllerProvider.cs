@@ -32,6 +32,9 @@ namespace VSGenero.EditorExtensions.Intellisense
         [Import]
         internal IIncrementalSearchFactoryService _IncrementalSearch = null; // Set via MEF
 
+        [Import(AllowDefault = true)]
+        internal IPublicFunctionProvider _PublicFunctionProvider = null;
+
         readonly Dictionary<ITextView, Tuple<BufferParser, GeneroProjectAnalyzer>> _hookedCloseEvents =
             new Dictionary<ITextView, Tuple<BufferParser, GeneroProjectAnalyzer>>();
 

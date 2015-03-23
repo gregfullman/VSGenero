@@ -418,6 +418,185 @@ namespace VSGenero.Analysis.Parsing.AST
 
         #region Context Determiners
 
+        private bool TryCall(int index, IReverseTokenizer revTokenizer, out List<MemberResult> results)
+        {
+            results = new List<MemberResult>();
+            CallStatus currStatus = CallStatus.None;
+            CallStatus firstStatus = CallStatus.None;
+            bool skipGettingNext = false;
+            var enumerator = revTokenizer.GetReversedTokens().Where(x => x.SourceSpan.Start.Index < index).GetEnumerator();
+            while (true)
+            {
+                if (!skipGettingNext)
+                {
+                    if (!enumerator.MoveNext())
+                    {
+                        results.Clear();
+                        return false;
+                    }
+                }
+                else
+                {
+                    skipGettingNext = false;
+                }
+
+                var tokInfo = enumerator.Current;
+                if (tokInfo.Equals(default(TokenInfo)) || tokInfo.Token.Kind == TokenKind.NewLine || tokInfo.Token.Kind == TokenKind.NLToken)
+                    continue;   // linebreak
+
+                if(tokInfo.Token.Kind == TokenKind.CallKeyword)
+                {
+                    if (firstStatus == CallStatus.None)
+                    {
+                        // provide functions
+                        results.AddRange(GetDefinedMembers(index, false, false, false, true));
+                    }
+                    if (firstStatus == CallStatus.Expression)
+                    {
+                        // don't clear the results, since it includes "returning"
+                        return false;
+                    }
+
+                    return true;
+                }
+                else if(tokInfo.Token.Kind == TokenKind.ReturningKeyword)
+                {
+                    if(firstStatus == CallStatus.None)
+                    {
+                        firstStatus = CallStatus.ReturningKeyword;
+                        results.AddRange(GetDefinedMembers(index, true, false, false, false));
+                    }
+
+                    if(currStatus == CallStatus.None ||
+                       currStatus == CallStatus.VariableRef ||
+                       currStatus == CallStatus.Expression)
+                    {
+                        currStatus = CallStatus.ReturningKeyword;
+                    }
+                    else
+                    {
+                        results.Clear();
+                        return false;
+                    }
+                }
+                else if(tokInfo.Token.Kind == TokenKind.Comma)
+                {
+                    // ideally, we'd look back to see if we're after a "returning" keyword...but that may be too much effort.
+                    if(firstStatus == CallStatus.None)
+                    {
+                        firstStatus = CallStatus.Comma;
+                        results.AddRange(GetDefinedMembers(index, true, false, false, false));
+                    }
+                    if (currStatus == CallStatus.None ||
+                        currStatus == CallStatus.VariableRef)
+                    {
+                        currStatus = CallStatus.Comma;
+                    }
+                    else
+                    {
+                        results.Clear();
+                        return false;
+                    }
+                }
+                else
+                {
+                    // first try an expression. The expression will fail (and not have a changed starting index) if it's "returning x, y, ..." because of the returning keyword
+                    List<MemberResult> dummyList;
+                    int currIndex = tokInfo.SourceSpan.Start.Index + 1;
+                    int newIndex;
+                    if (!TryExpression(currIndex, revTokenizer, index, out dummyList, out newIndex, new TokenKind[] { TokenKind.ReturningKeyword, TokenKind.CallKeyword }))
+                    {
+                        if (newIndex < currIndex)
+                        {
+                            // we're not within a variable reference, but we reversed through one
+                            while (tokInfo.Equals(default(TokenInfo)) ||
+                                    tokInfo.Token.Kind == TokenKind.NewLine ||
+                                    tokInfo.Token.Kind == TokenKind.NLToken ||
+                                    tokInfo.SourceSpan.Start.Index > newIndex)
+                            {
+                                if (!enumerator.MoveNext())
+                                {
+                                    results.Clear();
+                                    return false;
+                                }
+                                tokInfo = enumerator.Current;
+                            }
+
+                            // we reversed partially through the expression, so we need to use the members in its list
+                            if(firstStatus == CallStatus.None)
+                            {
+                                firstStatus = CallStatus.Expression;
+                                results.Add(new MemberResult(Tokens.TokenKinds[TokenKind.ReturningKeyword], GeneroMemberType.Keyword, this));
+                            }
+                            if(currStatus == CallStatus.None ||
+                               currStatus == CallStatus.ReturningKeyword ||
+                               currStatus == CallStatus.Comma)
+                            {
+                                currStatus = CallStatus.Expression;
+                            }
+                        }
+                        else
+                        {
+                            if (!TryVariableReference(currIndex, revTokenizer, out dummyList, out newIndex))
+                            {
+                                if (newIndex < currIndex)
+                                {
+                                    // we're not within a variable reference, but we reversed through one
+                                    while (tokInfo.Equals(default(TokenInfo)) ||
+                                            tokInfo.Token.Kind == TokenKind.NewLine ||
+                                            tokInfo.Token.Kind == TokenKind.NLToken ||
+                                            tokInfo.SourceSpan.Start.Index > newIndex)
+                                    {
+                                        if (!enumerator.MoveNext())
+                                        {
+                                            results.Clear();
+                                            return false;
+                                        }
+                                        tokInfo = enumerator.Current;
+                                    }
+
+                                    // we reversed entirely through an expression
+                                    if (firstStatus == CallStatus.None)
+                                    {
+                                        firstStatus = CallStatus.VariableRef;
+                                        //results.AddRange(dummyList);
+                                    }
+                                    if (currStatus == CallStatus.None ||
+                                       currStatus == CallStatus.Comma)
+                                    {
+                                        currStatus = CallStatus.VariableRef;
+                                    }
+                                }
+                                else
+                                {
+                                    results.Clear();
+                                    return false;
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // we reversed entirely through an expression
+                        if (firstStatus == CallStatus.None)
+                        {
+                            firstStatus = CallStatus.Expression;
+                            results.AddRange(dummyList);
+                        }
+                        if (currStatus == CallStatus.None ||
+                           currStatus == CallStatus.ReturningKeyword)
+                        {
+                            currStatus = CallStatus.Expression;
+                        }
+                    }
+
+
+                    // then try a variable reference
+                }
+            }
+            return false;
+        }
+
         private bool TryMemberAccess(int index, IReverseTokenizer revTokenizer, out List<MemberResult> results)
         {
             results = new List<MemberResult>();
@@ -2148,8 +2327,39 @@ namespace VSGenero.Analysis.Parsing.AST
                     }
                     else
                     {
+                        while (tokInfo.Equals(default(TokenInfo)) ||
+                                           tokInfo.Token.Kind == TokenKind.NewLine ||
+                                           tokInfo.Token.Kind == TokenKind.NLToken ||
+                                           tokInfo.SourceSpan.Start.Index > exprStartIndex)
+                        {
+                            if (!enumerator.MoveNext())
+                            {
+                                results.Clear();
+                                return false;
+                            }
+                            tokInfo = enumerator.Current;
+                        }
+
                         results.AddRange(dummyList);
-                        return true;
+                        if (firstState == LetStatementState.None)
+                        {
+                            firstState = LetStatementState.Expression;
+                        }
+                        else if (secondState == LetStatementState.None)
+                        {
+                            secondState = LetStatementState.Expression;
+                        }
+
+                        if (currState == LetStatementState.None ||
+                            currState == LetStatementState.Equals)
+                        {
+                            currState = LetStatementState.Expression;
+                        }
+                        else
+                        {
+                            results.Clear();
+                            return false;
+                        }
                     }
                 }
             }
@@ -2160,6 +2370,16 @@ namespace VSGenero.Analysis.Parsing.AST
         #endregion
 
         #region Enums
+
+        private enum CallStatus
+        {
+            None,
+            CallKeyword,
+            Expression,
+            ReturningKeyword,
+            VariableRef,
+            Comma
+        }
 
         private enum ConstantDefStatus
         {
@@ -2209,15 +2429,15 @@ namespace VSGenero.Analysis.Parsing.AST
             TokenKind.GlobalsKeyword,
 
             // Valid keywords that apply to the module keywords
-            TokenKind.EndKeyword,
+            TokenKind.EndKeyword,       // end { GLOBALS | MAIN | FUNCTION | REPORT | CASE | FOR | IF | WHILE | FOREACH | MENU | DIALOG | CONSTRUCT | DISPLAY | INPUT | FOREACH }
 
             // Valid statement start keywords (TODO: definitely missing some here...)
             // Flow control
-            TokenKind.CallKeyword,
-            TokenKind.ReturnKeyword,
+            TokenKind.CallKeyword,      // call func_name([param1 [,...]]) [returning ret1 [,...]]
+            TokenKind.ReturnKeyword,    // return [ret1 [,...]]
             TokenKind.CaseKeyword,
-            TokenKind.ContinueKeyword,
-            TokenKind.ExitKeyword,
+            TokenKind.ContinueKeyword,  // continue { FOR | FOREACH | WHILE | MENU | CONSTRUCT | INPUT | DIALOG }
+            TokenKind.ExitKeyword,      // exit { FOR | FOREACH | WHILE | MENU | CONSTRUCT | REPORT | DISPLAY | INPUT | DIALOG }
             TokenKind.ForKeyword,
             TokenKind.GotoKeyword,
             TokenKind.IfKeyword,
@@ -2268,8 +2488,27 @@ namespace VSGenero.Analysis.Parsing.AST
             // config options
             TokenKind.DeferKeyword,
             
-            
+            // User Interface
+            TokenKind.MenuKeyword,
+            TokenKind.InputKeyword,
+            TokenKind.DisplayKeyword,
+            TokenKind.ConstructKeyword,
+            TokenKind.DialogKeyword,
+            TokenKind.PromptKeyword,
 
+            // Report driver
+            TokenKind.StartKeyword,
+            TokenKind.FinishKeyword,
+            TokenKind.OutputKeyword,
+            TokenKind.TerminateKeyword,
+
+            // Report routine
+            TokenKind.FormatKeyword,
+            TokenKind.PrintKeyword,
+            TokenKind.PrintxKeyword,
+            TokenKind.NeedKeyword,
+            TokenKind.PauseKeyword,
+            TokenKind.SkipKeyword
         };
 
         private static TokenKind[] BuiltinTypes = new TokenKind[]
@@ -2335,6 +2574,13 @@ namespace VSGenero.Analysis.Parsing.AST
             }
 
             if(TryLetStatement(index, revTokenizer, out members))
+            {
+                return members;
+            }
+
+            members.Clear();
+            bool isCallStatement = TryCall(index, revTokenizer, out members);
+            if(isCallStatement)
             {
                 return members;
             }
