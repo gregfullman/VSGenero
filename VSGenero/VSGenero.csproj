@@ -321,6 +321,7 @@
     <Compile Include="Analysis\Parsing\AST\ExpressionNode.cs" />
     <Compile Include="Analysis\Parsing\AST\GeneroAst.Builtins.cs" />
     <Compile Include="Analysis\Parsing\AST\GeneroAst.cs" />
+    <Compile Include="Analysis\Parsing\AST\GeneroAst.Packages.cs" />
     <Compile Include="Analysis\Parsing\AST\GeneroMemberType.cs" />
     <Compile Include="Analysis\Parsing\AST\NameNode.cs" />
     <Compile Include="Analysis\Parsing\AST\PrepareStatement.cs" />

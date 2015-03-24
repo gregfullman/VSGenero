@@ -198,5 +198,15 @@ namespace VSGenero.Analysis.Parsing.AST
         {
             get { return StartIndex; }
         }
+
+        public IAnalysisResult GetMember(string name)
+        {
+            return null;
+        }
+
+        public IEnumerable<IAnalysisResult> GetMembers()
+        {
+            return null;
+        }
     }
 }

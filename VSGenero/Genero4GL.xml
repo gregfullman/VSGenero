@@ -4531,7 +4531,6 @@
           </Class>
         </Classes>
       </Package>
-      <!-- http://pic.dhe.ibm.com/infocenter/idshelp/v117/topic/com.ibm.gen_busug.doc/c_fgl_section_extension_packages.htm -->
       <Package name="xml" type="extension">
         <Classes>
           <Class name="DomDocument" isStatic="false">
@@ -5893,6 +5892,289 @@
               </Method>
             </Methods>
           </Class>
+          <Class name="Serializer" isStatic="true">
+            <Methods>
+              <Method name="SetOption" desc="Sets a global option value for the serializer engine" scope="static">
+                <Parameters>
+                  <Parameter name="flag" type="string"/>
+                  <Parameter name="value" type="string"/>
+                </Parameters>
+                <Returns></Returns>
+              </Method>
+              <Method name="GetOption" desc="Gets a global option value from the serializer engine." scope="static">
+                <Parameters>
+                  <Parameter name="flag" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="value" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="VariableToStax" desc="Serializes a 4GL variable into an XML element node using a StaxWriter object." scope="static">
+                <Parameters>
+                  <Parameter name="var" type="variable"/>
+                  <Parameter name="stax" type="xml.StaxWriter"/>
+                </Parameters>
+                <Returns></Returns>
+              </Method>
+              <Method name="StaxToVariable" desc="Serializes an XML element node into a 4GL variable using a StaxReader object." scope="static">
+                <Parameters>
+                  <Parameter name="stax" type="xml.StaxReader"/>
+                  <Parameter name="var" type="variable"/>
+                </Parameters>
+                <Returns></Returns>
+              </Method>
+              <Method name="VariableToDom" desc="Serializes a 4GL variable into an XML element node using a DomNode object." scope="static">
+                <Parameters>
+                  <Parameter name="var" type="variable"/>
+                  <Parameter name="node" type="xml.DomNode"/>
+                </Parameters>
+                <Returns></Returns>
+              </Method>
+              <Method name="DomToVariable" desc="Serializes an XML element node into a 4GL variable using a DomNode object." scope="static">
+                <Parameters>
+                  <Parameter name="node" type="xml.DomNode"/>
+                  <Parameter name="var" type="variable"/>
+                </Parameters>
+                <Returns></Returns>
+              </Method>
+              <Method name="VariableToSoapSection5" desc="Serializes a 4GL variable into an XML element node in Soap Section 5 encoding." scope="static">
+                <Parameters>
+                  <Parameter name="var" type="variable"/>
+                  <Parameter name="node" type="xml.DomNode"/>
+                </Parameters>
+                <Returns></Returns>
+              </Method>
+              <Method name="SoapSection5ToVariable" desc="Serializes an XML element node into a 4GL variable in Soap Section 5 encoding." scope="static">
+                <Parameters>
+                  <Parameter name="node" type="xml.DomNode"/>
+                  <Parameter name="var" type="variable"/>
+                </Parameters>
+                <Returns></Returns>
+              </Method>
+              <Method name="DomToStax" desc="Serializes an XML node object to a StaxWriter object." scope="static">
+                <Parameters>
+                  <Parameter name="node" type="xml.DomNode"/>
+                  <Parameter name="stax" type="xml.StaxWriter"/>
+                </Parameters>
+                <Returns></Returns>
+              </Method>
+              <Method name="StaxToDom" desc="Serializes an XML element node into a DomNode object using a StaxReader object." scope="static">
+                <Parameters>
+                  <Parameter name="stax" type="xml.StaxWriter"/>
+                  <Parameter name="node" type="xml.DomNode"/>
+                </Parameters>
+                <Returns></Returns>
+              </Method>
+              <Method name="CreateXmlSchemas" desc="Creates XML schemas corresponding to the given variable var, and fills the dynamic array ar with xml.DomDocument objects each representing an XML schema." scope="static">
+                <Parameters>
+                  <Parameter name="var" type="variable"/>
+                  <Parameter name="ar" type="dynamic array of xml.DomDocument"/>
+                </Parameters>
+                <Returns></Returns>
+              </Method>
+            </Methods>
+          </Class>
+          <Class name="CryptoKey" isStatic="false">
+            <Methods>
+              <Method name="Create" desc="Initializes an xml.CryptoKey object. Constructor of an empty CryptoKey object depending on a url." scope="static">
+                <Parameters>
+                  <Parameter name="url" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="object" type="xml.CryptoKey"/>
+                </Returns>
+              </Method>
+              <Method name="CreateFromNode" desc="Constructor of a new CryptoKey object depending on a url and from a XML node, according to the XML-Signature and XML-Encryption specification." scope="static">
+                <Parameters>
+                  <Parameter name="url" type="string"/>
+                  <Parameter name="node" type="xml.DomNode"/>
+                </Parameters>
+                <Returns>
+                  <Return name="object" type="xml.CryptoKey"/>
+                </Returns>
+              </Method>
+              <Method name="CreateDerivedKey" desc="Constructor of an empty CryptoKey object intended to be derived before use, and depending on a url." scope="static">
+                <Parameters>
+                  <Parameter name="url" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="object" type="xml.CryptoKey"/>
+                </Returns>
+              </Method>
+              <Method name="getUrl" desc="Returns the key identifier as an URL, as defined in the XML-Signature and XML-Encryption specification." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="keyId" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="getType" desc="Returns the type of key." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="type" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="getUsage" desc="Returns the usage of the key." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="usage" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="getSize" desc="Returns the size of the key in bits." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="size" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="compareTo" desc="Compares a CryptoKey object to a second key." scope="instance">
+                <Parameters>
+                  <Parameter name="secondKey" type="xml.CryptoKey"/>
+                </Parameters>
+                <Returns>
+                  <Return name="flag" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="getSHA1" desc="Returns the SHA1 encoded key identifier in a base64 encoded STRING." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="keyId" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="setKey" desc="Defines the value of a HMAC or Symmetric key." scope="instance">
+                <Parameters>
+                  <Parameter name="key" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="generateKey" desc="Generates a random key of given size (in bits)." scope="instance">
+                <Parameters>
+                  <Parameter name="size" type="integer"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="deriveKey" desc="Derives the symmetric or HMAC CryptoKey object using the given method identifier and concatenating the optional label, the mandatory seed value and the optional created date as initial random value." scope="instance">
+                <Parameters>
+                  <Parameter name="method" type="string"/>
+                  <Parameter name="label" type="string"/>
+                  <Parameter name="seed" type="string"/>
+                  <Parameter name="created" type="string"/>
+                  <Parameter name="offset" type="integer"/>
+                  <Parameter name="size" type="integer"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="computeKey" desc="Computes the shared secret based on the given modulus, generator, the private key and the other peer's public key. The returned key can be any of symmetric/HMAC or symmetric/encryption key type. It can be used for symmetric signature or symmetric encryption." scope="instance">
+                <Parameters>
+                  <Parameter name="otherPubKey" type="xml.CryptoKey"/>
+                  <Parameter name="url" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="sharedSecret" type="xml.CryptoKey"/>
+                </Returns>
+              </Method>
+              <Method name="loadBIN" desc="Loads a symmetric or HMAC key from a file in raw format." scope="instance">
+                <Parameters>
+                  <Parameter name="file" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="loadDER" desc="Loads an asymmetric DSA key, an asymmetric RSA key or Diffie-Hellman parameters from a file in DER format." scope="instance">
+                <Parameters>
+                  <Parameter name="file" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="loadPEM" desc="Loads an asymmetric DSA key, an asymmetric RSA key or Diffie-Hellman parameters from a file in PEM format." scope="instance">
+                <Parameters>
+                  <Parameter name="file" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="loadFromString" desc="Loads the given key in BASE64 string format into a CryptoKey object." scope="instance">
+                <Parameters>
+                  <Parameter name="str" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="loadPrivate" desc="Loads the private asymmetric RSA key in the given XML document into the private part of this CryptoKey object, according to the XKMS2.0 specification." scope="instance">
+                <Parameters>
+                  <Parameter name="xml" type="xml.DomDocument"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="loadPublic" desc="Loads the public asymmetric RSA or DSA key in the given XML document into the public part of this CryptoKey object, according to the XML-Signature specification for DSA and RSA key value." scope="instance">
+                <Parameters>
+                  <Parameter name="xml" type="xml.DomDocument"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="loadPublicFromString" desc="Populate the current CryptoKey object with the passed public key." scope="instance">
+                <Parameters>
+                  <Parameter name="pubKeyStr" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="savePrivate" desc="Saves the private part of an asymmetric RSA CryptoKey object into a XML document according to the XKMS2.0 specification." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="object" type="xml.DomDocument"/>
+                </Returns>
+              </Method>
+              <Method name="savePublic" desc="Saves the public part of an asymmetric RSA or DSA CryptoKey object or the parameters and the public key of the Diffie-Hellman object into a XML document according to the XML-Signature specification for DSA and RSA and Diffie-Hellman key values." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="object" type="xml.DomDocument"/>
+                </Returns>
+              </Method>
+              <Method name="savePublicToString" desc="Save the current xml.CryptoKey's public part in the returned base64 string." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="str" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="saveToString" desc="Saves the CryptoKey object into a BASE64 string format." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="str" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="setFeature" desc="Sets or resets the value of a feature for a CryptoKey object." scope="instance">
+                <Parameters>
+                  <Parameter name="feature" type="string"/>
+                  <Parameter name="value" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="getFeature" desc="Returns the value of the given feature for this CryptoKey object, or NULL." scope="instance">
+                <Parameters>
+                  <Parameter name="feature" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="value" type="string"/>
+                </Returns>
+              </Method>
+            </Methods>
+          </Class>
+          <!--TODO: left off on CrytoX509 class-->
         </Classes>
       </Package>
       <!--TODO: security package-->

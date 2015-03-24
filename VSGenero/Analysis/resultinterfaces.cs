@@ -13,6 +13,9 @@ namespace VSGenero.Analysis
         string Name { get; }
         string Documentation { get; }
         int LocationIndex { get; }
+
+        IAnalysisResult GetMember(string name);
+        IEnumerable<IAnalysisResult> GetMembers();
     }
 
     public interface IAnalysisResultContainer

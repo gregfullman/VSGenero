@@ -13,9 +13,9 @@ namespace VSGenero.Analysis.Parsing.AST
         private static CompletionContextMap _defineStatementMap;
         private static CompletionContextMap _typeConstraintsMap;
 
-		private static IEnumerable<MemberResult> ProvideAdditionalTypes(int index)
+        private static IEnumerable<MemberResult> ProvideAdditionalTypes(int index)
         {
-			if(_additionalTypesProvider != null)
+            if(_additionalTypesProvider != null)
             {
                 return _additionalTypesProvider(index);
             }
@@ -289,8 +289,8 @@ namespace VSGenero.Analysis.Parsing.AST
             }
         }
 
-		private static void SetMemberProviders(Func<int, IEnumerable<MemberResult>> addtlTypesProvider, 
-												Func<int, IEnumerable<MemberResult>> tablesProvider)
+        private static void SetMemberProviders(Func<int, IEnumerable<MemberResult>> addtlTypesProvider, 
+                                                Func<int, IEnumerable<MemberResult>> tablesProvider)
         {
             _additionalTypesProvider = addtlTypesProvider;
             _tablesProvider = tablesProvider;
@@ -305,7 +305,7 @@ namespace VSGenero.Analysis.Parsing.AST
             return GetDefinedMembers(index, false, false, true, false);
         }
 
-		private IEnumerable<MemberResult> GetDefinedMembers(int index, bool vars, bool consts, bool types, bool funcs)
+        private IEnumerable<MemberResult> GetDefinedMembers(int index, bool vars, bool consts, bool types, bool funcs)
         {
             List<MemberResult> members = new List<MemberResult>();
 
@@ -313,6 +313,9 @@ namespace VSGenero.Analysis.Parsing.AST
             {
                 // Built-in types
                 members.AddRange(BuiltinTypes.Select(x => new MemberResult(Tokens.TokenKinds[x], GeneroMemberType.Keyword, this)));
+
+                // include packages that have non-static classes
+                members.AddRange(Packages.Values.Where(x => x.ContainsInstanceMembers).Select(x => new MemberResult(x.Name, GeneroMemberType.Module, this)));
             }
             if (consts)
                 members.AddRange(SystemConstants.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Keyword, this)));
@@ -597,9 +600,9 @@ namespace VSGenero.Analysis.Parsing.AST
             return false;
         }
 
-        private bool TryMemberAccess(int index, IReverseTokenizer revTokenizer, out List<MemberResult> results)
+        private bool TryMemberAccess(int index, IReverseTokenizer revTokenizer, out List<IAnalysisResult> results)
         {
-            results = new List<MemberResult>();
+            results = new List<IAnalysisResult>();
             bool skipGettingNext = false;
             var enumerator = revTokenizer.GetReversedTokens().Where(x => x.SourceSpan.Start.Index < index).GetEnumerator();
             while (true)
@@ -2148,14 +2151,14 @@ namespace VSGenero.Analysis.Parsing.AST
             Expression
         }
 
-		private bool TryLetStatement(int index, IReverseTokenizer revTokenizer, out List<MemberResult> results)
+        private bool TryLetStatement(int index, IReverseTokenizer revTokenizer, out List<MemberResult> results)
         {
             results = new List<MemberResult>();
             LetStatementState firstState = LetStatementState.None;
             LetStatementState secondState = LetStatementState.None;
             LetStatementState currState = LetStatementState.None;
             bool skipGettingNext = false;
-			var enumerator = revTokenizer.GetReversedTokens().Where(x => x.SourceSpan.Start.Index < index).GetEnumerator();
+            var enumerator = revTokenizer.GetReversedTokens().Where(x => x.SourceSpan.Start.Index < index).GetEnumerator();
             while (true)
             {
                 if (!skipGettingNext)
@@ -2541,24 +2544,24 @@ namespace VSGenero.Analysis.Parsing.AST
 
         public IEnumerable<MemberResult> GetContextMembersByIndex(int index, IReverseTokenizer revTokenizer, GetMemberOptions options = GetMemberOptions.IntersectMultipleResults)
         {
-			// set up the static providers
+            // set up the static providers
             SetMemberProviders(GetAdditionalUserDefinedTypes, null);
 
             /**********************************************************************************************************************************
              * Using the specified index, we can attempt to determine what our scope is. Then, using the reverse tokenizer, we can attempt to
              * determine where within the scope we are, and attempt to provide a set of context-sensitive members based on that.
              **********************************************************************************************************************************/
-            List<MemberResult> members = new List<MemberResult>();
-            if(TryMemberAccess(index, revTokenizer, out members))
-            {
-                return members;
-            }
+            List<IAnalysisResult> memberResults;
+            TryMemberAccess(index, revTokenizer, out memberResults);
+
             int dummyIndex;
+            List<MemberResult> members = new List<MemberResult>();
             // If any type constraint completions come back, we know that a constraint has not been completed, so we bypass searching for other completions
             if (TryTypeConstraintContext(index, revTokenizer, out members, out dummyIndex) && members.Count > 0)
             {
                 return members;
             }
+
             bool isWithinIncompleteLiteralMacro;
             if (TryLiteralMacro(index, revTokenizer, out isWithinIncompleteLiteralMacro, out dummyIndex) && isWithinIncompleteLiteralMacro)
             {
@@ -2567,10 +2570,23 @@ namespace VSGenero.Analysis.Parsing.AST
 
             if (TryPreprocessorContext(index, revTokenizer, out members) ||
                TryFunctionDefContext(index, revTokenizer, out members) ||
-               TryConstantContext(index, revTokenizer, out members) ||
-               TryDefineDefContext(index, revTokenizer, out members, new List<TokenKind> { TokenKind.PublicKeyword, TokenKind.PrivateKeyword, TokenKind.GlobalsKeyword, TokenKind.FunctionKeyword }))
+               TryConstantContext(index, revTokenizer, out members))
             {
                 return members;
+            }
+            
+            if(TryDefineDefContext(index, revTokenizer, out members, new List<TokenKind> { TokenKind.PublicKeyword, TokenKind.PrivateKeyword, TokenKind.GlobalsKeyword, TokenKind.FunctionKeyword }))
+            {
+                if(memberResults.Count > 0 && members.Count == 0)
+                {
+                    // TODO: put the members from the member access in the returned list, but filter out for instance types only (specifically thinking about 
+                    int i = 0;
+                    return members;
+                }
+                else
+                {
+                    return members;
+                }
             }
 
             if(TryLetStatement(index, revTokenizer, out members))
