@@ -6174,7 +6174,338 @@
               </Method>
             </Methods>
           </Class>
-          <!--TODO: left off on CrytoX509 class-->
+          <Class name="CryptoX509" isStatic="false">
+            <Methods>
+              <Method name="Create" desc="Constructor of an empty CryptoX509 object." scope="static">
+                <Parameters></Parameters>
+                <Returns>
+                  <Return name="object" type="xml.CryptoX509"/>
+                </Returns>
+              </Method>
+            <Method name="CreateFromNode" desc="Constructor of a new CryptoX509 object from a XML X509 certificate node, according to the XML-Signature specification" scope="static">
+                <Parameters>
+                  <Parameter name="node" type="xml.DomNode"/>
+                </Parameters>
+                <Returns>
+                  <Return name="object" type="xml.CryptoX509"/>
+                </Returns>
+              </Method>
+            <Method name="getIdentifier" desc="Gets the identification part of an X509 certificate" scope="instance">
+                <Parameters></Parameters>
+                <Returns>
+                  <Return name="idpart" type="string"/>
+                </Returns>
+              </Method>
+            <Method name="getThumbprintSHA1" desc="Gets the SHA1 encoded thumbprint identifying this X509 certificate." scope="instance">
+                <Parameters></Parameters>
+                <Returns>
+                  <Return name="setp" type="string"/>
+                </Returns>
+              </Method>
+            <Method name="createPublicKey" desc="Creates a new public CryptoKey object for the given url, from the public key embedded in a certificate." scope="instance">
+                <Parameters>
+                  <Parameter name="url" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="object" type="xml.CryptoX509"/>
+                </Returns>
+              </Method>
+            <Method name="loadPEM" desc="Loads a X509 certificate from a file in PEM format." scope="instance">
+                <Parameters>
+                  <Parameter name="file" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+            <Method name="loadDER" desc="Loads a X509 certificate from a file in DER format." scope="instance">
+                <Parameters>
+                  <Parameter name="file" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+            <Method name="save" desc="Saves the CryptoX509 certificate into a XML document with ds:X509Data as root node according to the XML-Signature specification." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="object" type="xml.DomDocument"/>
+                </Returns>
+              </Method>
+            <Method name="saveToString" desc="Saves the CryptoX509 certificate into a BASE64 string format." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="cert" type="string"/>
+                </Returns>
+              </Method>
+            <Method name="load" desc="Loads the given XML document with ds:X509Data as root node according to the XML-Signature specification, into the CryptoX509 object." scope="instance">
+                <Parameters>
+                  <Parameter name="xml" type="xml.DomDocument"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+            <Method name="loadFromString" desc="Loads the given X509 certificate in BASE64 string format into this CryptoX509 object." scope="instance">
+                <Parameters>
+                  <Parameter name="str" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+            <Method name="setFeature" desc="Sets or resets the given feature for this CryptoX509 object." scope="instance">
+                <Parameters>
+                  <Parameter name="feature" type="string"/>
+                  <Parameter name="value" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+            <Method name="getFeature" desc="Get the value of a given feature of a CryptoX509 object." scope="instance">
+                <Parameters>
+                  <Parameter name="feature" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="value" type="string"/>
+                </Returns>
+              </Method>
+            </Methods>
+          </Class>
+          <Class name="Signature" isStatic="false">
+            <Methods>
+              <Method name="Create" desc="Constructor of a blank Signature object." scope="static">
+                <Parameters></Parameters>
+                <Returns>
+                  <Return name="sign" type="xml.Signature"/>
+                </Returns>
+              </Method>
+            <Method name="CreateFromNode" desc="Constructor of a new Signature object from a XML Signature node, according to the XML-Signature specification." scope="static">
+                <Parameters>
+                  <Parameter name="signode" type="xml.DomNode"/>
+                </Parameters>
+                <Returns>
+                  <Return name="sign" type="xml.Signature"/>
+                </Returns>
+              </Method>
+            <Method name="RetrieveObjectDataListFromSignatureNode" desc="Returns a DomNodeList containing all embedded XML nodes related to the signature object of index ind in the XML Signature node sign." scope="static">
+                <Parameters>
+                  <Parameter name="signode" type="xml.DomNode"/>
+                  <Parameter name="ind" type="int"/>
+                </Parameters>
+                <Returns>
+                  <Return name="sign" type="xml.DomNodeList"/>
+                </Returns>
+              </Method>
+            <Method name="setKey" desc="Defines the key used for signing or validation." scope="instance">
+                <Parameters>
+                  <Parameter name="key" type="xml.CryptoKey"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+            <Method name="setCertificate" desc="Defines the X509 certificate to be added to the Signature object when signing a document." scope="instance">
+                <Parameters>
+                  <Parameter name="cert" type="xml.CryptoX509"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+            <Method name="setCanonicalization" desc="Sets the canonicalization method to use for the signature." scope="instance">
+                <Parameters>
+                  <Parameter name="url" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+            <Method name="setID" desc="Sets an ID value for the signature." scope="instance">
+                <Parameters>
+                  <Parameter name="id" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+            <Method name="getType" desc="Returns a string with the type of the Signature object." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                   <Return name="str" type="string"/>
+                </Returns>
+              </Method>
+            <Method name="getDocument" desc="Returns a new DomDocument object representing the signature in XML." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                   <Return name="doc" type="xml.DomDocument"/>
+                </Returns>
+              </Method>
+            <Method name="getCanonicalization" desc="Returns one of the four canonicalization identifier of the signature." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                   <Return name="ident" type="string"/>
+                </Returns>
+              </Method>
+            <Method name="getID" desc="Returns the ID value of the signature." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                   <Return name="id" type="string"/>
+                </Returns>
+              </Method>
+            <Method name="getSignatureMethod" desc="Returns the algorithm method of the signature." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                   <Return name="algo" type="string"/>
+                </Returns>
+              </Method>
+            <Method name="createReference" desc="Creates a new reference that will be signed with the compute() method" scope="instance">
+                <Parameters>
+                  <Parameter name="uri" type="string"/>
+                  <Parameter name="digest" type="string"/>
+                </Parameters>
+                <Returns>
+                   <Return name="ind" type="int"/>
+                </Returns>
+              </Method>
+            <Method name="setReferenceID" desc="Sets an ID value for the signature reference of index ind." scope="instance">
+                <Parameters>
+                  <Parameter name="int" type="int"/>
+                  <Parameter name="value" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+            <Method name="appendReferenceTransformation" desc="Appends a transformation related to the reference of index ind, and is executed before any computation" scope="instance">
+                <Parameters>
+                  <Parameter name="int" type="int"/>
+                  <Parameter name="trans" type="string"/>
+                  <!--TODO: how to handle parameter list?-->
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+            <Method name="getReferenceCount" desc="Returns the number of references in this Signature object." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                   <Return name="num" type="int"/>
+                </Returns>
+              </Method>
+            <Method name="getReferenceURI" desc="Returns the URI of the reference of index ind in this Signature object." scope="instance">
+                <Parameters>
+                  <Parameter name="ind" type="int"/>
+                </Parameters>
+                <Returns>
+                   <Return name="uri" type="string"/>
+                </Returns>
+              </Method>
+            <Method name="getReferenceDigest" desc="Returns the digest algorithm identifier of the reference of index ind in this Signature object." scope="instance">
+                <Parameters>
+                  <Parameter name="ind" type="int"/>
+                </Parameters>
+                <Returns>
+                   <Return name="algo" type="string"/>
+                </Returns>
+              </Method>
+            <Method name="getReferenceID" desc="Returns the ID value of the reference of index ind in this Signature object, or NULL if there is none." scope="instance">
+                <Parameters>
+                  <Parameter name="ind" type="int"/>
+                </Parameters>
+                <Returns>
+                   <Return name="value" type="string"/>
+                </Returns>
+              </Method>
+            <Method name="getReferenceTransformationCount" desc="Returns the number of transformation related to the reference of index ind." scope="instance">
+                <Parameters>
+                  <Parameter name="ind" type="int"/>
+                </Parameters>
+                <Returns>
+                   <Return name="num" type="int"/>
+                </Returns>
+              </Method>
+            <Method name="getReferenceTransformation" desc="Gets the transformation identifier related to the reference of index ind at position pos in the list of transformation." scope="instance">
+                <Parameters>
+                  <Parameter name="ind" type="int"/>
+                  <Parameter name="pos" type="int"/>
+                </Parameters>
+                <Returns>
+                   <Return name="ident" type="string"/>
+                </Returns>
+              </Method>
+            <Method name="createObject" desc="Creates a new object that will embed additional XML nodes." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                   <Return name="ind" type="int"/>
+                </Returns>
+              </Method>
+            <Method name="setObjectID" desc="Sets an ID value for the signature object of index ind." scope="instance">
+                <Parameters>
+                  <Parameter name="ind" type="int"/>
+                </Parameters>
+                <Returns>
+                   <Return name="value" type="string"/>
+                </Returns>
+              </Method>
+            <Method name="appendObjectData" desc="Appends a copy of a XML node node to the signature object of index ind." scope="instance">
+                <Parameters>
+                  <Parameter name="ind" type="int"/>
+                </Parameters>
+                <Returns>
+                   <Return name="node" type="xml.DomNode"/>
+                </Returns>
+              </Method>
+            <Method name="getObjectCount" desc="Returns the number of objects in this Signature object." scope="instance">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                   <Return name="num" type="int"/>
+                </Returns>
+              </Method>
+            <Method name="getObjectID" desc="Returns the ID value of the signature object of index ind in this Signature object." scope="instance">
+                <Parameters>
+                  <Parameter name="ind" type="int"/>
+                </Parameters>
+                <Returns>
+                   <Return name="id" type="string"/>
+                </Returns>
+              </Method>
+            <Method name="compute" desc="Computes the signature of all references set in this Signature object." scope="instance">
+                <Parameters>
+                  <Parameter name="doc" type="xml.DomDocument"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+            <Method name="verify" desc="Verifies whether all references in this Signature object haven't changed." scope="instance">
+                <Parameters>
+                  <Parameter name="doc" type="xml.DomDocument"/>
+                </Parameters>
+                <Returns>
+                   <Return name="flag" type="int"/>
+                </Returns>
+              </Method>
+            <Method name="signString" desc="Sign the passed string according to the specified key." scope="instance">
+                <Parameters>
+                  <Parameter name="key" type="xml.CryptoKey"/>
+                  <Parameter name="strToSign" type="string"/>
+                </Parameters>
+                <Returns>
+                   <Return name="sig" type="string"/>
+                </Returns>
+              </Method>
+            <Method name="verifyString" desc="Verify the signature is consistent with the given key and the original message." scope="instance">
+                <Parameters>
+                  <Parameter name="key" type="xml.CryptoKey"/>
+                  <Parameter name="signedStr" type="string"/>
+                  <Parameter name="signature" type="string"/>
+                </Parameters>
+                <Returns>
+                   <Return name="flag" type="int"/>
+                </Returns>
+              </Method>
+            </Methods>
+          </Class>
         </Classes>
       </Package>
       <!--TODO: security package-->
