@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using VSGenero.Analysis.Parsing;
+using VSGenero.Analysis.Parsing.AST;
 
 namespace VSGenero.Analysis
 {
@@ -13,9 +14,10 @@ namespace VSGenero.Analysis
         string Name { get; }
         string Documentation { get; }
         int LocationIndex { get; }
+        bool HasChildFunctions { get; }
 
-        IAnalysisResult GetMember(string name);
-        IEnumerable<IAnalysisResult> GetMembers();
+        IAnalysisResult GetMember(string name, GeneroAst ast);
+        IEnumerable<MemberResult> GetMembers(GeneroAst ast);
     }
 
     public interface IAnalysisResultContainer

@@ -211,6 +211,13 @@ namespace VSGenero.Analysis.Parsing.AST
                 }
             }
 
+            // Check for class methods
+            IAnalysisResult member = GetValueByIndex(exprText, index);
+            if(member is IFunctionResult)
+            {
+                return new IFunctionResult[1] { member as IFunctionResult };
+            }
+
             return null;
         }
 
@@ -255,7 +262,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     if (res != null)
                     {
                         // TODO: we need to extract a member from it. Use the IAnalysisResult.GetMember API
-                        IAnalysisResult tempRes = res.GetMember(dotPiece);
+                        IAnalysisResult tempRes = res.GetMember(dotPiece, this);
                         if(tempRes != null)
                         {
                             res = tempRes;
@@ -371,6 +378,14 @@ namespace VSGenero.Analysis.Parsing.AST
                                     }
                                 }
                             }
+                        }
+
+                        // check for classes
+                        GeneroPackage package;
+                        if (Packages.TryGetValue(dotPiece, out package))
+                        {
+                            res = package;
+                            continue;
                         }
 
                         /* TODO:

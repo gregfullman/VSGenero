@@ -52,14 +52,19 @@ namespace VSGenero.Analysis.Parsing.AST
             get { return _locationIndex; }
         }
 
-        public IAnalysisResult GetMember(string name)
+        public IAnalysisResult GetMember(string name, GeneroAst ast)
         {
-            return null;
+            return Type.GetMember(name, ast);
         }
 
-        public IEnumerable<IAnalysisResult> GetMembers()
+        public IEnumerable<MemberResult> GetMembers(GeneroAst ast)
         {
-            return null;
+            return Type.GetMembers(ast);
+        }
+
+        public bool HasChildFunctions
+        {
+            get { return Type.HasChildFunctions; }
         }
     }
 

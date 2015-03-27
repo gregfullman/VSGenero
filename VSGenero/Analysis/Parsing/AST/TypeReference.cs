@@ -18,7 +18,7 @@ namespace VSGenero.Analysis.Parsing.AST
     /// For more info, see http://www.4js.com/online_documentation/fjs-fgl-manual-html/index.html#c_fgl_user_types_003.html
     /// or http://www.4js.com/online_documentation/fjs-fgl-manual-html/index.html#c_fgl_variables_DEFINE.html
     /// </summary>
-    public class TypeReference : AstNode
+    public class TypeReference : AstNode, IAnalysisResult
     {
         public AttributeSpecifier Attribute { get; private set; }
 
@@ -178,6 +178,134 @@ namespace VSGenero.Analysis.Parsing.AST
             }
 
             return result;
+        }
+
+        public string Scope
+        {
+            get
+            {
+                return null;
+            }
+            set
+            {
+            }
+        }
+
+        public string Name
+        {
+            get { return ToString(); }
+        }
+
+        public int LocationIndex
+        {
+            get { return StartIndex; }
+        }
+
+
+        public IAnalysisResult GetMember(string name, GeneroAst ast)
+        {
+            // TODO: there's probably a better way to do this
+            return GetAnalysisMembers().Where(x => x.Name.Equals(name, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+        }
+
+        private IEnumerable<IAnalysisResult> GetAnalysisMembers()
+        {
+            List<IAnalysisResult> members = new List<IAnalysisResult>();
+            if (Children.Count == 1)
+            {
+                // we have an array type or a record type definition
+                var node = Children[Children.Keys[0]];
+                if (node is ArrayTypeReference)
+                {
+                    return GeneroAst.ArrayFunctions.Values;
+                }
+                else if (node is RecordDefinitionNode)
+                {
+                    return (node as RecordDefinitionNode).GetAnalysisResults();
+                }
+            }
+            else
+            {
+                if (!string.IsNullOrWhiteSpace(TableName))
+                {
+                    // TODO: return the table's columns
+                }
+                else if (_typeNameString.Equals("string", StringComparison.OrdinalIgnoreCase))
+                {
+                    return GeneroAst.StringFunctions.Values;
+                }
+                else
+                {
+                    // TODO: try to determine if the _typeNameString is a user defined type, in which case we need to call its GetMembers function
+                }
+            }
+            return members;
+        }
+
+        public IEnumerable<MemberResult> GetMembers(GeneroAst ast)
+        {
+            List<MemberResult> members = new List<MemberResult>();
+            if(Children.Count == 1)
+            {
+                // we have an array type or a record type definition
+                var node = Children[Children.Keys[0]];
+                if(node is ArrayTypeReference)
+                {
+                    return GeneroAst.ArrayFunctions.Values.Select(x => new MemberResult(x.Name, x, GeneroMemberType.Method, ast));
+                }
+                else if(node is RecordDefinitionNode)
+                {
+                    return (node as RecordDefinitionNode).GetMembers(ast);
+                }
+            }
+            else
+            {
+                if(!string.IsNullOrWhiteSpace(TableName))
+                {
+                    // TODO: return the table's columns
+                }
+                else if(_typeNameString.Equals("string", StringComparison.OrdinalIgnoreCase))
+                {
+                    return GeneroAst.StringFunctions.Values.Select(x => new MemberResult(x.Name, x, GeneroMemberType.Method, ast));
+                }
+                else
+                {
+                    // TODO: try to determine if the _typeNameString is a user defined type (or package class), in which case we need to call its GetMembers function
+                }
+            }
+            return members;
+        }
+
+
+        public bool HasChildFunctions
+        {
+            get 
+            {  
+                if(Children.Count == 1)
+                {
+                    var node = Children[Children.Keys[0]];
+                    if (node is ArrayTypeReference)
+                    {
+                        return true;
+                    }
+                    else if (node is RecordDefinitionNode)
+                    {
+                        return (node as RecordDefinitionNode).HasChildFunctions;
+                    }
+                }
+                else
+                {
+                    if(_typeNameString.Equals("string", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        // TODO: try to determine if the _typeNameString is a user defined type (or package class), in which case we need to call its GetMembers function
+                    }
+                }
+                return false;
+            }
         }
     }
 }

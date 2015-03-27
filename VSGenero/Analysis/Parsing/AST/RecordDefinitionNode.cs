@@ -15,19 +15,19 @@ namespace VSGenero.Analysis.Parsing.AST
     /// 
     /// For more info, see: http://www.4js.com/online_documentation/fjs-fgl-manual-html/index.html#c_fgl_records_002.html
     /// </summary>
-    public class RecordDefinitionNode : AstNode
+    public class RecordDefinitionNode : AstNode, IAnalysisResult
     {
         public AttributeSpecifier Attribute { get; private set; }
         public string MimicTableName { get; private set; }
         public string MimicDatabaseName { get; private set; }
 
-        private Dictionary<string, TypeReference> _memberDictionary;
-        public Dictionary<string, TypeReference> MemberDictionary
+        private Dictionary<string, VariableDef> _memberDictionary;
+        public Dictionary<string, VariableDef> MemberDictionary
         {
             get
             {
-                if(_memberDictionary == null)
-                    _memberDictionary = new Dictionary<string,TypeReference>();
+                if (_memberDictionary == null)
+                    _memberDictionary = new Dictionary<string, VariableDef>(StringComparer.OrdinalIgnoreCase);
                 return _memberDictionary;
             }
         }
@@ -91,12 +91,14 @@ namespace VSGenero.Analysis.Parsing.AST
                     }
 
                     bool advance = true;
-                    Token tok = Tokens.EndOfFileToken;
+                    TokenWithSpan tok = default(TokenWithSpan);
                     while (parser.PeekToken(TokenCategory.Identifier) || parser.PeekToken(TokenCategory.Keyword))
                     {
                         //if (advance)
                         //{
-                            tok = parser.NextToken();
+                        
+                            parser.NextToken();
+                            tok = parser.Token;
                         //}
                         //else
                         //{
@@ -108,10 +110,10 @@ namespace VSGenero.Analysis.Parsing.AST
                         TypeReference tr;
                         if (TypeReference.TryParseNode(parser, out tr, true))
                         {
-                            if (!defNode.MemberDictionary.ContainsKey(tok.Value.ToString()))
-                                defNode.MemberDictionary.Add(tok.Value.ToString(), tr);
+                            if (!defNode.MemberDictionary.ContainsKey(tok.Token.Value.ToString()))
+                                defNode.MemberDictionary.Add(tok.Token.Value.ToString(), new VariableDef(tok.Token.Value.ToString(), tr, tok.Span.Start));
                             else
-                                parser.ReportSyntaxError(string.Format("Record field {0} defined more than once.", tok.Value.ToString()));
+                                parser.ReportSyntaxError(string.Format("Record field {0} defined more than once.", tok.Token.Value.ToString()));
                         }
 
                         if (parser.MaybeEat(TokenKind.Comma))
@@ -142,6 +144,53 @@ namespace VSGenero.Analysis.Parsing.AST
             }
 
             return result;
+        }
+
+        public string Scope
+        {
+            get
+            {
+                return null;
+            }
+            set
+            {
+            }
+        }
+
+        public string Name
+        {
+            get { return null; }
+        }
+
+        public int LocationIndex
+        {
+            get { return -1; }
+        }
+
+        public IAnalysisResult GetMember(string name, GeneroAst ast)
+        {
+            VariableDef varDef = null;
+            MemberDictionary.TryGetValue(name, out varDef);
+            return varDef;
+        }
+
+        internal IEnumerable<IAnalysisResult> GetAnalysisResults()
+        {
+            return MemberDictionary.Values;
+        }
+
+        public IEnumerable<MemberResult> GetMembers(GeneroAst ast)
+        {
+            return MemberDictionary.Values.Select(x => new MemberResult(x.Name, x, GeneroMemberType.Variable, ast));
+        }
+
+
+        public bool HasChildFunctions
+        {
+            get 
+            {
+                return MemberDictionary.Values.Any(x => x.Type.HasChildFunctions);
+            }
         }
     }
 }

@@ -2814,16 +2814,21 @@ namespace VSGenero.Analysis.Parsing.AST
             get { return -1; }
         }
 
-        public IAnalysisResult GetMember(string name)
+        public IAnalysisResult GetMember(string name, GeneroAst ast)
         {
             GeneroPackageClass cls = null;
             _classes.TryGetValue(name, out cls);
             return cls;
         }
 
-        public IEnumerable<IAnalysisResult> GetMembers()
+        public IEnumerable<MemberResult> GetMembers(GeneroAst ast)
         {
-            return _classes.Values;
+            return _classes.Values.Select(x => new MemberResult(x.Name, x, GeneroMemberType.Class, ast));
+        }
+
+        public bool HasChildFunctions
+        {
+            get { return true; }
         }
 
         public bool ContainsInstanceMembers
@@ -2887,16 +2892,21 @@ namespace VSGenero.Analysis.Parsing.AST
             get { return -1; }
         }
 
-        public IAnalysisResult GetMember(string name)
+        public IAnalysisResult GetMember(string name, GeneroAst ast)
         {
             GeneroPackageClassMethod method = null;
             _methods.TryGetValue(name, out method);
             return method;
         }
 
-        public IEnumerable<IAnalysisResult> GetMembers()
+        public IEnumerable<MemberResult> GetMembers(GeneroAst ast)
         {
-            return _methods.Values;
+            return _methods.Values.Select(x => new MemberResult(x.Name, x, GeneroMemberType.Method, ast));
+        }
+
+        public bool HasChildFunctions
+        {
+            get { return true; }
         }
     }
 
@@ -3018,14 +3028,19 @@ namespace VSGenero.Analysis.Parsing.AST
             get { return -1; }
         }
 
-        public IAnalysisResult GetMember(string name)
+        public IAnalysisResult GetMember(string name, GeneroAst ast)
         {
             return null;
         }
 
-        public IEnumerable<IAnalysisResult> GetMembers()
+        public IEnumerable<MemberResult> GetMembers(GeneroAst ast)
         {
             return null;
+        }
+
+        public bool HasChildFunctions
+        {
+            get { return false; }
         }
 
         public bool CanOutline

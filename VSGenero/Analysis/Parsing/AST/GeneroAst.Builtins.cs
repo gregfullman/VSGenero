@@ -451,7 +451,7 @@ new ParameterResult("width", "", "integer"),
         }
 
 
-        public IAnalysisResult GetMember(string name)
+        public IAnalysisResult GetMember(string name, GeneroAst ast)
         {
             ProgramRegister progReg = null;
             if (_childRegisters != null)
@@ -461,13 +461,18 @@ new ParameterResult("width", "", "integer"),
             return progReg;
         }
 
-        public IEnumerable<IAnalysisResult> GetMembers()
+        public IEnumerable<MemberResult> GetMembers(GeneroAst ast)
         {
             if (_childRegisters != null)
             {
-                return _childRegisters.Values;
+                return _childRegisters.Values.Select(x => new MemberResult(x.Name, x, GeneroMemberType.Variable, ast));
             }
             return null;
+        }
+
+        public bool HasChildFunctions
+        {
+            get { return false; }
         }
     }
 
@@ -526,14 +531,19 @@ new ParameterResult("width", "", "integer"),
             get { return -1; }
         }
 
-        public IAnalysisResult GetMember(string name)
+        public IAnalysisResult GetMember(string name, GeneroAst ast)
         {
             return null;
         }
 
-        public IEnumerable<IAnalysisResult> GetMembers()
+        public IEnumerable<MemberResult> GetMembers(GeneroAst ast)
         {
             return null;
+        }
+
+        public bool HasChildFunctions
+        {
+            get { return false; }
         }
     }
 
@@ -652,14 +662,19 @@ new ParameterResult("width", "", "integer"),
             get { return -1; }
         }
 
-        public IAnalysisResult GetMember(string name)
+        public IAnalysisResult GetMember(string name, GeneroAst ast)
         {
             return null;
         }
 
-        public IEnumerable<IAnalysisResult> GetMembers()
+        public IEnumerable<MemberResult> GetMembers(GeneroAst ast)
         {
             return null;
+        }
+
+        public bool HasChildFunctions
+        {
+            get { return false; }
         }
 
         public bool CanOutline
@@ -750,16 +765,21 @@ new ParameterResult("width", "", "integer"),
             get { return -1; }
         }
 
-        public IAnalysisResult GetMember(string name)
+        public IAnalysisResult GetMember(string name, GeneroAst ast)
         {
             IFunctionResult funcRes = null;
             _memberFunctions.TryGetValue(name, out funcRes);
             return funcRes;
         }
 
-        public IEnumerable<IAnalysisResult> GetMembers()
+        public IEnumerable<MemberResult> GetMembers(GeneroAst ast)
         {
-            return _memberFunctions.Values;
+            return _memberFunctions.Values.Select(x => new MemberResult(x.Name, x, GeneroMemberType.Method, ast));
+        }
+
+        public bool HasChildFunctions
+        {
+            get { return false; }
         }
     }
 }

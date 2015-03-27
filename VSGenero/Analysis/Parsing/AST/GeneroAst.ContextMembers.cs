@@ -15,7 +15,7 @@ namespace VSGenero.Analysis.Parsing.AST
 
         private static IEnumerable<MemberResult> ProvideAdditionalTypes(int index)
         {
-            if(_additionalTypesProvider != null)
+            if (_additionalTypesProvider != null)
             {
                 return _additionalTypesProvider(index);
             }
@@ -289,7 +289,7 @@ namespace VSGenero.Analysis.Parsing.AST
             }
         }
 
-        private static void SetMemberProviders(Func<int, IEnumerable<MemberResult>> addtlTypesProvider, 
+        private static void SetMemberProviders(Func<int, IEnumerable<MemberResult>> addtlTypesProvider,
                                                 Func<int, IEnumerable<MemberResult>> tablesProvider)
         {
             _additionalTypesProvider = addtlTypesProvider;
@@ -309,13 +309,13 @@ namespace VSGenero.Analysis.Parsing.AST
         {
             List<MemberResult> members = new List<MemberResult>();
 
-            if(types)
+            if (types)
             {
                 // Built-in types
                 members.AddRange(BuiltinTypes.Select(x => new MemberResult(Tokens.TokenKinds[x], GeneroMemberType.Keyword, this)));
 
                 // include packages that have non-static classes
-                members.AddRange(Packages.Values.Where(x => x.ContainsInstanceMembers).Select(x => new MemberResult(x.Name, GeneroMemberType.Module, this)));
+                members.AddRange(Packages.Values.Where(x => _importedPackages[x.Name] && x.ContainsInstanceMembers).Select(x => new MemberResult(x.Name, GeneroMemberType.Module, this)));
             }
             if (consts)
                 members.AddRange(SystemConstants.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Keyword, this)));
@@ -340,12 +340,14 @@ namespace VSGenero.Analysis.Parsing.AST
             {
                 if (containingNode is IFunctionResult)
                 {
-                    if(vars)
+                    if (vars)
                         members.AddRange((containingNode as IFunctionResult).Variables.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Variable, this)));
-                    if(types)
+                    if (types)
                         members.AddRange((containingNode as IFunctionResult).Types.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Class, this)));
-                    if(consts)
+                    if (consts)
                         members.AddRange((containingNode as IFunctionResult).Constants.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Constant, this)));
+                    if(funcs)
+                        members.AddRange((containingNode as IFunctionResult).Variables.Where(x => x.Value.HasChildFunctions).Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Variable, this)));
                 }
 
                 if (_body is IModuleResult)
@@ -356,19 +358,21 @@ namespace VSGenero.Analysis.Parsing.AST
                         members.AddRange((_body as IModuleResult).Variables.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Variable, this)));
                         members.AddRange((_body as IModuleResult).GlobalVariables.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Variable, this)));
                     }
-                    if(types)
+                    if (types)
                     {
                         members.AddRange((_body as IModuleResult).Types.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Class, this)));
                         members.AddRange((_body as IModuleResult).GlobalTypes.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Class, this)));
                     }
-                    if(consts)
+                    if (consts)
                     {
                         members.AddRange((_body as IModuleResult).Constants.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Constant, this)));
                         members.AddRange((_body as IModuleResult).GlobalConstants.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Constant, this)));
                     }
-                    if(funcs)
+                    if (funcs)
                     {
                         members.AddRange((_body as IModuleResult).Functions.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Method, this)));
+                        members.AddRange((_body as IModuleResult).Variables.Where(x => x.Value.HasChildFunctions).Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Variable, this)));
+                        members.AddRange((_body as IModuleResult).GlobalVariables.Where(x => x.Value.HasChildFunctions).Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Variable, this)));
                     }
                 }
 
@@ -389,14 +393,17 @@ namespace VSGenero.Analysis.Parsing.AST
                                 if (modRes != null)
                                 {
                                     // check global types
-                                    if(vars)
+                                    if (vars)
                                         members.AddRange(modRes.GlobalVariables.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Variable, this)));
-                                    if(types)
+                                    if (types)
                                         members.AddRange(modRes.GlobalTypes.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Class, this)));
-                                    if(consts)
+                                    if (consts)
                                         members.AddRange(modRes.GlobalConstants.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Constant, this)));
-                                    if(funcs)
+                                    if (funcs)
+                                    {
                                         members.AddRange(modRes.Functions.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Method, this)));
+                                        members.AddRange(modRes.GlobalVariables.Where(x => x.Value.HasChildFunctions).Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Variable, this)));
+                                    }
                                 }
                             }
                         }
@@ -447,7 +454,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 if (tokInfo.Equals(default(TokenInfo)) || tokInfo.Token.Kind == TokenKind.NewLine || tokInfo.Token.Kind == TokenKind.NLToken)
                     continue;   // linebreak
 
-                if(tokInfo.Token.Kind == TokenKind.CallKeyword)
+                if (tokInfo.Token.Kind == TokenKind.CallKeyword)
                 {
                     if (firstStatus == CallStatus.None)
                     {
@@ -462,15 +469,15 @@ namespace VSGenero.Analysis.Parsing.AST
 
                     return true;
                 }
-                else if(tokInfo.Token.Kind == TokenKind.ReturningKeyword)
+                else if (tokInfo.Token.Kind == TokenKind.ReturningKeyword)
                 {
-                    if(firstStatus == CallStatus.None)
+                    if (firstStatus == CallStatus.None)
                     {
                         firstStatus = CallStatus.ReturningKeyword;
                         results.AddRange(GetDefinedMembers(index, true, false, false, false));
                     }
 
-                    if(currStatus == CallStatus.None ||
+                    if (currStatus == CallStatus.None ||
                        currStatus == CallStatus.VariableRef ||
                        currStatus == CallStatus.Expression)
                     {
@@ -482,10 +489,10 @@ namespace VSGenero.Analysis.Parsing.AST
                         return false;
                     }
                 }
-                else if(tokInfo.Token.Kind == TokenKind.Comma)
+                else if (tokInfo.Token.Kind == TokenKind.Comma)
                 {
                     // ideally, we'd look back to see if we're after a "returning" keyword...but that may be too much effort.
-                    if(firstStatus == CallStatus.None)
+                    if (firstStatus == CallStatus.None)
                     {
                         firstStatus = CallStatus.Comma;
                         results.AddRange(GetDefinedMembers(index, true, false, false, false));
@@ -526,12 +533,12 @@ namespace VSGenero.Analysis.Parsing.AST
                             }
 
                             // we reversed partially through the expression, so we need to use the members in its list
-                            if(firstStatus == CallStatus.None)
+                            if (firstStatus == CallStatus.None)
                             {
                                 firstStatus = CallStatus.Expression;
                                 results.Add(new MemberResult(Tokens.TokenKinds[TokenKind.ReturningKeyword], GeneroMemberType.Keyword, this));
                             }
-                            if(currStatus == CallStatus.None ||
+                            if (currStatus == CallStatus.None ||
                                currStatus == CallStatus.ReturningKeyword ||
                                currStatus == CallStatus.Comma)
                             {
@@ -600,9 +607,9 @@ namespace VSGenero.Analysis.Parsing.AST
             return false;
         }
 
-        private bool TryMemberAccess(int index, IReverseTokenizer revTokenizer, out List<IAnalysisResult> results)
+        private bool TryMemberAccess(int index, IReverseTokenizer revTokenizer, out List<MemberResult> results)
         {
-            results = new List<IAnalysisResult>();
+            results = new List<MemberResult>();
             bool skipGettingNext = false;
             var enumerator = revTokenizer.GetReversedTokens().Where(x => x.SourceSpan.Start.Index < index).GetEnumerator();
             while (true)
@@ -624,7 +631,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 if (tokInfo.Equals(default(TokenInfo)) || tokInfo.Token.Kind == TokenKind.NewLine || tokInfo.Token.Kind == TokenKind.NLToken)
                     continue;   // linebreak
 
-                if(tokInfo.Token.Kind == TokenKind.Dot)
+                if (tokInfo.Token.Kind == TokenKind.Dot)
                 {
                     // we're trying to access a member...get the member
                     List<MemberResult> dummyList;
@@ -634,6 +641,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     {
                         if (newIndex < currIndex)
                         {
+                            StringBuilder sb = new StringBuilder();
                             // we're not within a variable reference, but we reversed through one
                             while (tokInfo.Equals(default(TokenInfo)) ||
                                     tokInfo.Token.Kind == TokenKind.NewLine ||
@@ -646,10 +654,15 @@ namespace VSGenero.Analysis.Parsing.AST
                                     return false;
                                 }
                                 tokInfo = enumerator.Current;
+                                sb.Insert(0, tokInfo.Token.Value.ToString());
                             }
 
                             // now we need to analyze the variable reference to get its members
-                            int i = 0;
+                            string var = sb.ToString();
+
+                            var analysisRes = GetValueByIndex(var, index);
+                            results.AddRange(analysisRes.GetMembers(this));
+
                             return true;
                         }
                     }
@@ -697,10 +710,10 @@ namespace VSGenero.Analysis.Parsing.AST
                 if (tokInfo.Equals(default(TokenInfo)) || tokInfo.Token.Kind == TokenKind.NewLine || tokInfo.Token.Kind == TokenKind.NLToken)
                     continue;   // linebreak
 
-                 if(tokInfo.Token.Kind == TokenKind.ModKeyword ||
-                    tokInfo.Token.Kind == TokenKind.Comma ||            // TODO: if we add a function context detection this should be removed
-                   ((int)tokInfo.Token.Kind >= (int)TokenKind.FirstOperator &&
-                   (int)tokInfo.Token.Kind <= (int)TokenKind.LastOperator))
+                if (tokInfo.Token.Kind == TokenKind.ModKeyword ||
+                   tokInfo.Token.Kind == TokenKind.Comma ||            // TODO: if we add a function context detection this should be removed
+                  ((int)tokInfo.Token.Kind >= (int)TokenKind.FirstOperator &&
+                  (int)tokInfo.Token.Kind <= (int)TokenKind.LastOperator))
                 {
                     if (firstState == ExpressionState.None)
                     {
@@ -709,7 +722,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         results.AddRange(GetDefinedMembers(index, true, true, false, true));
                     }
 
-                    if(currState == ExpressionState.None ||
+                    if (currState == ExpressionState.None ||
                        currState == ExpressionState.Operand ||
                        currState == ExpressionState.LeftParen)
                     {
@@ -733,17 +746,17 @@ namespace VSGenero.Analysis.Parsing.AST
                         return false;
                     }
                 }
-                else if(tokInfo.Token.Kind == TokenKind.RightParenthesis)
+                else if (tokInfo.Token.Kind == TokenKind.RightParenthesis)
                 {
                     // TODO: check to see if it's a function call
                     // if it is, we advance (reverse) past it and call it an operand
 
                     // if it's not, there should be a grouping within the expression (if it's valid)
-                    if(firstState == ExpressionState.None)
+                    if (firstState == ExpressionState.None)
                     {
                         firstState = ExpressionState.RightParen;
                     }
-                    if(currState == ExpressionState.None ||
+                    if (currState == ExpressionState.None ||
                        currState == ExpressionState.Operator ||
                        currState == ExpressionState.RightParen)
                     {
@@ -755,15 +768,15 @@ namespace VSGenero.Analysis.Parsing.AST
                         return false;
                     }
                 }
-                else if(tokInfo.Token.Kind == TokenKind.LeftParenthesis)
+                else if (tokInfo.Token.Kind == TokenKind.LeftParenthesis)
                 {
-                    if(firstState == ExpressionState.None)
+                    if (firstState == ExpressionState.None)
                     {
                         firstState = ExpressionState.LeftParen;
                         // provide variables, constants, and functions
                         results.AddRange(GetDefinedMembers(index, true, true, false, true));
                     }
-                    if(currState == ExpressionState.None ||
+                    if (currState == ExpressionState.None ||
                        currState == ExpressionState.Operand ||
                        currState == ExpressionState.LeftParen ||
                        currState == ExpressionState.RightParen)     // TODO: eventually we'll probably need to handle detecting a function call. For now, we'll allow this state transition
@@ -810,7 +823,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         else
                         {
                             // check for literals
-                            if(tokInfo.Category == TokenCategory.NumericLiteral ||
+                            if (tokInfo.Category == TokenCategory.NumericLiteral ||
                                tokInfo.Category == TokenCategory.CharacterLiteral)
                             {
                                 if (firstState == ExpressionState.None)
@@ -824,7 +837,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                     return true;
                                 }
                             }
-                            else if(tokInfo.Category == TokenCategory.StringLiteral ||
+                            else if (tokInfo.Category == TokenCategory.StringLiteral ||
                                     tokInfo.Category == TokenCategory.IncompleteMultiLineStringLiteral)
                             {
                                 if (firstState == ExpressionState.None)
@@ -871,7 +884,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 }
 
                 // down here, we check for the operand token
-                if(currState == ExpressionState.Operand)
+                if (currState == ExpressionState.Operand)
                 {
                     // we need to peek backward and see if there's another operand behind us (or a left paren). If not, then the expression is complete
                     TokenInfo dummyToken;
@@ -915,7 +928,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     {
                         // we're at the end of the expression. Now let's see if we reversed through the entire expression
                         startIndex = tokInfo.SourceSpan.Start.Index;
-                        if(firstState == ExpressionState.Operand ||
+                        if (firstState == ExpressionState.Operand ||
                            firstState == ExpressionState.RightParen)
                         {
                             results.Clear();
@@ -975,7 +988,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         firstState = VariableReferenceState.Dot;
                         // TODO: provide members of the resulting variable
                     }
-                    if(currState == VariableReferenceState.None ||
+                    if (currState == VariableReferenceState.None ||
                        currState == VariableReferenceState.KeywordIdent ||
                        currState == VariableReferenceState.Star)
                     {
@@ -987,13 +1000,13 @@ namespace VSGenero.Analysis.Parsing.AST
                         return false;
                     }
                 }
-                else if(tokInfo.Token.Kind == TokenKind.Multiply)
+                else if (tokInfo.Token.Kind == TokenKind.Multiply)
                 {
-                    if(firstState == VariableReferenceState.None)
+                    if (firstState == VariableReferenceState.None)
                     {
                         firstState = VariableReferenceState.Star;
                     }
-                    if(currState == VariableReferenceState.None)
+                    if (currState == VariableReferenceState.None)
                     {
                         currState = VariableReferenceState.Star;
                     }
@@ -1003,7 +1016,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         return false;
                     }
                 }
-                else if(tokInfo.Token.Kind == TokenKind.LeftBracket)
+                else if (tokInfo.Token.Kind == TokenKind.LeftBracket)
                 {
                     if (firstState == VariableReferenceState.None)
                     {
@@ -1021,13 +1034,13 @@ namespace VSGenero.Analysis.Parsing.AST
                         return false;
                     }
                 }
-                else if(tokInfo.Token.Kind == TokenKind.RightBracket)
+                else if (tokInfo.Token.Kind == TokenKind.RightBracket)
                 {
-                    if(firstState == VariableReferenceState.None)
+                    if (firstState == VariableReferenceState.None)
                     {
                         firstState = VariableReferenceState.RightBracket;
                     }
-                    if(currState != VariableReferenceState.None &&
+                    if (currState != VariableReferenceState.None &&
                        currState != VariableReferenceState.Dot)
                     {
                         results.Clear();
@@ -1114,9 +1127,9 @@ namespace VSGenero.Analysis.Parsing.AST
                         return false;
                     }
                 }
-                else if(tokInfo.Category == TokenCategory.Keyword || tokInfo.Category == TokenCategory.Identifier)
+                else if (tokInfo.Category == TokenCategory.Keyword || tokInfo.Category == TokenCategory.Identifier)
                 {
-                    if(firstState == VariableReferenceState.None)
+                    if (firstState == VariableReferenceState.None)
                     {
                         firstState = VariableReferenceState.KeywordIdent;
                     }
@@ -1136,7 +1149,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     while (tokInfo.Equals(default(TokenInfo)) ||
                             tokInfo.Token.Kind == TokenKind.NewLine ||
                             tokInfo.Token.Kind == TokenKind.NLToken);
-                    
+
                     if (tokInfo.Token.Kind != TokenKind.Dot)
                     {
                         tokInfo = dummyInfo;
@@ -2180,7 +2193,7 @@ namespace VSGenero.Analysis.Parsing.AST
 
                 if (tokInfo.Token.Kind == TokenKind.LetKeyword)
                 {
-                    if(currState == LetStatementState.None)
+                    if (currState == LetStatementState.None)
                     {
                         results.AddRange(GetDefinedMembers(index, true, false, false, false));
                         return true;
@@ -2191,11 +2204,15 @@ namespace VSGenero.Analysis.Parsing.AST
                         // we're in a valid state
                         return true;
                     }
+                    else if(results.Count > 0)
+                    {
+                        return true;
+                    }
                     return false;
                 }
                 else if (tokInfo.Token.Kind == TokenKind.Equals)
                 {
-                    if(firstState == LetStatementState.None)
+                    if (firstState == LetStatementState.None)
                     {
                         firstState = LetStatementState.Equals;
                         results.AddRange(GetDefinedMembers(index, true, true, false, true));
@@ -2245,7 +2262,7 @@ namespace VSGenero.Analysis.Parsing.AST
                             {
                                 firstState = LetStatementState.Expression;
                             }
-                            else if(secondState == LetStatementState.None)
+                            else if (secondState == LetStatementState.None)
                             {
                                 secondState = LetStatementState.Expression;
                             }
@@ -2551,11 +2568,14 @@ namespace VSGenero.Analysis.Parsing.AST
              * Using the specified index, we can attempt to determine what our scope is. Then, using the reverse tokenizer, we can attempt to
              * determine where within the scope we are, and attempt to provide a set of context-sensitive members based on that.
              **********************************************************************************************************************************/
-            List<IAnalysisResult> memberResults;
-            TryMemberAccess(index, revTokenizer, out memberResults);
-
             int dummyIndex;
             List<MemberResult> members = new List<MemberResult>();
+
+            if (TryMemberAccess(index, revTokenizer, out members))
+            {
+                return members;
+            }
+
             // If any type constraint completions come back, we know that a constraint has not been completed, so we bypass searching for other completions
             if (TryTypeConstraintContext(index, revTokenizer, out members, out dummyIndex) && members.Count > 0)
             {
@@ -2574,29 +2594,20 @@ namespace VSGenero.Analysis.Parsing.AST
             {
                 return members;
             }
-            
-            if(TryDefineDefContext(index, revTokenizer, out members, new List<TokenKind> { TokenKind.PublicKeyword, TokenKind.PrivateKeyword, TokenKind.GlobalsKeyword, TokenKind.FunctionKeyword }))
+
+            if (TryDefineDefContext(index, revTokenizer, out members, new List<TokenKind> { TokenKind.PublicKeyword, TokenKind.PrivateKeyword, TokenKind.GlobalsKeyword, TokenKind.FunctionKeyword }))
             {
-                if(memberResults.Count > 0 && members.Count == 0)
-                {
-                    // TODO: put the members from the member access in the returned list, but filter out for instance types only (specifically thinking about 
-                    int i = 0;
-                    return members;
-                }
-                else
-                {
-                    return members;
-                }
+                return members;
             }
 
-            if(TryLetStatement(index, revTokenizer, out members))
+            if (TryLetStatement(index, revTokenizer, out members))
             {
                 return members;
             }
 
             members.Clear();
             bool isCallStatement = TryCall(index, revTokenizer, out members);
-            if(isCallStatement)
+            if (isCallStatement)
             {
                 return members;
             }
@@ -2718,25 +2729,8 @@ namespace VSGenero.Analysis.Parsing.AST
         public IEnumerable<MemberResult> GetMembersByIndex(string exprText, int index, GetMemberOptions options = GetMemberOptions.IntersectMultipleResults)
         {
             List<MemberResult> results = new List<MemberResult>();
+
             return results;
-            //if (exprText.Length == 0)
-            //{
-            //    return GetAllAvailableMembersByIndex(index, options);
-            //}
-
-            //var scope = FindScope(index);
-            //var privatePrefix = GetPrivatePrefixClassName(scope);
-
-            //var expr = Statement.GetExpression(GetAstFromText(exprText, privatePrefix).Body);
-            //if (expr is ConstantExpression && ((ConstantExpression)expr).Value is int)
-            //{
-            //    // no completions on integer ., the user is typing a float
-            //    return new MemberResult[0];
-            //}
-
-            //var unit = GetNearestEnclosingAnalysisUnit(scope);
-            //var lookup = new ExpressionEvaluator(unit.CopyForEval(), scope, mergeScopes: true).Evaluate(expr);
-            //return GetMemberResults(lookup, scope, options);
         }
 
         #endregion
