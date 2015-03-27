@@ -28,7 +28,7 @@ namespace VSGenero.Analysis.Parsing.AST
         {
             string[] enabledPkgs = { "base", "ui", "om" };
             string[] disabledPkgs = { "util", "os", "com", "xml", "security" };
-            _importedPackages = new Dictionary<string, bool>();
+            _importedPackages = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
             foreach (var enable in enabledPkgs)
                 _importedPackages.Add(enable, true);
             foreach (var disable in disabledPkgs)

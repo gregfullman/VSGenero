@@ -32,6 +32,17 @@ namespace VSGenero.Analysis.Parsing.AST
             InitializeBuiltins();
             InitializeImportedPackages();   // for this instance
             InitializePackages();
+
+            if(_body is ModuleNode)
+            {
+                foreach(var import in (_body as ModuleNode).Imports)
+                {
+                    if(_importedPackages.ContainsKey(import))
+                    {
+                        _importedPackages[import] = true;
+                    }
+                }
+            }
         }
 
         public AstNode Body

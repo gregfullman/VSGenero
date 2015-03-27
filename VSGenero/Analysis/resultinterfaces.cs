@@ -26,6 +26,7 @@ namespace VSGenero.Analysis
 
     public interface IModuleResult : IAnalysisResultContainer
     {
+        List<string> Imports { get; }
         IDictionary<string, IAnalysisResult> Variables { get; }
         IDictionary<string, IAnalysisResult> Types { get; }
         IDictionary<string, IAnalysisResult> Constants { get; }

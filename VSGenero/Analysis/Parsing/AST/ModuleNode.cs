@@ -43,6 +43,17 @@ namespace VSGenero.Analysis.Parsing.AST
             Body
         }
 
+        private List<string> _importedPackages;
+        public List<string> Imports
+        {
+            get
+            {
+                if (_importedPackages == null)
+                    _importedPackages = new List<string>();
+                return _importedPackages;
+            }
+        }
+
         private static bool CheckForPreprocessorNode(Parser parser)
         {
             PreprocessorNode preNode;
@@ -88,6 +99,8 @@ namespace VSGenero.Analysis.Parsing.AST
                     if (processed == NodesProcessed.CompilerOption)
                     {
                         defNode.Children.Add(importNode.StartIndex, importNode);
+                        if (importNode.ImportType == ImportModuleType.C)
+                            defNode.Imports.Add(importNode.ImportName);
                         continue;
                     }
                     else
