@@ -305,13 +305,16 @@ namespace VSGenero.Analysis.Parsing.AST
                 }
                 else
                 {
-                    if(_typeNameString.Equals("string", StringComparison.OrdinalIgnoreCase))
+                    if (!string.IsNullOrWhiteSpace(_typeNameString))
                     {
-                        return true;
-                    }
-                    else
-                    {
-                        // TODO: try to determine if the _typeNameString is a user defined type (or package class), in which case we need to call its GetMembers function
+                        if (_typeNameString.Equals("string", StringComparison.OrdinalIgnoreCase))
+                        {
+                            return true;
+                        }
+                        else
+                        {
+                            // TODO: try to determine if the _typeNameString is a user defined type (or package class), in which case we need to call its GetMembers function
+                        }
                     }
                 }
                 return false;

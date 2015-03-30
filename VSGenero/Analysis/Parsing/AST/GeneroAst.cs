@@ -349,6 +349,7 @@ namespace VSGenero.Analysis.Parsing.AST
                             IGeneroProjectEntry genProj = _projEntry as IGeneroProjectEntry;
                             if (genProj.ParentProject != null)
                             {
+                                bool found = false;
                                 foreach (var projEntry in genProj.ParentProject.ProjectEntries.Where(x => x.Value != genProj))
                                 {
                                     if (projEntry.Value.Analysis != null &&
@@ -363,7 +364,8 @@ namespace VSGenero.Analysis.Parsing.AST
                                                modRes.GlobalConstants.TryGetValue(dotPiece, out res))
                                             {
                                                 //return res;
-                                                continue;
+                                                found = true;
+                                                break;
                                             }
 
                                             // check project functions
@@ -373,7 +375,8 @@ namespace VSGenero.Analysis.Parsing.AST
                                                 {
                                                     //return funcRes;
                                                     res = funcRes;
-                                                    continue;
+                                                    found = true;
+                                                    break;
                                                 }
                                             }
 
@@ -381,13 +384,17 @@ namespace VSGenero.Analysis.Parsing.AST
                                             if (modRes.Cursors.TryGetValue(dotPiece, out res))
                                             {
                                                 //return res;
-                                                continue;
+                                                found = true;
+                                                break;
                                             }
 
                                             // TODO: check to see if the index is within a record definition, in which case we need to drill deeper
                                         }
                                     }
                                 }
+
+                                if (found)
+                                    continue;
                             }
                         }
 
