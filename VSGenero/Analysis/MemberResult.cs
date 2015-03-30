@@ -84,6 +84,14 @@ namespace VSGenero.Analysis
         //    }
         //}
 
+        public IAnalysisResult Var
+        {
+            get
+            {
+                return _var == null ? null : _var();
+            }
+        }
+
         public string Name
         {
             get { return _name; }

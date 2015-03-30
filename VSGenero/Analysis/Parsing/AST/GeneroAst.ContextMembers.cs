@@ -305,6 +305,72 @@ namespace VSGenero.Analysis.Parsing.AST
             return GetDefinedMembers(index, false, false, true, false);
         }
 
+        internal IAnalysisResult TryGetUserDefinedType(string typeName, int index)
+        {
+            // do a binary search to determine what node we're in
+            List<int> keys = _body.Children.Select(x => x.Key).ToList();
+            int searchIndex = keys.BinarySearch(index);
+            if (searchIndex < 0)
+            {
+                searchIndex = ~searchIndex;
+                if (searchIndex > 0)
+                    searchIndex--;
+            }
+
+            int key = keys[searchIndex];
+
+            // TODO: need to handle multiple results of the same name
+            AstNode containingNode = _body.Children[key];
+            IAnalysisResult type;
+            if (containingNode != null)
+            {
+                if (containingNode is IFunctionResult)
+                {
+                    if ((containingNode as IFunctionResult).Types.TryGetValue(typeName, out type))
+                    {
+                        return type;
+                    }
+                }
+
+                if (_body is IModuleResult)
+                {
+                    if ((_body as IModuleResult).Types.TryGetValue(typeName, out type) ||
+                        (_body as IModuleResult).GlobalTypes.TryGetValue(typeName, out type))
+                    {
+                        return type;
+                    }
+                }
+
+                // TODO: this could probably be done more efficiently by having each GeneroAst load globals and functions into
+                // dictionaries stored on the IGeneroProject, instead of in each project entry.
+                // However, this does required more upkeep when changes occur. Will look into it...
+                if (_projEntry != null && _projEntry is IGeneroProjectEntry)
+                {
+                    IGeneroProjectEntry genProj = _projEntry as IGeneroProjectEntry;
+                    if (genProj.ParentProject != null)
+                    {
+                        foreach (var projEntry in genProj.ParentProject.ProjectEntries.Where(x => x.Value != genProj))
+                        {
+                            if (projEntry.Value.Analysis != null &&
+                               projEntry.Value.Analysis.Body != null)
+                            {
+                                IModuleResult modRes = projEntry.Value.Analysis.Body as IModuleResult;
+                                if (modRes != null)
+                                {
+                                    // check global types
+                                    
+                                        if(modRes.GlobalTypes.TryGetValue(typeName, out type))
+                                            return type;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return null;
+        }
+
         private IEnumerable<MemberResult> GetDefinedMembers(int index, bool vars, bool consts, bool types, bool funcs)
         {
             List<MemberResult> members = new List<MemberResult>();

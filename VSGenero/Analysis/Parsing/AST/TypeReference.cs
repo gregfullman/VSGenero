@@ -205,10 +205,10 @@ namespace VSGenero.Analysis.Parsing.AST
         public IAnalysisResult GetMember(string name, GeneroAst ast)
         {
             // TODO: there's probably a better way to do this
-            return GetAnalysisMembers().Where(x => x.Name.Equals(name, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+            return GetAnalysisMembers(ast).Where(x => x.Name.Equals(name, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
         }
 
-        private IEnumerable<IAnalysisResult> GetAnalysisMembers()
+        private IEnumerable<IAnalysisResult> GetAnalysisMembers(GeneroAst ast)
         {
             List<IAnalysisResult> members = new List<IAnalysisResult>();
             if (Children.Count == 1)
@@ -236,7 +236,12 @@ namespace VSGenero.Analysis.Parsing.AST
                 }
                 else
                 {
-                    // TODO: try to determine if the _typeNameString is a user defined type, in which case we need to call its GetMembers function
+                    // try to determine if the _typeNameString is a user defined type, in which case we need to call its GetMembers function
+                    IAnalysisResult udt = ast.TryGetUserDefinedType(_typeNameString, LocationIndex);
+                    if(udt != null)
+                    {
+                        return udt.GetMembers(ast).Select(x => x.Var).Where(y => y != null);
+                    }
                 }
             }
             return members;
@@ -270,7 +275,12 @@ namespace VSGenero.Analysis.Parsing.AST
                 }
                 else
                 {
-                    // TODO: try to determine if the _typeNameString is a user defined type (or package class), in which case we need to call its GetMembers function
+                    // try to determine if the _typeNameString is a user defined type (or package class), in which case we need to call its GetMembers function
+                    IAnalysisResult udt = ast.TryGetUserDefinedType(_typeNameString, LocationIndex);
+                    if (udt != null)
+                    {
+                        return udt.GetMembers(ast);
+                    }
                 }
             }
             return members;
