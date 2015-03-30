@@ -6506,6 +6506,179 @@
               </Method>
             </Methods>
           </Class>
+          <Class name="Encryption" isStatic="false">
+          <Methods>
+            <Method name="Create" desc="Constructor of an Encryption object." scope="static">
+              <Parameters></Parameters>
+              <Returns>
+                <Return name="enc" type="xml.Encryption"/>
+              </Returns>
+            </Method>
+          <Method name="EncryptString" desc="Encrypts the string str using the symmetric key key, and returns the encrypted string encoded in BASE64." scope="static">
+              <Parameters>
+                <Parameter name="key" type="xml.CryptoKey"/>
+                <Parameter name="str" type="string"/>
+              </Parameters>
+              <Returns>
+                <Return name="rstr" type="string"/>
+              </Returns>
+            </Method>
+          <Method name="DecryptString" desc="Decrypts the encrypted string str encoded in BASE64, using the symmetric key key, and returns the string in clear text." scope="static">
+              <Parameters>
+                <Parameter name="key" type="xml.CryptoKey"/>
+                <Parameter name="str" type="string"/>
+              </Parameters>
+              <Returns>
+                <Return name="rstr" type="string"/>
+              </Returns>
+            </Method>
+          <Method name="RSAEncrypt" desc="Encrypts the string str using the RSA key key and returns it encoded in BASE64." scope="static">
+              <Parameters>
+                <Parameter name="key" type="string"/>
+                <Parameter name="str" type="string"/>
+              </Parameters>
+              <Returns>
+                <Return name="rstr" type="string"/>
+              </Returns>
+            </Method>
+          <Method name="RSADecrypt" desc="Decrypts the BASE64 encrypted string enc using the RSA key key and returns it in clear text" scope="static">
+              <Parameters>
+                <Parameter name="key" type="string"/>
+                <Parameter name="str" type="string"/>
+              </Parameters>
+              <Returns>
+                <Return name="rstr" type="string"/>
+              </Returns>
+            </Method>
+          <Method name="setKey" desc="Assigns a copy of the symmetric key to this Encryption object." scope="instance">
+              <Parameters>
+                <Parameter name="key" type="xml.CryptoKey"/>
+              </Parameters>
+              <Returns>
+              </Returns>
+            </Method>
+          <Method name="getEmbeddedKey" desc="Get a copy of the embedded symmetric key that was used in the last decryption operation." scope="instance">
+              <Parameters>
+              </Parameters>
+              <Returns>
+                <Return name="key" type="xml.CryptoKey"/>
+              </Returns>
+            </Method>
+          <Method name="setKeyEncryptionKey" desc="Assigns a copy of the key-encryption key to this Encryption object." scope="instance">
+              <Parameters>
+                <Parameter name="key" type="xml.CryptoKey"/>
+              </Parameters>
+              <Returns>
+              </Returns>
+            </Method>
+          <Method name="setCertificate" desc="Assigns a copy of the X509 certificate to this Encryption object." scope="instance">
+              <Parameters>
+                <Parameter name="cert" type="xml.CryptoX509"/>
+              </Parameters>
+              <Returns>
+              </Returns>
+            </Method>
+          <Method name="encryptElement" desc="Encrypts the ELEMENT DomNode node and all its children using the symmetric key." scope="instance">
+              <Parameters>
+                <Parameter name="node" type="xml.DomNode"/>
+              </Parameters>
+              <Returns>
+              </Returns>
+            </Method>
+          <Method name="decryptElement" desc="Decrypts the EncryptedData DomNode enc using the symmetric key." scope="instance">
+              <Parameters>
+                <Parameter name="enc" type="xml.DomNode"/>
+              </Parameters>
+              <Returns>
+              </Returns>
+            </Method>
+          <Method name="encryptElementContent" desc="Encrypts all child nodes of the ELEMENT DomNode node using the symmetric key." scope="instance">
+              <Parameters>
+                <Parameter name="node" type="xml.DomNode"/>
+              </Parameters>
+              <Returns>
+              </Returns>
+            </Method>
+          <Method name="decryptElementContent" desc="Decrypts the EncryptedData DomNode enc using the symmetric key." scope="instance">
+              <Parameters>
+                <Parameter name="enc" type="xml.DomNode"/>
+              </Parameters>
+              <Returns>
+              </Returns>
+            </Method>
+          <Method name="encryptElementDetatched" desc="Encrypts the ELEMENT DomNode node and all its children using the symmetric key, and returns them as one new EncryptedData node." scope="instance">
+              <Parameters>
+                <Parameter name="node" type="xml.DomNode"/>
+              </Parameters>
+              <Returns>
+                <Return name="rnode" type="xml.DomNode"/>
+              </Returns>
+            </Method>
+          <Method name="decryptElementDetatched" desc="Decrypts the EncryptedData DomNode enc using the symmetric key, and returns it in a new ELEMENT node" scope="instance">
+              <Parameters>
+                <Parameter name="enc" type="xml.DomNode"/>
+              </Parameters>
+              <Returns>
+                <Return name="node" type="xml.DomNode"/>
+              </Returns>
+            </Method>
+          <Method name="encryptElementContentDetatched" desc="Encrypts all child nodes of the ELEMENT DomNode node using the symmetric key, and returns them as one new EncryptedData node." scope="instance">
+              <Parameters>
+                <Parameter name="node" type="xml.DomNode"/>
+              </Parameters>
+              <Returns>
+                <Return name="rnode" type="xml.DomNode"/>
+              </Returns>
+            </Method>
+          <Method name="decryptElementContentDetatched" desc="Decrypts the EncryptedData DomNode enc using the symmetric key, and returns all its children in one new DOCUMENT_FRAGMENT_NODE node." scope="instance">
+              <Parameters>
+                <Parameter name="enc" type="xml.DomNode"/>
+              </Parameters>
+              <Returns>
+                <Return name="node" type="xml.DomNode"/>
+              </Returns>
+            </Method>
+          <Method name="encryptKey" desc="Encrypts the given symmetric or HMAC key as an EncryptedKey node and returns it as root node of a new XML document." scope="instance">
+              <Parameters>
+                <Parameter name="key" type="xml.CryptoKey"/>
+              </Parameters>
+              <Returns>
+                <Return name="doc" type="xml.DomDocument"/>
+              </Returns>
+            </Method>
+          <Method name="decryptKey" desc="Decrypts the EncryptedKey as root in the given XML document, and returns a new CryptoKey of the given kind." scope="instance">
+              <Parameters>
+                <Parameter name="xml" type="xml.DomDocument"/>
+                <Parameter name="url" type="string"/>
+              </Parameters>
+              <Returns>
+                <Return name="key" type="xml.CryptoKey"/>
+              </Returns>
+            </Method>
+          </Methods>
+        </Class>
+          <Class name="KeyStore" isStatic="true">
+          <Methods>
+            <Method name="AddTrustedCertificate" desc="Registers the given X509 certificate as a trusted certificate for the application. It will be used for signature verification if no other certificate was set for that purpose." scope="static">
+              <Parameters>
+                <Parameter name="cert" type="xml.CryptoX509"/>
+              </Parameters>
+            <Returns></Returns>
+            </Method>
+          <Method name="AddCertificate" desc="Registers the given X509 certificate as a certificate for the application. It will be used when an incomplete X509 certificate is detected during signature or encryption to complete the process by checking the certificate issuer name and serial number." scope="static">
+              <Parameters>
+                <Parameter name="cert" type="xml.CryptoX509"/>
+              </Parameters>
+            <Returns></Returns>
+            </Method>
+          <Method name="AddKey" desc="Registers the given key by name to the application. It is used for XML signature verification or XML decryption when a key name was specified in the XML KeyInfo node and no other key was set in the Signature or Encryption object." scope="static">
+              <Parameters>
+                <Parameter name="key" type="xml.CryptoX509"/>
+              </Parameters>
+            <Returns></Returns>
+            </Method>
+          </Methods>
+        </Class>
         </Classes>
       </Package>
       <!--TODO: security package-->
