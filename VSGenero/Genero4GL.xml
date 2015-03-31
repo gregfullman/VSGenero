@@ -6681,7 +6681,213 @@
         </Class>
         </Classes>
       </Package>
-      <!--TODO: security package-->
+      <Package name ="security" type="extension">
+        <Classes>
+          <Class name="RandomGenerator" isStatic="true">
+            <Methods>
+              <Method name="CreateUUIDString" desc="Creates a new universal unique identifier (UUID)." scope="static">
+                <Parameters></Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="CreateRandomString" desc="Creates a random base64 string." scope="static">
+                <Parameters>
+                  <Parameter name="size" type="int"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="CreateRandomNumber" desc="Generates a 8-byte strong random number." scope="static">
+                <Parameters></Parameters>
+                <Returns>
+                  <Return name="result" type="bigint"/>
+                </Returns>
+              </Method>
+            </Methods>
+          </Class>
+          <Class name="Base64" isStatic="true">
+            <Methods>
+              <Method name="ToString" desc="Decodes the given base64 string." scope="static">
+                <Parameters>
+                  <Parameter name="source" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="FromString" desc="Encodes the given string in base64." scope="static">
+                <Parameters>
+                  <Parameter name="source" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="ToHexBinary" desc="Decodes the given base64 string to hexadecimal." scope="static">
+                <Parameters>
+                  <Parameter name="source" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="FromHexBinary" desc="Decodes the given hexadecimal string to base64." scope="static">
+                <Parameters>
+                  <Parameter name="source" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="Xor" desc="Computes the exclusive disjunction between two base64 encoded strings." scope="static">
+                <Parameters>
+                  <Parameter name="b64str1" type="string"/>
+                  <Parameter name="b64str2" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="LoadBinary" desc="Reads data from a file and encodes to base64." scope="static">
+                <Parameters>
+                  <Parameter name="path" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="SaveBinary" desc="Decodes the given base64 string and writes the data to a file." scope="static">
+                <Parameters>
+                  <Parameter name="path" type="string"/>
+                  <Parameter name="data" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+            </Methods>
+          </Class>
+          <Class name="HexBinary" isStatic="true">
+            <Methods>
+              <Method name="ToString" desc="Decodes an hexadecimal string to a clear, human-readable string." scope="static">
+                <Parameters>
+                  <Parameter name="source" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="FromString" desc="Encodes a given string in hexadecimal." scope="static">
+                <Parameters>
+                  <Parameter name="source" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="ToBase64" desc="Converts an hexadecimal string to the base64 equivalent" scope="static">
+                <Parameters>
+                  <Parameter name="source" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="FromBase64" desc="Converts a base64 string to the hexadecimal equivalent." scope="static">
+                <Parameters>
+                  <Parameter name="source" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="Xor" desc="Computes the exclusive disjunction between two hexadecimal encoded strings." scope="static">
+                <Parameters>
+                  <Parameter name="hexstr1" type="string"/>
+                  <Parameter name="hexstr2" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="LoadBinary" desc="Reads binary data from a file and converts it to hexadecimal." scope="static">
+                <Parameters>
+                  <Parameter name="path" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="SaveBinary" desc="Reads binary data from a file and converts it to hexadecimal." scope="static">
+                <Parameters>
+                  <Parameter name="path" type="string"/>
+                  <Parameter name="data" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+            </Methods>
+          </Class>
+          <Class name="Digest" isStatic="true">
+            <Methods>
+              <Method name="CreateDigest" desc="Defines a new digest context by specifying the algorithm to be used." scope="static">
+                <Parameters>
+                  <Parameter name="algo" type="string"/>
+                </Parameters>
+                <Returns></Returns>
+              </Method>
+              <Method name="AddData" desc="Adds a data from a BYTE variable to the digest buffer." scope="static">
+                <Parameters>
+                  <Parameter name="data" type="byte"/>
+                </Parameters>
+                <Returns></Returns>
+              </Method>
+              <Method name="AddBase64Data" desc="Adds a data in base64 format to the digest buffer." scope="static">
+                <Parameters>
+                  <Parameter name="data" type="string"/>
+                </Parameters>
+                <Returns></Returns>
+              </Method>
+              <Method name="AddHexBinaryData" desc="Adds a data in hexadecimal format to the digest buffer." scope="static">
+                <Parameters>
+                  <Parameter name="data" type="string"/>
+                </Parameters>
+                <Returns></Returns>
+              </Method>
+              <Method name="AddStringData" desc="Adds a data string to the digest buffer." scope="static">
+                <Parameters>
+                  <Parameter name="data" type="string"/>
+                </Parameters>
+                <Returns></Returns>
+              </Method>
+              <Method name="DoBase64Digest" desc="Creates a digest of the buffered data and returns the result in base64 format." scope="static">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="b64Digest" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="DoHexBinaryDigest" desc="Creates a digest of the buffered data and returns the result in hexadecimal format." scope="static">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="hexBinDigest" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="CreateDigestString" desc="Creates a SHA1 digest from the given string." scope="static">
+                <Parameters>
+                  <Parameter name="password" type="string"/>
+                  <Parameter name="randBase64" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+            </Methods>
+          </Class>
+        </Classes>
+      </Package>
     </Packages>
   </Parsing>
 </Genero4GL>
