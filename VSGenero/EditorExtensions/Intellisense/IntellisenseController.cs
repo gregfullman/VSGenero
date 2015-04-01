@@ -92,6 +92,7 @@ namespace VSGenero.EditorExtensions.Intellisense
 
         public void PropagateAnalyzer(ITextBuffer subjectBuffer)
         {
+            int i = 0;
             //PythonReplEvaluator replEvaluator;
             //if (_textView.Properties.TryGetProperty<PythonReplEvaluator>(typeof(PythonReplEvaluator), out replEvaluator))
             //{
@@ -334,7 +335,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                 {
                     var span = targetPt.Value.Snapshot.CreateTrackingSpan(targetPt.Value.Position, 0, SpanTrackingMode.EdgeInclusive);
 
-                    var sigs = targetPt.Value.Snapshot.GetSignatures(span);
+                    var sigs = targetPt.Value.Snapshot.GetSignatures(span, _provider._PublicFunctionProvider);
                     bool retrigger = false;
                     if (sigs.Signatures.Count == _sigHelpSession.Signatures.Count)
                     {

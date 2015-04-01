@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.VSCommon;
 
 namespace VSGenero.EditorExtensions.Intellisense
 {
@@ -27,8 +28,9 @@ namespace VSGenero.EditorExtensions.Intellisense
         public void AugmentSignatureHelpSession(ISignatureHelpSession session, System.Collections.Generic.IList<ISignature> signatures)
         {
             var span = session.GetApplicableSpan(_textBuffer);
-
-            var sigs = _textBuffer.CurrentSnapshot.GetSignatures(span);
+            if (_provider._PublicFunctionProvider != null)
+                _provider._PublicFunctionProvider.SetFilename(_textBuffer.GetFilePath());
+            var sigs = _textBuffer.CurrentSnapshot.GetSignatures(span, _provider._PublicFunctionProvider);
 
             ISignature curSig = null;
 

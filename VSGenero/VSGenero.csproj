@@ -311,8 +311,8 @@
   <ItemGroup>
     <Compile Include="Analysis\AnalysisVariable.cs" />
     <Compile Include="Analysis\GeneroKeywords.cs" />
-    <Compile Include="Analysis\IDatabaseInformation.cs" />
-    <Compile Include="Analysis\IGeneroFunctionCollection.cs" />
+    <Compile Include="Analysis\IDatabaseInformationProvider.cs" />
+    <Compile Include="Analysis\IFunctionInformationProvider.cs" />
     <Compile Include="Analysis\ILocatedMember.cs" />
     <Compile Include="Analysis\IReferenceableContainer.cs" />
     <Compile Include="Analysis\IReverseTokenizer.cs" />
@@ -430,7 +430,6 @@
     <Compile Include="EditorExtensions\Intellisense\CompletionComparer.cs" />
     <Compile Include="EditorExtensions\Intellisense\FuzzyStringMatcher.cs" />
     <Compile Include="EditorExtensions\Intellisense\IntellisenseExtensions.cs" />
-    <Compile Include="EditorExtensions\Intellisense\IPublicFunctionProvider.cs" />
     <Compile Include="EditorExtensions\Intellisense\MarginGlyphs.cs" />
     <Compile Include="EditorExtensions\Intellisense\MemberCompletionSet.cs" />
     <Compile Include="EditorExtensions\ISnapshotTextReader.cs" />

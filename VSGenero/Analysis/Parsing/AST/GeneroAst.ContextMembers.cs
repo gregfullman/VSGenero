@@ -300,6 +300,7 @@ namespace VSGenero.Analysis.Parsing.AST
 
         #region Member Provider Helpers
 
+
         private IEnumerable<MemberResult> GetAdditionalUserDefinedTypes(int index)
         {
             return GetDefinedMembers(index, false, false, true, false);

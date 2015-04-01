@@ -50,7 +50,8 @@ namespace VSGenero.EditorExtensions
         internal static ExpressionAnalysis GetExpressionAnalysis(this ITextView view)
         {
             ITrackingSpan span = GetCaretSpan(view);
-            return span.TextBuffer.CurrentSnapshot.AnalyzeExpression(span, false);
+            // TODO: get the function provider from EditFilter class.
+            return span.TextBuffer.CurrentSnapshot.AnalyzeExpression(span, false, null);
         }
 
         internal static ITrackingSpan GetCaretSpan(this ITextView view)
@@ -304,7 +305,7 @@ namespace VSGenero.EditorExtensions
         /// <summary>
         /// Gets a CompletionAnalysis providing a list of possible members the user can dot through.
         /// </summary>
-        public static CompletionAnalysis GetCompletions(this ITextSnapshot snapshot, ITrackingSpan span, ITrackingPoint point, CompletionOptions options)
+        public static CompletionAnalysis GetCompletions(this ITextSnapshot snapshot, ITrackingSpan span, ITrackingPoint point, CompletionOptions options, IFunctionInformationProvider functionProvider)
         {
             return GeneroProjectAnalyzer.GetCompletions(snapshot, span, point, options);
         }
@@ -312,7 +313,7 @@ namespace VSGenero.EditorExtensions
         /// <summary>
         /// Gets a list of signatuers available for the expression at the provided location in the snapshot.
         /// </summary>
-        public static SignatureAnalysis GetSignatures(this ITextSnapshot snapshot, ITrackingSpan span)
+        public static SignatureAnalysis GetSignatures(this ITextSnapshot snapshot, ITrackingSpan span, IFunctionInformationProvider functionProvider)
         {
             return GeneroProjectAnalyzer.GetSignatures(snapshot, span);
         }
@@ -321,7 +322,7 @@ namespace VSGenero.EditorExtensions
         /// Gets a ExpressionAnalysis for the expression at the provided span.  If the span is in
         /// part of an identifier then the expression is extended to complete the identifier.
         /// </summary>
-        public static ExpressionAnalysis AnalyzeExpression(this ITextSnapshot snapshot, ITrackingSpan span, bool forCompletion = true)
+        public static ExpressionAnalysis AnalyzeExpression(this ITextSnapshot snapshot, ITrackingSpan span, bool forCompletion, IFunctionInformationProvider functionProvider)
         {
             return GeneroProjectAnalyzer.AnalyzeExpression(snapshot, span, forCompletion);
         }

@@ -7,6 +7,7 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using VSGenero.Analysis;
 
 namespace VSGenero.EditorExtensions.Intellisense
 {
@@ -15,6 +16,9 @@ namespace VSGenero.EditorExtensions.Intellisense
     {
         [Import]
         internal IGlyphService _glyphService = null; // Assigned from MEF
+
+        [Import(AllowDefault = true)]
+        internal IFunctionInformationProvider _PublicFunctionProvider = null;
 
         public ICompletionSource TryCreateCompletionSource(ITextBuffer textBuffer)
         {

@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using VSGenero.Analysis;
 using VSGenero.Analysis.Parsing.AST;
+using Microsoft.VisualStudio.VSCommon;
 
 namespace VSGenero.EditorExtensions.Intellisense
 {
@@ -34,10 +35,12 @@ namespace VSGenero.EditorExtensions.Intellisense
 
             _curSession = session;
             _curSession.Dismissed += CurSessionDismissed;
-
+            if (_provider._PublicFunctionProvider != null)
+                _provider._PublicFunctionProvider.SetFilename(_textBuffer.GetFilePath());
             var vars = _textBuffer.CurrentSnapshot.AnalyzeExpression(
                 session.CreateTrackingSpan(_textBuffer),
-                false
+                false,
+                _provider._PublicFunctionProvider
             );
 
             AugmentQuickInfoWorker(vars, quickInfoContent, out applicableToSpan);

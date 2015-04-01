@@ -13,6 +13,8 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using VSGenero.Analysis;
+using Microsoft.VisualStudio.VSCommon;
 
 namespace VSGenero.EditorExtensions.Intellisense
 {
@@ -33,7 +35,7 @@ namespace VSGenero.EditorExtensions.Intellisense
         internal IIncrementalSearchFactoryService _IncrementalSearch = null; // Set via MEF
 
         [Import(AllowDefault = true)]
-        internal IPublicFunctionProvider _PublicFunctionProvider = null;
+        internal IFunctionInformationProvider _PublicFunctionProvider = null;
 
         readonly Dictionary<ITextView, Tuple<BufferParser, GeneroProjectAnalyzer>> _hookedCloseEvents =
             new Dictionary<ITextView, Tuple<BufferParser, GeneroProjectAnalyzer>>();
@@ -50,7 +52,8 @@ namespace VSGenero.EditorExtensions.Intellisense
             if (analyzer != null)
             {
                 var buffer = subjectBuffers[0];
-
+                if(_PublicFunctionProvider != null)
+                    _PublicFunctionProvider.SetFilename(buffer.GetFilePath());
                 foreach (var subjBuf in subjectBuffers)
                 {
                     controller.PropagateAnalyzer(subjBuf);

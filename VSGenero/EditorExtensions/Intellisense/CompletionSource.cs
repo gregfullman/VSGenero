@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
+using Microsoft.VisualStudio.VSCommon;
 
 namespace VSGenero.EditorExtensions.Intellisense
 {
@@ -45,11 +46,13 @@ namespace VSGenero.EditorExtensions.Intellisense
         public void AugmentCompletionSession(ICompletionSession session, IList<CompletionSet> completionSets)
         {
             var textBuffer = _textBuffer;
+            if (_provider._PublicFunctionProvider != null)
+                _provider._PublicFunctionProvider.SetFilename(textBuffer.GetFilePath());
             var span = session.GetApplicableSpan(textBuffer);
             var triggerPoint = session.GetTriggerPoint(textBuffer);
             var options = session.GetOptions();
-            var provider = textBuffer.CurrentSnapshot.GetCompletions(span, triggerPoint, options);
-
+            var provider = textBuffer.CurrentSnapshot.GetCompletions(span, triggerPoint, options, _provider._PublicFunctionProvider);
+            
             var completions = provider.GetCompletions(_provider._glyphService);
 
             if (completions == null || completions.Completions.Count == 0)
