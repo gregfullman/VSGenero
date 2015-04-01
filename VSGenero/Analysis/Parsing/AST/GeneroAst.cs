@@ -35,7 +35,7 @@ namespace VSGenero.Analysis.Parsing.AST
 
             if(_body is ModuleNode)
             {
-                foreach(var import in (_body as ModuleNode).Imports)
+                foreach(var import in (_body as ModuleNode).CExtensionImports)
                 {
                     if(_importedPackages.ContainsKey(import))
                     {

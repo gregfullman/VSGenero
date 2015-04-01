@@ -136,7 +136,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     defNode = new TypeReference();
                     defNode.StartIndex = parser.Token.Span.Start;
                     sb.Append(parser.Token.Token.Value.ToString());
-                    
+
                     // determine if there are any constraints on the type keyword
                     string typeString;
                     if (TypeConstraints.VerifyValidConstraint(parser, out typeString))
@@ -238,7 +238,14 @@ namespace VSGenero.Analysis.Parsing.AST
                 {
                     // try to determine if the _typeNameString is a user defined type, in which case we need to call its GetMembers function
                     IAnalysisResult udt = ast.TryGetUserDefinedType(_typeNameString, LocationIndex);
-                    if(udt != null)
+                    if (udt != null)
+                    {
+                        return udt.GetMembers(ast).Select(x => x.Var).Where(y => y != null);
+                    }
+
+                    // check for package class
+                    udt = ast.GetValueByIndex(_typeNameString, LocationIndex);
+                    if (udt != null)
                     {
                         return udt.GetMembers(ast).Select(x => x.Var).Where(y => y != null);
                     }
@@ -250,26 +257,26 @@ namespace VSGenero.Analysis.Parsing.AST
         public IEnumerable<MemberResult> GetMembers(GeneroAst ast)
         {
             List<MemberResult> members = new List<MemberResult>();
-            if(Children.Count == 1)
+            if (Children.Count == 1)
             {
                 // we have an array type or a record type definition
                 var node = Children[Children.Keys[0]];
-                if(node is ArrayTypeReference)
+                if (node is ArrayTypeReference)
                 {
                     return GeneroAst.ArrayFunctions.Values.Select(x => new MemberResult(x.Name, x, GeneroMemberType.Method, ast));
                 }
-                else if(node is RecordDefinitionNode)
+                else if (node is RecordDefinitionNode)
                 {
                     return (node as RecordDefinitionNode).GetMembers(ast);
                 }
             }
             else
             {
-                if(!string.IsNullOrWhiteSpace(TableName))
+                if (!string.IsNullOrWhiteSpace(TableName))
                 {
                     // TODO: return the table's columns
                 }
-                else if(_typeNameString.Equals("string", StringComparison.OrdinalIgnoreCase))
+                else if (_typeNameString.Equals("string", StringComparison.OrdinalIgnoreCase))
                 {
                     return GeneroAst.StringFunctions.Values.Select(x => new MemberResult(x.Name, x, GeneroMemberType.Method, ast));
                 }
@@ -281,44 +288,60 @@ namespace VSGenero.Analysis.Parsing.AST
                     {
                         return udt.GetMembers(ast);
                     }
+
+                    // check for package class
+                    udt = ast.GetValueByIndex(_typeNameString, LocationIndex);
+                    if (udt != null)
+                    {
+                        return udt.GetMembers(ast);
+                    }
                 }
             }
             return members;
         }
 
 
-        public bool HasChildFunctions
+        public bool HasChildFunctions(GeneroAst ast)
         {
-            get 
-            {  
-                if(Children.Count == 1)
+            if (Children.Count == 1)
+            {
+                var node = Children[Children.Keys[0]];
+                if (node is ArrayTypeReference)
                 {
-                    var node = Children[Children.Keys[0]];
-                    if (node is ArrayTypeReference)
+                    return true;
+                }
+                else if (node is RecordDefinitionNode)
+                {
+                    return (node as RecordDefinitionNode).HasChildFunctions(ast);
+                }
+            }
+            else
+            {
+                if (!string.IsNullOrWhiteSpace(_typeNameString))
+                {
+                    if (_typeNameString.Equals("string", StringComparison.OrdinalIgnoreCase))
                     {
                         return true;
                     }
-                    else if (node is RecordDefinitionNode)
+                    else
                     {
-                        return (node as RecordDefinitionNode).HasChildFunctions;
-                    }
-                }
-                else
-                {
-                    if (!string.IsNullOrWhiteSpace(_typeNameString))
-                    {
-                        if (_typeNameString.Equals("string", StringComparison.OrdinalIgnoreCase))
+                        // try to determine if the _typeNameString is a user defined type
+                        IAnalysisResult udt = ast.TryGetUserDefinedType(_typeNameString, LocationIndex);
+                        if (udt != null)
                         {
-                            return true;
+                            return udt.HasChildFunctions(ast);
                         }
-                        else
+
+                        // check for package class
+                        udt = ast.GetValueByIndex(_typeNameString, LocationIndex);
+                        if(udt != null)
                         {
-                            // TODO: try to determine if the _typeNameString is a user defined type (or package class), in which case we need to call its GetMembers function
+                            return udt.HasChildFunctions(ast);
                         }
                     }
                 }
-                return false;
             }
+            return false;
         }
     }
 }

@@ -50,7 +50,7 @@ namespace VSGenero.Analysis.Parsing.AST
             defNode = null;
             bool result = false;
 
-            if(parser.PeekToken(TokenKind.RecordKeyword))
+            if (parser.PeekToken(TokenKind.RecordKeyword))
             {
                 result = true;
                 defNode = new RecordDefinitionNode();
@@ -60,17 +60,17 @@ namespace VSGenero.Analysis.Parsing.AST
                 {
                     // get db info
                     parser.NextToken();
-                    if(!parser.PeekToken(TokenCategory.Identifier) && parser.PeekToken(TokenKind.Colon, 2))
+                    if (!parser.PeekToken(TokenCategory.Identifier) && parser.PeekToken(TokenKind.Colon, 2))
                     {
                         parser.NextToken(); // advance to the database name
                         defNode.MimicDatabaseName = parser.Token.Token.Value.ToString();
                         parser.NextToken(); // advance to the colon
                     }
-                    if(!parser.PeekToken(TokenCategory.Identifier))
+                    if (!parser.PeekToken(TokenCategory.Identifier))
                     {
                         parser.ReportSyntaxError("Database table name expected.");
                     }
-                    else if(!parser.PeekToken(TokenKind.Dot, 2) && !parser.PeekToken(TokenKind.Multiply))
+                    else if (!parser.PeekToken(TokenKind.Dot, 2) && !parser.PeekToken(TokenKind.Multiply))
                     {
                         parser.ReportSyntaxError("A mimicking record must reference a table as follows: \"[tablename].*\".");
                     }
@@ -85,7 +85,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 else
                 {
                     AttributeSpecifier attribSpec;
-                    if(AttributeSpecifier.TryParseNode(parser, out attribSpec))
+                    if (AttributeSpecifier.TryParseNode(parser, out attribSpec))
                     {
                         defNode.Attribute = attribSpec;
                     }
@@ -96,9 +96,9 @@ namespace VSGenero.Analysis.Parsing.AST
                     {
                         //if (advance)
                         //{
-                        
-                            parser.NextToken();
-                            tok = parser.Token;
+
+                        parser.NextToken();
+                        tok = parser.Token;
                         //}
                         //else
                         //{
@@ -185,12 +185,9 @@ namespace VSGenero.Analysis.Parsing.AST
         }
 
 
-        public bool HasChildFunctions
+        public bool HasChildFunctions(GeneroAst ast)
         {
-            get 
-            {
-                return MemberDictionary.Values.Any(x => x.Type.HasChildFunctions);
-            }
+            return MemberDictionary.Values.Any(x => x.Type.HasChildFunctions(ast));
         }
     }
 }

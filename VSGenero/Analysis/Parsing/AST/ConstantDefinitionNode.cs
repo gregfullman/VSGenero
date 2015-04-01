@@ -239,9 +239,9 @@ namespace VSGenero.Analysis.Parsing.AST
             return null;
         }
 
-        public bool HasChildFunctions
+        public bool HasChildFunctions(GeneroAst ast)
         {
-            get { return false; }
+            return false;
         }
     }
 }

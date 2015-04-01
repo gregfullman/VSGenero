@@ -43,14 +43,36 @@ namespace VSGenero.Analysis.Parsing.AST
             Body
         }
 
-        private List<string> _importedPackages;
-        public List<string> Imports
+        private List<string> _cExtensionImports;
+        public List<string> CExtensionImports
         {
             get
             {
-                if (_importedPackages == null)
-                    _importedPackages = new List<string>();
-                return _importedPackages;
+                if (_cExtensionImports == null)
+                    _cExtensionImports = new List<string>();
+                return _cExtensionImports;
+            }
+        }
+
+        private List<string> _javaImports;
+        public List<string> JavaImports
+        {
+            get
+            {
+                if (_javaImports == null)
+                    _javaImports = new List<string>();
+                return _javaImports;
+            }
+        }
+
+        private List<string> _fglImports;
+        public List<string> FglImports
+        {
+            get
+            {
+                if (_fglImports == null)
+                    _fglImports = new List<string>();
+                return _fglImports;
             }
         }
 
@@ -100,7 +122,11 @@ namespace VSGenero.Analysis.Parsing.AST
                     {
                         defNode.Children.Add(importNode.StartIndex, importNode);
                         if (importNode.ImportType == ImportModuleType.C)
-                            defNode.Imports.Add(importNode.ImportName);
+                            defNode.CExtensionImports.Add(importNode.ImportName);
+                        else if (importNode.ImportType == ImportModuleType.Java)
+                            defNode.JavaImports.Add(importNode.ImportName);
+                        else
+                            defNode.FglImports.Add(importNode.ImportName);
                         continue;
                     }
                     else

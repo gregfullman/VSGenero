@@ -14,7 +14,7 @@ namespace VSGenero.Analysis
         string Name { get; }
         string Documentation { get; }
         int LocationIndex { get; }
-        bool HasChildFunctions { get; }
+        bool HasChildFunctions(GeneroAst ast);
 
         IAnalysisResult GetMember(string name, GeneroAst ast);
         IEnumerable<MemberResult> GetMembers(GeneroAst ast);
@@ -26,7 +26,7 @@ namespace VSGenero.Analysis
 
     public interface IModuleResult : IAnalysisResultContainer
     {
-        List<string> Imports { get; }
+        List<string> CExtensionImports { get; }
         IDictionary<string, IAnalysisResult> Variables { get; }
         IDictionary<string, IAnalysisResult> Types { get; }
         IDictionary<string, IAnalysisResult> Constants { get; }

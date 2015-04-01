@@ -358,9 +358,9 @@ namespace VSGenero.Analysis.Parsing.AST
                                 if (modRes != null)
                                 {
                                     // check global types
-                                    
-                                        if(modRes.GlobalTypes.TryGetValue(typeName, out type))
-                                            return type;
+
+                                    if (modRes.GlobalTypes.TryGetValue(typeName, out type))
+                                        return type;
                                 }
                             }
                         }
@@ -412,8 +412,13 @@ namespace VSGenero.Analysis.Parsing.AST
                         members.AddRange((containingNode as IFunctionResult).Types.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Class, this)));
                     if (consts)
                         members.AddRange((containingNode as IFunctionResult).Constants.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Constant, this)));
-                    if(funcs)
-                        members.AddRange((containingNode as IFunctionResult).Variables.Where(x => x.Value.HasChildFunctions).Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Variable, this)));
+                    if (funcs)
+                    {
+                        foreach (var res in (containingNode as IFunctionResult).Variables.Where(x => x.Value.HasChildFunctions(this))
+                                                                                        .Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Variable, this)))
+                            if (!members.Contains(res))
+                                members.Add(res);
+                    }
                 }
 
                 if (_body is IModuleResult)
@@ -437,8 +442,14 @@ namespace VSGenero.Analysis.Parsing.AST
                     if (funcs)
                     {
                         members.AddRange((_body as IModuleResult).Functions.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Method, this)));
-                        members.AddRange((_body as IModuleResult).Variables.Where(x => x.Value.HasChildFunctions).Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Variable, this)));
-                        members.AddRange((_body as IModuleResult).GlobalVariables.Where(x => x.Value.HasChildFunctions).Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Variable, this)));
+                        foreach (var res in (_body as IModuleResult).Variables.Where(x => x.Value.HasChildFunctions(this))
+                                                                                        .Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Variable, this)))
+                            if (!members.Contains(res))
+                                members.Add(res);
+                        foreach (var res in (_body as IModuleResult).GlobalVariables.Where(x => x.Value.HasChildFunctions(this))
+                                                                                        .Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Variable, this)))
+                            if (!members.Contains(res))
+                                members.Add(res);
                     }
                 }
 
@@ -468,7 +479,10 @@ namespace VSGenero.Analysis.Parsing.AST
                                     if (funcs)
                                     {
                                         members.AddRange(modRes.Functions.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Method, this)));
-                                        members.AddRange(modRes.GlobalVariables.Where(x => x.Value.HasChildFunctions).Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Variable, this)));
+                                        foreach (var res in modRes.GlobalVariables.Where(x => x.Value.HasChildFunctions(this))
+                                                                                        .Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Variable, this)))
+                                            if (!members.Contains(res))
+                                                members.Add(res);
                                     }
                                 }
                             }
@@ -613,7 +627,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         }
                         else
                         {
-                            if (!TryVariableReference(currIndex, revTokenizer, out dummyList, out newIndex))
+                            if (!TryVariableReference(currIndex, revTokenizer, out dummyList, out newIndex) || newIndex < currIndex)
                             {
                                 if (newIndex < currIndex)
                                 {
@@ -2270,7 +2284,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         // we're in a valid state
                         return true;
                     }
-                    else if(results.Count > 0)
+                    else if (results.Count > 0)
                     {
                         return true;
                     }
@@ -2394,6 +2408,22 @@ namespace VSGenero.Analysis.Parsing.AST
                             }
                             else
                             {
+                                // check for a member access
+                                List<MemberResult> memberAccessResults = new List<MemberResult>();
+                                if (TryMemberAccess(index, revTokenizer, out memberAccessResults))
+                                {
+                                    if (currState == LetStatementState.None)
+                                    {
+                                        results.AddRange(memberAccessResults);
+                                        return true;
+                                    }
+                                    else if (currState == LetStatementState.Equals)
+                                    {
+                                        results.AddRange(memberAccessResults);
+                                        return true;
+                                    }
+                                }
+
                                 // we're actually within the variable reference, and should not be returning anything related to the let statement
                                 // TODO: reinvestigate the comment above...I think it would only apply if we were doing the variable reference check by itself
                                 // (not nested in the let statement detection).
@@ -2637,10 +2667,10 @@ namespace VSGenero.Analysis.Parsing.AST
             int dummyIndex;
             List<MemberResult> members = new List<MemberResult>();
 
-            if (TryMemberAccess(index, revTokenizer, out members))
-            {
-                return members;
-            }
+            //if (TryMemberAccess(index, revTokenizer, out members))
+            //{
+            //    return members;
+            //}
 
             // If any type constraint completions come back, we know that a constraint has not been completed, so we bypass searching for other completions
             if (TryTypeConstraintContext(index, revTokenizer, out members, out dummyIndex) && members.Count > 0)
@@ -2663,18 +2693,58 @@ namespace VSGenero.Analysis.Parsing.AST
 
             if (TryDefineDefContext(index, revTokenizer, out members, new List<TokenKind> { TokenKind.PublicKeyword, TokenKind.PrivateKeyword, TokenKind.GlobalsKeyword, TokenKind.FunctionKeyword }))
             {
+                List<MemberResult> memberAccessResults = new List<MemberResult>();
+                if (TryMemberAccess(index, revTokenizer, out memberAccessResults))
+                {
+                    // if there are any GeneroPackageClasses, limit them to only ones that are instance classes
+                    return memberAccessResults.Where(x =>
+                        {
+                            IAnalysisResult tempRes = x.Var;
+                            if (tempRes is GeneroPackageClass)
+                            {
+                                return !(tempRes as GeneroPackageClass).IsStatic;
+                            }
+                            return true;
+                        });
+                }
                 return members;
             }
 
             if (TryLetStatement(index, revTokenizer, out members))
             {
+                List<MemberResult> memberAccessResults = new List<MemberResult>();
+                if (TryMemberAccess(index, revTokenizer, out memberAccessResults))
+                {
+                    // if there are any GeneroPackageClasses, limit them to only ones that are instance classes
+                    return memberAccessResults.Where(x =>
+                    {
+                        IAnalysisResult tempRes = x.Var;
+                        if (tempRes is GeneroPackageClass)
+                        {
+                            return !(tempRes as GeneroPackageClass).IsStatic;
+                        }
+                        return true;
+                    });
+                }
                 return members;
             }
 
-            members.Clear();
-            bool isCallStatement = TryCall(index, revTokenizer, out members);
-            if (isCallStatement)
+            if (TryCall(index, revTokenizer, out members))
             {
+                List<MemberResult> memberAccessResults = new List<MemberResult>();
+                if (TryMemberAccess(index, revTokenizer, out memberAccessResults))
+                {
+                    // if there are any GeneroPackageClasses, limit them to only ones that are instance classes
+                    return memberAccessResults.Where(x =>
+                    {
+                        IAnalysisResult tempRes = x.Var;
+                        if (tempRes is GeneroPackageClass)
+                        {
+                            return !(tempRes as GeneroPackageClass).IsStatic;
+                        }
+                        return true;
+                    });
+                }
                 return members;
             }
 

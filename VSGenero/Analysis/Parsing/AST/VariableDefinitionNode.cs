@@ -62,9 +62,9 @@ namespace VSGenero.Analysis.Parsing.AST
             return Type.GetMembers(ast);
         }
 
-        public bool HasChildFunctions
+        public bool HasChildFunctions(GeneroAst ast)
         {
-            get { return Type.HasChildFunctions; }
+            return Type.HasChildFunctions(ast);
         }
     }
 

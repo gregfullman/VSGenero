@@ -470,9 +470,9 @@ new ParameterResult("width", "", "integer"),
             return null;
         }
 
-        public bool HasChildFunctions
+        public bool HasChildFunctions(GeneroAst ast)
         {
-            get { return false; }
+            return false;
         }
     }
 
@@ -541,9 +541,9 @@ new ParameterResult("width", "", "integer"),
             return null;
         }
 
-        public bool HasChildFunctions
+        public bool HasChildFunctions(GeneroAst ast)
         {
-            get { return false; }
+            return false;
         }
     }
 
@@ -672,9 +672,9 @@ new ParameterResult("width", "", "integer"),
             return null;
         }
 
-        public bool HasChildFunctions
+        public bool HasChildFunctions(GeneroAst ast)
         {
-            get { return false; }
+            return false;
         }
 
         public bool CanOutline
@@ -777,9 +777,9 @@ new ParameterResult("width", "", "integer"),
             return _memberFunctions.Values.Select(x => new MemberResult(x.Name, x, GeneroMemberType.Method, ast));
         }
 
-        public bool HasChildFunctions
+        public bool HasChildFunctions(GeneroAst ast)
         {
-            get { return false; }
+            return false;
         }
     }
 }

@@ -3214,9 +3214,9 @@ namespace VSGenero.Analysis.Parsing.AST
             return _classes.Values.Select(x => new MemberResult(x.Name, x, GeneroMemberType.Class, ast));
         }
 
-        public bool HasChildFunctions
+        public bool HasChildFunctions(GeneroAst ast)
         {
-            get { return true; }
+            return true;
         }
 
         public bool ContainsInstanceMembers
@@ -3292,9 +3292,9 @@ namespace VSGenero.Analysis.Parsing.AST
             return _methods.Values.Select(x => new MemberResult(x.Name, x, GeneroMemberType.Method, ast));
         }
 
-        public bool HasChildFunctions
+        public bool HasChildFunctions(GeneroAst ast)
         {
-            get { return true; }
+            return true;
         }
     }
 
@@ -3426,9 +3426,9 @@ namespace VSGenero.Analysis.Parsing.AST
             return null;
         }
 
-        public bool HasChildFunctions
+        public bool HasChildFunctions(GeneroAst ast)
         {
-            get { return false; }
+            return false;
         }
 
         public bool CanOutline
