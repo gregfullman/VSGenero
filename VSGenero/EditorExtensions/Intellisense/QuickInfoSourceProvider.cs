@@ -17,6 +17,9 @@ namespace VSGenero.EditorExtensions.Intellisense
         [Import(AllowDefault = true)]
         internal IFunctionInformationProvider _PublicFunctionProvider = null;
 
+        [Import(AllowDefault = true)]
+        internal IDatabaseInformationProvider _DatabaseInfoProvider = null;
+
         public IQuickInfoSource TryCreateQuickInfoSource(ITextBuffer textBuffer)
         {
             return new QuickInfoSource(this, textBuffer);

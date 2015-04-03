@@ -244,7 +244,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     }
 
                     // check for package class
-                    udt = ast.GetValueByIndex(_typeNameString, LocationIndex);
+                    udt = ast.GetValueByIndex(_typeNameString, LocationIndex, null, null);
                     if (udt != null)
                     {
                         return udt.GetMembers(ast).Select(x => x.Var).Where(y => y != null);
@@ -290,7 +290,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     }
 
                     // check for package class
-                    udt = ast.GetValueByIndex(_typeNameString, LocationIndex);
+                    udt = ast.GetValueByIndex(_typeNameString, LocationIndex, null, null);
                     if (udt != null)
                     {
                         return udt.GetMembers(ast);
@@ -333,7 +333,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         }
 
                         // check for package class
-                        udt = ast.GetValueByIndex(_typeNameString, LocationIndex);
+                        udt = ast.GetValueByIndex(_typeNameString, LocationIndex, null, null);
                         if(udt != null)
                         {
                             return udt.HasChildFunctions(ast);

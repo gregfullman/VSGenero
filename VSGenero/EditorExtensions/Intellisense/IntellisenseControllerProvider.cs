@@ -37,6 +37,9 @@ namespace VSGenero.EditorExtensions.Intellisense
         [Import(AllowDefault = true)]
         internal IFunctionInformationProvider _PublicFunctionProvider = null;
 
+        [Import(AllowDefault = true)]
+        internal IDatabaseInformationProvider _DatabaseInfoProvider = null;
+
         readonly Dictionary<ITextView, Tuple<BufferParser, GeneroProjectAnalyzer>> _hookedCloseEvents =
             new Dictionary<ITextView, Tuple<BufferParser, GeneroProjectAnalyzer>>();
 
@@ -54,6 +57,8 @@ namespace VSGenero.EditorExtensions.Intellisense
                 var buffer = subjectBuffers[0];
                 if(_PublicFunctionProvider != null)
                     _PublicFunctionProvider.SetFilename(buffer.GetFilePath());
+                if (_DatabaseInfoProvider != null)
+                    _DatabaseInfoProvider.SetFilename(buffer.GetFilePath());
                 foreach (var subjBuf in subjectBuffers)
                 {
                     controller.PropagateAnalyzer(subjBuf);

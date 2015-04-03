@@ -276,7 +276,8 @@ namespace VSGenero.EditorExtensions.Intellisense
         /// Gets a ExpressionAnalysis for the expression at the provided span.  If the span is in
         /// part of an identifier then the expression is extended to complete the identifier.
         /// </summary>
-        internal static ExpressionAnalysis AnalyzeExpression(ITextSnapshot snapshot, ITrackingSpan span, bool forCompletion = true)
+        internal static ExpressionAnalysis AnalyzeExpression(ITextSnapshot snapshot, ITrackingSpan span, IFunctionInformationProvider functionProvider, 
+                                                             IDatabaseInformationProvider databaseProvider, bool forCompletion = true)
         {
             var buffer = snapshot.TextBuffer;
             Genero4glReverseParser parser = new Genero4glReverseParser(snapshot, buffer, span);
@@ -310,7 +311,9 @@ namespace VSGenero.EditorExtensions.Intellisense
                         analysis,
                         loc.Start,
                         applicableSpan,
-                        parser.Snapshot);
+                        parser.Snapshot,
+                        functionProvider,
+                        databaseProvider);
                 }
             }
 
@@ -320,9 +323,10 @@ namespace VSGenero.EditorExtensions.Intellisense
         /// <summary>
         /// Gets a CompletionList providing a list of possible members the user can dot through.
         /// </summary>
-        internal static CompletionAnalysis GetCompletions(ITextSnapshot snapshot, ITrackingSpan span, ITrackingPoint point, CompletionOptions options)
+        internal static CompletionAnalysis GetCompletions(ITextSnapshot snapshot, ITrackingSpan span, ITrackingPoint point, CompletionOptions options,
+                                                          IFunctionInformationProvider functionProvider, IDatabaseInformationProvider databaseProvider)
         {
-            return TrySpecialCompletions(snapshot, span, point, options); /*??
+            return TrySpecialCompletions(snapshot, span, point, options, functionProvider, databaseProvider); /*??
                    GetNormalCompletionContext(snapshot, span, point, options)*/
         }
 
@@ -693,7 +697,8 @@ namespace VSGenero.EditorExtensions.Intellisense
             return snapshot.CreateTrackingSpan(newSpan, SpanTrackingMode.EdgeInclusive);
         }
 
-        private static CompletionAnalysis TrySpecialCompletions(ITextSnapshot snapshot, ITrackingSpan span, ITrackingPoint point, CompletionOptions options)
+        private static CompletionAnalysis TrySpecialCompletions(ITextSnapshot snapshot, ITrackingSpan span, ITrackingPoint point, CompletionOptions options,
+                                                                IFunctionInformationProvider functionProvider, IDatabaseInformationProvider databaseProvider)
         {
             var snapSpan = span.GetSpan(snapshot);
             var buffer = snapshot.TextBuffer;
@@ -750,7 +755,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             var entry = (IGeneroProjectEntry)buffer.GetAnalysis();
             if (entry != null)
             {
-                var members = entry.Analysis.GetContextMembersByIndex(start, parser);
+                var members = entry.Analysis.GetContextMembersByIndex(start, parser, functionProvider, databaseProvider);
                 if (members != null)
                 {
                     return new ContextSensitiveCompletionAnalysis(members, span, buffer, options);

@@ -39,6 +39,9 @@ namespace VSGenero.Analysis.Parsing.AST
         /// </summary>
         Keyword,
 
-        Variable
+        Variable,
+
+        DbTable,
+        DbColumn
     }
 }

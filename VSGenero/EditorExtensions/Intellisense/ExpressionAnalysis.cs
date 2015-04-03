@@ -20,9 +20,12 @@ namespace VSGenero.EditorExtensions.Intellisense
         private readonly int _index;
         private readonly GeneroProjectAnalyzer _analyzer;
         private readonly ITextSnapshot _snapshot;
-        public static readonly ExpressionAnalysis Empty = new ExpressionAnalysis(null, "", null, 0, null, null);
+        private readonly IFunctionInformationProvider _functionProvider;
+        private readonly IDatabaseInformationProvider _databaseProvider;
+        public static readonly ExpressionAnalysis Empty = new ExpressionAnalysis(null, "", null, 0, null, null, null, null);
 
-        internal ExpressionAnalysis(GeneroProjectAnalyzer analyzer, string expression, GeneroAst analysis, int index, ITrackingSpan span, ITextSnapshot snapshot)
+        internal ExpressionAnalysis(GeneroProjectAnalyzer analyzer, string expression, GeneroAst analysis, int index, ITrackingSpan span, ITextSnapshot snapshot,
+                                    IFunctionInformationProvider functionProvider, IDatabaseInformationProvider databaseProvider)
         {
             _expr = expression;
             _analysis = analysis;
@@ -30,6 +33,8 @@ namespace VSGenero.EditorExtensions.Intellisense
             _span = span;
             _analyzer = analyzer;
             _snapshot = snapshot;
+            _functionProvider = functionProvider;
+            _databaseProvider = databaseProvider;
         }
 
         /// <summary>
@@ -65,7 +70,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                 {
                     lock (_analyzer)
                     {
-                        return _analysis.GetVariablesByIndex(_expr, TranslatedIndex);
+                        return _analysis.GetVariablesByIndex(_expr, TranslatedIndex, _functionProvider, _databaseProvider);
                     }
                 }
                 return new IAnalysisVariable[0];
@@ -85,7 +90,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                 {
                     lock (_analyzer)
                     {
-                        return _analysis.GetValueByIndex(_expr, TranslatedIndex);
+                        return _analysis.GetValueByIndex(_expr, TranslatedIndex, _functionProvider, _databaseProvider);
                     }
                 }
                 return null;

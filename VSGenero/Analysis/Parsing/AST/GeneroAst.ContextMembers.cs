@@ -300,10 +300,21 @@ namespace VSGenero.Analysis.Parsing.AST
 
         #region Member Provider Helpers
 
+        private IFunctionInformationProvider _functionProvider;
+        private IDatabaseInformationProvider _databaseProvider;
 
         private IEnumerable<MemberResult> GetAdditionalUserDefinedTypes(int index)
         {
             return GetDefinedMembers(index, false, false, true, false);
+        }
+
+        private IEnumerable<MemberResult> GetDatabaseTables(int index)
+        {
+            if (_databaseProvider != null)
+            {
+                return _databaseProvider.GetTables().Select(x => new MemberResult(x.Name, x, GeneroMemberType.DbTable, this));
+            }
+            return new List<MemberResult>();
         }
 
         internal IAnalysisResult TryGetUserDefinedType(string typeName, int index)
@@ -489,6 +500,11 @@ namespace VSGenero.Analysis.Parsing.AST
                             }
                         }
                     }
+                }
+
+                if(_functionProvider != null)
+                {
+                    members.Add(new MemberResult(_functionProvider.Name, GeneroMemberType.Class, this));
                 }
             }
 
@@ -741,7 +757,7 @@ namespace VSGenero.Analysis.Parsing.AST
                             // now we need to analyze the variable reference to get its members
                             string var = sb.ToString();
 
-                            var analysisRes = GetValueByIndex(var, index);
+                            var analysisRes = GetValueByIndex(var, index, null, null); // TODO: need to use the current providers
                             results.AddRange(analysisRes.GetMembers(this));
 
                             return true;
@@ -2656,10 +2672,14 @@ namespace VSGenero.Analysis.Parsing.AST
 
         #region Public Member Providers
 
-        public IEnumerable<MemberResult> GetContextMembersByIndex(int index, IReverseTokenizer revTokenizer, GetMemberOptions options = GetMemberOptions.IntersectMultipleResults)
+        public IEnumerable<MemberResult> GetContextMembersByIndex(int index, IReverseTokenizer revTokenizer, IFunctionInformationProvider functionProvider,
+                                                                  IDatabaseInformationProvider databaseProvider, GetMemberOptions options = GetMemberOptions.IntersectMultipleResults)
         {
+            _functionProvider = functionProvider;
+            _databaseProvider = databaseProvider;
+
             // set up the static providers
-            SetMemberProviders(GetAdditionalUserDefinedTypes, null);
+            SetMemberProviders(GetAdditionalUserDefinedTypes, GetDatabaseTables);
 
             /**********************************************************************************************************************************
              * Using the specified index, we can attempt to determine what our scope is. Then, using the reverse tokenizer, we can attempt to

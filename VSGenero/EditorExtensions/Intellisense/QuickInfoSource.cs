@@ -37,10 +37,13 @@ namespace VSGenero.EditorExtensions.Intellisense
             _curSession.Dismissed += CurSessionDismissed;
             if (_provider._PublicFunctionProvider != null)
                 _provider._PublicFunctionProvider.SetFilename(_textBuffer.GetFilePath());
+            if (_provider._DatabaseInfoProvider != null)
+                _provider._DatabaseInfoProvider.SetFilename(_textBuffer.GetFilePath());
             var vars = _textBuffer.CurrentSnapshot.AnalyzeExpression(
                 session.CreateTrackingSpan(_textBuffer),
                 false,
-                _provider._PublicFunctionProvider
+                _provider._PublicFunctionProvider,
+                _provider._DatabaseInfoProvider
             );
 
             AugmentQuickInfoWorker(vars, quickInfoContent, out applicableToSpan);

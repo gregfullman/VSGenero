@@ -50,8 +50,8 @@ namespace VSGenero.EditorExtensions
         internal static ExpressionAnalysis GetExpressionAnalysis(this ITextView view)
         {
             ITrackingSpan span = GetCaretSpan(view);
-            // TODO: get the function provider from EditFilter class.
-            return span.TextBuffer.CurrentSnapshot.AnalyzeExpression(span, false, null);
+            // TODO: get the function provider and database provider from EditFilter class.
+            return span.TextBuffer.CurrentSnapshot.AnalyzeExpression(span, false, null, null);
         }
 
         internal static ITrackingSpan GetCaretSpan(this ITextView view)
@@ -305,9 +305,10 @@ namespace VSGenero.EditorExtensions
         /// <summary>
         /// Gets a CompletionAnalysis providing a list of possible members the user can dot through.
         /// </summary>
-        public static CompletionAnalysis GetCompletions(this ITextSnapshot snapshot, ITrackingSpan span, ITrackingPoint point, CompletionOptions options, IFunctionInformationProvider functionProvider)
+        public static CompletionAnalysis GetCompletions(this ITextSnapshot snapshot, ITrackingSpan span, ITrackingPoint point, CompletionOptions options, 
+                                                        IFunctionInformationProvider functionProvider, IDatabaseInformationProvider databaseProvider)
         {
-            return GeneroProjectAnalyzer.GetCompletions(snapshot, span, point, options);
+            return GeneroProjectAnalyzer.GetCompletions(snapshot, span, point, options, functionProvider, databaseProvider);
         }
 
         /// <summary>
@@ -322,9 +323,10 @@ namespace VSGenero.EditorExtensions
         /// Gets a ExpressionAnalysis for the expression at the provided span.  If the span is in
         /// part of an identifier then the expression is extended to complete the identifier.
         /// </summary>
-        public static ExpressionAnalysis AnalyzeExpression(this ITextSnapshot snapshot, ITrackingSpan span, bool forCompletion, IFunctionInformationProvider functionProvider)
+        public static ExpressionAnalysis AnalyzeExpression(this ITextSnapshot snapshot, ITrackingSpan span, bool forCompletion, 
+                                                           IFunctionInformationProvider functionProvider, IDatabaseInformationProvider databaseProvider)
         {
-            return GeneroProjectAnalyzer.AnalyzeExpression(snapshot, span, forCompletion);
+            return GeneroProjectAnalyzer.AnalyzeExpression(snapshot, span, functionProvider, databaseProvider, forCompletion);
         }
 
         internal static GeneroProjectAnalyzer GetAnalyzer(this ITextView textView)
@@ -355,6 +357,8 @@ namespace VSGenero.EditorExtensions
                 case GeneroMemberType.Constant: group = StandardGlyphGroup.GlyphGroupVariable; break;
                 case GeneroMemberType.Keyword: group = StandardGlyphGroup.GlyphKeyword; break;
                 case GeneroMemberType.Variable: group = StandardGlyphGroup.GlyphGroupVariable; break;
+                case GeneroMemberType.DbTable: group = StandardGlyphGroup.GlyphGroupMap; break;
+                case GeneroMemberType.DbColumn: group = StandardGlyphGroup.GlyphGroupMapItem; break;
                 case GeneroMemberType.Function:
                 case GeneroMemberType.Method:
                 default:

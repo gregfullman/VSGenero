@@ -223,7 +223,7 @@ namespace VSGenero.Analysis.Parsing.AST
             }
 
             // Check for class methods
-            IAnalysisResult member = GetValueByIndex(exprText, index);
+            IAnalysisResult member = GetValueByIndex(exprText, index, null, null);
             if(member is IFunctionResult)
             {
                 return new IFunctionResult[1] { member as IFunctionResult };
@@ -238,8 +238,11 @@ namespace VSGenero.Analysis.Parsing.AST
         /// </summary>
         /// <param name="exprText">The expression to determine the result of.</param>
         /// <param name="index">The 0-based absolute index into the file where the expression should be evaluated within the module.</param>
-        public IAnalysisResult GetValueByIndex(string exprText, int index)
+        public IAnalysisResult GetValueByIndex(string exprText, int index, IFunctionInformationProvider functionProvider, IDatabaseInformationProvider databaseProvider)
         {
+            _functionProvider = functionProvider;
+            _databaseProvider = databaseProvider;
+
             // do a binary search to determine what node we're in
             List<int> keys = _body.Children.Select(x => x.Key).ToList();
             int searchIndex = keys.BinarySearch(index);
@@ -428,8 +431,11 @@ namespace VSGenero.Analysis.Parsing.AST
         /// 
         /// index is a 0-based absolute index into the file.
         /// </summary>
-        public IEnumerable<IAnalysisVariable> GetVariablesByIndex(string exprText, int index)
+        public IEnumerable<IAnalysisVariable> GetVariablesByIndex(string exprText, int index, IFunctionInformationProvider functionProvider, IDatabaseInformationProvider databaseProvider)
         {
+            _functionProvider = functionProvider;
+            _databaseProvider = databaseProvider;
+
             List<IAnalysisVariable> vars = new List<IAnalysisVariable>();
 
             // do a binary search to determine what node we're in
