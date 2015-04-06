@@ -33,11 +33,11 @@ namespace VSGenero.Analysis.Parsing.AST
             InitializeImportedPackages();   // for this instance
             InitializePackages();
 
-            if(_body is ModuleNode)
+            if (_body is ModuleNode)
             {
-                foreach(var import in (_body as ModuleNode).CExtensionImports)
+                foreach (var import in (_body as ModuleNode).CExtensionImports)
                 {
-                    if(_importedPackages.ContainsKey(import))
+                    if (_importedPackages.ContainsKey(import))
                     {
                         _importedPackages[import] = true;
                     }
@@ -224,7 +224,7 @@ namespace VSGenero.Analysis.Parsing.AST
 
             // Check for class methods
             IAnalysisResult member = GetValueByIndex(exprText, index, null, null);
-            if(member is IFunctionResult)
+            if (member is IFunctionResult)
             {
                 return new IFunctionResult[1] { member as IFunctionResult };
             }
@@ -263,8 +263,7 @@ namespace VSGenero.Analysis.Parsing.AST
 
             if (containingNode != null)
             {
-                //foreach (var dotPiece in dottedPieces)
-                for (int i = 0; i < dottedPieces.Length; i++ )
+                for (int i = 0; i < dottedPieces.Length; i++)
                 {
                     string dotPiece = dottedPieces[i];
                     int leftBrackIndex = dotPiece.IndexOf('[');
@@ -277,21 +276,21 @@ namespace VSGenero.Analysis.Parsing.AST
                     {
                         // TODO: we need to extract a member from it. Use the IAnalysisResult.GetMember API
                         IAnalysisResult tempRes = res.GetMember(dotPiece, this);
-                        if(tempRes != null)
+                        if (tempRes != null)
                         {
                             res = tempRes;
                         }
                     }
                     else
                     {
-                        if(SystemVariables.TryGetValue(dotPiece, out res) ||
+                        if (SystemVariables.TryGetValue(dotPiece, out res) ||
                            SystemConstants.TryGetValue(dotPiece, out res))
                         {
                             continue;
                         }
 
                         IFunctionResult funcRes;
-                        if(SystemFunctions.TryGetValue(dotPiece, out funcRes))
+                        if (SystemFunctions.TryGetValue(dotPiece, out funcRes))
                         {
                             continue;
                         }
@@ -413,8 +412,82 @@ namespace VSGenero.Analysis.Parsing.AST
                          * Need to check for:
                          * 1) Temp tables
                          * 2) DB Tables and columns
-                         * 3) Record fields
                          */
+
+                        // Nothing found yet...
+                        // If our containing node is at the function or globals level, we need to go deeper
+                        if(containingNode is GlobalsNode ||
+                           containingNode is FunctionBlockNode ||
+                           containingNode is ReportBlockNode)
+                        {
+                            keys = containingNode.Children.Select(x => x.Key).ToList();
+                            searchIndex = keys.BinarySearch(index);
+                            if (searchIndex < 0)
+                            {
+                                searchIndex = ~searchIndex;
+                                if (searchIndex > 0)
+                                    searchIndex--;
+                            }
+                            key = keys[searchIndex];
+                            containingNode = containingNode.Children[key];
+                        }
+                        // check for record field
+                        if (containingNode is DefineNode ||
+                            containingNode is TypeDefNode)
+                        {
+                            keys = containingNode.Children.Select(x => x.Key).ToList();
+                            searchIndex = keys.BinarySearch(index);
+                            if (searchIndex < 0)
+                            {
+                                searchIndex = ~searchIndex;
+                                if (searchIndex > 0)
+                                    searchIndex--;
+                            }
+                            key = keys[searchIndex];
+                            containingNode = containingNode.Children[key];
+
+                            if (containingNode != null &&
+                                (containingNode is VariableDefinitionNode ||
+                                containingNode is TypeDefinitionNode) &&
+                                containingNode.Children.Count == 1 &&
+                                containingNode.Children[containingNode.Children.Keys[0]] is TypeReference)
+                            {
+                                var typeRef = containingNode.Children[containingNode.Children.Keys[0]] as TypeReference;
+                                while (typeRef != null &&
+                                       typeRef.Children.Count == 1)
+                                {
+                                    if (typeRef.Children[typeRef.Children.Keys[0]] is RecordDefinitionNode)
+                                    {
+                                        var recNode = typeRef.Children[typeRef.Children.Keys[0]] as RecordDefinitionNode;
+                                        VariableDef recField;
+                                        if (recNode.MemberDictionary.TryGetValue(exprText, out recField))
+                                        {
+                                            res = recField;
+                                            break;
+                                        }
+                                        else
+                                        {
+                                            recField = recNode.MemberDictionary.Where(x => x.Value.LocationIndex < index)
+                                                                               .OrderByDescending(x => x.Value.LocationIndex)
+                                                                               .Select(x => x.Value)
+                                                                               .FirstOrDefault();
+                                            if(recField != null)
+                                            {
+                                                typeRef = recField.Type;
+                                            }
+                                        }
+                                    }
+                                    else if(typeRef.Children[typeRef.Children.Keys[0]] is TypeReference)
+                                    {
+                                        typeRef = typeRef.Children[typeRef.Children.Keys[0]] as TypeReference;
+                                    }
+                                    else
+                                    {
+                                        break;
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
