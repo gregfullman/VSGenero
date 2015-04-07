@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.VisualStudio.Utilities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -45,6 +46,7 @@ namespace VSGenero.Analysis
         IDictionary<string, IAnalysisResult> Variables { get; }
         IDictionary<string, IAnalysisResult> Types { get; }
         IDictionary<string, IAnalysisResult> Constants { get; }
+        string CompletionParentName { get; }
     }
 
     public interface IOutlinableResult

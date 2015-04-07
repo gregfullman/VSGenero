@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.VisualStudio.Utilities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -3475,6 +3476,11 @@ namespace VSGenero.Analysis.Parsing.AST
             set
             {
             }
+        }
+
+        public string CompletionParentName
+        {
+            get { return null; }
         }
     }
 }

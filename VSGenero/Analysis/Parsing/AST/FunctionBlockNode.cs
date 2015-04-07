@@ -1,4 +1,5 @@
 ﻿using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -443,6 +444,11 @@ namespace VSGenero.Analysis.Parsing.AST
         public bool HasChildFunctions(GeneroAst ast)
         {
             return false;
+        }
+
+        public string CompletionParentName
+        {
+            get { return null; }
         }
     }
 }

@@ -14,18 +14,21 @@ namespace VSGenero.EditorExtensions.Intellisense
     internal class TestFunctionProvider : IFunctionInformationProvider
     {
         private readonly Dictionary<string, TestFunctionCollection> _collections;
+        private readonly Dictionary<string, string> _reverseMap;
 
         internal TestFunctionProvider()
         {
             _collections = new Dictionary<string, TestFunctionCollection>(StringComparer.OrdinalIgnoreCase);
-            _collections.Add("TestModule", new TestFunctionCollection("TestModule", new List<TestFunction>
-                {
-                    new TestFunction("Function1", "The first test function", new List<ParameterResult>()),
-                    new TestFunction("Function2", "The second test function", new List<ParameterResult>
+            _reverseMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            var list = new List<TestFunction>();
+            list.Add(new TestFunction("Function1", string.Format("{0}.{1}.", Name, "TestModule"), "The first test function", new List<ParameterResult>()));
+            list.Add(new TestFunction("Function2", string.Format("{0}.{1}.", Name, "TestModule"), "The second test function", new List<ParameterResult>
                         {
                             new ParameterResult("param1", "The first param", "boolean")
-                        }),
-                }));
+                        }));
+            foreach(var item in list)
+                _reverseMap.Add(item.Name, "TestModule");
+            _collections.Add("TestModule", new TestFunctionCollection("TestModule", list));
         }
 
         public string Name
@@ -40,6 +43,11 @@ namespace VSGenero.EditorExtensions.Intellisense
 
         public IFunctionResult GetFunction(string functionName)
         {
+            string moduleName = null;
+            if(_reverseMap.TryGetValue(functionName, out moduleName))
+            {
+                return _collections[moduleName].GetFunction(functionName);
+            }
             return null;
         }
 
@@ -128,24 +136,30 @@ namespace VSGenero.EditorExtensions.Intellisense
 
         public IAnalysisResult GetMember(string name, GeneroAst ast)
         {
-            TestFunction func = null;
-            _functions.TryGetValue(name, out func);
-            return func;
+            return GetFunction(name);
         }
 
         public IEnumerable<MemberResult> GetMembers(GeneroAst ast)
         {
             return _functions.Values.Select(x => new MemberResult(x.Name, x, GeneroMemberType.Method, ast));
         }
+
+        internal TestFunction GetFunction(string name)
+        {
+            TestFunction func = null;
+            _functions.TryGetValue(name, out func);
+            return func;
+        }
     }
 
     internal class TestFunction : IFunctionResult
     {
-        internal TestFunction(string name, string desc, List<ParameterResult> parameters)
+        internal TestFunction(string name, string completionParentName, string desc, List<ParameterResult> parameters)
         {
             _parameters = parameters.ToArray();
             _name = name;
             _desc = desc;
+            _completionParentName = completionParentName;
         }
 
         private readonly ParameterResult[] _parameters;
@@ -259,6 +273,12 @@ namespace VSGenero.EditorExtensions.Intellisense
             set
             {
             }
+        }
+
+        private readonly string _completionParentName;
+        public string CompletionParentName
+        {
+            get { return _completionParentName; }
         }
     }
 }

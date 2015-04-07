@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.VisualStudio.Utilities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -713,6 +714,11 @@ new ParameterResult("width", "", "integer"),
             set
             {
             }
+        }
+
+        public string CompletionParentName
+        {
+            get { return null; }
         }
     }
 

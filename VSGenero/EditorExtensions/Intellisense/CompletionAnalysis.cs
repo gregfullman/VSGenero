@@ -17,6 +17,7 @@ namespace VSGenero.EditorExtensions.Intellisense
     /// </summary>
     public class CompletionAnalysis
     {
+        internal const string CompletionParentPropertyName = "CompletionParentName";
         private readonly ITrackingSpan _span;
         private readonly ITextBuffer _textBuffer;
         internal readonly CompletionOptions _options;
@@ -60,12 +61,20 @@ namespace VSGenero.EditorExtensions.Intellisense
 
         internal static DynamicallyVisibleCompletion GeneroCompletion(IGlyphService service, MemberResult memberResult)
         {
-            return new DynamicallyVisibleCompletion(memberResult.Name,
+            var compl =  new DynamicallyVisibleCompletion(memberResult.Name,
                 memberResult.Completion,
                 () => memberResult.Documentation,
                 () => service.GetGlyph(memberResult.MemberType.ToGlyphGroup(), StandardGlyphItem.GlyphItemPublic),
                 Enum.GetName(typeof(GeneroMemberType), memberResult.MemberType)
             );
+
+            // Handle case where we can provide pseudo-class completions for functions
+            var resVar = memberResult.Var;
+            if(resVar is IFunctionResult && !string.IsNullOrWhiteSpace((resVar as IFunctionResult).CompletionParentName))
+            {
+                compl.Properties.AddProperty(CompletionParentPropertyName, (resVar as IFunctionResult).CompletionParentName);
+            }
+            return compl;
         }
 
         internal GeneroAst GetAnalysisEntry()

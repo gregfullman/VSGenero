@@ -466,7 +466,9 @@ namespace VSGenero.EditorExtensions.Intellisense
                     (set = _activeSession.CompletionSets[0] as FuzzyCompletionSet) != null &&
                     set.SelectSingleBest())
                 {
+                    var parentSpan = GetCompletionParentSpan();
                     _activeSession.Commit();
+                    RemoveParentSpan(parentSpan);
                     _activeSession = null;
                 }
                 else
@@ -586,6 +588,55 @@ namespace VSGenero.EditorExtensions.Intellisense
             }
         }
 
+        private Span? GetCompletionParentSpan()
+        {
+            Span? retSpan = null;
+            if(_activeSession != null &&
+               _activeSession.SelectedCompletionSet != null &&
+               _activeSession.SelectedCompletionSet.SelectionStatus != null)
+            {
+                var compl = _activeSession.SelectedCompletionSet.SelectionStatus.Completion;
+                string complParentName;
+                if(compl.Properties.TryGetProperty<string>(CompletionAnalysis.CompletionParentPropertyName, out complParentName))
+                {
+                    var srcSpan = GetPrecedingExpression();
+                    if (srcSpan.HasValue && srcSpan.Value.Length > 0)
+                    {
+                        string expr = srcSpan.Value.GetText();
+                        if (complParentName.Equals(expr, StringComparison.OrdinalIgnoreCase))
+                        {
+                            // remove the span from the textview
+                            retSpan = srcSpan.Value.Span;
+                        }
+                    }
+                }
+            }
+            return retSpan;
+        }
+
+        private void RemoveParentSpan(Span? span)
+        {
+            if(span.HasValue && span.Value.Length > 0)
+            {
+                var edit = _textView.TextBuffer.CreateEdit();
+                if(edit != null)
+                {
+                    if(edit.Delete(span.Value))
+                    {
+                        edit.Apply();
+                    }
+                }
+            }
+        }
+
+        private SnapshotSpan? GetPrecedingExpression()
+        {
+            var span = _activeSession.GetApplicableSpan(_textView.TextBuffer);
+            var startSpan = _textView.TextSnapshot.CreateTrackingSpan(span.GetSpan(_textView.TextSnapshot).Start.Position, 0, SpanTrackingMode.EdgeInclusive);
+            var parser = new Genero4glReverseParser(_textView.TextSnapshot, _textView.TextBuffer, startSpan);
+            return parser.GetExpressionRange();
+        }
+
         public int Exec(ref Guid pguidCmdGroup, uint nCmdID, uint nCmdexecopt, IntPtr pvaIn, IntPtr pvaOut)
         {
             if (pguidCmdGroup == VSConstants.VSStd2K && nCmdID == (int)VSConstants.VSStd2KCmdID.TYPECHAR)
@@ -598,7 +649,9 @@ namespace VSGenero.EditorExtensions.Intellisense
                         (VSGeneroPackage.Instance.IntellisenseOptions4GLPage.CompletionCommittedBy.IndexOf(ch) != -1 ||
                          (ch == ' ' && VSGeneroPackage.Instance.IntellisenseOptions4GLPage.SpaceCommitsIntellisense)))
                     {
+                        var parentSpan = GetCompletionParentSpan();
                         _activeSession.Commit();
+                        RemoveParentSpan(parentSpan);
                     }
                     else if (!IsIdentifierChar(ch))
                     {
@@ -638,8 +691,11 @@ namespace VSGenero.EditorExtensions.Intellisense
                                 bool enterOnComplete = VSGeneroPackage.Instance.IntellisenseOptions4GLPage.AddNewLineAtEndOfFullyTypedWord &&
                                          EnterOnCompleteText();
 
+                                var parentSpan = GetCompletionParentSpan();
                                 _activeSession.Commit();
+                                RemoveParentSpan(parentSpan);
 
+                                
                                 if (!enterOnComplete)
                                 {
                                     return VSConstants.S_OK;
@@ -653,7 +709,9 @@ namespace VSGenero.EditorExtensions.Intellisense
                         case VSConstants.VSStd2KCmdID.TAB:
                             if (!_activeSession.IsDismissed)
                             {
+                                var parentSpan = GetCompletionParentSpan();
                                 _activeSession.Commit();
+                                RemoveParentSpan(parentSpan);
                                 return VSConstants.S_OK;
                             }
                             break;

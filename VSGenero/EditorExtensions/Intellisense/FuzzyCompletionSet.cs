@@ -69,6 +69,7 @@ namespace VSGenero.EditorExtensions.Intellisense
         {
             _lazyDescriptionSource = lazyDescriptionSource;
             _lazyIconSource = lazyIconSource;
+            
         }
 
         /// <summary>

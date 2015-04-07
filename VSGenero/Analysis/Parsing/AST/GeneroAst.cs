@@ -231,6 +231,13 @@ namespace VSGenero.Analysis.Parsing.AST
                 return new IFunctionResult[1] { member as IFunctionResult };
             }
 
+            // check for the function name in the function provider
+            var func = _functionProvider.GetFunction(exprText);
+            if(func != null)
+            {
+                return new IFunctionResult[1] { func };
+            }
+
             return null;
         }
 
@@ -482,6 +489,14 @@ namespace VSGenero.Analysis.Parsing.AST
                                     }
                                 }
                             }
+                        }
+
+                        // check for the function name in the function provider
+                        // check for the function name in the function provider
+                        res = _functionProvider.GetFunction(exprText);
+                        if (res != null)
+                        {
+                            continue;
                         }
                     }
                 }
