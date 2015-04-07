@@ -74,7 +74,7 @@ namespace VSGeneroUnitTesting.Utilities
         {
             foreach (var contextMethod in element.XPathSelectElements("gns:Function", _nsManager))
             {
-                sb.AppendFormat("SystemFunctions.Add(\"{0}\", new BuiltinFunction(\"{0}\", new List<ParameterResult>\n{{", (string)contextMethod.Attribute("name"));
+                sb.AppendFormat("_systemFunctions.Add(\"{0}\", new BuiltinFunction(\"{0}\", new List<ParameterResult>\n{{", (string)contextMethod.Attribute("name"));
                 foreach (var paramElement in contextMethod.XPathSelectElement("gns:Parameters", _nsManager)
                                                           .XPathSelectElements("gns:Parameter", _nsManager))
                 {
@@ -94,7 +94,7 @@ namespace VSGeneroUnitTesting.Utilities
         {
             foreach (var contextMethod in element.XPathSelectElements("gns:Function", _nsManager))
             {
-                sb.AppendFormat("ArrayFunctions.Add(\"{0}\", new BuiltinFunction(\"{0}\", new List<ParameterResult>\n{{", (string)contextMethod.Attribute("name"));
+                sb.AppendFormat("_arrayFunctions.Add(\"{0}\", new BuiltinFunction(\"{0}\", new List<ParameterResult>\n{{", (string)contextMethod.Attribute("name"));
                 foreach (var paramElement in contextMethod.XPathSelectElement("gns:Parameters", _nsManager)
                                                           .XPathSelectElements("gns:Parameter", _nsManager))
                 {
@@ -114,7 +114,7 @@ namespace VSGeneroUnitTesting.Utilities
         {
             foreach (var contextMethod in element.XPathSelectElements("gns:Function", _nsManager))
             {
-                sb.AppendFormat("StringFunctions.Add(\"{0}\", new BuiltinFunction(\"{0}\", new List<ParameterResult>\n{{", (string)contextMethod.Attribute("name"));
+                sb.AppendFormat("_stringFunctions.Add(\"{0}\", new BuiltinFunction(\"{0}\", new List<ParameterResult>\n{{", (string)contextMethod.Attribute("name"));
                 foreach (var paramElement in contextMethod.XPathSelectElement("gns:Parameters", _nsManager)
                                                           .XPathSelectElements("gns:Parameter", _nsManager))
                 {
