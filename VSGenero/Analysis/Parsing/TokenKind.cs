@@ -486,7 +486,7 @@ namespace VSGenero.Analysis.Parsing
             {
                 if(_keywords == null)
                 {
-                    return new Dictionary<string, TokenKind>();
+                    InitializeTokens();
                 }
                 return _keywords;
             }
@@ -498,16 +498,17 @@ namespace VSGenero.Analysis.Parsing
             get
             {
                 if (_tokenKinds == null)
-                    return new Dictionary<TokenKind, string>();
+                {
+                    InitializeTokens();
+                }
                 return _tokenKinds;
             }
         }
 
         private static object _tokLock = new object();
 
-        public static Token GetToken(string possibleKeyword)
+        private static void InitializeTokens()
         {
-            Token tok = null;
             lock (_tokLock)
             {
                 if (_keywords == null)
@@ -536,6 +537,12 @@ namespace VSGenero.Analysis.Parsing
                     }
                 }
             }
+        }
+
+        public static Token GetToken(string possibleKeyword)
+        {
+            Token tok = null;
+            InitializeTokens();
             TokenKind tryKind;
             if (_keywords.TryGetValue(possibleKeyword, out tryKind))
             {

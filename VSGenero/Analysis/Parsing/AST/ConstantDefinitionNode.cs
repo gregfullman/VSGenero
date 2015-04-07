@@ -180,6 +180,16 @@ namespace VSGenero.Analysis.Parsing.AST
                         else
                             parser.ReportSyntaxError("Interval constant found with an invalid expression.");
                     }
+                    else
+                    {
+                        // look for the constant in the system constants
+                        var tok = parser.PeekToken();
+                        if(GeneroAst.SystemConstants.ContainsKey(tok.Value.ToString()))
+                        {
+                            parser.NextToken();
+                            defNode.Literal = parser.Token.Token.Value.ToString();
+                        }
+                    }
                 }
             }
             return result;

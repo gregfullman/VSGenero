@@ -233,7 +233,7 @@ namespace VSGenero.Analysis.Parsing.AST
 
             // check for the function name in the function provider
             var func = _functionProvider.GetFunction(exprText);
-            if(func != null)
+            if (func != null)
             {
                 return new IFunctionResult[1] { func };
             }
@@ -252,246 +252,254 @@ namespace VSGenero.Analysis.Parsing.AST
             _functionProvider = functionProvider;
             _databaseProvider = databaseProvider;
 
-            // do a binary search to determine what node we're in
-            List<int> keys = _body.Children.Select(x => x.Key).ToList();
-            int searchIndex = keys.BinarySearch(index);
-            if (searchIndex < 0)
+            AstNode containingNode = null;
+            List<int> keys = null;
+            int searchIndex = -1;
+            int key = -1;
+            if (_body.Children.Count > 0)
             {
-                searchIndex = ~searchIndex;
-                if (searchIndex > 0)
-                    searchIndex--;
+                // do a binary search to determine what node we're in
+                keys = _body.Children.Select(x => x.Key).ToList();
+                searchIndex = keys.BinarySearch(index);
+                if (searchIndex < 0)
+                {
+                    searchIndex = ~searchIndex;
+                    if (searchIndex > 0)
+                        searchIndex--;
+                }
+
+                key = keys[searchIndex];
+
+                // TODO: need to handle multiple results of the same name
+                containingNode = _body.Children[key];
             }
-
-            int key = keys[searchIndex];
-
-            // TODO: need to handle multiple results of the same name
-            AstNode containingNode = _body.Children[key];
 
             string[] dottedPieces = exprText.Split(new[] { '.' });
             IAnalysisResult res = null;
 
-            if (containingNode != null)
+            for (int i = 0; i < dottedPieces.Length; i++)
             {
-                for (int i = 0; i < dottedPieces.Length; i++)
+                string dotPiece = dottedPieces[i];
+                int leftBrackIndex = dotPiece.IndexOf('[');
+                if (leftBrackIndex > 0)
                 {
-                    string dotPiece = dottedPieces[i];
-                    int leftBrackIndex = dotPiece.IndexOf('[');
-                    if (leftBrackIndex > 0)
+                    dotPiece = dotPiece.Substring(0, leftBrackIndex);
+                }
+
+                if (res != null)
+                {
+                    IAnalysisResult tempRes = res.GetMember(dotPiece, this);
+                    if (tempRes != null)
                     {
-                        dotPiece = dotPiece.Substring(0, leftBrackIndex);
+                        res = tempRes;
+                    }
+                }
+                else
+                {
+                    if (SystemVariables.TryGetValue(dotPiece, out res) ||
+                       SystemConstants.TryGetValue(dotPiece, out res))
+                    {
+                        continue;
                     }
 
-                    if (res != null)
+                    IFunctionResult funcRes;
+                    if (SystemFunctions.TryGetValue(dotPiece, out funcRes))
                     {
-                        IAnalysisResult tempRes = res.GetMember(dotPiece, this);
-                        if (tempRes != null)
+                        res = funcRes;
+                        continue;
+                    }
+
+                    if (_functionProvider != null && _functionProvider.Name.Equals(dotPiece, StringComparison.OrdinalIgnoreCase))
+                    {
+                        res = _functionProvider;
+                        continue;
+                    }
+
+                    if (containingNode != null && containingNode is IFunctionResult)
+                    {
+                        // Check for local vars, types, and constants
+                        IFunctionResult func = containingNode as IFunctionResult;
+                        if (func.Variables.TryGetValue(dotPiece, out res) ||
+                           func.Types.TryGetValue(dotPiece, out res) ||
+                           func.Constants.TryGetValue(dotPiece, out res))
                         {
-                            res = tempRes;
+                            continue;
                         }
                     }
-                    else
+
+                    if (_body is IModuleResult)
                     {
-                        if (SystemVariables.TryGetValue(dotPiece, out res) ||
-                           SystemConstants.TryGetValue(dotPiece, out res))
+                        // check for module vars, types, and constants (and globals defined in this module)
+                        IModuleResult mod = _body as IModuleResult;
+                        if (mod.Variables.TryGetValue(dotPiece, out res) ||
+                           mod.Types.TryGetValue(dotPiece, out res) ||
+                           mod.Constants.TryGetValue(dotPiece, out res) ||
+                           mod.GlobalVariables.TryGetValue(dotPiece, out res) ||
+                           mod.GlobalTypes.TryGetValue(dotPiece, out res) ||
+                           mod.GlobalConstants.TryGetValue(dotPiece, out res))
                         {
                             continue;
                         }
 
-                        IFunctionResult funcRes;
-                        if (SystemFunctions.TryGetValue(dotPiece, out funcRes))
+                        // check for cursors in this module
+                        if (mod.Cursors.TryGetValue(dotPiece, out res))
+                        {
+                            continue;
+                        }
+
+                        // check for module functions
+                        if (mod.Functions.TryGetValue(dotPiece, out funcRes))
                         {
                             res = funcRes;
                             continue;
                         }
+                    }
 
-                        if(_functionProvider != null && _functionProvider.Name.Equals(dotPiece, StringComparison.OrdinalIgnoreCase))
+                    // TODO: this could probably be done more efficiently by having each GeneroAst load globals and functions into
+                    // dictionaries stored on the IGeneroProject, instead of in each project entry.
+                    // However, this does required more upkeep when changes occur. Will look into it...
+                    if (_projEntry != null && _projEntry is IGeneroProjectEntry)
+                    {
+                        IGeneroProjectEntry genProj = _projEntry as IGeneroProjectEntry;
+                        if (genProj.ParentProject != null)
                         {
-                            res = _functionProvider;
-                            continue;
-                        }
-
-                        if (containingNode is IFunctionResult)
-                        {
-                            // Check for local vars, types, and constants
-                            IFunctionResult func = containingNode as IFunctionResult;
-                            if (func.Variables.TryGetValue(dotPiece, out res) ||
-                               func.Types.TryGetValue(dotPiece, out res) ||
-                               func.Constants.TryGetValue(dotPiece, out res))
+                            bool found = false;
+                            foreach (var projEntry in genProj.ParentProject.ProjectEntries.Where(x => x.Value != genProj))
                             {
-                                continue;
-                            }
-                        }
-
-                        if (_body is IModuleResult)
-                        {
-                            // check for module vars, types, and constants (and globals defined in this module)
-                            IModuleResult mod = _body as IModuleResult;
-                            if (mod.Variables.TryGetValue(dotPiece, out res) ||
-                               mod.Types.TryGetValue(dotPiece, out res) ||
-                               mod.Constants.TryGetValue(dotPiece, out res) ||
-                               mod.GlobalVariables.TryGetValue(dotPiece, out res) ||
-                               mod.GlobalTypes.TryGetValue(dotPiece, out res) ||
-                               mod.GlobalConstants.TryGetValue(dotPiece, out res))
-                            {
-                                continue;
-                            }
-
-                            // check for cursors in this module
-                            if (mod.Cursors.TryGetValue(dotPiece, out res))
-                            {
-                                continue;
-                            }
-
-                            // check for module functions
-                            if (mod.Functions.TryGetValue(dotPiece, out funcRes))
-                            {
-                                res = funcRes;
-                                continue;
-                            }
-                        }
-
-                        // TODO: this could probably be done more efficiently by having each GeneroAst load globals and functions into
-                        // dictionaries stored on the IGeneroProject, instead of in each project entry.
-                        // However, this does required more upkeep when changes occur. Will look into it...
-                        if (_projEntry != null && _projEntry is IGeneroProjectEntry)
-                        {
-                            IGeneroProjectEntry genProj = _projEntry as IGeneroProjectEntry;
-                            if (genProj.ParentProject != null)
-                            {
-                                bool found = false;
-                                foreach (var projEntry in genProj.ParentProject.ProjectEntries.Where(x => x.Value != genProj))
+                                if (projEntry.Value.Analysis != null &&
+                                   projEntry.Value.Analysis.Body != null)
                                 {
-                                    if (projEntry.Value.Analysis != null &&
-                                       projEntry.Value.Analysis.Body != null)
+                                    IModuleResult modRes = projEntry.Value.Analysis.Body as IModuleResult;
+                                    if (modRes != null)
                                     {
-                                        IModuleResult modRes = projEntry.Value.Analysis.Body as IModuleResult;
-                                        if (modRes != null)
+                                        // check global vars, types, and constants
+                                        if (modRes.GlobalVariables.TryGetValue(dotPiece, out res) ||
+                                           modRes.GlobalTypes.TryGetValue(dotPiece, out res) ||
+                                           modRes.GlobalConstants.TryGetValue(dotPiece, out res))
                                         {
-                                            // check global vars, types, and constants
-                                            if (modRes.GlobalVariables.TryGetValue(dotPiece, out res) ||
-                                               modRes.GlobalTypes.TryGetValue(dotPiece, out res) ||
-                                               modRes.GlobalConstants.TryGetValue(dotPiece, out res))
+                                            found = true;
+                                            break;
+                                        }
+
+                                        // check project functions
+                                        if (modRes.Functions.TryGetValue(dotPiece, out funcRes))
+                                        {
+                                            if (funcRes.AccessModifier == AccessModifier.Public)
                                             {
+                                                res = funcRes;
                                                 found = true;
                                                 break;
                                             }
+                                        }
 
-                                            // check project functions
-                                            if (modRes.Functions.TryGetValue(dotPiece, out funcRes))
-                                            {
-                                                if (funcRes.AccessModifier == AccessModifier.Public)
-                                                {
-                                                    res = funcRes;
-                                                    found = true;
-                                                    break;
-                                                }
-                                            }
-
-                                            // check for cursors in this module
-                                            if (modRes.Cursors.TryGetValue(dotPiece, out res))
-                                            {
-                                                found = true;
-                                                break;
-                                            }
+                                        // check for cursors in this module
+                                        if (modRes.Cursors.TryGetValue(dotPiece, out res))
+                                        {
+                                            found = true;
+                                            break;
                                         }
                                     }
                                 }
-
-                                if (found)
-                                    continue;
                             }
+
+                            if (found)
+                                continue;
                         }
+                    }
 
-                        // check for classes
-                        GeneroPackage package;
-                        if (Packages.TryGetValue(dotPiece, out package))
+                    // check for classes
+                    GeneroPackage package;
+                    if (Packages.TryGetValue(dotPiece, out package))
+                    {
+                        res = package;
+                        continue;
+                    }
+
+                    /* TODO:
+                     * Need to check for:
+                     * 1) Temp tables
+                     * 2) DB Tables and columns
+                     */
+
+                    // Nothing found yet...
+                    // If our containing node is at the function or globals level, we need to go deeper
+                    if (containingNode != null &&
+                        (containingNode is GlobalsNode ||
+                         containingNode is FunctionBlockNode ||
+                         containingNode is ReportBlockNode))
+                    {
+                        keys = containingNode.Children.Select(x => x.Key).ToList();
+                        searchIndex = keys.BinarySearch(index);
+                        if (searchIndex < 0)
                         {
-                            res = package;
-                            continue;
+                            searchIndex = ~searchIndex;
+                            if (searchIndex > 0)
+                                searchIndex--;
                         }
-
-                        /* TODO:
-                         * Need to check for:
-                         * 1) Temp tables
-                         * 2) DB Tables and columns
-                         */
-
-                        // Nothing found yet...
-                        // If our containing node is at the function or globals level, we need to go deeper
-                        if(containingNode is GlobalsNode ||
-                           containingNode is FunctionBlockNode ||
-                           containingNode is ReportBlockNode)
+                        key = keys[searchIndex];
+                        containingNode = containingNode.Children[key];
+                    }
+                    // check for record field
+                    if (containingNode != null &&
+                        (containingNode is DefineNode ||
+                         containingNode is TypeDefNode))
+                    {
+                        keys = containingNode.Children.Select(x => x.Key).ToList();
+                        searchIndex = keys.BinarySearch(index);
+                        if (searchIndex < 0)
                         {
-                            keys = containingNode.Children.Select(x => x.Key).ToList();
-                            searchIndex = keys.BinarySearch(index);
-                            if (searchIndex < 0)
-                            {
-                                searchIndex = ~searchIndex;
-                                if (searchIndex > 0)
-                                    searchIndex--;
-                            }
-                            key = keys[searchIndex];
-                            containingNode = containingNode.Children[key];
+                            searchIndex = ~searchIndex;
+                            if (searchIndex > 0)
+                                searchIndex--;
                         }
-                        // check for record field
-                        if (containingNode is DefineNode ||
-                            containingNode is TypeDefNode)
-                        {
-                            keys = containingNode.Children.Select(x => x.Key).ToList();
-                            searchIndex = keys.BinarySearch(index);
-                            if (searchIndex < 0)
-                            {
-                                searchIndex = ~searchIndex;
-                                if (searchIndex > 0)
-                                    searchIndex--;
-                            }
-                            key = keys[searchIndex];
-                            containingNode = containingNode.Children[key];
+                        key = keys[searchIndex];
+                        containingNode = containingNode.Children[key];
 
-                            if (containingNode != null &&
-                                (containingNode is VariableDefinitionNode ||
-                                containingNode is TypeDefinitionNode) &&
-                                containingNode.Children.Count == 1 &&
-                                containingNode.Children[containingNode.Children.Keys[0]] is TypeReference)
+                        if (containingNode != null &&
+                            (containingNode is VariableDefinitionNode ||
+                            containingNode is TypeDefinitionNode) &&
+                            containingNode.Children.Count == 1 &&
+                            containingNode.Children[containingNode.Children.Keys[0]] is TypeReference)
+                        {
+                            var typeRef = containingNode.Children[containingNode.Children.Keys[0]] as TypeReference;
+                            while (typeRef != null &&
+                                   typeRef.Children.Count == 1)
                             {
-                                var typeRef = containingNode.Children[containingNode.Children.Keys[0]] as TypeReference;
-                                while (typeRef != null &&
-                                       typeRef.Children.Count == 1)
+                                if (typeRef.Children[typeRef.Children.Keys[0]] is RecordDefinitionNode)
                                 {
-                                    if (typeRef.Children[typeRef.Children.Keys[0]] is RecordDefinitionNode)
+                                    var recNode = typeRef.Children[typeRef.Children.Keys[0]] as RecordDefinitionNode;
+                                    VariableDef recField;
+                                    if (recNode.MemberDictionary.TryGetValue(exprText, out recField))
                                     {
-                                        var recNode = typeRef.Children[typeRef.Children.Keys[0]] as RecordDefinitionNode;
-                                        VariableDef recField;
-                                        if (recNode.MemberDictionary.TryGetValue(exprText, out recField))
-                                        {
-                                            res = recField;
-                                            break;
-                                        }
-                                        else
-                                        {
-                                            recField = recNode.MemberDictionary.Where(x => x.Value.LocationIndex < index)
-                                                                               .OrderByDescending(x => x.Value.LocationIndex)
-                                                                               .Select(x => x.Value)
-                                                                               .FirstOrDefault();
-                                            if(recField != null)
-                                            {
-                                                typeRef = recField.Type;
-                                            }
-                                        }
-                                    }
-                                    else if(typeRef.Children[typeRef.Children.Keys[0]] is TypeReference)
-                                    {
-                                        typeRef = typeRef.Children[typeRef.Children.Keys[0]] as TypeReference;
+                                        res = recField;
+                                        break;
                                     }
                                     else
                                     {
-                                        break;
+                                        recField = recNode.MemberDictionary.Where(x => x.Value.LocationIndex < index)
+                                                                           .OrderByDescending(x => x.Value.LocationIndex)
+                                                                           .Select(x => x.Value)
+                                                                           .FirstOrDefault();
+                                        if (recField != null)
+                                        {
+                                            typeRef = recField.Type;
+                                        }
                                     }
+                                }
+                                else if (typeRef.Children[typeRef.Children.Keys[0]] is TypeReference)
+                                {
+                                    typeRef = typeRef.Children[typeRef.Children.Keys[0]] as TypeReference;
+                                }
+                                else
+                                {
+                                    break;
                                 }
                             }
                         }
+                    }
 
-                        // check for the function name in the function provider
+                    if (res == null)
+                    {
                         // check for the function name in the function provider
                         res = _functionProvider.GetFunction(exprText);
                         if (res != null)
@@ -501,7 +509,6 @@ namespace VSGenero.Analysis.Parsing.AST
                     }
                 }
             }
-
 
             return res;
         }
@@ -607,67 +614,66 @@ namespace VSGenero.Analysis.Parsing.AST
                         vars.Add(new AnalysisVariable(this.ResolveLocation(funcRes), VariableType.Definition));
                     }
                 }
+            }
 
-                // TODO: this could probably be done more efficiently by having each GeneroAst load globals and functions into
-                // dictionaries stored on the IGeneroProject, instead of in each project entry.
-                // However, this does required more upkeep when changes occur. Will look into it...
-                if (_projEntry != null && _projEntry is IGeneroProjectEntry)
+            // TODO: this could probably be done more efficiently by having each GeneroAst load globals and functions into
+            // dictionaries stored on the IGeneroProject, instead of in each project entry.
+            // However, this does required more upkeep when changes occur. Will look into it...
+            if (_projEntry != null && _projEntry is IGeneroProjectEntry)
+            {
+                IGeneroProjectEntry genProj = _projEntry as IGeneroProjectEntry;
+                if (genProj.ParentProject != null)
                 {
-                    IGeneroProjectEntry genProj = _projEntry as IGeneroProjectEntry;
-                    if (genProj.ParentProject != null)
+                    foreach (var projEntry in genProj.ParentProject.ProjectEntries.Where(x => x.Value != genProj))
                     {
-                        foreach (var projEntry in genProj.ParentProject.ProjectEntries.Where(x => x.Value != genProj))
+                        if (projEntry.Value.Analysis != null &&
+                           projEntry.Value.Analysis.Body != null)
                         {
-                            if (projEntry.Value.Analysis != null &&
-                               projEntry.Value.Analysis.Body != null)
+                            IModuleResult modRes = projEntry.Value.Analysis.Body as IModuleResult;
+                            if (modRes != null)
                             {
-                                IModuleResult modRes = projEntry.Value.Analysis.Body as IModuleResult;
-                                if (modRes != null)
+                                // check global vars, types, and constants
+                                IAnalysisResult res;
+                                if (modRes.GlobalVariables.TryGetValue(exprText, out res))
                                 {
-                                    // check global vars, types, and constants
-                                    IAnalysisResult res;
-                                    if (modRes.GlobalVariables.TryGetValue(exprText, out res))
-                                    {
-                                        vars.Add(new AnalysisVariable(projEntry.Value.Analysis.ResolveLocation(res), VariableType.Definition));
-                                    }
+                                    vars.Add(new AnalysisVariable(projEntry.Value.Analysis.ResolveLocation(res), VariableType.Definition));
+                                }
 
-                                    if (modRes.GlobalTypes.TryGetValue(exprText, out res))
-                                    {
-                                        vars.Add(new AnalysisVariable(projEntry.Value.Analysis.ResolveLocation(res), VariableType.Definition));
-                                    }
+                                if (modRes.GlobalTypes.TryGetValue(exprText, out res))
+                                {
+                                    vars.Add(new AnalysisVariable(projEntry.Value.Analysis.ResolveLocation(res), VariableType.Definition));
+                                }
 
-                                    if (modRes.GlobalConstants.TryGetValue(exprText, out res))
-                                    {
-                                        vars.Add(new AnalysisVariable(projEntry.Value.Analysis.ResolveLocation(res), VariableType.Definition));
-                                    }
+                                if (modRes.GlobalConstants.TryGetValue(exprText, out res))
+                                {
+                                    vars.Add(new AnalysisVariable(projEntry.Value.Analysis.ResolveLocation(res), VariableType.Definition));
+                                }
 
-                                    // check for cursors in this module
-                                    if (modRes.Cursors.TryGetValue(exprText, out res))
-                                    {
-                                        vars.Add(new AnalysisVariable(projEntry.Value.Analysis.ResolveLocation(res), VariableType.Definition));
-                                    }
+                                // check for cursors in this module
+                                if (modRes.Cursors.TryGetValue(exprText, out res))
+                                {
+                                    vars.Add(new AnalysisVariable(projEntry.Value.Analysis.ResolveLocation(res), VariableType.Definition));
+                                }
 
-                                    // check for module functions
-                                    IFunctionResult funcRes;
-                                    if (modRes.Functions.TryGetValue(exprText, out funcRes))
-                                    {
-                                        vars.Add(new AnalysisVariable(projEntry.Value.Analysis.ResolveLocation(funcRes), VariableType.Definition));
-                                    }
+                                // check for module functions
+                                IFunctionResult funcRes;
+                                if (modRes.Functions.TryGetValue(exprText, out funcRes))
+                                {
+                                    vars.Add(new AnalysisVariable(projEntry.Value.Analysis.ResolveLocation(funcRes), VariableType.Definition));
                                 }
                             }
                         }
                     }
                 }
-
-                /* TODO:
-                 * Need to check for:
-                 * 1) Temp tables
-                 * 2) DB Tables and columns
-                 * 3) Record fields
-                 * 7) Public functions
-                 */
             }
 
+            /* TODO:
+             * Need to check for:
+             * 1) Temp tables
+             * 2) DB Tables and columns
+             * 3) Record fields
+             * 7) Public functions
+             */
 
             return vars;
         }

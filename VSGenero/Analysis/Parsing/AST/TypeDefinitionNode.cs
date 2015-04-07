@@ -93,16 +93,31 @@ namespace VSGenero.Analysis.Parsing.AST
 
         public IAnalysisResult GetMember(string name, GeneroAst ast)
         {
+            if (Children.Count == 1 &&
+               Children[Children.Keys[0]] is TypeReference)
+            {
+                return (Children[Children.Keys[0]] as TypeReference).GetMember(name, ast);
+            }
             return null;
         }
 
         public IEnumerable<MemberResult> GetMembers(GeneroAst ast)
         {
+            if(Children.Count == 1 &&
+               Children[Children.Keys[0]] is TypeReference)
+            {
+                return (Children[Children.Keys[0]] as TypeReference).GetMembers(ast);
+            }
             return null;
         }
 
         public bool HasChildFunctions(GeneroAst ast)
         {
+            if (Children.Count == 1 &&
+               Children[Children.Keys[0]] is TypeReference)
+            {
+                return (Children[Children.Keys[0]] as TypeReference).HasChildFunctions(ast);
+            }
             return false;
         }
     }
