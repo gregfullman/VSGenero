@@ -304,8 +304,8 @@ namespace VSGenero.Analysis.Parsing.AST
 
         #region Member Provider Helpers
 
-        private IFunctionInformationProvider _functionProvider;
-        private IDatabaseInformationProvider _databaseProvider;
+        internal IFunctionInformationProvider _functionProvider;
+        internal IDatabaseInformationProvider _databaseProvider;
 
         private IEnumerable<MemberResult> GetAdditionalUserDefinedTypes(int index)
         {
@@ -391,18 +391,30 @@ namespace VSGenero.Analysis.Parsing.AST
         {
             List<MemberResult> members = new List<MemberResult>();
 
+            HashSet<GeneroPackage> includedPackages = new HashSet<GeneroPackage>();
             if (types)
             {
                 // Built-in types
                 members.AddRange(BuiltinTypes.Select(x => new MemberResult(Tokens.TokenKinds[x], GeneroMemberType.Keyword, this)));
 
-                // include packages that have non-static classes
-                members.AddRange(Packages.Values.Where(x => _importedPackages[x.Name] && x.ContainsInstanceMembers).Select(x => new MemberResult(x.Name, GeneroMemberType.Module, this)));
+                foreach(var package in Packages.Values.Where(x => _importedPackages[x.Name] && x.ContainsInstanceMembers))
+                {
+                    members.Add(new MemberResult(package.Name, GeneroMemberType.Module, this));
+                    includedPackages.Add(package);
+                }
             }
             if (consts)
                 members.AddRange(SystemConstants.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Keyword, this)));
             if (vars)
                 members.AddRange(SystemVariables.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Keyword, this)));
+            if(funcs)
+            {
+                foreach (var package in Packages.Values.Where(x => _importedPackages[x.Name] && x.ContainsStaticClasses))
+                {
+                    if(!includedPackages.Contains(package))
+                        members.Add(new MemberResult(package.Name, GeneroMemberType.Module, this));
+                }
+            }
 
             // do a binary search to determine what node we're in
             List<int> keys = _body.Children.Select(x => x.Key).ToList();
@@ -506,7 +518,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     }
                 }
 
-                if(_functionProvider != null)
+                if (funcs && _functionProvider != null)
                 {
                     members.Add(new MemberResult(_functionProvider.Name, GeneroMemberType.Class, this));
                 }
@@ -761,7 +773,7 @@ namespace VSGenero.Analysis.Parsing.AST
                             // now we need to analyze the variable reference to get its members
                             string var = sb.ToString();
 
-                            var analysisRes = GetValueByIndex(var, index, null, null); // TODO: need to use the current providers
+                            var analysisRes = GetValueByIndex(var, index, _functionProvider, _databaseProvider); // TODO: need to use the current providers
                             results.AddRange(analysisRes.GetMembers(this));
 
                             return true;
@@ -1278,6 +1290,10 @@ namespace VSGenero.Analysis.Parsing.AST
                             results.Clear();
                             return false;
                         }
+                    }
+                    else
+                    {
+                        currState = VariableReferenceState.KeywordIdent;
                     }
                 }
                 else
@@ -2299,6 +2315,8 @@ namespace VSGenero.Analysis.Parsing.AST
                         results.AddRange(GetDefinedMembers(index, true, false, false, false));
                         return true;
                     }
+                    //if(firstState == LetStatementState.Expression ||
+                    //   firstState == LetStatementState.VariableReference)
                     else if (firstState != LetStatementState.Expression ||
                              (firstState == LetStatementState.Expression && secondState != LetStatementState.Equals))
                     {
@@ -2324,7 +2342,8 @@ namespace VSGenero.Analysis.Parsing.AST
                     }
 
                     if (currState == LetStatementState.None ||
-                       currState == LetStatementState.Expression)
+                       currState == LetStatementState.Expression ||
+                        currState == LetStatementState.VariableReference)
                     {
                         currState = LetStatementState.Equals;
                     }
@@ -2433,31 +2452,49 @@ namespace VSGenero.Analysis.Parsing.AST
                                 List<MemberResult> memberAccessResults = new List<MemberResult>();
                                 if (TryMemberAccess(index, revTokenizer, out memberAccessResults))
                                 {
-                                    if (currState == LetStatementState.None)
+                                    while (tokInfo.Equals(default(TokenInfo)) ||
+                                           tokInfo.Token.Kind == TokenKind.NewLine ||
+                                           tokInfo.Token.Kind == TokenKind.NLToken ||
+                                           tokInfo.SourceSpan.Start.Index > newIndex)
                                     {
-                                        results.AddRange(memberAccessResults);
-                                        return true;
+                                        if (!enumerator.MoveNext())
+                                        {
+                                            results.Clear();
+                                            return false;
+                                        }
+                                        tokInfo = enumerator.Current;
                                     }
-                                    else if (currState == LetStatementState.Equals)
-                                    {
-                                        results.AddRange(memberAccessResults);
-                                        return true;
-                                    }
-                                }
 
-                                // we're actually within the variable reference, and should not be returning anything related to the let statement
-                                // TODO: reinvestigate the comment above...I think it would only apply if we were doing the variable reference check by itself
-                                // (not nested in the let statement detection).
-                                if (dummyList.Count > 0)
-                                {
-                                    results.AddRange(dummyList);
-                                    return true;
+                                    if (firstState == LetStatementState.None)
+                                    {
+                                        firstState = LetStatementState.VariableReference;
+                                    }
+                                    else if (secondState == LetStatementState.None)
+                                    {
+                                        secondState = LetStatementState.VariableReference;
+                                    }
+                                    if (currState == LetStatementState.None ||
+                                        currState == LetStatementState.Equals)
+                                    {
+                                        currState = LetStatementState.VariableReference;
+                                    }
                                 }
                                 else
                                 {
-                                    // This may still be valid.
-                                    results.Clear();
-                                    return false;
+                                    // we're actually within the variable reference, and should not be returning anything related to the let statement
+                                    // TODO: reinvestigate the comment above...I think it would only apply if we were doing the variable reference check by itself
+                                    // (not nested in the let statement detection).
+                                    if (dummyList.Count > 0)
+                                    {
+                                        results.AddRange(dummyList);
+                                        return true;
+                                    }
+                                    else
+                                    {
+                                        // This may still be valid.
+                                        results.Clear();
+                                        return false;
+                                    }
                                 }
                             }
                         }

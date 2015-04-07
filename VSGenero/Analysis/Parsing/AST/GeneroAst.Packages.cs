@@ -3223,6 +3223,14 @@ namespace VSGenero.Analysis.Parsing.AST
         {
             get
             {
+                return _classes.Values.Any(x => !x.IsStatic);
+            }
+        }
+
+        public bool ContainsStaticClasses
+        {
+            get
+            {
                 return _classes.Values.Any(x => x.IsStatic);
             }
         }

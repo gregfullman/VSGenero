@@ -333,7 +333,7 @@ namespace VSGenero.EditorExtensions.Intellisense
         /// <summary>
         /// Gets a list of signatuers available for the expression at the provided location in the snapshot.
         /// </summary>
-        internal static SignatureAnalysis GetSignatures(ITextSnapshot snapshot, ITrackingSpan span)
+        internal static SignatureAnalysis GetSignatures(ITextSnapshot snapshot, ITrackingSpan span, IFunctionInformationProvider functionProvider)
         {
             var buffer = snapshot.TextBuffer;
             Genero4glReverseParser parser = new Genero4glReverseParser(snapshot, buffer, span);
@@ -366,7 +366,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                     IEnumerable<IFunctionResult> sigs = null;
                     lock (snapshot.TextBuffer.GetAnalyzer())
                     {
-                        sigs = analysis.GetSignaturesByIndex(text, index, parser);
+                        sigs = analysis.GetSignaturesByIndex(text, index, parser, functionProvider);
                     }
                     var end = Stopwatch.ElapsedMilliseconds;
 

@@ -432,6 +432,7 @@
     <Compile Include="EditorExtensions\Intellisense\IntellisenseExtensions.cs" />
     <Compile Include="EditorExtensions\Intellisense\MarginGlyphs.cs" />
     <Compile Include="EditorExtensions\Intellisense\MemberCompletionSet.cs" />
+    <Compile Include="EditorExtensions\Intellisense\TestFunctionProvider.cs" />
     <Compile Include="EditorExtensions\ISnapshotTextReader.cs" />
     <Compile Include="EditorExtensions\GeneroPredefinedClassificationTypeNames.cs" />
     <Compile Include="EditorExtensions\OutliningTaggerProvider.cs" />

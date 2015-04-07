@@ -316,7 +316,7 @@ namespace VSGenero.EditorExtensions
         /// </summary>
         public static SignatureAnalysis GetSignatures(this ITextSnapshot snapshot, ITrackingSpan span, IFunctionInformationProvider functionProvider)
         {
-            return GeneroProjectAnalyzer.GetSignatures(snapshot, span);
+            return GeneroProjectAnalyzer.GetSignatures(snapshot, span, functionProvider);
         }
 
         /// <summary>

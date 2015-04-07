@@ -168,8 +168,10 @@ namespace VSGenero.Analysis.Parsing.AST
         /// </summary>
         /// <param name="exprText">The expression to get signatures for.</param>
         /// <param name="index">The 0-based absolute index into the file.</param>
-        public IEnumerable<IFunctionResult> GetSignaturesByIndex(string exprText, int index, IReverseTokenizer revTokenizer)
+        public IEnumerable<IFunctionResult> GetSignaturesByIndex(string exprText, int index, IReverseTokenizer revTokenizer, IFunctionInformationProvider functionProvider)
         {
+            _functionProvider = functionProvider;
+
             // First see if we're in the process of defining a function
             List<MemberResult> dummyList;
             if (TryFunctionDefContext(index, revTokenizer, out dummyList))
@@ -223,7 +225,7 @@ namespace VSGenero.Analysis.Parsing.AST
             }
 
             // Check for class methods
-            IAnalysisResult member = GetValueByIndex(exprText, index, null, null);
+            IAnalysisResult member = GetValueByIndex(exprText, index, _functionProvider, _databaseProvider);
             if (member is IFunctionResult)
             {
                 return new IFunctionResult[1] { member as IFunctionResult };
@@ -274,7 +276,6 @@ namespace VSGenero.Analysis.Parsing.AST
 
                     if (res != null)
                     {
-                        // TODO: we need to extract a member from it. Use the IAnalysisResult.GetMember API
                         IAnalysisResult tempRes = res.GetMember(dotPiece, this);
                         if (tempRes != null)
                         {
@@ -292,6 +293,13 @@ namespace VSGenero.Analysis.Parsing.AST
                         IFunctionResult funcRes;
                         if (SystemFunctions.TryGetValue(dotPiece, out funcRes))
                         {
+                            res = funcRes;
+                            continue;
+                        }
+
+                        if(_functionProvider != null && _functionProvider.Name.Equals(dotPiece, StringComparison.OrdinalIgnoreCase))
+                        {
+                            res = _functionProvider;
                             continue;
                         }
 
@@ -303,11 +311,8 @@ namespace VSGenero.Analysis.Parsing.AST
                                func.Types.TryGetValue(dotPiece, out res) ||
                                func.Constants.TryGetValue(dotPiece, out res))
                             {
-                                //return res;
                                 continue;
                             }
-
-                            // TODO: check to see if the index is within a record definition, in which case we need to drill deeper
                         }
 
                         if (_body is IModuleResult)
@@ -321,26 +326,21 @@ namespace VSGenero.Analysis.Parsing.AST
                                mod.GlobalTypes.TryGetValue(dotPiece, out res) ||
                                mod.GlobalConstants.TryGetValue(dotPiece, out res))
                             {
-                                //return res;
                                 continue;
                             }
 
                             // check for cursors in this module
                             if (mod.Cursors.TryGetValue(dotPiece, out res))
                             {
-                                //return res;
                                 continue;
                             }
 
                             // check for module functions
                             if (mod.Functions.TryGetValue(dotPiece, out funcRes))
                             {
-                                //return funcRes;
                                 res = funcRes;
                                 continue;
                             }
-
-                            // TODO: check to see if the index is within a record definition, in which case we need to drill deeper
                         }
 
                         // TODO: this could probably be done more efficiently by having each GeneroAst load globals and functions into
@@ -365,7 +365,6 @@ namespace VSGenero.Analysis.Parsing.AST
                                                modRes.GlobalTypes.TryGetValue(dotPiece, out res) ||
                                                modRes.GlobalConstants.TryGetValue(dotPiece, out res))
                                             {
-                                                //return res;
                                                 found = true;
                                                 break;
                                             }
@@ -375,7 +374,6 @@ namespace VSGenero.Analysis.Parsing.AST
                                             {
                                                 if (funcRes.AccessModifier == AccessModifier.Public)
                                                 {
-                                                    //return funcRes;
                                                     res = funcRes;
                                                     found = true;
                                                     break;
@@ -385,12 +383,9 @@ namespace VSGenero.Analysis.Parsing.AST
                                             // check for cursors in this module
                                             if (modRes.Cursors.TryGetValue(dotPiece, out res))
                                             {
-                                                //return res;
                                                 found = true;
                                                 break;
                                             }
-
-                                            // TODO: check to see if the index is within a record definition, in which case we need to drill deeper
                                         }
                                     }
                                 }
