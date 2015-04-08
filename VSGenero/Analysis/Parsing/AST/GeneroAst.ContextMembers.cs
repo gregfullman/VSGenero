@@ -141,11 +141,13 @@ namespace VSGenero.Analysis.Parsing.AST
                         new List<TokenKindWithConstraint>
                         {
                             new TokenKindWithConstraint(TokenKind.LikeKeyword),
+                            new TokenKindWithConstraint(TokenKind.AttributeKeyword)
                         }),
                     new CategoryCompletionPossiblity(new HashSet<TokenCategory> { TokenCategory.Keyword, TokenCategory.Identifier },
                         new List<TokenKindWithConstraint>
                         {
                             new TokenKindWithConstraint(TokenKind.LikeKeyword),
+                            new TokenKindWithConstraint(TokenKind.AttributeKeyword)
                         })
                 });
                     _defineStatementMap.Map.Add(TokenKind.EndKeyword, new List<CompletionPossibility>
@@ -1965,6 +1967,46 @@ namespace VSGenero.Analysis.Parsing.AST
                     return false;
                 }
 
+                if (tokInfo.Token.Kind == TokenKind.LeftParenthesis ||
+                    tokInfo.Token.Kind == TokenKind.RightParenthesis)
+                {
+                    // TODO: try a define attribute context
+                    List<MemberResult> dummyList2;
+                    int startIndex;
+                    bool isAttribute = TryDefineAttributeContext((tokInfo.SourceSpan.Start.Index + 1), revTokenizer, out dummyList2, out startIndex);
+                    if (tokInfo.SourceSpan.Start.Index > startIndex)
+                    {
+                        tokensCollected.Insert(0, tokInfo.ToTokenWithSpan());
+                        // move us past the type constraint
+                        while (tokInfo.Equals(default(TokenInfo)) ||
+                                tokInfo.Token.Kind == TokenKind.NewLine ||
+                                tokInfo.Token.Kind == TokenKind.NLToken ||
+                                tokInfo.SourceSpan.Start.Index > startIndex)
+                        {
+                            if (!enumerator.MoveNext())
+                            {
+                                results.Clear();
+                                return false;
+                            }
+                            tokInfo = enumerator.Current;
+                            if (!(tokInfo.Equals(default(TokenInfo)) ||
+                                tokInfo.Token.Kind == TokenKind.NewLine ||
+                                tokInfo.Token.Kind == TokenKind.NLToken))
+                            {
+                                tokensCollected.Insert(0, tokInfo.ToTokenWithSpan());
+                            }
+                        }
+
+                        if (isAttribute)
+                        {
+                            results.Clear();
+                            results.AddRange(dummyList2);
+                            return true;
+                        }
+                        continue;
+                    }
+                }
+
                 if (possibilities != null)
                 {
                     // we have a set of possiblities from the token before. Let's try to match something out of it
@@ -2185,6 +2227,61 @@ namespace VSGenero.Analysis.Parsing.AST
             }
 
             results.Clear();
+            return false;
+        }
+
+        private enum DefineAttributeContextState
+        {
+            None,
+            RightParen,
+            LeftParen
+            // TODO: more to come...
+        }
+
+        private bool TryDefineAttributeContext(int index, IReverseTokenizer revTokenizer, out List<MemberResult> results, out int startingIndex)
+        {
+            results = new List<MemberResult>();
+            startingIndex = index;
+            DefineAttributeContextState firstState = DefineAttributeContextState.None;
+            bool skipMovingNext = false;
+            var enumerator = revTokenizer.GetReversedTokens().Where(x => x.SourceSpan.Start.Index < index).GetEnumerator();
+            while (true)
+            {
+                if (!skipMovingNext)
+                {
+                    if (!enumerator.MoveNext())
+                    {
+                        results.Clear();
+                        return false;
+                    }
+                }
+                else
+                {
+                    skipMovingNext = false; // reset
+                }
+                var tokInfo = enumerator.Current;
+                if (tokInfo.Equals(default(TokenInfo)) || tokInfo.Token.Kind == TokenKind.NewLine || tokInfo.Token.Kind == TokenKind.NLToken)
+                    continue;   // linebreak
+
+                if(tokInfo.Token.Kind == TokenKind.AttributeKeyword)
+                {
+                    startingIndex = tokInfo.SourceSpan.Start.Index;
+                    if (firstState == DefineAttributeContextState.RightParen)
+                        return false;
+                    return true;
+                }
+                else if(tokInfo.Token.Kind == TokenKind.RightParenthesis)
+                {
+                    if (firstState == DefineAttributeContextState.None)
+                        firstState = DefineAttributeContextState.RightParen;
+                }
+                else if(tokInfo.Token.Kind == TokenKind.LeftParenthesis)
+                {
+                    if (firstState == DefineAttributeContextState.None)
+                        firstState = DefineAttributeContextState.LeftParen;
+                }
+            }
+
             return false;
         }
 

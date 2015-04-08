@@ -484,6 +484,10 @@ namespace VSGenero.Analysis.Parsing.AST
                                         {
                                             typeRef = recField.Type;
                                         }
+                                        else
+                                        {
+                                            break;
+                                        }
                                     }
                                 }
                                 else if (typeRef.Children[typeRef.Children.Keys[0]] is TypeReference)
