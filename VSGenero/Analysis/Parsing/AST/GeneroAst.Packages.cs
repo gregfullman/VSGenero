@@ -43,7 +43,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 if(!_packagesInitialized)
                 {
                     #region Generated Package Init Code
-                    Packages.Add("base", new GeneroPackage("base", new List<GeneroPackageClass>
+                    Packages.Add("base", new GeneroPackage("base", false, new List<GeneroPackageClass>
 {
 	new GeneroPackageClass("Application", true, new List<GeneroPackageClassMethod>
 	{
@@ -236,7 +236,7 @@ namespace VSGenero.Analysis.Parsing.AST
 		}, new List<string> {})
 	})
 }));
-                    Packages.Add("ui", new GeneroPackage("ui", new List<GeneroPackageClass>
+                    Packages.Add("ui", new GeneroPackage("ui", false, new List<GeneroPackageClass>
 {
 	new GeneroPackageClass("Interface", true, new List<GeneroPackageClassMethod>
 	{
@@ -663,7 +663,7 @@ namespace VSGenero.Analysis.Parsing.AST
 		}, new List<string> {})
 	})
 }));
-                    Packages.Add("om", new GeneroPackage("om", new List<GeneroPackageClass>
+                    Packages.Add("om", new GeneroPackage("om", false, new List<GeneroPackageClass>
 {
 	new GeneroPackageClass("DomDocument", false, new List<GeneroPackageClassMethod>
 	{
@@ -954,7 +954,7 @@ namespace VSGenero.Analysis.Parsing.AST
 		}, new List<string> {"om.SaxDocumentHandler"})
 	})
 }));
-                    Packages.Add("util", new GeneroPackage("util", new List<GeneroPackageClass>
+                    Packages.Add("util", new GeneroPackage("util", true, new List<GeneroPackageClass>
 {
 	new GeneroPackageClass("DateTime", true, new List<GeneroPackageClassMethod>
 	{
@@ -1140,7 +1140,7 @@ namespace VSGenero.Analysis.Parsing.AST
 		}, new List<string> {})
 	})
 }));
-                    Packages.Add("os", new GeneroPackage("os", new List<GeneroPackageClass>
+                    Packages.Add("os", new GeneroPackage("os", true, new List<GeneroPackageClass>
 {
 	new GeneroPackageClass("Path", true, new List<GeneroPackageClassMethod>
 	{
@@ -1311,7 +1311,7 @@ namespace VSGenero.Analysis.Parsing.AST
 		}, new List<string> {"integer"})
 	})
 }));
-                    Packages.Add("com", new GeneroPackage("com", new List<GeneroPackageClass>
+                    Packages.Add("com", new GeneroPackage("com", true, new List<GeneroPackageClass>
 {
 	new GeneroPackageClass("WebServices", false, new List<GeneroPackageClassMethod>
 	{
@@ -1886,7 +1886,7 @@ namespace VSGenero.Analysis.Parsing.AST
 		}, new List<string> {"integer"})
 	})
 }));
-                    Packages.Add("xml", new GeneroPackage("xml", new List<GeneroPackageClass>
+                    Packages.Add("xml", new GeneroPackage("xml", true, new List<GeneroPackageClass>
 {
 	new GeneroPackageClass("DomDocument", false, new List<GeneroPackageClassMethod>
 	{
@@ -3031,7 +3031,7 @@ namespace VSGenero.Analysis.Parsing.AST
 		}, new List<string> {})
 	})
 }));
-                    Packages.Add("security", new GeneroPackage("security", new List<GeneroPackageClass>
+                    Packages.Add("security", new GeneroPackage("security", true, new List<GeneroPackageClass>
 {
 	new GeneroPackageClass("RandomGenerator", true, new List<GeneroPackageClassMethod>
 	{
@@ -3157,11 +3157,17 @@ namespace VSGenero.Analysis.Parsing.AST
     public class GeneroPackage : IAnalysisResult
     {
         private readonly string _name;
+        private readonly bool _extensionPackage;
+        public bool ExtensionPackage
+        {
+            get { return _extensionPackage; }
+        }
         private readonly Dictionary<string, GeneroPackageClass> _classes;
 
-        public GeneroPackage(string name, IEnumerable<GeneroPackageClass> classes)
+        public GeneroPackage(string name, bool extension, IEnumerable<GeneroPackageClass> classes)
         {
             _name = name;
+            _extensionPackage = extension;
             _classes = new Dictionary<string, GeneroPackageClass>(StringComparer.OrdinalIgnoreCase);
             foreach (var cls in classes)
                 _classes.Add(cls.Name, cls);

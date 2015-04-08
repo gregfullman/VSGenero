@@ -150,7 +150,9 @@ namespace VSGeneroUnitTesting.Utilities
 
         private void GeneratePackage(XElement element, StringBuilder sb)
         {
-            sb.AppendFormat("Packages.Add(\"{0}\", new GeneroPackage(\"{0}\", new List<GeneroPackageClass>\n{{\n", (string)element.Attribute("name"));
+            sb.AppendFormat("Packages.Add(\"{0}\", new GeneroPackage(\"{0}\", {1}, new List<GeneroPackageClass>\n{{\n", 
+                            (string)element.Attribute("name"),
+                            (((string)element.Attribute("type")).Equals("extension", StringComparison.OrdinalIgnoreCase) ? "true" : "false"));
             foreach (var classElement in element.XPathSelectElement("gns:Classes", _nsManager)
                                                 .XPathSelectElements("gns:Class", _nsManager))
             {

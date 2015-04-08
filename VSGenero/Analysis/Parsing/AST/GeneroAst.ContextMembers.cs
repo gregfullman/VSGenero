@@ -1693,6 +1693,86 @@ namespace VSGenero.Analysis.Parsing.AST
             return false;
         }
 
+        private enum ImportContextState
+        {
+            None,
+            FglKeyword,
+            JavaKeyword,
+            KeywordOrIdent
+        }
+
+        private bool TryImportContext(int index, IReverseTokenizer revTokenizer, out List<MemberResult> results)
+        {
+            results = new List<MemberResult>();
+            ImportContextState firstState = ImportContextState.None;
+            var enumerator = revTokenizer.GetReversedTokens().Where(x => x.SourceSpan.Start.Index < index).GetEnumerator();
+            bool skipGettingNext = false;
+            while (true)
+            {
+                if (!skipGettingNext)
+                {
+                    if (!enumerator.MoveNext())
+                    {
+                        results.Clear();
+                        return false;
+                    }
+                }
+                else
+                {
+                    skipGettingNext = false;    //reset
+                }
+                var tokInfo = enumerator.Current;
+                if (tokInfo.Equals(default(TokenInfo)) || tokInfo.Token.Kind == TokenKind.NewLine || tokInfo.Token.Kind == TokenKind.NLToken)
+                    continue;   // linebreak
+
+                if(tokInfo.Token.Kind == TokenKind.ImportKeyword)
+                {
+                    if (firstState == ImportContextState.None)
+                    {
+                        // provide FGL, JAVA, and the available package keywords
+                        TokenKind[] kinds = new TokenKind[] { TokenKind.FglKeyword, TokenKind.JavaKeyword };
+                        results.AddRange(kinds.Select(x => new MemberResult(Tokens.TokenKinds[x], GeneroMemberType.Keyword, this)));
+                        results.AddRange(Packages.Values.Where(x => x.ExtensionPackage).Select(x => new MemberResult(x.Name, x, GeneroMemberType.Module, this)));
+                    }
+
+                    return firstState != ImportContextState.KeywordOrIdent;
+                }
+                else if(tokInfo.Token.Kind == TokenKind.FglKeyword)
+                {
+                    if(firstState == ImportContextState.None)
+                    {
+                        // TODO: provide available fgl imports
+                        // Would this just be all importable programs? Yikes...
+
+                        firstState = ImportContextState.FglKeyword;
+                    }
+                }
+                else if(tokInfo.Token.Kind == TokenKind.JavaKeyword)
+                {
+                    if(firstState == ImportContextState.None)
+                    {
+                        // TODO: provide java classes?
+
+                        firstState = ImportContextState.JavaKeyword;
+                    }
+                }
+                else if(tokInfo.Category == TokenCategory.Keyword ||
+                        tokInfo.Category == TokenCategory.Identifier)
+                {
+                    if(firstState == ImportContextState.None)
+                    {
+                        firstState = ImportContextState.KeywordOrIdent;
+                    }
+                }
+                else
+                {
+                    return false;
+                }
+            }
+
+            return false;
+        }
+
         private bool TryTypeConstraintContext(int index, IReverseTokenizer revTokenizer, out List<MemberResult> results, out int startingIndex)
         {
             bool completionsSupplied = false;
@@ -2606,7 +2686,7 @@ namespace VSGenero.Analysis.Parsing.AST
 
             // Valid keywords within the module
             TokenKind.OptionsKeyword,
-            TokenKind.ImportKeyword,
+            TokenKind.ImportKeyword,    // this is covered
             TokenKind.SchemaKeyword,
             TokenKind.DescribeKeyword,
             TokenKind.DatabaseKeyword,
@@ -2757,8 +2837,9 @@ namespace VSGenero.Analysis.Parsing.AST
             }
 
             if (TryPreprocessorContext(index, revTokenizer, out members) ||
-               TryFunctionDefContext(index, revTokenizer, out members) ||
-               TryConstantContext(index, revTokenizer, out members))
+                TryFunctionDefContext(index, revTokenizer, out members) ||
+                TryConstantContext(index, revTokenizer, out members) ||
+                TryImportContext(index, revTokenizer, out members))
             {
                 return members;
             }
@@ -2806,13 +2887,13 @@ namespace VSGenero.Analysis.Parsing.AST
                 List<MemberResult> memberAccessResults = new List<MemberResult>();
                 if (TryMemberAccess(index, revTokenizer, out memberAccessResults))
                 {
-                    // if there are any GeneroPackageClasses, limit them to only ones that are instance classes
+                    // if there are any GeneroPackageClasses, limit them to only ones that are static classes
                     return memberAccessResults.Where(x =>
                     {
                         IAnalysisResult tempRes = x.Var;
                         if (tempRes is GeneroPackageClass)
                         {
-                            return !(tempRes as GeneroPackageClass).IsStatic;
+                            return (tempRes as GeneroPackageClass).IsStatic;
                         }
                         return true;
                     });

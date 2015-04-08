@@ -121,12 +121,15 @@ namespace VSGenero.Analysis.Parsing.AST
                     if (processed == NodesProcessed.CompilerOption)
                     {
                         defNode.Children.Add(importNode.StartIndex, importNode);
-                        if (importNode.ImportType == ImportModuleType.C)
-                            defNode.CExtensionImports.Add(importNode.ImportName);
-                        else if (importNode.ImportType == ImportModuleType.Java)
-                            defNode.JavaImports.Add(importNode.ImportName);
-                        else
-                            defNode.FglImports.Add(importNode.ImportName);
+                        if (!string.IsNullOrWhiteSpace(importNode.ImportName))
+                        {
+                            if (importNode.ImportType == ImportModuleType.C)
+                                defNode.CExtensionImports.Add(importNode.ImportName);
+                            else if (importNode.ImportType == ImportModuleType.Java)
+                                defNode.JavaImports.Add(importNode.ImportName);
+                            else
+                                defNode.FglImports.Add(importNode.ImportName);
+                        }
                         continue;
                     }
                     else
@@ -339,7 +342,12 @@ namespace VSGenero.Analysis.Parsing.AST
                 {
                     defNode.Children.Add(funcNode.StartIndex, funcNode);
                     funcNode.Scope = "function";
-                    if (!defNode.Functions.ContainsKey(funcNode.Name))
+                    
+                    if(string.IsNullOrWhiteSpace(funcNode.Name))
+                    {
+                        parser.ReportSyntaxError(funcNode.LocationIndex, funcNode.LocationIndex, "Invalid function definition found.");
+                    }
+                    else if (!defNode.Functions.ContainsKey(funcNode.Name))
                     {
                         defNode.Functions.Add(funcNode.Name, funcNode);
                         foreach (var cursor in funcNode.Children.Values.Where(x => x is PrepareStatement || x is DeclareStatement))
@@ -357,7 +365,11 @@ namespace VSGenero.Analysis.Parsing.AST
                 {
                     defNode.Children.Add(repNode.StartIndex, repNode);
                     repNode.Scope = "report";
-                    if (!defNode.Functions.ContainsKey(repNode.Name))
+                    if (string.IsNullOrWhiteSpace(repNode.Name))
+                    {
+                        parser.ReportSyntaxError(repNode.LocationIndex, repNode.LocationIndex, "Invalid report definition found.");
+                    }
+                    else if (!defNode.Functions.ContainsKey(repNode.Name))
                     {
                         defNode.Functions.Add(repNode.Name, repNode);
                         foreach (var cursor in repNode.Children.Values.Where(x => x is PrepareStatement || x is DeclareStatement))
@@ -368,7 +380,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     }
                     else
                     {
-                        parser.ReportSyntaxError(repNode.LocationIndex, repNode.LocationIndex + repNode.Name.Length, string.Format("Function {0} defined more than once.", repNode.Name));
+                        parser.ReportSyntaxError(repNode.LocationIndex, repNode.LocationIndex + repNode.Name.Length, string.Format("Report {0} defined more than once.", repNode.Name));
                     }
                 }
                 else

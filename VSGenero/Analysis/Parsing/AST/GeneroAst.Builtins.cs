@@ -56,7 +56,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     _systemConstants = new Dictionary<string, IAnalysisResult>(StringComparer.OrdinalIgnoreCase);
                     _systemConstants.Add("null", new SystemConstant("null", null, null));
                     _systemConstants.Add("true", new SystemConstant("true", "int", 1));
-                    _systemConstants.Add("false", new SystemConstant("false", "int", 2));
+                    _systemConstants.Add("false", new SystemConstant("false", "int", 0));
                     _systemConstants.Add("notfound", new SystemConstant("notfound", "int", 100));
                 }
             }
