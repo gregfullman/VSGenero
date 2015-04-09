@@ -477,7 +477,6 @@
     <Compile Include="EditorFactory.cs" />
     <Compile Include="Guids.cs" />
     <Compile Include="Navigation\DropDownBarClient.cs" />
-    <Compile Include="Navigation\EditFilter.cs" />
     <Compile Include="Navigation\VSGeneroCodeWindowManager.cs" />
     <Compile Include="Navigation\VSGeneroLanguageInfo.cs" />
     <Compile Include="Properties\Settings.Designer.cs">

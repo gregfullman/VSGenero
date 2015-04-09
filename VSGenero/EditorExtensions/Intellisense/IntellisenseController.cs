@@ -474,8 +474,8 @@ namespace VSGenero.EditorExtensions.Intellisense
                 else
                 {
                     _activeSession.Filter();
-                    _activeSession.Dismissed += OnCompletionSessionDismissedOrCommitted;
-                    _activeSession.Committed += OnCompletionSessionDismissedOrCommitted;
+                    _activeSession.Dismissed += OnCompletionSessionDismissed;
+                    _activeSession.Committed += OnCompletionSessionCommitted;
                 }
             }
         }
@@ -507,12 +507,39 @@ namespace VSGenero.EditorExtensions.Intellisense
             }
         }
 
-        private void OnCompletionSessionDismissedOrCommitted(object sender, System.EventArgs e)
+        private void OnCompletionSessionDismissed(object sender, EventArgs e)
         {
             // We've just been told that our active session was dismissed.  We should remove all references to it.
-            _activeSession.Committed -= OnCompletionSessionDismissedOrCommitted;
-            _activeSession.Dismissed -= OnCompletionSessionDismissedOrCommitted;
-            _activeSession = null;
+            if (_activeSession != null)
+            {
+                _activeSession.Dismissed -= OnCompletionSessionDismissed;
+                _activeSession = null;
+            }
+        }
+
+        private void OnCompletionSessionCommitted(object sender, EventArgs e)
+        {
+            if (_activeSession != null)
+            {
+                if (VSGeneroPackage.Instance.IntellisenseOptions4GLPage.PreSelectMRU)
+                {
+                    if (_activeSession.SelectedCompletionSet != null &&
+                       _activeSession.SelectedCompletionSet.SelectionStatus != null)
+                    {
+                        // find the new completion in the list of MRU completions. If found, move it to the front.
+                        // If not found, add it.
+                        var firstMRU = IntellisenseExtensions.LastCommittedCompletions.FirstOrDefault(x => x.DisplayText == _activeSession.SelectedCompletionSet.SelectionStatus.Completion.DisplayText);
+                        if (firstMRU != null)
+                        {
+                            var indexOfMRU = IntellisenseExtensions.LastCommittedCompletions.IndexOf(firstMRU);
+                            IntellisenseExtensions.LastCommittedCompletions.RemoveAt(indexOfMRU);
+                        }
+                        IntellisenseExtensions.LastCommittedCompletions.Insert(0, _activeSession.SelectedCompletionSet.SelectionStatus.Completion);
+                    }
+                }
+                _activeSession.Committed -= OnCompletionSessionCommitted;
+                _activeSession = null;
+            }
         }
 
         private void OnSignatureSessionDismissed(object sender, System.EventArgs e)
