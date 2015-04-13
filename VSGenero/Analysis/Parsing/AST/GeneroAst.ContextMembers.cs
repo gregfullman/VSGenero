@@ -551,6 +551,7 @@ namespace VSGenero.Analysis.Parsing.AST
 
         private bool TryCall(int index, IReverseTokenizer revTokenizer, out List<MemberResult> results)
         {
+            TokenKind startingKeyword = TokenKind.CallKeyword;
             results = new List<MemberResult>();
             CallStatus currStatus = CallStatus.None;
             CallStatus firstStatus = CallStatus.None;
@@ -572,8 +573,18 @@ namespace VSGenero.Analysis.Parsing.AST
                 }
 
                 var tokInfo = enumerator.Current;
-                if (tokInfo.Equals(default(TokenInfo)) || tokInfo.Token.Kind == TokenKind.NewLine || tokInfo.Token.Kind == TokenKind.NLToken)
+                if (tokInfo.Equals(default(TokenInfo)) || tokInfo.Token.Kind == TokenKind.NewLine || tokInfo.Token.Kind == TokenKind.NLToken || tokInfo.Token.Kind == TokenKind.Comment)
                     continue;   // linebreak
+
+                if(tokInfo.Category == TokenCategory.Keyword)
+                {
+                    // check to see if it's a keyword for another statement
+                    if(tokInfo.Token.Kind != startingKeyword && ValidStatementKeywords.Contains(tokInfo.Token.Kind))
+                    {
+                        results.Clear();
+                        return false;
+                    }
+                }
 
                 if (tokInfo.Token.Kind == TokenKind.CallKeyword)
                 {
@@ -643,6 +654,7 @@ namespace VSGenero.Analysis.Parsing.AST
                             while (tokInfo.Equals(default(TokenInfo)) ||
                                     tokInfo.Token.Kind == TokenKind.NewLine ||
                                     tokInfo.Token.Kind == TokenKind.NLToken ||
+                                    tokInfo.Token.Kind == TokenKind.Comment ||
                                     tokInfo.SourceSpan.Start.Index > newIndex)
                             {
                                 if (!enumerator.MoveNext())
@@ -676,6 +688,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                     while (tokInfo.Equals(default(TokenInfo)) ||
                                             tokInfo.Token.Kind == TokenKind.NewLine ||
                                             tokInfo.Token.Kind == TokenKind.NLToken ||
+                                            tokInfo.Token.Kind == TokenKind.Comment ||
                                             tokInfo.SourceSpan.Start.Index > newIndex)
                                     {
                                         if (!enumerator.MoveNext())
@@ -749,7 +762,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 }
 
                 var tokInfo = enumerator.Current;
-                if (tokInfo.Equals(default(TokenInfo)) || tokInfo.Token.Kind == TokenKind.NewLine || tokInfo.Token.Kind == TokenKind.NLToken)
+                if (tokInfo.Equals(default(TokenInfo)) || tokInfo.Token.Kind == TokenKind.NewLine || tokInfo.Token.Kind == TokenKind.NLToken || tokInfo.Token.Kind == TokenKind.Comment)
                     continue;   // linebreak
 
                 if (tokInfo.Token.Kind == TokenKind.Dot)
@@ -767,6 +780,7 @@ namespace VSGenero.Analysis.Parsing.AST
                             while (tokInfo.Equals(default(TokenInfo)) ||
                                     tokInfo.Token.Kind == TokenKind.NewLine ||
                                     tokInfo.Token.Kind == TokenKind.NLToken ||
+                                    tokInfo.Token.Kind == TokenKind.Comment ||
                                     tokInfo.SourceSpan.Start.Index > newIndex)
                             {
                                 if (!enumerator.MoveNext())
@@ -830,11 +844,12 @@ namespace VSGenero.Analysis.Parsing.AST
                 }
 
                 var tokInfo = enumerator.Current;
-                if (tokInfo.Equals(default(TokenInfo)) || tokInfo.Token.Kind == TokenKind.NewLine || tokInfo.Token.Kind == TokenKind.NLToken)
+                if (tokInfo.Equals(default(TokenInfo)) || tokInfo.Token.Kind == TokenKind.NewLine || tokInfo.Token.Kind == TokenKind.NLToken || tokInfo.Token.Kind == TokenKind.Comment)
                     continue;   // linebreak
 
                 if (tokInfo.Token.Kind == TokenKind.ModKeyword ||
-                   tokInfo.Token.Kind == TokenKind.Comma ||            // TODO: if we add a function context detection this should be removed
+                    tokInfo.Token.Kind == TokenKind.UsingKeyword ||
+                    tokInfo.Token.Kind == TokenKind.Comma ||            // TODO: if we add a function context detection this should be removed
                   ((int)tokInfo.Token.Kind >= (int)TokenKind.FirstOperator &&
                   (int)tokInfo.Token.Kind <= (int)TokenKind.LastOperator))
                 {
@@ -927,6 +942,7 @@ namespace VSGenero.Analysis.Parsing.AST
                             while (tokInfo.Equals(default(TokenInfo)) ||
                                     tokInfo.Token.Kind == TokenKind.NewLine ||
                                     tokInfo.Token.Kind == TokenKind.NLToken ||
+                                    tokInfo.Token.Kind == TokenKind.Comment ||
                                     tokInfo.SourceSpan.Start.Index > newIndex)
                             {
                                 if (!enumerator.MoveNext())
@@ -981,6 +997,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                 while (tokInfo.Equals(default(TokenInfo)) ||
                                         tokInfo.Token.Kind == TokenKind.NewLine ||
                                         tokInfo.Token.Kind == TokenKind.NLToken ||
+                                        tokInfo.Token.Kind == TokenKind.Comment ||
                                         tokInfo.Category == TokenCategory.IncompleteMultiLineStringLiteral)
                                 {
                                     if (!enumerator.MoveNext())
@@ -1021,6 +1038,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         dummyToken = enumerator.Current;
                         while (dummyToken.Equals(default(TokenInfo)) ||
                                 dummyToken.Token.Kind == TokenKind.NewLine ||
+                                dummyToken.Token.Kind == TokenKind.Comment ||
                                 dummyToken.Token.Kind == TokenKind.NLToken)
                         {
                             if (!enumerator.MoveNext())
@@ -1040,9 +1058,10 @@ namespace VSGenero.Analysis.Parsing.AST
 
                     if ((!(bannedOperators != null && bannedOperators.Contains(dummyToken.Token.Kind)) &&   // check to see if the operator is banned
                         ((int)dummyToken.Token.Kind >= (int)TokenKind.FirstOperator && (int)dummyToken.Token.Kind <= (int)TokenKind.LastOperator)) ||
-                       dummyToken.Token.Kind == TokenKind.LeftParenthesis ||
-                       dummyToken.Token.Kind == TokenKind.Comma ||
-                        dummyToken.Token.Kind == TokenKind.ModKeyword)
+                        dummyToken.Token.Kind == TokenKind.LeftParenthesis ||
+                        dummyToken.Token.Kind == TokenKind.Comma ||
+                        dummyToken.Token.Kind == TokenKind.ModKeyword ||
+                        dummyToken.Token.Kind == TokenKind.UsingKeyword)    // Looks like we'll just have to maintain the keywords that are used as operators here
                     {
                         tokInfo = dummyToken;
                         skipGettingNext = true;
@@ -1101,7 +1120,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 }
 
                 var tokInfo = enumerator.Current;
-                if (tokInfo.Equals(default(TokenInfo)) || tokInfo.Token.Kind == TokenKind.NewLine || tokInfo.Token.Kind == TokenKind.NLToken)
+                if (tokInfo.Equals(default(TokenInfo)) || tokInfo.Token.Kind == TokenKind.NewLine || tokInfo.Token.Kind == TokenKind.NLToken || tokInfo.Token.Kind == TokenKind.Comment)
                     continue;   // linebreak
 
                 if (tokInfo.Token.Kind == TokenKind.Dot)
@@ -1147,7 +1166,8 @@ namespace VSGenero.Analysis.Parsing.AST
                         // provide variables, constants, and functions
                         results.AddRange(GetDefinedMembers(index, true, true, false, true));
                     }
-                    if (currState == VariableReferenceState.None)
+                    if (currState == VariableReferenceState.None ||
+                        currState == VariableReferenceState.Expression)
                     {
                         currState = VariableReferenceState.LeftBracket;
                     }
@@ -1183,6 +1203,7 @@ namespace VSGenero.Analysis.Parsing.AST
                             while (tokInfo.Equals(default(TokenInfo)) ||
                                     tokInfo.Token.Kind == TokenKind.NewLine ||
                                     tokInfo.Token.Kind == TokenKind.NLToken ||
+                                    tokInfo.Token.Kind == TokenKind.Comment ||
                                     tokInfo.SourceSpan.Start.Index > exprStartIndex)
                             {
                                 if (!enumerator.MoveNext())
@@ -1198,6 +1219,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                 results.Clear();
                                 return false;
                             }
+                            skipGetNext = true;
                             tokInfo = enumerator.Current;
                             if (tokInfo.Token.Kind != TokenKind.LeftBracket)
                             {
@@ -1205,7 +1227,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                 return false;
                             }
 
-                            currState = VariableReferenceState.LeftBracket;
+                            currState = VariableReferenceState.Expression;
                         }
                         else
                         {
@@ -1216,7 +1238,7 @@ namespace VSGenero.Analysis.Parsing.AST
                             }
 
                             tokInfo = enumerator.Current;
-                            if (tokInfo.Equals(default(TokenInfo)) || tokInfo.Token.Kind == TokenKind.NewLine || tokInfo.Token.Kind == TokenKind.NLToken)
+                            if (tokInfo.Equals(default(TokenInfo)) || tokInfo.Token.Kind == TokenKind.NewLine || tokInfo.Token.Kind == TokenKind.NLToken || tokInfo.Token.Kind == TokenKind.Comment)
                                 continue;   // linebreak
 
                             if (tokInfo.Category != TokenCategory.NumericLiteral)
@@ -1230,9 +1252,9 @@ namespace VSGenero.Analysis.Parsing.AST
                                 results.Clear();
                                 return false;
                             }
-
+                            skipGetNext = true;
                             tokInfo = enumerator.Current;
-                            if (tokInfo.Equals(default(TokenInfo)) || tokInfo.Token.Kind == TokenKind.NewLine || tokInfo.Token.Kind == TokenKind.NLToken)
+                            if (tokInfo.Equals(default(TokenInfo)) || tokInfo.Token.Kind == TokenKind.NewLine || tokInfo.Token.Kind == TokenKind.NLToken || tokInfo.Token.Kind == TokenKind.Comment)
                                 continue;   // linebreak
 
                             if (tokInfo.Token.Kind != TokenKind.LeftBracket)
@@ -1241,7 +1263,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                 return false;
                             }
 
-                            currState = VariableReferenceState.LeftBracket;
+                            currState = VariableReferenceState.Expression;
                         }
                     }
                     else
@@ -1271,7 +1293,8 @@ namespace VSGenero.Analysis.Parsing.AST
                     }
                     while (tokInfo.Equals(default(TokenInfo)) ||
                             tokInfo.Token.Kind == TokenKind.NewLine ||
-                            tokInfo.Token.Kind == TokenKind.NLToken);
+                            tokInfo.Token.Kind == TokenKind.NLToken ||
+                            tokInfo.Token.Kind == TokenKind.Comment);
 
                     if (tokInfo.Token.Kind != TokenKind.Dot)
                     {
@@ -1324,7 +1347,7 @@ namespace VSGenero.Analysis.Parsing.AST
             LiteralMacroStatus currStatus = LiteralMacroStatus.None;
             foreach (var tokInfo in revTokenizer.GetReversedTokens().Where(x => x.SourceSpan.Start.Index < index))
             {
-                if (tokInfo.Equals(default(TokenInfo)) || tokInfo.Token.Kind == TokenKind.NewLine || tokInfo.Token.Kind == TokenKind.NLToken)
+                if (tokInfo.Equals(default(TokenInfo)) || tokInfo.Token.Kind == TokenKind.NewLine || tokInfo.Token.Kind == TokenKind.NLToken || tokInfo.Token.Kind == TokenKind.Comment)
                     continue;   // linebreak
 
                 if (tokInfo.Token.Kind == TokenKind.MdyKeyword ||
@@ -1394,7 +1417,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 }
 
                 var tokInfo = enumerator.Current;
-                if (tokInfo.Equals(default(TokenInfo)) || tokInfo.Token.Kind == TokenKind.NewLine || tokInfo.Token.Kind == TokenKind.NLToken)
+                if (tokInfo.Equals(default(TokenInfo)) || tokInfo.Token.Kind == TokenKind.NewLine || tokInfo.Token.Kind == TokenKind.NLToken || tokInfo.Token.Kind == TokenKind.Comment)
                     continue;   // linebreak
 
                 if (tokInfo.Token.Kind == TokenKind.ConstantKeyword)
@@ -1513,6 +1536,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         while (tokInfo.Equals(default(TokenInfo)) ||
                                 tokInfo.Token.Kind == TokenKind.NewLine ||
                                 tokInfo.Token.Kind == TokenKind.NLToken ||
+                                tokInfo.Token.Kind == TokenKind.Comment ||
                                 tokInfo.SourceSpan.Start.Index > startIndex)
                         {
                             if (!enumerator.MoveNext())
@@ -1523,7 +1547,8 @@ namespace VSGenero.Analysis.Parsing.AST
                             tokInfo = enumerator.Current;
                             if (!(tokInfo.Equals(default(TokenInfo)) ||
                                     tokInfo.Token.Kind == TokenKind.NewLine ||
-                                    tokInfo.Token.Kind == TokenKind.NLToken))
+                                    tokInfo.Token.Kind == TokenKind.NLToken ||
+                                    tokInfo.Token.Kind == TokenKind.Comment))
                             {
                                 tokensCollected.Insert(0, tokInfo.ToTokenWithSpan());
                             }
@@ -1558,6 +1583,7 @@ namespace VSGenero.Analysis.Parsing.AST
                             while (tokInfo.Equals(default(TokenInfo)) ||
                                     tokInfo.Token.Kind == TokenKind.NewLine ||
                                     tokInfo.Token.Kind == TokenKind.NLToken ||
+                                    tokInfo.Token.Kind == TokenKind.Comment ||
                                     tokInfo.SourceSpan.Start.Index > startIndex)
                             {
                                 if (!enumerator.MoveNext())
@@ -1568,6 +1594,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                 tokInfo = enumerator.Current;
                                 if (!(tokInfo.Equals(default(TokenInfo)) ||
                                     tokInfo.Token.Kind == TokenKind.NewLine ||
+                                    tokInfo.Token.Kind == TokenKind.Comment ||
                                     tokInfo.Token.Kind == TokenKind.NLToken))
                                 {
                                     tokensCollected.Insert(0, tokInfo.ToTokenWithSpan());
@@ -1610,6 +1637,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         while (tokInfo.Equals(default(TokenInfo)) ||
                                 tokInfo.Token.Kind == TokenKind.NewLine ||
                                 tokInfo.Token.Kind == TokenKind.NLToken ||
+                                tokInfo.Token.Kind == TokenKind.Comment ||
                                 tokInfo.SourceSpan.Start.Index > startIndex)
                         {
                             if (!enumerator.MoveNext())
@@ -1620,6 +1648,7 @@ namespace VSGenero.Analysis.Parsing.AST
                             tokInfo = enumerator.Current;
                             if (!(tokInfo.Equals(default(TokenInfo)) ||
                                 tokInfo.Token.Kind == TokenKind.NewLine ||
+                                tokInfo.Token.Kind == TokenKind.Comment ||
                                 tokInfo.Token.Kind == TokenKind.NLToken))
                             {
                                 tokensCollected.Insert(0, tokInfo.ToTokenWithSpan());
@@ -1724,7 +1753,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     skipGettingNext = false;    //reset
                 }
                 var tokInfo = enumerator.Current;
-                if (tokInfo.Equals(default(TokenInfo)) || tokInfo.Token.Kind == TokenKind.NewLine || tokInfo.Token.Kind == TokenKind.NLToken)
+                if (tokInfo.Equals(default(TokenInfo)) || tokInfo.Token.Kind == TokenKind.NewLine || tokInfo.Token.Kind == TokenKind.NLToken || tokInfo.Token.Kind == TokenKind.Comment)
                     continue;   // linebreak
 
                 if(tokInfo.Token.Kind == TokenKind.ImportKeyword)
@@ -1802,7 +1831,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     skipGettingNext = false;    //reset
                 }
                 var tokInfo = enumerator.Current;
-                if (tokInfo.Equals(default(TokenInfo)) || tokInfo.Token.Kind == TokenKind.NewLine || tokInfo.Token.Kind == TokenKind.NLToken)
+                if (tokInfo.Equals(default(TokenInfo)) || tokInfo.Token.Kind == TokenKind.NewLine || tokInfo.Token.Kind == TokenKind.NLToken || tokInfo.Token.Kind == TokenKind.Comment)
                     continue;   // linebreak
 
                 if (tokInfo.Token.Kind == TokenKind.RightParenthesis)
@@ -1814,6 +1843,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         while (tokInfo.Equals(default(TokenInfo)) ||
                                 tokInfo.Token.Kind == TokenKind.NewLine ||
                                 tokInfo.Token.Kind == TokenKind.NLToken ||
+                                tokInfo.Token.Kind == TokenKind.Comment ||
                                 tokInfo.SourceSpan.Start.Index > startIndex)
                         {
                             if (!enumerator.MoveNext())
@@ -1958,7 +1988,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     skipMovingNext = false; // reset
                 }
                 var tokInfo = enumerator.Current;
-                if (tokInfo.Equals(default(TokenInfo)) || tokInfo.Token.Kind == TokenKind.NewLine || tokInfo.Token.Kind == TokenKind.NLToken)
+                if (tokInfo.Equals(default(TokenInfo)) || tokInfo.Token.Kind == TokenKind.NewLine || tokInfo.Token.Kind == TokenKind.NLToken || tokInfo.Token.Kind == TokenKind.Comment)
                     continue;   // linebreak
 
                 if (failingKeywords != null && failingKeywords.Contains(tokInfo.Token.Kind))
@@ -1981,6 +2011,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         while (tokInfo.Equals(default(TokenInfo)) ||
                                 tokInfo.Token.Kind == TokenKind.NewLine ||
                                 tokInfo.Token.Kind == TokenKind.NLToken ||
+                                tokInfo.Token.Kind == TokenKind.Comment ||
                                 tokInfo.SourceSpan.Start.Index > startIndex)
                         {
                             if (!enumerator.MoveNext())
@@ -1991,6 +2022,7 @@ namespace VSGenero.Analysis.Parsing.AST
                             tokInfo = enumerator.Current;
                             if (!(tokInfo.Equals(default(TokenInfo)) ||
                                 tokInfo.Token.Kind == TokenKind.NewLine ||
+                                tokInfo.Token.Kind == TokenKind.Comment ||
                                 tokInfo.Token.Kind == TokenKind.NLToken))
                             {
                                 tokensCollected.Insert(0, tokInfo.ToTokenWithSpan());
@@ -2029,6 +2061,7 @@ namespace VSGenero.Analysis.Parsing.AST
                             while (tokInfo.Equals(default(TokenInfo)) ||
                                     tokInfo.Token.Kind == TokenKind.NewLine ||
                                     tokInfo.Token.Kind == TokenKind.NLToken ||
+                                    tokInfo.Token.Kind == TokenKind.Comment ||
                                     tokInfo.SourceSpan.Start.Index > typeConstraintStartingIndex2)
                             {
                                 if (!enumerator.MoveNext())
@@ -2039,6 +2072,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                 tokInfo = enumerator.Current;
                                 if (!(tokInfo.Equals(default(TokenInfo)) ||
                                     tokInfo.Token.Kind == TokenKind.NewLine ||
+                                    tokInfo.Token.Kind == TokenKind.Comment ||
                                     tokInfo.Token.Kind == TokenKind.NLToken))
                                 {
                                     tokensCollected.Insert(0, tokInfo.ToTokenWithSpan());
@@ -2152,6 +2186,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     while (tokInfo.Equals(default(TokenInfo)) ||
                             tokInfo.Token.Kind == TokenKind.NewLine ||
                             tokInfo.Token.Kind == TokenKind.NLToken ||
+                            tokInfo.Token.Kind == TokenKind.Comment ||
                             tokInfo.SourceSpan.Start.Index > typeConstraintStartingIndex)
                     {
                         if (!enumerator.MoveNext())
@@ -2162,6 +2197,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         tokInfo = enumerator.Current;
                         if (!(tokInfo.Equals(default(TokenInfo)) ||
                             tokInfo.Token.Kind == TokenKind.NewLine ||
+                            tokInfo.Token.Kind == TokenKind.Comment ||
                             tokInfo.Token.Kind == TokenKind.NLToken))
                         {
                             tokensCollected.Insert(0, tokInfo.ToTokenWithSpan());
@@ -2260,7 +2296,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     skipMovingNext = false; // reset
                 }
                 var tokInfo = enumerator.Current;
-                if (tokInfo.Equals(default(TokenInfo)) || tokInfo.Token.Kind == TokenKind.NewLine || tokInfo.Token.Kind == TokenKind.NLToken)
+                if (tokInfo.Equals(default(TokenInfo)) || tokInfo.Token.Kind == TokenKind.NewLine || tokInfo.Token.Kind == TokenKind.NLToken || tokInfo.Token.Kind == TokenKind.Comment)
                     continue;   // linebreak
 
                 if(tokInfo.Token.Kind == TokenKind.AttributeKeyword)
@@ -2492,7 +2528,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 }
 
                 var tokInfo = enumerator.Current;
-                if (tokInfo.Equals(default(TokenInfo)) || tokInfo.Token.Kind == TokenKind.NewLine || tokInfo.Token.Kind == TokenKind.NLToken)
+                if (tokInfo.Equals(default(TokenInfo)) || tokInfo.Token.Kind == TokenKind.NewLine || tokInfo.Token.Kind == TokenKind.NLToken || tokInfo.Token.Kind == TokenKind.Comment)
                     continue;   // linebreak
 
                 if (tokInfo.Token.Kind == TokenKind.LetKeyword)
@@ -2555,6 +2591,7 @@ namespace VSGenero.Analysis.Parsing.AST
                             while (tokInfo.Equals(default(TokenInfo)) ||
                                     tokInfo.Token.Kind == TokenKind.NewLine ||
                                     tokInfo.Token.Kind == TokenKind.NLToken ||
+                                    tokInfo.Token.Kind == TokenKind.Comment ||
                                     tokInfo.SourceSpan.Start.Index > exprStartIndex)
                             {
                                 if (!enumerator.MoveNext())
@@ -2597,6 +2634,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                     while (tokInfo.Equals(default(TokenInfo)) ||
                                             tokInfo.Token.Kind == TokenKind.NewLine ||
                                             tokInfo.Token.Kind == TokenKind.NLToken ||
+                                            tokInfo.Token.Kind == TokenKind.Comment ||
                                             tokInfo.SourceSpan.Start.Index > newIndex)
                                     {
                                         if (!enumerator.MoveNext())
@@ -2642,6 +2680,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                     while (tokInfo.Equals(default(TokenInfo)) ||
                                            tokInfo.Token.Kind == TokenKind.NewLine ||
                                            tokInfo.Token.Kind == TokenKind.NLToken ||
+                                           tokInfo.Token.Kind == TokenKind.Comment ||
                                            tokInfo.SourceSpan.Start.Index > newIndex)
                                     {
                                         if (!enumerator.MoveNext())
@@ -2691,6 +2730,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         while (tokInfo.Equals(default(TokenInfo)) ||
                                            tokInfo.Token.Kind == TokenKind.NewLine ||
                                            tokInfo.Token.Kind == TokenKind.NLToken ||
+                                           tokInfo.Token.Kind == TokenKind.Comment ||
                                            tokInfo.SourceSpan.Start.Index > exprStartIndex)
                         {
                             if (!enumerator.MoveNext())
@@ -3005,6 +3045,8 @@ namespace VSGenero.Analysis.Parsing.AST
             // TODO: need some way of knowing whether to include global members outside the scope of _body
             members.AddRange(ValidStatementKeywords.Take(allowAccessModifiers ? ValidStatementKeywords.Length : 6)
                                                    .Select(x => new MemberResult(Tokens.TokenKinds[x], GeneroMemberType.Keyword, this)));
+            // ..And for right now, we'll just include everything else we can include. This will test the performance a bit.
+            //members.AddRange(GetDefinedMembers(index, true, true, true, true));
             return members;
         }
 
