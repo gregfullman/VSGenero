@@ -20,6 +20,7 @@ using System.Windows;
 using VSGenero.Analysis;
 using VSGenero.EditorExtensions;
 using VSGenero.EditorExtensions.Intellisense;
+using Microsoft.VisualStudio.VSCommon;
 
 namespace VSGenero.Navigation
 {
@@ -677,6 +678,20 @@ namespace VSGenero.Navigation
         /// </summary>
         public int Exec(ref Guid pguidCmdGroup, uint nCmdID, uint nCmdexecopt, IntPtr pvaIn, IntPtr pvaOut)
         {
+            if (IntellisenseControllerProvider.Instance != null &&
+                IntellisenseControllerProvider.Instance.GeneroCommandTarget != null &&
+                pguidCmdGroup == IntellisenseControllerProvider.Instance.GeneroCommandTarget.PackageGuid)
+            {
+                if (_textView != null && _textView.TextBuffer != null)
+                {
+                    string path = _textView.TextBuffer.GetFilePath();
+                    if (IntellisenseControllerProvider.Instance.GeneroCommandTarget.Exec(path, nCmdID))
+                    {
+                        return VSConstants.S_OK;
+                    }
+                }
+            }
+
             // preprocessing
             if (pguidCmdGroup == VSConstants.GUID_VSStandardCommandSet97)
             {

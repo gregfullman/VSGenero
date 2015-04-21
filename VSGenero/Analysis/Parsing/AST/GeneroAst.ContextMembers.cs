@@ -2281,6 +2281,7 @@ namespace VSGenero.Analysis.Parsing.AST
             DefineAttributeContextState firstState = DefineAttributeContextState.None;
             bool skipMovingNext = false;
             var enumerator = revTokenizer.GetReversedTokens().Where(x => x.SourceSpan.Start.Index < index).GetEnumerator();
+            bool leftParenHit = false;
             while (true)
             {
                 if (!skipMovingNext)
@@ -2304,6 +2305,8 @@ namespace VSGenero.Analysis.Parsing.AST
                     startingIndex = tokInfo.SourceSpan.Start.Index;
                     if (firstState == DefineAttributeContextState.RightParen)
                         return false;
+                    if (!leftParenHit)
+                        return false;
                     return true;
                 }
                 else if(tokInfo.Token.Kind == TokenKind.RightParenthesis)
@@ -2315,6 +2318,12 @@ namespace VSGenero.Analysis.Parsing.AST
                 {
                     if (firstState == DefineAttributeContextState.None)
                         firstState = DefineAttributeContextState.LeftParen;
+                    leftParenHit = true;
+                }
+                else
+                {
+                    if (leftParenHit)
+                        break;
                 }
             }
 

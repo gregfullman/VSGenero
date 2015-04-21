@@ -40,6 +40,11 @@ namespace VSGenero.EditorExtensions.Intellisense
         [Import(AllowDefault = true)]
         internal IDatabaseInformationProvider _DatabaseInfoProvider = null;
 
+        [Import(AllowDefault = true)]
+        internal IGeneroTextViewCommandTarget GeneroCommandTarget;
+
+        internal static IntellisenseControllerProvider Instance { get; private set; }
+
         readonly Dictionary<ITextView, Tuple<BufferParser, GeneroProjectAnalyzer>> _hookedCloseEvents =
             new Dictionary<ITextView, Tuple<BufferParser, GeneroProjectAnalyzer>>();
 

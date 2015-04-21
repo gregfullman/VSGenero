@@ -10,7 +10,7 @@ using VSGenero.Analysis.Parsing.AST;
 
 namespace VSGenero.EditorExtensions.Intellisense
 {
-    [Export(typeof(IFunctionInformationProvider)), ContentType(VSGeneroConstants.ContentType4GL), Order]
+    //[Export(typeof(IFunctionInformationProvider)), ContentType(VSGeneroConstants.ContentType4GL), Order]
     internal class TestFunctionProvider : IFunctionInformationProvider
     {
         private readonly Dictionary<string, TestFunctionCollection> _collections;

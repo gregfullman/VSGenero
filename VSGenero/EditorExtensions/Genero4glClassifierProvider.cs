@@ -13,7 +13,8 @@ using VSGenero.Analysis.Parsing;
 
 namespace VSGenero.EditorExtensions
 {
-    [Export(typeof(IClassifierProvider)), ContentType(VSGeneroConstants.ContentType4GL)]
+    [ContentType(VSGeneroConstants.ContentType4GL)]
+    [Export(typeof(IClassifierProvider))]
     public class Genero4glClassifierProvider : IClassifierProvider
     {
         private Dictionary<TokenCategory, IClassificationType> _categoryMap;
@@ -25,6 +26,12 @@ namespace VSGenero.EditorExtensions
         private IClassificationType _dotClassification;
         private IClassificationType _commaClassification;
         private readonly IContentType _type;
+
+        public Genero4glClassifierProvider(IClassificationTypeRegistryService classificationRegistry)
+        {
+            _classificationRegistry = classificationRegistry;
+            _type = VSGeneroPackage.Instance.ContentType;
+        }
 
         [ImportingConstructor]
         public Genero4glClassifierProvider(IContentTypeRegistryService contentTypeRegistryService)
@@ -39,7 +46,7 @@ namespace VSGenero.EditorExtensions
         [Import]
         public IClassificationTypeRegistryService _classificationRegistry = null; // Set via MEF
 
-        #region Python Classification Type Definitions
+        #region Genero Classification Type Definitions
 
         [Export]
         [Name(Genero4glPredefinedClassificationTypeNames.Grouping)]
@@ -82,6 +89,16 @@ namespace VSGenero.EditorExtensions
             }
 
             return res;
+        }
+
+        public IClassifier GetClassifier()
+        {
+            if (_categoryMap == null)
+            {
+                _categoryMap = FillCategoryMap(_classificationRegistry);
+            }
+
+            return new Genero4glClassifier(this, null);
         }
 
         public virtual IContentType ContentType {

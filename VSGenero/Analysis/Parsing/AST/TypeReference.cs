@@ -204,8 +204,16 @@ namespace VSGenero.Analysis.Parsing.AST
 
         public IAnalysisResult GetMember(string name, GeneroAst ast)
         {
-            // TODO: there's probably a better way to do this
-            return GetAnalysisMembers(ast).Where(x => x.Name.Equals(name, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+            if (!string.IsNullOrWhiteSpace(TableName))
+            {
+                // TODO: get the specified column from the database provider
+                return null;
+            }
+            else
+            {
+                // TODO: there's probably a better way to do this
+                return GetAnalysisMembers(ast).Where(x => x.Name.Equals(name, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+            }
         }
 
         private IEnumerable<IAnalysisResult> GetAnalysisMembers(GeneroAst ast)

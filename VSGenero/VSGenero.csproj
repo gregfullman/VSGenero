@@ -314,6 +314,7 @@
     <Compile Include="Analysis\IDatabaseInformationProvider.cs" />
     <Compile Include="Analysis\IFunctionInformationProvider.cs" />
     <Compile Include="Analysis\ILocatedMember.cs" />
+    <Compile Include="Analysis\IProgramFileProvider.cs" />
     <Compile Include="Analysis\IReferenceableContainer.cs" />
     <Compile Include="Analysis\IReverseTokenizer.cs" />
     <Compile Include="Analysis\Parsing\AST\AstNodeAttributes.cs" />
@@ -348,6 +349,9 @@
     <Compile Include="Analysis\VariableType.cs" />
     <Compile Include="EditorExtensions\AutoIndent.cs" />
     <Compile Include="EditorExtensions\BraceHighlighter.cs" />
+    <Compile Include="EditorExtensions\GeneroTextViewListener.cs" />
+    <Compile Include="EditorExtensions\IGeneroTextViewChangedListener.cs" />
+    <Compile Include="EditorExtensions\IGeneroTextViewCommandTarget.cs" />
     <Compile Include="EditorExtensions\Intellisense\AnalysisQueue.cs" />
     <Compile Include="EditorExtensions\Intellisense\AnalysisSynchronizationContext.cs" />
     <Compile Include="Analysis\Parsing\AsciiString.cs" />

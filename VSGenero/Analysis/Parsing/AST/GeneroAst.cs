@@ -163,6 +163,38 @@ namespace VSGenero.Analysis.Parsing.AST
             return res.ToArray();
         }
 
+        public FunctionBlockNode GetContainingFunction(int index)
+        {
+            AstNode containingNode = null;
+            List<int> keys = null;
+            int searchIndex = -1;
+            int key = -1;
+            if (_body.Children.Count > 0)
+            {
+                // do a binary search to determine what node we're in
+                keys = _body.Children.Select(x => x.Key).ToList();
+                searchIndex = keys.BinarySearch(index);
+                if (searchIndex < 0)
+                {
+                    searchIndex = ~searchIndex;
+                    if (searchIndex > 0)
+                        searchIndex--;
+                }
+
+                key = keys[searchIndex];
+
+                // TODO: need to handle multiple results of the same name
+                containingNode = _body.Children[key];
+            }
+
+            if (containingNode != null &&
+                containingNode is FunctionBlockNode)
+            {
+                return containingNode as FunctionBlockNode;
+            }
+            return null;
+        }
+
         /// <summary>
         /// Gets information about the available signatures for the given expression.
         /// </summary>
@@ -231,11 +263,14 @@ namespace VSGenero.Analysis.Parsing.AST
                 return new IFunctionResult[1] { member as IFunctionResult };
             }
 
-            // check for the function name in the function provider
-            var func = _functionProvider.GetFunction(exprText);
-            if (func != null)
+            if (_functionProvider != null)
             {
-                return new IFunctionResult[1] { func };
+                // check for the function name in the function provider
+                var func = _functionProvider.GetFunction(exprText);
+                if (func != null)
+                {
+                    return new IFunctionResult[1] { func };
+                }
             }
 
             return null;
@@ -276,6 +311,7 @@ namespace VSGenero.Analysis.Parsing.AST
 
             string[] dottedPieces = exprText.Split(new[] { '.' });
             IAnalysisResult res = null;
+            bool dotPieceNotFound = false;
 
             for (int i = 0; i < dottedPieces.Length; i++)
             {
@@ -289,12 +325,13 @@ namespace VSGenero.Analysis.Parsing.AST
                 if (res != null)
                 {
                     IAnalysisResult tempRes = res.GetMember(dotPiece, this);
-                    if (tempRes != null)
+                    res = tempRes;
+                    if (tempRes == null)
                     {
-                        res = tempRes;
+                        dotPieceNotFound = true;
                     }
                 }
-                else
+                else if (!dotPieceNotFound)
                 {
                     if (SystemVariables.TryGetValue(dotPiece, out res) ||
                        SystemConstants.TryGetValue(dotPiece, out res))
@@ -436,8 +473,11 @@ namespace VSGenero.Analysis.Parsing.AST
                             if (searchIndex > 0)
                                 searchIndex--;
                         }
-                        key = keys[searchIndex];
-                        containingNode = containingNode.Children[key];
+                        if (keys.Count > 0)
+                        {
+                            key = keys[searchIndex];
+                            containingNode = containingNode.Children[key];
+                        }
                     }
                     // check for record field
                     if (containingNode != null &&
@@ -502,7 +542,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         }
                     }
 
-                    if (res == null)
+                    if (res == null && _functionProvider != null)
                     {
                         // check for the function name in the function provider
                         res = _functionProvider.GetFunction(exprText);

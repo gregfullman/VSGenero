@@ -19,11 +19,6 @@ namespace VSGenero.EditorExtensions
 {
     public static class Extensions
     {
-        public static string GetFilePath(this ITextView textView)
-        {
-            return textView.TextBuffer.GetFilePath();
-        }
-
         internal static void GotoSource(this LocationInfo location)
         {
             VSGeneroPackage.NavigateTo(
@@ -142,7 +137,7 @@ namespace VSGenero.EditorExtensions
             return VSGeneroPackage.Instance.DefaultAnalyzer;
         }
 
-        internal static IProjectEntry GetAnalysis(this ITextBuffer buffer)
+        public static IProjectEntry GetAnalysis(this ITextBuffer buffer)
         {
             IProjectEntry res;
             buffer.TryGetAnalysis(out res);

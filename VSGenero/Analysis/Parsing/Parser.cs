@@ -270,6 +270,13 @@ namespace VSGenero.Analysis.Parsing
             return ast;
         }
 
+        public bool ParseSingleFunction(out FunctionBlockNode functionNode)
+        {
+            StartParsing();
+            functionNode = null;
+            return FunctionBlockNode.TryParseNode(this, out functionNode);
+        }
+
         private GeneroAst ParseFileWorker()
         {
             StartParsing();

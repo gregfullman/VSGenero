@@ -22,8 +22,11 @@ namespace VSGenero.EditorExtensions
         private static Tokenizer _tokenizer;    // tokenizer for each version, shared between all buffers
 
         internal Genero4glClassifier(Genero4glClassifierProvider provider, ITextBuffer buffer) {
-            buffer.Changed += BufferChanged;
-            buffer.ContentTypeChanged += BufferContentTypeChanged;
+            if (buffer != null)
+            {
+                buffer.Changed += BufferChanged;
+                buffer.ContentTypeChanged += BufferContentTypeChanged;
+            }
 
             _tokenCache = new TokenCache();
             _provider = provider;
@@ -49,12 +52,18 @@ namespace VSGenero.EditorExtensions
         /// This method classifies the given snapshot span.
         /// </summary>
         public IList<ClassificationSpan> GetClassificationSpans(SnapshotSpan span) {
+            return GetClassificationSpans(span, false);
+        }
+
+        public IList<ClassificationSpan> GetClassificationSpans(SnapshotSpan span, bool resetTokenizer)
+        {
             var classifications = new List<ClassificationSpan>();
             var snapshot = span.Snapshot;
 
 
-            if (span.Length > 0) {
-                AddClassifications(GetTokenizer(), classifications, span);
+            if (span.Length > 0)
+            {
+                AddClassifications(GetTokenizer(resetTokenizer), classifications, span);
             }
 
             return classifications;
@@ -68,15 +77,19 @@ namespace VSGenero.EditorExtensions
 
             if (span.Length > 0)
             {
-                AddTokens(GetTokenizer(), tokens, span);
+                AddTokens(GetTokenizer(false), tokens, span);
             }
 
             return tokens;
         }
 
-        private Tokenizer GetTokenizer() {
+        private Tokenizer GetTokenizer(bool reset) {
             if (_tokenizer == null) {
                 _tokenizer = new Tokenizer(options: TokenizerOptions.Verbatim | TokenizerOptions.VerbatimCommentsAndLineJoins);
+            }
+            else if(reset)
+            {
+                _tokenCache.Clear();
             }
             return _tokenizer;
         }
@@ -109,7 +122,7 @@ namespace VSGenero.EditorExtensions
 
             _tokenCache.EnsureCapacity(snapshot.LineCount);
 
-            var tokenizer = GetTokenizer();
+            var tokenizer = GetTokenizer(false);
             foreach (var change in e.Changes) {
                 if (change.LineCountDelta > 0) {
                     _tokenCache.InsertLines(snapshot.GetLineNumberFromPosition(change.NewEnd) + 1 - change.LineCountDelta, change.LineCountDelta);

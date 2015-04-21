@@ -366,7 +366,7 @@ namespace VSGenero.Analysis.Parsing
                     {
                         result.Category = TokenCategory.IncompleteMultiLineStringLiteral;
                     }
-                    else if(token is IncompleteMultiLineCommentErrorToken)
+                    else if (token is IncompleteMultiLineCommentErrorToken)
                     {
                         result.Category = TokenCategory.IncompleteMultiLineComment;
                     }
@@ -581,7 +581,7 @@ namespace VSGenero.Analysis.Parsing
                 _state.IncompleteString = null;
                 return ContinueString(prev.IsSingleTickQuote ? '\'' : '"', prev.IsRaw, prev.IsUnicode, false, prev.IsTripleQuoted, 0);
             }
-            else if(_state.MultiLineComment && Peek() != EOF)
+            else if (_state.MultiLineComment && Peek() != EOF)
             {
                 return ReadMultiLineComment();
             }
@@ -1089,9 +1089,19 @@ namespace VSGenero.Analysis.Parsing
                     _state.IncompleteString = new IncompleteString(quote == '\'', isRaw, isUnicode, isTriple);
                     return new IncompleteStringErrorToken("<eof> while reading string", incompleteContents);
                 }
-                else if (ch == quote && 
-                    (_position <= 1 ? true : (_position > 1 && _buffer[_position - 2] != '\\')))
+                else if (ch == quote)
                 {
+                    if (_position > 2)
+                    {
+                        int tempPos = _position - 2;
+                        int backslashCount = 0;
+                        while(_buffer[tempPos] == '\\')
+                        {
+                            backslashCount++;
+                            tempPos--;
+                        }
+                        if (backslashCount % 2 != 0) continue;
+                    }
 
                     if (isTriple)
                     {
@@ -1106,7 +1116,6 @@ namespace VSGenero.Analysis.Parsing
                         end_add++;
                         break;
                     }
-
                 }
                 else if ((nlKind = ReadEolnOpt(ch)) > 0)//(ch == '\\')
                 {
