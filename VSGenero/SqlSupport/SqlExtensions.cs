@@ -1,4 +1,5 @@
-﻿using Microsoft.VisualStudio.Editor;
+﻿using Microsoft.SqlServer.Management.Smo.RegSvrEnum;
+using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.TextManager.Interop;
 using System;
@@ -76,7 +77,8 @@ namespace VSGenero.SqlSupport
                                                         // set the _connection field
 
                                                         var connectionField = connectionStrategyVal.GetType().GetAllFields().Where(x => x.Name == "_connection").FirstOrDefault();
-                                                        if (connectionField != null)
+                                                        var uiConnectionField = connectionStrategyVal.GetType().GetAllFields().Where(x => x.Name == "_connectionInfo").FirstOrDefault();
+                                                        if (connectionField != null && uiConnectionField != null)
                                                         {
                                                             string server, database;
                                                             if (contextDeterminator.DetermineSqlContext(_sqlExtractionFile, out server, out database))
@@ -86,9 +88,19 @@ namespace VSGenero.SqlSupport
                                                                 sqlCon.ChangeDatabase(database);
                                                                 connectionField.SetValue(connectionStrategyVal, sqlCon);
 
+                                                                UIConnectionInfo connInfo = new UIConnectionInfo() { ServerName = server, UserName = string.Format("{0}\\{1}", Environment.UserDomainName, Environment.UserName) };
+                                                                uiConnectionField.SetValue(connectionStrategyVal, connInfo);
+
                                                                 if (commandService != null)
                                                                 {
                                                                     commandService.GlobalInvoke(sqlEditorConnectCmdId);
+                                                                }
+
+                                                                // attempt to set the QueryExecutor's IsConnected value
+                                                                var isConnProp = queryExecutorVal.GetType().GetProperty("IsConnected", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
+                                                                if(isConnProp != null)
+                                                                {
+                                                                    isConnProp.SetValue(queryExecutorVal, true, null);
                                                                 }
                                                             }
                                                         }

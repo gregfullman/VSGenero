@@ -286,6 +286,13 @@ namespace Microsoft.VisualStudio.VSCommon
             return null;
         }
 
+        public static void OpenDocument(string filename)
+        {
+            IVsTextView viewAdapter;
+            IVsWindowFrame pWindowFrame;
+            OpenDocument(filename, out viewAdapter, out pWindowFrame);
+        }
+
         private static void OpenDocument(string filename, out IVsTextView viewAdapter, out IVsWindowFrame pWindowFrame)
         {
             IVsTextManager textMgr = (IVsTextManager)Instance.GetService(typeof(SVsTextManager));
