@@ -26,8 +26,11 @@ namespace VSGenero.Analysis.Parsing.AST
 
             if(parser.PeekToken(TokenKind.ReturnKeyword))
             {
+                parser.NextToken();
                 result = true;
                 node = new ReturnStatement();
+                node.StartIndex = parser.Token.Span.Start;
+
                 while (true)
                 {
                     ExpressionNode expr;
