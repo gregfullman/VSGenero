@@ -25,6 +25,7 @@ using Microsoft.VisualStudio.VSCommon;
 namespace VSGenero.EditorExtensions
 {
     [ContentType(VSGeneroConstants.ContentType4GL)]
+    [ContentType(VSGeneroConstants.ContentTypePER)]
     [Export(typeof(IWpfTextViewCreationListener))]
     [TextViewRole(PredefinedTextViewRoles.Editable)]
     internal sealed class Genero4GLTextViewCreationListener : IWpfTextViewCreationListener
