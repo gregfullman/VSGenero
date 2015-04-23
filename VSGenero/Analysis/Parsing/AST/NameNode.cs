@@ -77,12 +77,13 @@ namespace VSGenero.Analysis.Parsing.AST
 
             if (parser.PeekToken(TokenKind.LeftBracket))
             {
+                StringBuilder sb = new StringBuilder();
+                sb.Append("[");
                 result = true;
                 node = new ArrayIndexNameExpressionPiece();
                 parser.NextToken();
                 node.StartIndex = parser.Token.Span.Start;
 
-                StringBuilder sb = new StringBuilder();
                 // TODO: need to get an integer expression
                 // for right now, we'll just check for a constant or a ident/keyword
                 if(parser.PeekToken(TokenCategory.NumericLiteral) ||
@@ -145,6 +146,8 @@ namespace VSGenero.Analysis.Parsing.AST
 
             if(parser.PeekToken(TokenKind.Dot))
             {
+                StringBuilder sb = new StringBuilder();
+                sb.Append(".");
                 result = true;
                 node = new MemberAccessNameExpressionPiece();
                 parser.NextToken();
@@ -152,7 +155,8 @@ namespace VSGenero.Analysis.Parsing.AST
 
                 if(parser.PeekToken(TokenKind.Multiply) || parser.PeekToken(TokenCategory.Identifier) || parser.PeekToken(TokenCategory.Keyword))
                 {
-                    node._text = parser.NextToken().Value.ToString();
+                    sb.Append(parser.NextToken().Value.ToString());
+                    node._text = sb.ToString();
                     node.EndIndex = parser.Token.Span.End;
                     node.IsComplete = true;
                 }

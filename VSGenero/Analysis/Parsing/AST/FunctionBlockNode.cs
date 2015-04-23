@@ -61,6 +61,19 @@ namespace VSGenero.Analysis.Parsing.AST
         private Dictionary<string, TokenWithSpan> _internalArguments = new Dictionary<string, TokenWithSpan>(StringComparer.OrdinalIgnoreCase);
         private Dictionary<TokenWithSpan, VariableDef> _arguments = new Dictionary<TokenWithSpan, VariableDef>(TokenWithSpan.CaseInsensitiveNameComparer);
 
+        private List<ReturnStatement> _internalReturns = new List<ReturnStatement>();
+        private Dictionary<TokenWithSpan, VariableDef> _returns = new Dictionary<TokenWithSpan, VariableDef>(TokenWithSpan.CaseInsensitiveNameComparer);
+
+        protected bool AddReturnStatement(ReturnStatement retStmt, out string errMsg)
+        {
+            errMsg = null;
+            bool result = true;
+
+
+
+            return result;
+        }
+
         protected bool AddArgument(TokenWithSpan token, out string errMsg)
         {
             errMsg = null;
@@ -299,6 +312,13 @@ namespace VSGenero.Analysis.Parsing.AST
                                 {
                                     AstNode stmtNode = statement as AstNode;
                                     defNode.Children.Add(stmtNode.StartIndex, stmtNode);
+
+                                    if(statement is ReturnStatement)
+                                    {
+                                        // TODO: resolve any variables in the return statement, and verify that if there are multiple return statements, they all have the same number of return values.
+
+                                    }
+
                                     continue;
                                 }
                                 break;
@@ -349,6 +369,18 @@ namespace VSGenero.Analysis.Parsing.AST
                                  .Where(x => x.Value != null)
                                  .Select(x => new ParameterResult(x.Value.Name, x.Value.Documentation, x.Value.Type.ToString()))
                                  .ToArray();
+            }
+        }
+
+        // TODO: probably want to make this something other than ParameterResult[]...
+        public ParameterResult[] Returns
+        {
+            get
+            {
+                return _returns.OrderBy(x => x.Key.Span.Start)
+                                     .Where(x => x.Value != null)
+                                     .Select(x => new ParameterResult(x.Value.Name, x.Value.Documentation, x.Value.Type.ToString()))
+                                     .ToArray();
             }
         }
 

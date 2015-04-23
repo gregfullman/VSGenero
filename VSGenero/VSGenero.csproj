@@ -318,6 +318,7 @@
     <Compile Include="Analysis\IReferenceableContainer.cs" />
     <Compile Include="Analysis\IReverseTokenizer.cs" />
     <Compile Include="Analysis\Parsing\AST\AstNodeAttributes.cs" />
+    <Compile Include="Analysis\Parsing\AST\CallStatement.cs" />
     <Compile Include="Analysis\Parsing\AST\DeclareStatement.cs" />
     <Compile Include="Analysis\Parsing\AST\ExpressionNode.cs" />
     <Compile Include="Analysis\Parsing\AST\GeneroAst.Builtins.cs" />
@@ -326,6 +327,7 @@
     <Compile Include="Analysis\Parsing\AST\GeneroMemberType.cs" />
     <Compile Include="Analysis\Parsing\AST\NameNode.cs" />
     <Compile Include="Analysis\Parsing\AST\PrepareStatement.cs" />
+    <Compile Include="Analysis\Parsing\AST\ReturnStatement.cs" />
     <Compile Include="Analysis\Parsing\AST\SqlBlockNode.cs" />
     <Compile Include="Analysis\Parsing\AST\SqlStatement.cs" />
     <Compile Include="Analysis\Parsing\CodeFormattingOptions.cs" />

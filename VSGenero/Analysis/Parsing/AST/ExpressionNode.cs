@@ -10,7 +10,7 @@ namespace VSGenero.Analysis.Parsing.AST
     {
         public abstract void AppendExpression(ExpressionNode node);
 
-        public static bool TryGetExpressionNode(Parser parser, out ExpressionNode node)
+        public static bool TryGetExpressionNode(Parser parser, out ExpressionNode node, List<TokenKind> breakTokens = null)
         {
             node = null;
             bool result = false;
@@ -65,6 +65,11 @@ namespace VSGenero.Analysis.Parsing.AST
             base.AppendExpression(node);
         }
     }
+
+    //public class IntegerExpressionNode : TokenExpressionNode
+    //{
+
+    //}
 
     /// <summary>
     /// Base class for token-based expresssions
