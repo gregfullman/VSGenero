@@ -8,18 +8,7 @@ namespace VSGenero.Analysis.Parsing.AST
 {
     public class CallStatement : FglStatement
     {
-        public NameExpression Function { get; private set; }
-
-        private List<ExpressionNode> _params;
-        public List<ExpressionNode> Parameters
-        {
-            get
-            {
-                if (_params == null)
-                    _params = new List<ExpressionNode>();
-                return _params;
-            }
-        }
+        public FunctionCallExpressionNode Function { get; private set; }
 
         private List<NameExpression> _returns;
         public List<NameExpression> Returns
@@ -45,57 +34,30 @@ namespace VSGenero.Analysis.Parsing.AST
                 node.StartIndex = parser.Token.Span.Start;
 
                 // get the function name
-                NameExpression name;
-                if(!NameExpression.TryParseNode(parser, out name, TokenKind.LeftParenthesis))
+                FunctionCallExpressionNode functionCall;
+                NameExpression dummy;
+                if (!FunctionCallExpressionNode.TryParseExpression(parser, out functionCall, out dummy, true))
                 {
                     parser.ReportSyntaxError("Unexpected token found in call statement, expecting name expression.");
                 }
                 else
                 {
-                    node.Function = name;
-                }
+                    node.Function = functionCall;
 
-                // get the left paren
-                if(parser.PeekToken(TokenKind.LeftParenthesis))
-                {
-                    parser.NextToken();
-                    // Parameters can be any expression, comma seperated
-                    ExpressionNode expr;
-                    while(ExpressionNode.TryGetExpressionNode(parser, out expr, new List<TokenKind> { TokenKind.Comma, TokenKind.RightParenthesis }))
-                    {
-                        node.Parameters.Add(expr);
-                        if (!parser.PeekToken(TokenKind.Comma))
-                            break;
-                        parser.NextToken();
-                    }
-
-                    // get the right paren
-                    if(parser.PeekToken(TokenKind.RightParenthesis))
+                    if (parser.PeekToken(TokenKind.ReturningKeyword))
                     {
                         parser.NextToken();
 
-                        if (parser.PeekToken(TokenKind.ReturningKeyword))
+                        NameExpression name;
+                        // get return values
+                        while (NameExpression.TryParseNode(parser, out name, TokenKind.Comma))
                         {
+                            node.Returns.Add(name);
+                            if (!parser.PeekToken(TokenKind.Comma))
+                                break;
                             parser.NextToken();
-
-                            // get return values
-                            while(NameExpression.TryParseNode(parser, out name, TokenKind.Comma))
-                            {
-                                node.Returns.Add(name);
-                                if (!parser.PeekToken(TokenKind.Comma))
-                                    break;
-                                parser.NextToken();
-                            }
                         }
                     }
-                    else
-                    {
-                        parser.ReportSyntaxError("Call statement missing right parenthesis.");
-                    }
-                }
-                else
-                {
-                    parser.ReportSyntaxError("Call statement missing left parenthesis.");
                 }
             }
 

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace VSGenero.Analysis.Parsing.AST
 {
-    public class NameExpression : AstNode
+    public class NameExpression : ExpressionNode
     {
         public string Name { get; private set; }
 
@@ -50,7 +50,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     }
                     else
                     {
-                        parser.ReportSyntaxError("Invalid token detected in name expression.");
+                        //parser.ReportSyntaxError("Invalid token detected in name expression.");
                         break;
                     }
                 }
@@ -58,6 +58,14 @@ namespace VSGenero.Analysis.Parsing.AST
             }
 
             return result;
+        }
+
+        public override void AppendExpression(ExpressionNode node)
+        {
+        }
+
+        public override void AppendOperator(TokenExpressionNode tokenKind)
+        {
         }
     }
 

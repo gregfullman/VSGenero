@@ -46,10 +46,12 @@ namespace VSGenero.Analysis.Parsing.AST
                     { 
                         new List<TokenKind> { TokenKind.EndKeyword, TokenKind.MainKeyword }
                     };
+                bool fglStatement = false;
                 // try to parse one or more declaration statements
                 while (!parser.PeekToken(TokenKind.EndOfFile) &&
                        !(parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.MainKeyword, 2)))
                 {
+                    fglStatement = false;
                     DefineNode defineNode;
                     TypeDefNode typeNode;
                     ConstantDefNode constNode;
@@ -112,6 +114,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                 {
                                     AstNode stmtNode = statement as AstNode;
                                     defNode.Children.Add(stmtNode.StartIndex, stmtNode);
+                                    fglStatement = true;
                                 }
                                 break;
                             }
@@ -124,7 +127,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     }
 
                     // if a break sequence was matched, we don't want to advance the token
-                    if (!matchedBreakSequence)
+                    if (!matchedBreakSequence && !fglStatement)
                     {
                         // TODO: not sure whether to break or keep going...for right now, let's keep going until we hit the end keyword
                         parser.NextToken();

@@ -753,7 +753,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             }
 
             var entry = (IGeneroProjectEntry)buffer.GetAnalysis();
-            if (entry != null)
+            if (entry != null && entry.Analysis != null)
             {
                 var members = entry.Analysis.GetContextMembersByIndex(start, parser, functionProvider, databaseProvider);
                 if (members != null)
