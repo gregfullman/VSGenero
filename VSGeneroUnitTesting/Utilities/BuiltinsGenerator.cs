@@ -156,21 +156,22 @@ namespace VSGeneroUnitTesting.Utilities
             foreach (var classElement in element.XPathSelectElement("gns:Classes", _nsManager)
                                                 .XPathSelectElements("gns:Class", _nsManager))
             {
-                sb.AppendFormat("\tnew GeneroPackageClass(\"{0}\", {1}, new List<GeneroPackageClassMethod>\n\t{{\n", (string)classElement.Attribute("name"), ((bool)classElement.Attribute("isStatic") ? "true" : "false"));
-                GeneratePackageClass(classElement, sb);
+                sb.AppendFormat("\tnew GeneroPackageClass(\"{0}\", \"{1}\", {2}, new List<GeneroPackageClassMethod>\n\t{{\n", (string)classElement.Attribute("name"), (string)element.Attribute("name"), ((bool)classElement.Attribute("isStatic") ? "true" : "false"));
+                GeneratePackageClass(classElement, sb, string.Format("{0}.{1}", (string)element.Attribute("name"), (string)classElement.Attribute("name")));
                 sb.Append("\t}),\n");
             }
             sb.Remove(sb.Length - 2, 1);    // take out the comma
             sb.Append("}));\n");
         }
 
-        private void GeneratePackageClass(XElement element, StringBuilder sb)
+        private void GeneratePackageClass(XElement element, StringBuilder sb, string className)
         {
             foreach (var methodElement in element.XPathSelectElement("gns:Methods", _nsManager)
                                                  .XPathSelectElements("gns:Method", _nsManager))
             {
-                sb.AppendFormat("\t\tnew GeneroPackageClassMethod(\"{0}\", {1}, \"{2}\", new List<ParameterResult>\n\t\t{{\n",
+                sb.AppendFormat("\t\tnew GeneroPackageClassMethod(\"{0}\", \"{1}\", {2}, \"{3}\", new List<ParameterResult>\n\t\t{{\n",
                     (string)methodElement.Attribute("name"),
+                    className,
                     ((string)methodElement.Attribute("scope") == "static") ? "true" : "false",
                     ((string)methodElement.Attribute("desc")).Replace("\"", "\\\""));
                 foreach (var paramElement in methodElement.XPathSelectElement("gns:Parameters", _nsManager)

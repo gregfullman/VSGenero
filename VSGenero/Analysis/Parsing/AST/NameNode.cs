@@ -67,6 +67,17 @@ namespace VSGenero.Analysis.Parsing.AST
         public override void AppendOperator(TokenExpressionNode tokenKind)
         {
         }
+
+        public override string ToString()
+        {
+            return Name;
+        }
+
+        public override string GetType()
+        {
+            // TODO: need to determine the type from the variables available
+            return null;
+        }
     }
 
     public class ArrayIndexNameExpressionPiece : AstNode

@@ -34,6 +34,15 @@ namespace VSGenero.Analysis.Parsing.AST
             {
                 StringBuilder sb = new StringBuilder();
 
+                if(Returns.Length == 1)
+                {
+                    sb.AppendFormat("{0} ", Returns[0]);
+                }
+                else if(Returns.Length == 0)
+                {
+                    sb.Append("void ");
+                }
+
                 sb.Append(Name);
                 sb.Append('(');
 
@@ -54,6 +63,18 @@ namespace VSGenero.Analysis.Parsing.AST
                 }
 
                 sb.Append(')');
+
+                if(Returns.Length > 1)
+                {
+                    sb.Append("\nreturning");
+                    for(i = 0; i < Returns.Length; i++)
+                    {
+                        sb.Append(Returns[i]);
+                        if (i + 1 < Returns.Length)
+                            sb.Append(", ");
+                    }
+                }
+
                 return sb.ToString();
             }
         }
@@ -62,23 +83,12 @@ namespace VSGenero.Analysis.Parsing.AST
         private Dictionary<TokenWithSpan, VariableDef> _arguments = new Dictionary<TokenWithSpan, VariableDef>(TokenWithSpan.CaseInsensitiveNameComparer);
 
         private List<ReturnStatement> _internalReturns = new List<ReturnStatement>();
-        private Dictionary<TokenWithSpan, VariableDef> _returns = new Dictionary<TokenWithSpan, VariableDef>(TokenWithSpan.CaseInsensitiveNameComparer);
-
-        protected bool AddReturnStatement(ReturnStatement retStmt, out string errMsg)
-        {
-            errMsg = null;
-            bool result = true;
-
-
-
-            return result;
-        }
 
         protected bool AddArgument(TokenWithSpan token, out string errMsg)
         {
             errMsg = null;
             string key = token.Token.Value.ToString();
-            if(!_internalArguments.ContainsKey(key))
+            if (!_internalArguments.ContainsKey(key))
             {
                 _internalArguments.Add(key, token);
                 _arguments.Add(token, null);
@@ -220,11 +230,11 @@ namespace VSGenero.Analysis.Parsing.AST
                     parser.NextToken();
 
                 // get the parameters
-                while(parser.PeekToken(TokenCategory.Keyword) || parser.PeekToken(TokenCategory.Identifier))
+                while (parser.PeekToken(TokenCategory.Keyword) || parser.PeekToken(TokenCategory.Identifier))
                 {
                     parser.NextToken();
                     string errMsg;
-                    if(!defNode.AddArgument(parser.Token, out errMsg))
+                    if (!defNode.AddArgument(parser.Token, out errMsg))
                     {
                         parser.ReportSyntaxError(errMsg);
                     }
@@ -261,7 +271,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                 if (TypeDefNode.TryParseNode(parser, out typeNode, out matchedBreakSequence, breakSequences))
                                 {
                                     defNode.Children.Add(typeNode.StartIndex, typeNode);
-                                    foreach(var def in typeNode.GetDefinitions())
+                                    foreach (var def in typeNode.GetDefinitions())
                                     {
                                         def.Scope = "local type";
                                         if (!defNode.Types.ContainsKey(def.Name))
@@ -280,7 +290,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                     foreach (var def in constNode.GetDefinitions())
                                     {
                                         def.Scope = "local constant";
-                                        if(!defNode.Constants.ContainsKey(def.Name))
+                                        if (!defNode.Constants.ContainsKey(def.Name))
                                             defNode.Constants.Add(def.Name, def);
                                         else
                                             parser.ReportSyntaxError(def.LocationIndex, def.LocationIndex + def.Name.Length, string.Format("Constant {0} defined more than once.", def.Name));
@@ -297,7 +307,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                         foreach (var vardef in def.VariableDefinitions)
                                         {
                                             vardef.Scope = "local variable";
-                                            if(!defNode.Variables.ContainsKey(vardef.Name))
+                                            if (!defNode.Variables.ContainsKey(vardef.Name))
                                                 defNode.Variables.Add(vardef.Name, vardef);
                                             else
                                                 parser.ReportSyntaxError(vardef.LocationIndex, vardef.LocationIndex + vardef.Name.Length, string.Format("Variable {0} defined more than once.", vardef.Name));
@@ -313,10 +323,25 @@ namespace VSGenero.Analysis.Parsing.AST
                                     AstNode stmtNode = statement as AstNode;
                                     defNode.Children.Add(stmtNode.StartIndex, stmtNode);
 
-                                    if(statement is ReturnStatement)
+                                    if (statement is ReturnStatement)
                                     {
                                         // TODO: resolve any variables in the return statement, and verify that if there are multiple return statements, they all have the same number of return values.
-
+                                        if (defNode._internalReturns == null)
+                                            defNode._internalReturns = new List<ReturnStatement>();
+                                        var retStmt = statement as ReturnStatement;
+                                        bool valid = true;
+                                        foreach (var ret in defNode._internalReturns)
+                                        {
+                                            if (ret.Returns.Count != retStmt.Returns.Count)
+                                            {
+                                                valid = false;
+                                                break;
+                                            }
+                                        }
+                                        if (valid)
+                                            defNode._internalReturns.Add(retStmt);
+                                        else
+                                            parser.ReportSyntaxError("Return statement does not return the same number of values as other return statements in this function.");
                                     }
 
                                     continue;
@@ -363,7 +388,7 @@ namespace VSGenero.Analysis.Parsing.AST
 
         public ParameterResult[] Parameters
         {
-            get 
+            get
             {
                 return _arguments.OrderBy(x => x.Key.Span.Start)
                                  .Where(x => x.Value != null)
@@ -372,15 +397,42 @@ namespace VSGenero.Analysis.Parsing.AST
             }
         }
 
-        // TODO: probably want to make this something other than ParameterResult[]...
-        public ParameterResult[] Returns
+        private string[] _returns;
+        public string[] Returns
         {
             get
             {
-                return _returns.OrderBy(x => x.Key.Span.Start)
-                                     .Where(x => x.Value != null)
-                                     .Select(x => new ParameterResult(x.Value.Name, x.Value.Documentation, x.Value.Type.ToString()))
-                                     .ToArray();
+                if (_returns == null)
+                {
+                    _returns = new string[_internalReturns.Count];
+                    // Need to go through the internal returns and determine return names and types
+                    foreach (var retStmt in _internalReturns)
+                    {
+                        for(int i = 0; i < retStmt.Returns.Count; i++)
+                        {
+                            string type = null;
+                            var ret = retStmt.Returns[i];
+                            string text = ret.ToString();
+                            IAnalysisResult anRes;
+                            if(Variables.TryGetValue(text, out anRes))
+                            {
+                                VariableDef varDef = anRes as VariableDef;
+                                if(varDef != null)
+                                {
+                                    type = varDef.Type.ToString();
+                                }
+                            }
+
+                            if(string.IsNullOrEmpty(type))
+                            {
+                                type = ret.GetType();
+                            }
+
+                            _returns[i] = type;
+                        }
+                    }
+                }
+                return _returns;
             }
         }
 
