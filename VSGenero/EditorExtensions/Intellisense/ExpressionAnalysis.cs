@@ -90,7 +90,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                 {
                     lock (_analyzer)
                     {
-                        return _analysis.GetValueByIndex(_expr, TranslatedIndex, _functionProvider, _databaseProvider);
+                        return _analysis.GetValueByIndex(_expr, TranslatedIndex, _functionProvider, _databaseProvider, true);
                     }
                 }
                 return null;

@@ -627,7 +627,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     if (firstStatus == CallStatus.None)
                     {
                         firstStatus = CallStatus.Comma;
-                        results.AddRange(GetDefinedMembers(index, true, false, false, true));
+                        results.AddRange(GetDefinedMembers(index, true, true, false, true));
                     }
                     if (currStatus == CallStatus.None ||
                         currStatus == CallStatus.VariableRef)

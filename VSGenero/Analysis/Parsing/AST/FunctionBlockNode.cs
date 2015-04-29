@@ -34,15 +34,6 @@ namespace VSGenero.Analysis.Parsing.AST
             {
                 StringBuilder sb = new StringBuilder();
 
-                if(Returns.Length == 1)
-                {
-                    sb.AppendFormat("{0} ", Returns[0]);
-                }
-                else if(Returns.Length == 0)
-                {
-                    sb.Append("void ");
-                }
-
                 sb.Append(Name);
                 sb.Append('(');
 
@@ -63,18 +54,6 @@ namespace VSGenero.Analysis.Parsing.AST
                 }
 
                 sb.Append(')');
-
-                if(Returns.Length > 1)
-                {
-                    sb.Append("\nreturning");
-                    for(i = 0; i < Returns.Length; i++)
-                    {
-                        sb.Append(Returns[i]);
-                        if (i + 1 < Returns.Length)
-                            sb.Append(", ");
-                    }
-                }
-
                 return sb.ToString();
             }
         }
@@ -404,7 +383,7 @@ namespace VSGenero.Analysis.Parsing.AST
             {
                 if (_returns == null)
                 {
-                    _returns = new string[_internalReturns.Count];
+                    _returns = new string[_internalReturns.Max(ir => ir.Returns.Count)];
                     // Need to go through the internal returns and determine return names and types
                     foreach (var retStmt in _internalReturns)
                     {
@@ -492,7 +471,26 @@ namespace VSGenero.Analysis.Parsing.AST
                 {
                     sb.AppendFormat("({0}) ", Scope);
                 }
+                if (Returns.Length == 1)
+                {
+                    sb.AppendFormat("{0} ", Returns[0]);
+                }
+                else if (Returns.Length == 0)
+                {
+                    sb.Append("void ");
+                }
                 sb.Append(DescriptiveName);
+
+                if (Returns.Length > 1)
+                {
+                    sb.Append("\nreturning ");
+                    for (int i = 0; i < Returns.Length; i++)
+                    {
+                        sb.Append(Returns[i]);
+                        if (i + 1 < Returns.Length)
+                            sb.Append(", ");
+                    }
+                }
 
                 return sb.ToString();
             }

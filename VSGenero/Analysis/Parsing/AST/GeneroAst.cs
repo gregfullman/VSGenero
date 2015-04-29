@@ -282,7 +282,7 @@ namespace VSGenero.Analysis.Parsing.AST
         /// </summary>
         /// <param name="exprText">The expression to determine the result of.</param>
         /// <param name="index">The 0-based absolute index into the file where the expression should be evaluated within the module.</param>
-        public IAnalysisResult GetValueByIndex(string exprText, int index, IFunctionInformationProvider functionProvider, IDatabaseInformationProvider databaseProvider)
+        public IAnalysisResult GetValueByIndex(string exprText, int index, IFunctionInformationProvider functionProvider, IDatabaseInformationProvider databaseProvider, bool searchInFunctionProvider = false)
         {
             _functionProvider = functionProvider;
             _databaseProvider = databaseProvider;
@@ -542,13 +542,16 @@ namespace VSGenero.Analysis.Parsing.AST
                         }
                     }
 
-                    if (res == null && _functionProvider != null)
+                    if (searchInFunctionProvider)
                     {
-                        // check for the function name in the function provider
-                        res = _functionProvider.GetFunction(exprText);
-                        if (res != null)
+                        if (res == null && _functionProvider != null)
                         {
-                            continue;
+                            // check for the function name in the function provider
+                            res = _functionProvider.GetFunction(exprText);
+                            if (res != null)
+                            {
+                                continue;
+                            }
                         }
                     }
                 }
