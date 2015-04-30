@@ -325,26 +325,37 @@ namespace VSGenero.Analysis.Parser
         {
             ret = 0;
             long m = 1;
+            bool negative = false;
             for (int i = text.Length - 1; i >= 0; i--)
             {
-                // avoid the exception here.  Not only is throwing it expensive,
-                // but loading the resources for it is also expensive 
-                long lret = (long)ret + m * CharValue(text[i], b);
-                if (Int32.MinValue <= lret && lret <= Int32.MaxValue)
+                if (text[i] == '-')
                 {
-                    ret = (int)lret;
+                    negative = true;
                 }
                 else
                 {
-                    return false;
-                }
+                    // avoid the exception here.  Not only is throwing it expensive,
+                    // but loading the resources for it is also expensive 
+                    long lret = (long)ret + m * CharValue(text[i], b);
+                    if (Int32.MinValue <= lret && lret <= Int32.MaxValue)
+                    {
+                        ret = (int)lret;
+                    }
+                    else
+                    {
+                        return false;
+                    }
 
-                m *= b;
-                if (Int32.MinValue > m || m > Int32.MaxValue)
-                {
-                    return false;
+                    m *= b;
+                    if (Int32.MinValue > m || m > Int32.MaxValue)
+                    {
+                        return false;
+                    }
                 }
             }
+
+            if (negative)
+                ret = -(ret);
             return true;
         }
 

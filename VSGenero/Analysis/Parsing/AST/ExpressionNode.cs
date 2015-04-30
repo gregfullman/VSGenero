@@ -8,6 +8,7 @@ namespace VSGenero.Analysis.Parsing.AST
 {
     public abstract class ExpressionNode : AstNode
     {
+        public abstract void PrependExpression(ExpressionNode node);
         public abstract void AppendExpression(ExpressionNode node);
         public abstract void AppendOperator(TokenExpressionNode tokenKind);
         public abstract string ToString();
@@ -17,9 +18,23 @@ namespace VSGenero.Analysis.Parsing.AST
         {
             node = null;
             bool result = false;
+            bool start = true;
 
+            Token nextTok;
+            TokenExpressionNode startingToken = null;
             while (true)
             {
+                // For right now, let's allow an operator in front of the expression
+                nextTok = parser.PeekToken();
+                // Check to see if the token is an operator, in which case we can continue gathering the expression 
+                if (start &&
+                   nextTok.Kind >= TokenKind.FirstOperator &&
+                   nextTok.Kind <= TokenKind.LastOperator)
+                {
+                    parser.NextToken();
+                    startingToken = new TokenExpressionNode(parser.Token);
+                }
+                start = false;
                 if (parser.PeekToken(TokenKind.LeftParenthesis))
                 {
                     ParenWrappedExpressionNode parenExpr;
@@ -98,7 +113,12 @@ namespace VSGenero.Analysis.Parsing.AST
                     }
                 }
 
-                var nextTok = parser.PeekToken();
+                if(startingToken != null)
+                {
+                    node.PrependExpression(startingToken);
+                }
+
+                nextTok = parser.PeekToken();
                 // Check to see if the token is an operator, in which case we can continue gathering the expression 
                 if(breakTokens != null &&
                    !breakTokens.Contains(nextTok.Kind) && 
@@ -217,6 +237,10 @@ namespace VSGenero.Analysis.Parsing.AST
             // TODO: need to determine the return type for the function call
             return null;
         }
+
+        public override void PrependExpression(ExpressionNode node)
+        {
+        }
     }
 
     public class ParenWrappedExpressionNode : ExpressionNode
@@ -271,6 +295,10 @@ namespace VSGenero.Analysis.Parsing.AST
         public override string GetType()
         {
             return null;
+        }
+
+        public override void PrependExpression(ExpressionNode node)
+        {
         }
     }
 
@@ -362,6 +390,10 @@ namespace VSGenero.Analysis.Parsing.AST
         public override string GetType()
         {
             return null;
+        }
+
+        public override void PrependExpression(ExpressionNode node)
+        {
         }
     }
 }

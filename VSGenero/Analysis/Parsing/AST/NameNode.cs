@@ -78,6 +78,10 @@ namespace VSGenero.Analysis.Parsing.AST
             // TODO: need to determine the type from the variables available
             return null;
         }
+
+        public override void PrependExpression(ExpressionNode node)
+        {
+        }
     }
 
     public class ArrayIndexNameExpressionPiece : AstNode

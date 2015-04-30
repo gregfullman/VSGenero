@@ -610,7 +610,7 @@ namespace VSGenero.Analysis.Parsing
                         ch = SkipWhiteSpace(ch, at_beginning);
                         break;
                     case '-':
-                        if (NextChar('-'))
+                        if (Peek() == '-')
                         {
                             if ((_options & (TokenizerOptions.VerbatimCommentsAndLineJoins | TokenizerOptions.Verbatim)) != 0)
                             {
@@ -632,7 +632,27 @@ namespace VSGenero.Analysis.Parsing
                             }
                             break;
                         }
-                        return Tokens.SubtractToken;
+                        else
+                        {
+                            _state.LastNewLine = false;
+                            Token resb = NextOperator(ch);
+                            if (resb != null)
+                            {
+                                if (resb is StatementSymbolToken)
+                                {
+                                    return TransformStatementToken(resb);
+                                }
+                                MarkTokenEnd();
+                                return resb;
+                            }
+                            else
+                            {
+                                if (IsNameStart(ch)) return ReadName();
+
+                                MarkTokenEnd();
+                                return BadChar(ch);
+                            }
+                        }
                     case '#':
                         if ((_options & (TokenizerOptions.VerbatimCommentsAndLineJoins | TokenizerOptions.Verbatim)) != 0)
                         {
