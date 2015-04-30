@@ -19,6 +19,11 @@ namespace VSGenero.Analysis.Parsing.AST
         public string SpecifiedType { get; private set; }
         public string Literal { get; private set; }
 
+        public bool CanGetValueFromDebugger
+        {
+            get { return false; }
+        }
+
         public static bool TryParseNode(IParser parser, out ConstantDefinitionNode defNode)
         {
             defNode = null;

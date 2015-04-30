@@ -28,6 +28,11 @@ namespace VSGenero.Analysis.Parsing.AST
 
         public int DecoratorEnd { get; set; }
 
+        public bool CanGetValueFromDebugger
+        {
+            get { return false; }
+        }
+
         public string DescriptiveName
         {
             get
@@ -383,32 +388,39 @@ namespace VSGenero.Analysis.Parsing.AST
             {
                 if (_returns == null)
                 {
-                    _returns = new string[_internalReturns.Max(ir => ir.Returns.Count)];
-                    // Need to go through the internal returns and determine return names and types
-                    foreach (var retStmt in _internalReturns)
+                    if (_internalReturns.Count > 0)
                     {
-                        for(int i = 0; i < retStmt.Returns.Count; i++)
+                        _returns = new string[_internalReturns.Max(ir => ir.Returns.Count)];
+                        // Need to go through the internal returns and determine return names and types
+                        foreach (var retStmt in _internalReturns)
                         {
-                            string type = null;
-                            var ret = retStmt.Returns[i];
-                            string text = ret.ToString();
-                            IAnalysisResult anRes;
-                            if(Variables.TryGetValue(text, out anRes))
+                            for (int i = 0; i < retStmt.Returns.Count; i++)
                             {
-                                VariableDef varDef = anRes as VariableDef;
-                                if(varDef != null)
+                                string type = null;
+                                var ret = retStmt.Returns[i];
+                                string text = ret.ToString();
+                                IAnalysisResult anRes;
+                                if (Variables.TryGetValue(text, out anRes))
                                 {
-                                    type = varDef.Type.ToString();
+                                    VariableDef varDef = anRes as VariableDef;
+                                    if (varDef != null)
+                                    {
+                                        type = varDef.Type.ToString();
+                                    }
                                 }
-                            }
 
-                            if(string.IsNullOrEmpty(type))
-                            {
-                                type = ret.GetType();
-                            }
+                                if (string.IsNullOrEmpty(type))
+                                {
+                                    type = ret.GetType();
+                                }
 
-                            _returns[i] = type;
+                                _returns[i] = type;
+                            }
                         }
+                    }
+                    else
+                    {
+                        _returns = new string[0];
                     }
                 }
                 return _returns;

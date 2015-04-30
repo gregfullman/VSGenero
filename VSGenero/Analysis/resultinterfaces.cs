@@ -16,6 +16,7 @@ namespace VSGenero.Analysis
         string Documentation { get; }
         int LocationIndex { get; }
         bool HasChildFunctions(GeneroAst ast);
+        bool CanGetValueFromDebugger { get; }
 
         IAnalysisResult GetMember(string name, GeneroAst ast);
         IEnumerable<MemberResult> GetMembers(GeneroAst ast);

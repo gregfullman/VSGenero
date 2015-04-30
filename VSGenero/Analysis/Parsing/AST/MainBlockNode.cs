@@ -24,6 +24,11 @@ namespace VSGenero.Analysis.Parsing.AST
     /// </summary>
     public class MainBlockNode : FunctionBlockNode, IFunctionResult
     {
+        public bool CanGetValueFromDebugger
+        {
+            get { return false; }
+        }
+
         public static bool TryParseNode(Parser parser, out MainBlockNode defNode, Func<string, PrepareStatement> prepStatementResolver = null)
         {
             defNode = null;

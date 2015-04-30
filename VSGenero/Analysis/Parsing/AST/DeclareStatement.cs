@@ -16,6 +16,11 @@ namespace VSGenero.Analysis.Parsing.AST
         public string PreparedStatementId { get; private set; }
         private Func<string, PrepareStatement> _prepStatementResolver;
 
+        public bool CanGetValueFromDebugger
+        {
+            get { return false; }
+        }
+
         public static bool TryParseNode(Parser parser, out DeclareStatement defNode, Func<string, PrepareStatement> preparedStatementResolver = null)
         {
             defNode = null;

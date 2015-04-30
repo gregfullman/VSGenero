@@ -3164,6 +3164,11 @@ namespace VSGenero.Analysis.Parsing.AST
         }
         private readonly Dictionary<string, GeneroPackageClass> _classes;
 
+        public bool CanGetValueFromDebugger
+        {
+            get { return false; }
+        }
+
         public GeneroPackage(string name, bool extension, IEnumerable<GeneroPackageClass> classes)
         {
             _name = name;
@@ -3251,6 +3256,11 @@ namespace VSGenero.Analysis.Parsing.AST
         public bool IsStatic { get { return _isStatic; } }
         private readonly Dictionary<string, GeneroPackageClassMethod> _methods;
 
+        public bool CanGetValueFromDebugger
+        {
+            get { return false; }
+        }
+
         public GeneroPackageClass(string name, string parentPackage, bool isStatic, IEnumerable<GeneroPackageClassMethod> methods)
         {
             _name = name;
@@ -3324,6 +3334,11 @@ namespace VSGenero.Analysis.Parsing.AST
         private readonly string _desc;
         private readonly List<ParameterResult> _parameters;
         private readonly List<string> _returns;
+
+        public bool CanGetValueFromDebugger
+        {
+            get { return false; }
+        }
 
         public GeneroPackageClassMethod(string name, string parentClass, bool isStatic, string description, IEnumerable<ParameterResult> parameters, IEnumerable<string> returns)
         {

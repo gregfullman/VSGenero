@@ -52,8 +52,8 @@ namespace VSGenero.Analysis.Parsing.AST
                     }
                 }
                 else if (parser.PeekToken(TokenCategory.StringLiteral) ||
-                        parser.PeekToken(TokenCategory.CharacterLiteral) ||
-                        parser.PeekToken(TokenCategory.IncompleteMultiLineStringLiteral))
+                         parser.PeekToken(TokenCategory.CharacterLiteral) ||
+                         parser.PeekToken(TokenCategory.IncompleteMultiLineStringLiteral))
                 {
                     result = true;
                     parser.NextToken();

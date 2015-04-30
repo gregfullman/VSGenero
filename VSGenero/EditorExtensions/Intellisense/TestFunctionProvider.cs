@@ -88,6 +88,12 @@ namespace VSGenero.EditorExtensions.Intellisense
         {
             return _collections.Values.Select(x => new MemberResult(x.Name, x, GeneroMemberType.Class, ast));
         }
+
+
+        public bool CanGetValueFromDebugger
+        {
+            get { return false; }
+        }
     }
 
     internal class TestFunctionCollection : IAnalysisResult
@@ -149,6 +155,11 @@ namespace VSGenero.EditorExtensions.Intellisense
             TestFunction func = null;
             _functions.TryGetValue(name, out func);
             return func;
+        }
+
+        public bool CanGetValueFromDebugger
+        {
+            get { return false; }
         }
     }
 
@@ -279,6 +290,11 @@ namespace VSGenero.EditorExtensions.Intellisense
         public string CompletionParentName
         {
             get { return _completionParentName; }
+        }
+
+        public bool CanGetValueFromDebugger
+        {
+            get { return false; }
         }
     }
 }

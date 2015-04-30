@@ -418,6 +418,11 @@ new ParameterResult("width", "", "integer"),
         private readonly string _typeName;
         private readonly Dictionary<string, ProgramRegister> _childRegisters;
 
+        public bool CanGetValueFromDebugger
+        {
+            get { return true; }
+        }
+
         public ProgramRegister(string name, string typeName, IEnumerable<ProgramRegister> childRegisters = null)
         {
             _parentRegister = null;
@@ -506,6 +511,11 @@ new ParameterResult("width", "", "integer"),
         private readonly string _typeName;
         private readonly object _value;
 
+        public bool CanGetValueFromDebugger
+        {
+            get { return false; }
+        }
+
         public SystemConstant(string name, string typeName, object value)
         {
             _name = name;
@@ -577,6 +587,11 @@ new ParameterResult("width", "", "integer"),
         private readonly List<ParameterResult> _parameters;
         private readonly List<string> _returns;
         private readonly string _description;
+
+        public bool CanGetValueFromDebugger
+        {
+            get { return false; }
+        }
 
         public BuiltinFunction(string name, IEnumerable<ParameterResult> parameters, IEnumerable<string> returns, string description)
         {
@@ -749,6 +764,11 @@ new ParameterResult("width", "", "integer"),
     {
         private readonly string _name;
         private readonly Dictionary<string, IFunctionResult> _memberFunctions;
+
+        public bool CanGetValueFromDebugger
+        {
+            get { return false; }
+        }
 
         public SystemClass(string name, IEnumerable<IFunctionResult> memberFunctions)
         {

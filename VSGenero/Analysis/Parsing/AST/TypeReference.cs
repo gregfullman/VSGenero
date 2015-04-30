@@ -27,6 +27,11 @@ namespace VSGenero.Analysis.Parsing.AST
         public string TableName { get; private set; }
         public string ColumnName { get; private set; }
 
+        public bool CanGetValueFromDebugger
+        {
+            get { return false; }
+        }
+
         public override string ToString()
         {
             if (Children.Count > 0)

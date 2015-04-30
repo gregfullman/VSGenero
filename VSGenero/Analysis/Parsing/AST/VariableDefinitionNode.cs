@@ -66,6 +66,11 @@ namespace VSGenero.Analysis.Parsing.AST
         {
             return Type.HasChildFunctions(ast);
         }
+
+        public bool CanGetValueFromDebugger
+        {
+            get { return true; }
+        }
     }
 
     /// <summary>

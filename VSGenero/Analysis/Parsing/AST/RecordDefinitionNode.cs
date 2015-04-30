@@ -21,6 +21,11 @@ namespace VSGenero.Analysis.Parsing.AST
         public string MimicTableName { get; private set; }
         public string MimicDatabaseName { get; private set; }
 
+        public bool CanGetValueFromDebugger
+        {
+            get { return false; }
+        }
+
         private Dictionary<string, VariableDef> _memberDictionary;
         public Dictionary<string, VariableDef> MemberDictionary
         {
