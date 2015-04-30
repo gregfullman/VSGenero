@@ -1019,6 +1019,7 @@ namespace VSGenero.Navigation
             var activeView = VSGeneroPackage.GetActiveTextView();
 
             if (_textView.TextBuffer.ContentType.IsOfType(VSGeneroConstants.ContentType4GL) ||
+                _textView.TextBuffer.ContentType.IsOfType(VSGeneroConstants.ContentTypeINC) ||
                 _textView.TextBuffer.ContentType.IsOfType(VSGeneroConstants.ContentTypePER))
             {
                 if (_textView.Selection.IsEmpty ||
@@ -1042,6 +1043,7 @@ namespace VSGenero.Navigation
         {
             IWpfTextView activeView = VSGeneroPackage.GetActiveTextView();
             if (_textView.TextBuffer.ContentType.IsOfType(VSGeneroConstants.ContentType4GL) ||
+                _textView.TextBuffer.ContentType.IsOfType(VSGeneroConstants.ContentTypeINC) ||
                 _textView.TextBuffer.ContentType.IsOfType(VSGeneroConstants.ContentTypePER))
             {
                 prgCmds[i].cmdf = (uint)(OLECMDF.OLECMDF_ENABLED | OLECMDF.OLECMDF_SUPPORTED);

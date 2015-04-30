@@ -18,7 +18,7 @@ using Microsoft.VisualStudio.VSCommon;
 
 namespace VSGenero.EditorExtensions.Intellisense
 {
-    [Export(typeof(IIntellisenseControllerProvider)), ContentType(VSGeneroConstants.ContentType4GL), ContentType(VSGeneroConstants.ContentTypePER), Order]
+    [Export(typeof(IIntellisenseControllerProvider)), ContentType(VSGeneroConstants.ContentType4GL), ContentType(VSGeneroConstants.ContentTypeINC), ContentType(VSGeneroConstants.ContentTypePER), Order]
     class IntellisenseControllerProvider : IIntellisenseControllerProvider
     {
         [Import]
@@ -108,7 +108,9 @@ namespace VSGenero.EditorExtensions.Intellisense
                 var intellisenseControllerProvider = (
                    from export in model.DefaultExportProvider.GetExports<IIntellisenseControllerProvider, IContentTypeMetadata>()
                    from exportedContentType in export.Metadata.ContentTypes
-                   where (exportedContentType == VSGeneroConstants.ContentType4GL || exportedContentType == VSGeneroConstants.ContentTypePER) && export.Value.GetType() == typeof(IntellisenseControllerProvider)
+                   where (exportedContentType == VSGeneroConstants.ContentType4GL || 
+                          exportedContentType == VSGeneroConstants.ContentTypeINC ||
+                          exportedContentType == VSGeneroConstants.ContentTypePER) && export.Value.GetType() == typeof(IntellisenseControllerProvider)
                    select export.Value
                 ).First();
                 controller = new IntellisenseController((IntellisenseControllerProvider)intellisenseControllerProvider, textView);
@@ -126,6 +128,7 @@ namespace VSGenero.EditorExtensions.Intellisense
     /// </summary>
     [Export(typeof(IVsTextViewCreationListener))]
     [ContentType(VSGeneroConstants.ContentType4GL)]
+    [ContentType(VSGeneroConstants.ContentTypeINC)]
     [ContentType(VSGeneroConstants.ContentTypePER)]
     [TextViewRole(PredefinedTextViewRoles.Editable)]
     class TextViewCreationListener : IVsTextViewCreationListener

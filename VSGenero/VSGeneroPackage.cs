@@ -78,10 +78,12 @@ namespace VSGenero
     [InstalledProductRegistration("#110", "#112", "1.0", IconResourceID = 400)]
 
     [ProvideEditorExtensionAttribute(typeof(EditorFactory), VSGeneroConstants.FileExtension4GL, 32)]
+    [ProvideEditorExtensionAttribute(typeof(EditorFactory), VSGeneroConstants.FileExtensionINC, 32)]
     [ProvideEditorExtensionAttribute(typeof(EditorFactory), VSGeneroConstants.FileExtensionPER, 32)]
     [ProvideEditorLogicalView(typeof(EditorFactory), "{7651a701-06e5-11d1-8ebd-00a0c90f26ea}")]
     #if VS120
     [PeekSupportedContentType(".4gl")]
+    [PeekSupportedContentType(".inc")]
     #endif  
     [RegisterSnippetsAttribute(VSGenero.Snippets.Constants.guidVSGeneroLanuageServiceString, false, 131, "Genero4GL", @"Snippets\CodeSnippets\SnippetsIndex.xml", @"Snippets\CodeSnippets\Snippets\", @"Snippets\CodeSnippets\Snippets\")]
     [ProvideLanguageService(typeof(VSGenero4GLLanguageInfo), VSGeneroConstants.LanguageName4GL, 106,
@@ -102,6 +104,15 @@ namespace VSGenero
                             EnableAdvancedMembersOption = true,
                             ShowDropDownOptions = true)]
     [ProvideLanguageExtension(typeof(VSGeneroPERLanguageInfo), VSGeneroConstants.FileExtensionPER)]
+    [ProvideLanguageService(typeof(VSGeneroINCLanguageInfo), VSGeneroConstants.LanguageNameINC, 108,
+                            RequestStockColors = true,
+        //ShowSmartIndent = true,       // enable this when we want to support smart indenting
+                            ShowCompletion = true,
+                            DefaultToInsertSpaces = true,
+                            HideAdvancedMembersByDefault = true,
+                            EnableAdvancedMembersOption = true,
+                            ShowDropDownOptions = true)]
+    [ProvideLanguageExtension(typeof(VSGeneroINCLanguageInfo), VSGeneroConstants.FileExtensionINC)]
     [ProvideLanguageEditorOptionPage(typeof(Genero4GLIntellisenseOptionsPage), VSGeneroConstants.LanguageName4GL, "", "Intellisense", "113")]
     [ProvideLanguageEditorOptionPage(typeof(Genero4GLAdvancedOptionsPage), VSGeneroConstants.LanguageName4GL, "", "Advanced", "114")]
     
@@ -359,16 +370,19 @@ namespace VSGenero
             return new GeneroProjectAnalyzer(ComponentModel.GetService<IErrorProviderFactory>());
         }
 
-        private IContentType _contentType;
-        public IContentType ContentType
+        private List<IContentType> _programCodeContentTypes;
+        public IList<IContentType> ProgramCodeContentTypes
         {
             get
             {
-                if (_contentType == null)
+                if (_programCodeContentTypes == null)
                 {
-                    _contentType = ComponentModel.GetService<IContentTypeRegistryService>().GetContentType(VSGeneroConstants.ContentType4GL);
+                    var regSvc = ComponentModel.GetService<IContentTypeRegistryService>();
+                    _programCodeContentTypes = new List<IContentType>(); 
+                    _programCodeContentTypes.Add(regSvc.GetContentType(VSGeneroConstants.ContentType4GL));
+                    _programCodeContentTypes.Add(regSvc.GetContentType(VSGeneroConstants.ContentTypeINC));
                 }
-                return _contentType;
+                return _programCodeContentTypes;
             }
         }
     }

@@ -29,7 +29,7 @@ using VSGenero.Analysis;
 
 namespace VSGenero.VS2013_Specific
 {
-    [SupportsStandaloneFiles(true), Export(typeof(IPeekableItemSourceProvider)), Name("GeneroPeekableItemSourceProvider"), ContentType(VSGeneroConstants.ContentType4GL)]
+    [SupportsStandaloneFiles(true), Export(typeof(IPeekableItemSourceProvider)), Name("GeneroPeekableItemSourceProvider"), ContentType(VSGeneroConstants.ContentType4GL), ContentType(VSGeneroConstants.ContentTypeINC)]
     public class PeekableItemSourceProvider : IPeekableItemSourceProvider
     {
         [Import]

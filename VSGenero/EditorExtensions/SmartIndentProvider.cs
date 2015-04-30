@@ -13,6 +13,7 @@ namespace VSGenero.EditorExtensions
 {
     [Export(typeof(ISmartIndentProvider))]
     [ContentType(VSGeneroConstants.ContentType4GL)]
+    [ContentType(VSGeneroConstants.ContentTypeINC)]
     public sealed class SmartIndentProvider : ISmartIndentProvider
     {
 

@@ -52,9 +52,17 @@ namespace VSGenero.Analysis.Parsing.AST
                 {
                     parser.NextToken(); // advance to equals
                     
-                    if(parser.PeekToken(TokenCategory.StringLiteral) ||
-                       parser.PeekToken(TokenCategory.NumericLiteral) ||
-                       parser.PeekToken(TokenCategory.CharacterLiteral))
+                    if(parser.PeekToken(TokenCategory.StringLiteral))
+                    {
+                        parser.NextToken();
+                        defNode.Literal = string.Format("\"{0}\"", parser.Token.Token.Value.ToString());
+                    }
+                    else if(parser.PeekToken(TokenCategory.CharacterLiteral))
+                    {
+                        parser.NextToken();
+                        defNode.Literal = string.Format("\'{0}\'", parser.Token.Token.Value.ToString());
+                    }
+                    else if(parser.PeekToken(TokenCategory.NumericLiteral))
                     {
                         parser.NextToken();
                         defNode.Literal = parser.Token.Token.Value.ToString();

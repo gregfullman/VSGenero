@@ -609,7 +609,30 @@ namespace VSGenero.Analysis.Parsing
                     case '\t':
                         ch = SkipWhiteSpace(ch, at_beginning);
                         break;
-
+                    case '-':
+                        if (NextChar('-'))
+                        {
+                            if ((_options & (TokenizerOptions.VerbatimCommentsAndLineJoins | TokenizerOptions.Verbatim)) != 0)
+                            {
+                                var commentRes = ReadSingleLineComment(out ch);
+                                if ((_options & TokenizerOptions.VerbatimCommentsAndLineJoins) == 0)
+                                {
+                                    _state.CurWhiteSpace.Append(commentRes.VerbatimImage);
+                                    DiscardToken();
+                                    SeekRelative(+1);
+                                }
+                                else
+                                {
+                                    return commentRes;
+                                }
+                            }
+                            else
+                            {
+                                ch = SkipSingleLineComment();
+                            }
+                            break;
+                        }
+                        return Tokens.SubtractToken;
                     case '#':
                         if ((_options & (TokenizerOptions.VerbatimCommentsAndLineJoins | TokenizerOptions.Verbatim)) != 0)
                         {
@@ -1739,7 +1762,6 @@ namespace VSGenero.Analysis.Parsing
                         }
                         sb.Append('\f');
                         break;
-
                     case '#':
 
                         if ((_options & TokenizerOptions.VerbatimCommentsAndLineJoins) != 0)

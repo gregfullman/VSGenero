@@ -30,6 +30,7 @@ namespace VSGenero
         internal const string LanguageName = "Genero";
         internal const string LanguageName4GL = "Genero4GL";
         internal const string LanguageNamePER = "GeneroPER";
+        internal const string LanguageNameINC = "GeneroINC";
         public const string FileExtension4GL = ".4gl";
         public const string FileExtensionPER = ".per";
         public const string FileExtensionINC = ".inc";
@@ -53,6 +54,7 @@ namespace VSGenero
 
         public const string ContentType4GL = LanguageName4GL;
         public const string ContentTypePER = LanguageNamePER;
+        public const string ContentTypeINC = LanguageNameINC;
         public const string BaseRegistryKey = "VSGenero";
 
         //These are VS internal constants - don't change them

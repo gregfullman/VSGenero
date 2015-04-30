@@ -14,6 +14,7 @@ using VSGenero.Analysis.Parsing;
 namespace VSGenero.EditorExtensions
 {
     [ContentType(VSGeneroConstants.ContentType4GL)]
+    [ContentType(VSGeneroConstants.ContentTypeINC)]
     [Export(typeof(IClassifierProvider))]
     public class Genero4glClassifierProvider : IClassifierProvider
     {
@@ -25,18 +26,20 @@ namespace VSGenero.EditorExtensions
         private IClassificationType _groupingClassification;
         private IClassificationType _dotClassification;
         private IClassificationType _commaClassification;
-        private readonly IContentType _type;
+        private readonly IList<IContentType> _types;
 
         public Genero4glClassifierProvider(IClassificationTypeRegistryService classificationRegistry)
         {
             _classificationRegistry = classificationRegistry;
-            _type = VSGeneroPackage.Instance.ContentType;
+            _types = VSGeneroPackage.Instance.ProgramCodeContentTypes;
         }
 
         [ImportingConstructor]
         public Genero4glClassifierProvider(IContentTypeRegistryService contentTypeRegistryService)
         {
-            _type = contentTypeRegistryService.GetContentType(VSGeneroConstants.ContentType4GL);
+            _types = new List<IContentType>();
+            _types.Add(contentTypeRegistryService.GetContentType(VSGeneroConstants.ContentType4GL));
+            _types.Add(contentTypeRegistryService.GetContentType(VSGeneroConstants.ContentTypeINC));
         }
 
         /// <summary>
@@ -83,7 +86,7 @@ namespace VSGenero.EditorExtensions
 
             Genero4glClassifier res;
             if (!buffer.Properties.TryGetProperty<Genero4glClassifier>(typeof(Genero4glClassifier), out res) &&
-                buffer.ContentType.IsOfType(ContentType.TypeName)) {
+                ContentTypes.Any(x => buffer.ContentType.IsOfType(x.TypeName))) {
                 res = new Genero4glClassifier(this, buffer);
                 buffer.Properties.AddProperty(typeof(Genero4glClassifier), res);
             }
@@ -101,8 +104,8 @@ namespace VSGenero.EditorExtensions
             return new Genero4glClassifier(this, null);
         }
 
-        public virtual IContentType ContentType {
-            get { return _type; }
+        public virtual IList<IContentType> ContentTypes {
+            get { return _types; }
         }
 
         public IClassificationType Comment {

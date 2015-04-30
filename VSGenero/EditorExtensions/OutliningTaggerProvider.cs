@@ -16,7 +16,7 @@ using VSGenero.EditorExtensions.Intellisense;
 
 namespace VSGenero.EditorExtensions
 {
-    [Export(typeof(ITaggerProvider)), ContentType(VSGeneroConstants.ContentType4GL)]
+    [Export(typeof(ITaggerProvider)), ContentType(VSGeneroConstants.ContentType4GL), ContentType(VSGeneroConstants.ContentTypeINC)]
     [TagType(typeof(IOutliningRegionTag))]
     class OutliningTaggerProvider : ITaggerProvider
     {

@@ -58,8 +58,8 @@ namespace VSGenero.Project
     }
 
     [Guid(VSGeneroConstants.EditorFactoryPromptForEncodingGuid)]
-    public class PythonEditorFactoryPromptForEncoding : GeneroEditorFactory
+    public class GeneroEditorFactoryPromptForEncoding : GeneroEditorFactory
     {
-        public PythonEditorFactoryPromptForEncoding(CommonProjectPackage package) : base(package, true) { }
+        public GeneroEditorFactoryPromptForEncoding(CommonProjectPackage package) : base(package, true) { }
     }
 }

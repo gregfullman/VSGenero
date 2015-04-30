@@ -204,6 +204,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 ConstantDefNode constNode;
                 List<List<TokenKind>> breakSequences = new List<List<TokenKind>>() 
                     { 
+                        new List<TokenKind> { TokenKind.ConstantKeyword },
                         new List<TokenKind> { TokenKind.TypeKeyword },
                         new List<TokenKind> { TokenKind.DefineKeyword },
                         new List<TokenKind> { TokenKind.FunctionKeyword },

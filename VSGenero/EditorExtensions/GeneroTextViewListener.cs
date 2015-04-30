@@ -11,14 +11,15 @@ namespace VSGenero.EditorExtensions
 {
     [ContentType(VSGeneroConstants.ContentType4GL)]
     [ContentType(VSGeneroConstants.ContentTypePER)]
+    [ContentType(VSGeneroConstants.ContentTypeINC)]
     [Export(typeof(IWpfTextViewCreationListener))]
     [TextViewRole(PredefinedTextViewRoles.Editable)]
-    internal sealed class Genero4GLTextViewCreationListener : IWpfTextViewCreationListener
+    internal sealed class GeneroTextViewCreationListener : IWpfTextViewCreationListener
     {
         [Import(AllowDefault = true)]
         internal IGeneroTextViewChangedListener _changeListener;
 
-        public Genero4GLTextViewCreationListener()
+        public GeneroTextViewCreationListener()
         {
             int i = 0;
         }

@@ -120,6 +120,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                 if (!_projects.TryGetValue(dirPath, out projEntry))
                 {
                     if (buffer.ContentType.IsOfType(VSGeneroConstants.ContentType4GL) ||
+                        buffer.ContentType.IsOfType(VSGeneroConstants.ContentTypeINC) ||
                         buffer.ContentType.IsOfType(VSGeneroConstants.ContentTypePER))
                     {
                         string moduleName = null;   // TODO: get module name from provider (if provider is null, take the file's directory name)
@@ -145,6 +146,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                     if (!projEntry.ProjectEntries.TryGetValue(path, out entry))
                     {
                         if (buffer.ContentType.IsOfType(VSGeneroConstants.ContentType4GL) ||
+                            buffer.ContentType.IsOfType(VSGeneroConstants.ContentTypeINC) ||
                             buffer.ContentType.IsOfType(VSGeneroConstants.ContentTypePER))
                         {
                             string moduleName = null;   // TODO: get module name from provider (if provider is null, take the file's directory name)
@@ -512,7 +514,8 @@ namespace VSGenero.EditorExtensions.Intellisense
             List<GeneroAst> asts = new List<GeneroAst>();
             foreach (var snapshot in snapshots)
             {
-                if (pyProjEntry != null && snapshot.TextBuffer.ContentType.IsOfType(VSGeneroConstants.ContentType4GL))
+                if (pyProjEntry != null && 
+                    VSGeneroPackage.Instance.ProgramCodeContentTypes.Any(x => snapshot.TextBuffer.ContentType.IsOfType(x.TypeName)))
                 {
                     GeneroAst ast;
                     CollectingErrorSink errorSink;

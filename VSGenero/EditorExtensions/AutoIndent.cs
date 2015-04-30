@@ -95,7 +95,7 @@ namespace VSGenero.EditorExtensions
                 var spans = textView.BufferGraph.MapDownToFirstMatch(
                     tokens[tokenIndex].Span,
                     SpanTrackingMode.EdgePositive,
-                    PythonContentTypePrediciate
+                    GeneroContentTypePrediciate
                 );
                 if (spans.Count == 0)
                 {
@@ -265,9 +265,11 @@ namespace VSGenero.EditorExtensions
             baseline = line;
         }
 
-        private static bool PythonContentTypePrediciate(ITextSnapshot snapshot)
+        private static bool GeneroContentTypePrediciate(ITextSnapshot snapshot)
         {
-            return snapshot.ContentType.IsOfType(VSGeneroConstants.ContentType4GL) || snapshot.ContentType.IsOfType(VSGeneroConstants.ContentTypePER);
+            return snapshot.ContentType.IsOfType(VSGeneroConstants.ContentType4GL) || 
+                   snapshot.ContentType.IsOfType(VSGeneroConstants.ContentTypePER) ||
+                   snapshot.ContentType.IsOfType(VSGeneroConstants.ContentTypeINC);
         }
 
         internal static int? GetLineIndentation(ITextSnapshotLine line, ITextView textView)
@@ -279,9 +281,11 @@ namespace VSGenero.EditorExtensions
             SkipPreceedingBlankLines(line, out baselineText, out baseline);
 
             ITextBuffer targetBuffer = textView.TextBuffer;
-            if (!targetBuffer.ContentType.IsOfType(VSGeneroConstants.ContentType4GL) && !targetBuffer.ContentType.IsOfType(VSGeneroConstants.ContentTypePER))
+            if (!targetBuffer.ContentType.IsOfType(VSGeneroConstants.ContentType4GL) && 
+                !targetBuffer.ContentType.IsOfType(VSGeneroConstants.ContentTypePER) &&
+                !targetBuffer.ContentType.IsOfType(VSGeneroConstants.ContentTypeINC))
             {
-                var match = textView.BufferGraph.MapDownToFirstMatch(line.Start, PointTrackingMode.Positive, PythonContentTypePrediciate, PositionAffinity.Successor);
+                var match = textView.BufferGraph.MapDownToFirstMatch(line.Start, PointTrackingMode.Positive, GeneroContentTypePrediciate, PositionAffinity.Successor);
                 if (match == null)
                 {
                     return 0;

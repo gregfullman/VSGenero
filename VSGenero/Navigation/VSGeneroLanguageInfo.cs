@@ -173,4 +173,25 @@ namespace VSGenero.Navigation
             return VSConstants.S_OK;
         }
     }
+
+    [Guid("c41c558d-4373-4ae1-8424-fb04873a0e9e")]
+    public sealed class VSGeneroINCLanguageInfo : VSGeneroLanguageInfo
+    {
+        public VSGeneroINCLanguageInfo(IServiceProvider serviceProvider)
+            : base(serviceProvider)
+        {
+        }
+
+        public override int GetFileExtensions(out string pbstrExtensions)
+        {
+            pbstrExtensions = VSGeneroConstants.FileExtensionINC;
+            return VSConstants.S_OK;
+        }
+
+        public override int GetLanguageName(out string bstrName)
+        {
+            bstrName = VSGeneroConstants.LanguageNameINC;
+            return VSConstants.S_OK;
+        }
+    }
 }
