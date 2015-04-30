@@ -112,6 +112,7 @@
     <Compile Include="UnitTest1.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Utilities\BuiltinsGenerator.cs" />
+    <Compile Include="Utilities\GlyphDownloader.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\VSGenero\VSGenero.csproj">

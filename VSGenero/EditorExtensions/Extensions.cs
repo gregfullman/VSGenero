@@ -346,13 +346,15 @@ namespace VSGenero.EditorExtensions
             StandardGlyphGroup group;
             switch (objectType)
             {
+                case GeneroMemberType.Namespace: group = StandardGlyphGroup.GlyphGroupNamespace; break;
                 case GeneroMemberType.Class: group = StandardGlyphGroup.GlyphGroupClass; break;
                 case GeneroMemberType.Module: group = StandardGlyphGroup.GlyphGroupModule; break;
                 case GeneroMemberType.Instance: group = StandardGlyphGroup.GlyphGroupVariable; break;
-                case GeneroMemberType.Constant: group = StandardGlyphGroup.GlyphGroupVariable; break;
+                case GeneroMemberType.Constant: group = StandardGlyphGroup.GlyphGroupConstant; break;
                 case GeneroMemberType.Keyword: group = StandardGlyphGroup.GlyphKeyword; break;
                 case GeneroMemberType.Variable: group = StandardGlyphGroup.GlyphGroupVariable; break;
-                case GeneroMemberType.DbTable: group = StandardGlyphGroup.GlyphGroupMap; break;
+                case GeneroMemberType.DbTable: group = StandardGlyphGroup.GlyphLibrary; break;
+                case GeneroMemberType.DbView: group = StandardGlyphGroup.GlyphGroupMap; break;
                 case GeneroMemberType.DbColumn: group = StandardGlyphGroup.GlyphGroupMapItem; break;
                 case GeneroMemberType.Function:
                 case GeneroMemberType.Method:

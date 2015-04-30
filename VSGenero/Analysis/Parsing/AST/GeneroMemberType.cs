@@ -42,6 +42,8 @@ namespace VSGenero.Analysis.Parsing.AST
         Variable,
 
         DbTable,
-        DbColumn
+        DbView,
+        DbColumn,
+        Namespace
     }
 }

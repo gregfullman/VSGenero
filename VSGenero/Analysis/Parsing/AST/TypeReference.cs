@@ -114,14 +114,36 @@ namespace VSGenero.Analysis.Parsing.AST
                     parser.NextToken(); // advance to the table name
                     defNode.TableName = parser.Token.Token.Value.ToString();
                     parser.NextToken(); // advance to the dot
-                    parser.NextToken(); // advance to the columne name (or dot)
-                    defNode.ColumnName = parser.Token.Token.Value.ToString();
-                    if (!mimickingRecord && defNode.ColumnName == "*")
+                    if(parser.Token.Token.Kind == TokenKind.Dot)
                     {
-                        parser.ReportSyntaxError("A variable cannot mimic an entire table without being a record. The variable must be defined as a mimicking record.");
+                        if (parser.PeekToken(TokenKind.Multiply) ||
+                            parser.PeekToken(TokenCategory.Identifier) ||
+                            parser.PeekToken(TokenCategory.Keyword))
+                        {
+                            parser.NextToken(); // advance to the column name
+                            defNode.ColumnName = parser.Token.Token.Value.ToString();
+                            if (!mimickingRecord && defNode.ColumnName == "*")
+                            {
+                                parser.ReportSyntaxError("A variable cannot mimic an entire table without being a record. The variable must be defined as a mimicking record.");
+                            }
+                            defNode.IsComplete = true;
+                            defNode.EndIndex = parser.Token.Span.End;
+                        }
+                        else
+                        {
+                            if (mimickingRecord)
+                                parser.ReportSyntaxError("A mimicking variable must use the format \"like table.*\"");
+                            else
+                                parser.ReportSyntaxError("A mimicking variable must use the format \"like table.column\"");
+                        }
                     }
-                    defNode.IsComplete = true;
-                    defNode.EndIndex = parser.Token.Span.End;
+                    else
+                    {
+                        if (mimickingRecord)
+                            parser.ReportSyntaxError("A mimicking variable must use the format \"like table.*\"");
+                        else
+                            parser.ReportSyntaxError("A mimicking variable must use the format \"like table.column\"");
+                    }
                 }
             }
             else
@@ -229,7 +251,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 }
                 else if (node is RecordDefinitionNode)
                 {
-                    return (node as RecordDefinitionNode).GetAnalysisResults();
+                    return (node as RecordDefinitionNode).GetAnalysisResults(ast);
                 }
             }
             else
@@ -237,6 +259,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 if (!string.IsNullOrWhiteSpace(TableName))
                 {
                     // TODO: return the table's columns
+                    int i = 0;
                 }
                 else if (_typeNameString.Equals("string", StringComparison.OrdinalIgnoreCase))
                 {

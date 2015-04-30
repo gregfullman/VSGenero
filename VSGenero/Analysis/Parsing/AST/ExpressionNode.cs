@@ -91,7 +91,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 else
                 {
                     var tok = parser.PeekToken();
-                    if (!breakTokens.Contains(tok.Kind))
+                    if (breakTokens != null && !breakTokens.Contains(tok.Kind))
                     {
                         parser.ReportSyntaxError("Invalid token type found in expression.");
                         break;

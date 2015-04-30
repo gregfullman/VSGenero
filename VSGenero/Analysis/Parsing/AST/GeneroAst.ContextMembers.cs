@@ -14,26 +14,36 @@ namespace VSGenero.Analysis.Parsing.AST
         private static CompletionContextMap _defineStatementMap;
         private static CompletionContextMap _typeConstraintsMap;
 
-        private static IEnumerable<MemberResult> ProvideAdditionalTypes(int index)
+        private static IEnumerable<MemberResult> ProvideAdditionalTypes(int index, string token)
         {
             if (_additionalTypesProvider != null)
             {
-                return _additionalTypesProvider(index);
+                return _additionalTypesProvider(index, token);
             }
             return new List<MemberResult>();
         }
 
-        private static IEnumerable<MemberResult> ProvideTables(int index)
+        private static IEnumerable<MemberResult> ProvideTables(int index, string token)
         {
             if (_tablesProvider != null)
             {
-                return _tablesProvider(index);
+                return _tablesProvider(index, token);
             }
             return new List<MemberResult>();
         }
 
-        private static Func<int, IEnumerable<MemberResult>> _additionalTypesProvider;
-        private static Func<int, IEnumerable<MemberResult>> _tablesProvider;
+        private static IEnumerable<MemberResult> ProvideTableColumns(int index, string token)
+        {
+            if(_tableColumnsProvider != null)
+            {
+                return _tableColumnsProvider(index, token);
+            }
+            return new List<MemberResult>();
+        }
+
+        private static Func<int, string, IEnumerable<MemberResult>> _additionalTypesProvider;
+        private static Func<int, string, IEnumerable<MemberResult>> _tablesProvider;
+        private static Func<int, string, IEnumerable<MemberResult>> _tableColumnsProvider;
 
         private static void InitializeCompletionContextMaps()
         {
@@ -196,7 +206,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     _defineStatementMap.Map.Add(TokenCategory.Identifier, keywordAndIdentPossibilities);
                     _defineStatementMap.Map.Add(TokenKind.Dot, new List<CompletionPossibility>
                 {
-                    new CategoryCompletionPossiblity(new HashSet<TokenCategory> { TokenCategory.Keyword, TokenCategory.Identifier }, new List<TokenKindWithConstraint>())
+                    new CategoryCompletionPossiblity(new HashSet<TokenCategory> { TokenCategory.Keyword, TokenCategory.Identifier }, new List<TokenKindWithConstraint>(), ProvideTableColumns)
                 });
                 }
 
@@ -295,11 +305,13 @@ namespace VSGenero.Analysis.Parsing.AST
             }
         }
 
-        private static void SetMemberProviders(Func<int, IEnumerable<MemberResult>> addtlTypesProvider,
-                                                Func<int, IEnumerable<MemberResult>> tablesProvider)
+        private static void SetMemberProviders(Func<int, string, IEnumerable<MemberResult>> addtlTypesProvider,
+                                                Func<int, string, IEnumerable<MemberResult>> tablesProvider,
+                                                Func<int, string, IEnumerable<MemberResult>> tableColumnsProvider)
         {
             _additionalTypesProvider = addtlTypesProvider;
             _tablesProvider = tablesProvider;
+            _tableColumnsProvider = tableColumnsProvider;
         }
 
         #endregion
@@ -309,16 +321,25 @@ namespace VSGenero.Analysis.Parsing.AST
         internal IFunctionInformationProvider _functionProvider;
         internal IDatabaseInformationProvider _databaseProvider;
 
-        private IEnumerable<MemberResult> GetAdditionalUserDefinedTypes(int index)
+        private IEnumerable<MemberResult> GetAdditionalUserDefinedTypes(int index, string token)
         {
             return GetDefinedMembers(index, false, false, true, false);
         }
 
-        private IEnumerable<MemberResult> GetDatabaseTables(int index)
+        private IEnumerable<MemberResult> GetDatabaseTables(int index, string token)
         {
             if (_databaseProvider != null)
             {
-                return _databaseProvider.GetTables().Select(x => new MemberResult(x.Name, x, GeneroMemberType.DbTable, this));
+                return _databaseProvider.GetTables().Select(x => new MemberResult(x.Name, x, (x.TableType == DatabaseTableType.Table ? GeneroMemberType.DbTable : GeneroMemberType.DbView), this));
+            }
+            return new List<MemberResult>();
+        }
+
+        private IEnumerable<MemberResult> GetDatabaseTableColumns(int index, string token)
+        {
+            if(_databaseProvider != null)
+            {
+                return _databaseProvider.GetColumns(token).Select(x => new MemberResult(x.Name, x, GeneroMemberType.DbColumn, this));
             }
             return new List<MemberResult>();
         }
@@ -529,7 +550,7 @@ namespace VSGenero.Analysis.Parsing.AST
 
             if (funcs && _functionProvider != null)
             {
-                members.Add(new MemberResult(_functionProvider.Name, GeneroMemberType.Class, this));
+                members.Add(new MemberResult(_functionProvider.Name, GeneroMemberType.Namespace, this));
             }
 
             return members;
@@ -1890,7 +1911,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         // check to see if additional completions can be added via provider delegate
                         if (entry.AdditionalCompletionsProvider != null)
                         {
-                            results.AddRange(entry.AdditionalCompletionsProvider(index));
+                            results.AddRange(entry.AdditionalCompletionsProvider(index, tokInfo.Token.Value.ToString()));
                         }
                         completionsSupplied = true;
                     }
@@ -2100,7 +2121,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         // check to see if additional completions can be added via provider delegate
                         if (entry.AdditionalCompletionsProvider != null)
                         {
-                            results.AddRange(entry.AdditionalCompletionsProvider(index));
+                            results.AddRange(entry.AdditionalCompletionsProvider(index, tokInfo.Token.Value.ToString()));
                         }
                         completionsSupplied = true;
                     }
@@ -2513,8 +2534,9 @@ namespace VSGenero.Analysis.Parsing.AST
             Expression
         }
 
-        private bool TryLetStatement(int index, IReverseTokenizer revTokenizer, out List<MemberResult> results)
+        private bool TryLetStatement(int index, IReverseTokenizer revTokenizer, out List<MemberResult> results, out bool isMemberAccess)
         {
+            isMemberAccess = false;
             results = new List<MemberResult>();
             LetStatementState firstState = LetStatementState.None;
             LetStatementState secondState = LetStatementState.None;
@@ -2703,6 +2725,8 @@ namespace VSGenero.Analysis.Parsing.AST
                                     if (firstState == LetStatementState.None)
                                     {
                                         firstState = LetStatementState.VariableReference;
+                                        results.AddRange(memberAccessResults);
+                                        isMemberAccess = true;
                                     }
                                     else if (secondState == LetStatementState.None)
                                     {
@@ -2956,7 +2980,7 @@ namespace VSGenero.Analysis.Parsing.AST
             _databaseProvider = databaseProvider;
 
             // set up the static providers
-            SetMemberProviders(GetAdditionalUserDefinedTypes, GetDatabaseTables);
+            SetMemberProviders(GetAdditionalUserDefinedTypes, GetDatabaseTables, GetDatabaseTableColumns);
 
             /**********************************************************************************************************************************
              * Using the specified index, we can attempt to determine what our scope is. Then, using the reverse tokenizer, we can attempt to
@@ -3009,13 +3033,15 @@ namespace VSGenero.Analysis.Parsing.AST
                 return members;
             }
 
-            if (TryLetStatement(index, revTokenizer, out members))
+            bool isMemberAccess;
+            if (TryLetStatement(index, revTokenizer, out members, out isMemberAccess))
             {
-                List<MemberResult> memberAccessResults = new List<MemberResult>();
-                if (TryMemberAccess(index, revTokenizer, out memberAccessResults))
+                //List<MemberResult> memberAccessResults = new List<MemberResult>();
+                //if (TryMemberAccess(index, revTokenizer, out memberAccessResults))
+                if (isMemberAccess)
                 {
                     // if there are any GeneroPackageClasses, limit them to only ones that are instance classes
-                    return memberAccessResults.Where(x =>
+                    return members.Where(x =>
                     {
                         IAnalysisResult tempRes = x.Var;
                         if (tempRes is GeneroPackageClass)
@@ -3210,10 +3236,10 @@ namespace VSGenero.Analysis.Parsing.AST
     public abstract class CompletionPossibility
     {
         public IEnumerable<TokenKindWithConstraint> KeywordCompletions { get; private set; }
-        public Func<int, IEnumerable<MemberResult>> AdditionalCompletionsProvider { get; private set; }
+        public Func<int, string, IEnumerable<MemberResult>> AdditionalCompletionsProvider { get; private set; }
         public bool IsBreakingStateOnFirstPrevious { get; set; }
 
-        public CompletionPossibility(IEnumerable<TokenKindWithConstraint> keywordCompletions, Func<int, IEnumerable<MemberResult>> additionalCompletionsProvider = null)
+        public CompletionPossibility(IEnumerable<TokenKindWithConstraint> keywordCompletions, Func<int, string, IEnumerable<MemberResult>> additionalCompletionsProvider = null)
         {
             KeywordCompletions = keywordCompletions;
             AdditionalCompletionsProvider = additionalCompletionsProvider;
@@ -3224,7 +3250,7 @@ namespace VSGenero.Analysis.Parsing.AST
     {
         public HashSet<TokenCategory> Categories { get; private set; }
 
-        public CategoryCompletionPossiblity(HashSet<TokenCategory> categories, IEnumerable<TokenKindWithConstraint> keywordCompletions, Func<int, IEnumerable<MemberResult>> additionalCompletionsProvider = null)
+        public CategoryCompletionPossiblity(HashSet<TokenCategory> categories, IEnumerable<TokenKindWithConstraint> keywordCompletions, Func<int, string, IEnumerable<MemberResult>> additionalCompletionsProvider = null)
             : base(keywordCompletions, additionalCompletionsProvider)
         {
             Categories = categories;
@@ -3256,13 +3282,13 @@ namespace VSGenero.Analysis.Parsing.AST
             }
         }
 
-        public TokenKindCompletionPossiblity(TokenKind kind, IEnumerable<TokenKindWithConstraint> keywordCompletions, Func<int, IEnumerable<MemberResult>> additionalCompletionsProvider = null)
+        public TokenKindCompletionPossiblity(TokenKind kind, IEnumerable<TokenKindWithConstraint> keywordCompletions, Func<int, string, IEnumerable<MemberResult>> additionalCompletionsProvider = null)
             : base(keywordCompletions, additionalCompletionsProvider)
         {
             Kind = kind;
         }
 
-        public TokenKindCompletionPossiblity(HashSet<TokenKind> kinds, IEnumerable<TokenKindWithConstraint> keywordCompletions, Func<int, IEnumerable<MemberResult>> additionalCompletionsProvider = null)
+        public TokenKindCompletionPossiblity(HashSet<TokenKind> kinds, IEnumerable<TokenKindWithConstraint> keywordCompletions, Func<int, string, IEnumerable<MemberResult>> additionalCompletionsProvider = null)
             : base(keywordCompletions, additionalCompletionsProvider)
         {
             _multiKinds = kinds;

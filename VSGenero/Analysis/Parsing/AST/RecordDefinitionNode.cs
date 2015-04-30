@@ -169,17 +169,24 @@ namespace VSGenero.Analysis.Parsing.AST
 
         public IAnalysisResult GetMember(string name, GeneroAst ast)
         {
-            VariableDef varDef = null;
-            MemberDictionary.TryGetValue(name, out varDef);
-            return varDef;
+            if (MemberDictionary.Count == 0 && !string.IsNullOrEmpty(MimicTableName))
+            {
+                return null;
+            }
+            else
+            {
+                VariableDef varDef = null;
+                MemberDictionary.TryGetValue(name, out varDef);
+                return varDef;
+            }
         }
 
-        internal IEnumerable<IAnalysisResult> GetAnalysisResults()
+        internal IEnumerable<IAnalysisResult> GetAnalysisResults(GeneroAst ast)
         {
             if (MemberDictionary.Count == 0 && !string.IsNullOrEmpty(MimicTableName))
             {
-                // TODO: get the table's columns
-                return new List<IAnalysisResult>();
+                // get the table's columns
+                return ast._databaseProvider.GetColumns(MimicTableName);
             }
             else
             {
@@ -189,7 +196,15 @@ namespace VSGenero.Analysis.Parsing.AST
 
         public IEnumerable<MemberResult> GetMembers(GeneroAst ast)
         {
-            return MemberDictionary.Values.Select(x => new MemberResult(x.Name, x, GeneroMemberType.Variable, ast));
+            if (MemberDictionary.Count == 0 && !string.IsNullOrEmpty(MimicTableName))
+            {
+                // get the table's columns
+                return ast._databaseProvider.GetColumns(MimicTableName).Select(x => new MemberResult(x.Name, x, GeneroMemberType.DbColumn, ast));
+            }
+            else
+            {
+                return MemberDictionary.Values.Select(x => new MemberResult(x.Name, x, GeneroMemberType.Variable, ast));
+            }
         }
 
 

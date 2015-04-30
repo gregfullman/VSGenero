@@ -21,6 +21,17 @@ namespace VSGenero.Analysis
         IEnumerable<MemberResult> GetMembers(GeneroAst ast);
     }
 
+    public enum DatabaseTableType
+    {
+        Table,
+        View
+    }
+
+    public interface IDbTableResult : IAnalysisResult
+    {
+        DatabaseTableType TableType { get; }
+    }
+
     public interface IAnalysisResultContainer
     { 
     }
