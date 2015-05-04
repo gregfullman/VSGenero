@@ -64,7 +64,10 @@ namespace VSGenero.Analysis.Parsing.AST
                 {
                     new TokenKindCompletionPossiblity(TokenKind.Comma, new List<TokenKindWithConstraint>()),
                     new TokenKindCompletionPossiblity(TokenKind.LeftBracket, new List<TokenKindWithConstraint>()),
-                    new TokenKindCompletionPossiblity(TokenKind.DimensionKeyword, new List<TokenKindWithConstraint>())
+                    new TokenKindCompletionPossiblity(TokenKind.DimensionKeyword, new List<TokenKindWithConstraint>
+                        {
+                            new TokenKindWithConstraint(TokenKind.OfKeyword)
+                        })
                 });
                     _defineStatementMap.Map.Add(TokenKind.LeftBracket, new List<CompletionPossibility>
                 {
@@ -76,13 +79,12 @@ namespace VSGenero.Analysis.Parsing.AST
                 });
                     _defineStatementMap.Map.Add(TokenKind.ArrayKeyword, new List<CompletionPossibility>
                 {
-                    new TokenKindCompletionPossiblity(TokenKind.DynamicKeyword, new List<TokenKindWithConstraint>()),
-                    new CategoryCompletionPossiblity(new HashSet<TokenCategory> { TokenCategory.Keyword, TokenCategory.Identifier },
-                        new List<TokenKindWithConstraint>
+                    new TokenKindCompletionPossiblity(TokenKind.DynamicKeyword, new List<TokenKindWithConstraint>
                         {
                             new TokenKindWithConstraint(TokenKind.WithKeyword, TokenKind.DynamicKeyword, 1),
                             new TokenKindWithConstraint(TokenKind.OfKeyword, TokenKind.DynamicKeyword, 1)
-                        })
+                        }),
+                    new CategoryCompletionPossiblity(new HashSet<TokenCategory> { TokenCategory.Keyword, TokenCategory.Identifier }, new List<TokenKindWithConstraint>())
                 });
                     _defineStatementMap.Map.Add(TokenKind.DynamicKeyword, new List<CompletionPossibility>
                 {
@@ -186,7 +188,9 @@ namespace VSGenero.Analysis.Parsing.AST
                         new List<TokenKindWithConstraint>
                         {
                             new TokenKindWithConstraint(TokenKind.RecordKeyword),
-                            new TokenKindWithConstraint(TokenKind.LikeKeyword)
+                            new TokenKindWithConstraint(TokenKind.LikeKeyword),
+                            new TokenKindWithConstraint(TokenKind.ArrayKeyword),
+                            new TokenKindWithConstraint(TokenKind.DynamicKeyword)
                         }, ProvideAdditionalTypes),
                     new TokenKindCompletionPossiblity(TokenKind.RecordKeyword, 
                         new List<TokenKindWithConstraint>
