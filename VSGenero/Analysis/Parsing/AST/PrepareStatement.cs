@@ -92,11 +92,18 @@ namespace VSGenero.Analysis.Parsing.AST
                 StringBuilder sb = new StringBuilder();
                 sb.AppendFormat("prepared cursor {0}:", Name);
                 sb.Append("\n\n");
-                string formatted = SqlStatementExtractor.FormatSqlStatement(_sqlStatement);
-                if (formatted != null)
-                    sb.Append(formatted);
+                if (!string.IsNullOrWhiteSpace(_sqlStatement))
+                {
+                    string formatted = SqlStatementExtractor.FormatSqlStatement(_sqlStatement);
+                    if (formatted != null)
+                        sb.Append(formatted);
+                    else
+                        sb.Append(_sqlStatement);
+                }
                 else
-                    sb.Append(_sqlStatement);
+                {
+                    sb.Append("Could not extract SQL text.\nThis is likely because the cursor is dynamically generated.");
+                }
                 return sb.ToString();
             }
         }

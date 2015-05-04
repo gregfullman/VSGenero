@@ -8,6 +8,8 @@ namespace VSGenero.Analysis.Parsing.AST
 {
     public abstract class ExpressionNode : AstNode
     {
+        protected static List<TokenKind> _preExpressionTokens = new List<TokenKind> { TokenKind.NotKeyword, TokenKind.ColumnKeyword, TokenKind.Subtract };
+
         public abstract void PrependExpression(ExpressionNode node);
         public abstract void AppendExpression(ExpressionNode node);
         public abstract void AppendOperator(TokenExpressionNode tokenKind);
@@ -19,22 +21,21 @@ namespace VSGenero.Analysis.Parsing.AST
             node = null;
             bool result = false;
             bool start = true;
+            bool requireExpression = false;
 
-            Token nextTok;
             TokenExpressionNode startingToken = null;
+
+            // First check for allowed pre-expression tokens
+            if(_preExpressionTokens.Contains(parser.PeekToken().Kind))
+            {
+                parser.NextToken();
+                startingToken = new TokenExpressionNode(parser.Token);
+                node = startingToken;
+                requireExpression = true;
+            }
+            
             while (true)
             {
-                // For right now, let's allow an operator in front of the expression
-                nextTok = parser.PeekToken();
-                // Check to see if the token is an operator, in which case we can continue gathering the expression 
-                if (start &&
-                   nextTok.Kind >= TokenKind.FirstOperator &&
-                   nextTok.Kind <= TokenKind.LastOperator)
-                {
-                    parser.NextToken();
-                    startingToken = new TokenExpressionNode(parser.Token);
-                }
-                start = false;
                 if (parser.PeekToken(TokenKind.LeftParenthesis))
                 {
                     ParenWrappedExpressionNode parenExpr;
@@ -123,20 +124,19 @@ namespace VSGenero.Analysis.Parsing.AST
                 }
                 else
                 {
-                    var tok = parser.PeekToken();
-                    if (breakTokens != null && !breakTokens.Contains(tok.Kind))
+                    if (requireExpression)
                     {
-                        parser.ReportSyntaxError("Invalid token type found in expression.");
-                        break;
+                        var tok = parser.PeekToken();
+                        if (breakTokens != null && !breakTokens.Contains(tok.Kind))
+                            parser.ReportSyntaxError("Invalid token type found in expression.");
+                        else
+                            parser.ReportSyntaxError("Expression required.");
                     }
+                    break;
                 }
+                requireExpression = false;
 
-                if(startingToken != null)
-                {
-                    node.PrependExpression(startingToken);
-                }
-
-                nextTok = parser.PeekToken();
+                Token nextTok = parser.PeekToken();
                 // Check to see if the token is an operator, in which case we can continue gathering the expression 
                 if(breakTokens != null &&
                    !breakTokens.Contains(nextTok.Kind) && 
@@ -148,6 +148,70 @@ namespace VSGenero.Analysis.Parsing.AST
                 }
                 else
                 {
+                    // check for non-symbol operators
+                    switch(nextTok.Kind)
+                    {
+                        case TokenKind.AndKeyword:
+                        case TokenKind.OrKeyword:
+                        case TokenKind.ModKeyword:
+                        case TokenKind.UsingKeyword:
+                        case TokenKind.InstanceOfKeyword:
+                        case TokenKind.UnitsKeyword:
+                        case TokenKind.LikeKeyword:
+                        case TokenKind.MatchesKeyword:
+                            {
+                                // require another expression
+                                requireExpression = true;
+                                parser.NextToken();
+                                node.AppendExpression(new TokenExpressionNode(parser.Token));
+                            }
+                            break;
+                        case TokenKind.ClippedKeyword:
+                        case TokenKind.SpacesKeyword:
+                            {
+                                parser.NextToken();
+                                node.AppendExpression(new TokenExpressionNode(parser.Token));
+                            }
+                            break;
+                        case TokenKind.IsKeyword:
+                            {
+                                parser.NextToken();
+                                node.AppendExpression(new TokenExpressionNode(parser.Token));
+                                if(parser.PeekToken(TokenKind.NotKeyword))
+                                {
+                                    parser.NextToken();
+                                    node.AppendExpression(new TokenExpressionNode(parser.Token));
+                                }
+                                if(parser.PeekToken(TokenKind.NullKeyword))
+                                {
+                                    parser.NextToken();
+                                    node.AppendExpression(new TokenExpressionNode(parser.Token));
+                                }
+                                else
+                                {
+                                    parser.ReportSyntaxError("NULL keyword required in expression.");
+                                }
+                            }
+                            break;
+                        case TokenKind.NotKeyword:
+                            {
+                                parser.NextToken();
+                                node.AppendExpression(new TokenExpressionNode(parser.Token));
+                                if(parser.PeekToken(TokenKind.LikeKeyword) ||
+                                   parser.PeekToken(TokenKind.MatchesKeyword))
+                                {
+                                    // require another expression
+                                    requireExpression = true;
+                                    parser.NextToken();
+                                    node.AppendExpression(new TokenExpressionNode(parser.Token));
+                                }
+                                else
+                                {
+                                    parser.ReportSyntaxError("LIKE or MATCHES keyword required in expression.");
+                                }
+                            }
+                            break;
+                    }
                     break;
                 }
             }
@@ -282,6 +346,10 @@ namespace VSGenero.Analysis.Parsing.AST
                 {
                     parser.ReportSyntaxError("Invalid expression found within parentheses.");
                 }
+                else
+                {
+                    node.InnerExpression = exprNode;
+                }
 
                 if(parser.PeekToken(TokenKind.RightParenthesis))
                 {
@@ -307,7 +375,9 @@ namespace VSGenero.Analysis.Parsing.AST
 
         public override string ToString()
         {
-            return string.Format("({0})", InnerExpression.ToString());
+            if(InnerExpression != null)
+                return string.Format("({0})", InnerExpression.ToString());
+            return null;
         }
 
         public override string GetType()

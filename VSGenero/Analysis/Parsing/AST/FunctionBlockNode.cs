@@ -400,12 +400,15 @@ namespace VSGenero.Analysis.Parsing.AST
                                 var ret = retStmt.Returns[i];
                                 string text = ret.ToString();
                                 IAnalysisResult anRes;
-                                if (Variables.TryGetValue(text, out anRes))
+                                if (text != null)
                                 {
-                                    VariableDef varDef = anRes as VariableDef;
-                                    if (varDef != null)
+                                    if (Variables.TryGetValue(text, out anRes))
                                     {
-                                        type = varDef.Type.ToString();
+                                        VariableDef varDef = anRes as VariableDef;
+                                        if (varDef != null)
+                                        {
+                                            type = varDef.Type.ToString();
+                                        }
                                     }
                                 }
 
