@@ -148,9 +148,11 @@ namespace VSGenero.Analysis.Parsing.AST
                 }
                 else
                 {
+                    bool isOperator = true;
                     // check for non-symbol operators
                     switch(nextTok.Kind)
                     {
+                        case TokenKind.AsKeyword:
                         case TokenKind.AndKeyword:
                         case TokenKind.OrKeyword:
                         case TokenKind.ModKeyword:
@@ -211,8 +213,12 @@ namespace VSGenero.Analysis.Parsing.AST
                                 }
                             }
                             break;
+                        default:
+                            isOperator = false;
+                            break;
                     }
-                    break;
+                    if(!isOperator)
+                        break;
                 }
             }
 
