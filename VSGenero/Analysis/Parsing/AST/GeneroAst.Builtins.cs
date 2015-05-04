@@ -31,6 +31,9 @@ namespace VSGenero.Analysis.Parsing.AST
                             new ProgramRegister("sqlerrd", "array[6] of int"),
                             new ProgramRegister("sqlawarn", "char(7)")
                         }));
+                    _systemVariables.Add("SQLSTATE", new ProgramRegister("SQLSTATE", "int"));
+                    _systemVariables.Add("SQLERRMESSAGE", new ProgramRegister("SQLERRMESSAGE", "string"));
+                    _systemVariables.Add("TODAY", new ProgramRegister("TODAY", "date"));
                 }
             }
         }
@@ -116,6 +119,75 @@ namespace VSGenero.Analysis.Parsing.AST
                     _systemFunctions = new Dictionary<string, IFunctionResult>(StringComparer.OrdinalIgnoreCase);
                     _stringFunctions = new Dictionary<string, IFunctionResult>(StringComparer.OrdinalIgnoreCase);
 
+                    _systemFunctions.Add("ascii", new BuiltinFunction("ascii", new List<ParameterResult> 
+                    {
+                        new ParameterResult("int-expr", "Integer expression, in the range 0-127", "int")
+                    }, new List<string> { "char(1)" }, "Produces an ASCII character"));
+                    _systemFunctions.Add("ord", new BuiltinFunction("ord", new List<ParameterResult> 
+                    {
+                        new ParameterResult("source", "String expression", "string")
+                    }, new List<string> { "int" }, "Returns the code point of a character in the current locale."));
+                    _systemFunctions.Add("lstr", new BuiltinFunction("lstr", new List<ParameterResult> 
+                    {
+                        new ParameterResult("str-expr", "String expression", "string")
+                    }, new List<string> { "string" }, "Returns a localized string."));
+                    _systemFunctions.Add("sfmt", new BuiltinFunction("sfmt", new List<ParameterResult> 
+                    {
+                        new ParameterResult("str-expr", "String expression", "string"),
+                        new ParameterResult("param...", "Any valid expression used to replace parameter place holders (%n).", "expression")
+                    }, new List<string> { "type" }, "Returns a localized string."));
+                    _systemFunctions.Add("cast", new BuiltinFunction("cast", new List<ParameterResult> 
+                    {
+                        new ParameterResult("expr AS type", "Any expression supported by the language.", "expression"),
+                    }, new List<string> { }, "Converts a value or object to the type or class specified."));
+                    _systemFunctions.Add("extend", new BuiltinFunction("extend", new List<ParameterResult> 
+                    {
+                        new ParameterResult("dt-expr", "A date / time expression.", "expression"),
+                        new ParameterResult("dt-qual", "A date / time qualifier.", "expression")
+                    }, new List<string> { "datetime" }, "Adjusts a date time value according to the qualifier."));
+                    _systemFunctions.Add("date", new BuiltinFunction("date", new List<ParameterResult> 
+                    {
+                        new ParameterResult("expr", "The expression to be converted to a date.", "expression"),
+                    }, new List<string> { "date" }, "converts an expression to a DATE value."));
+                    _systemFunctions.Add("time", new BuiltinFunction("time", new List<ParameterResult> 
+                    {
+                        new ParameterResult("datetime-expr", "A datetime expression.", "expression"),
+                    }, new List<string> { "datetime" }, "Returns a time part of the date time expression."));
+                    _systemFunctions.Add("year", new BuiltinFunction("year", new List<ParameterResult> 
+                    {
+                        new ParameterResult("datetime-expr", "A datetime expression.", "expression"),
+                    }, new List<string> { "int" }, "Extracts the year of a date time expression."));
+                    _systemFunctions.Add("month", new BuiltinFunction("month", new List<ParameterResult> 
+                    {
+                        new ParameterResult("datetime-expr", "A datetime expression.", "expression"),
+                    }, new List<string> { "int" }, "Extracts the month of a date time expression."));
+                    _systemFunctions.Add("day", new BuiltinFunction("day", new List<ParameterResult> 
+                    {
+                        new ParameterResult("datetime-expr", "A datetime expression.", "expression"),
+                    }, new List<string> { "int" }, "Extracts the day of a date time expression."));
+                    _systemFunctions.Add("weekday", new BuiltinFunction("weekday", new List<ParameterResult> 
+                    {
+                        new ParameterResult("datetime-expr", "A datetime expression.", "expression"),
+                    }, new List<string> { "int" }, "Extracts the day or the week of a date time expression."));
+                    _systemFunctions.Add("mdy", new BuiltinFunction("mdy", new List<ParameterResult> 
+                    {
+                        new ParameterResult("expr1", "Integer representing the month (from 1 to 12)", "int"),
+                        new ParameterResult("expr2", "Integer representing the day (from 1 to 28, 29, 30 or 31 depending on the month).", "int"),
+                        new ParameterResult("expr3", "Integer representing the year (four digits).", "int")
+                    }, new List<string> { "date" }, "Creates a date from month, day and year units."));
+                    _systemFunctions.Add("get_fldbuf", new BuiltinFunction("get_fldbuf", new List<ParameterResult> 
+                    {
+                        new ParameterResult("field...", "Name of the screen field.", "screen-field"),
+                    }, new List<string> { "string" }, "Returns as character strings the current values of the specified fields."));
+                    _systemFunctions.Add("infield", new BuiltinFunction("infield", new List<ParameterResult> 
+                    {
+                        new ParameterResult("field...", "Name of the screen field.", "screen-field"),
+                    }, new List<string> { "boolean" }, "Checks for the current screen field."));
+                    _systemFunctions.Add("field_touched", new BuiltinFunction("field_touched", new List<ParameterResult> 
+                    {
+                        new ParameterResult("field...", "Name of the screen field.", "screen-field"),
+                    }, new List<string> { "boolean" }, "Checks if fields were modified during the dialog execution."));
+                    
                     #region Generated Builtin Functions
                     _arrayFunctions.Add("appendElement", new BuiltinFunction("appendElement", new List<ParameterResult> { }, new List<string> { },
 "Adds a new element at the end of a dynamic array. This method has no effect on a static array."));

@@ -71,6 +71,24 @@ namespace VSGenero.Analysis.Parsing.AST
                     else
                         node.AppendExpression(new TokenExpressionNode(parser.Token));
                 }
+                else if(parser.PeekToken(TokenKind.CurrentKeyword))
+                {
+                    parser.NextToken();
+                    string currentTypeConstraint;
+                    if(TypeConstraints.VerifyValidConstraint(parser, out currentTypeConstraint, TokenKind.CurrentKeyword, true))
+                    {
+                        result = true;
+                        StringExpressionNode strExpr = new StringExpressionNode(currentTypeConstraint);
+                        if (node == null)
+                            node = strExpr;
+                        else
+                            node.AppendExpression(strExpr);
+                    }
+                    else
+                    {
+                        parser.ReportSyntaxError("Invalid use of CURRENT operator detected.");
+                    }
+                }
                 else if (parser.PeekToken(TokenCategory.Identifier) ||
                         parser.PeekToken(TokenCategory.Keyword))
                 {
@@ -313,6 +331,11 @@ namespace VSGenero.Analysis.Parsing.AST
             get { return _literalValue.ToString(); }
         }
 
+        public StringExpressionNode(string value)
+        {
+            _literalValue = new StringBuilder(value);
+        }
+
         public StringExpressionNode(TokenWithSpan token)
             : base(token)
         {
@@ -353,6 +376,10 @@ namespace VSGenero.Analysis.Parsing.AST
         public List<Token> Tokens
         {
             get { return _tokens; }
+        }
+
+        protected TokenExpressionNode()
+        {
         }
 
         public TokenExpressionNode(TokenWithSpan token)

@@ -435,6 +435,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 members.AddRange(SystemVariables.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Keyword, this)));
             if(funcs)
             {
+                members.AddRange(SystemFunctions.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Function, this)));
                 foreach (var package in Packages.Values.Where(x => _importedPackages[x.Name] && x.ContainsStaticClasses))
                 {
                     if(!includedPackages.Contains(package))

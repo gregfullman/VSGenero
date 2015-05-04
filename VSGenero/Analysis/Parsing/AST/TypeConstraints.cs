@@ -32,7 +32,7 @@ namespace VSGenero.Analysis.Parsing.AST
             TokenKind.FractionKeyword
         };
 
-        public static bool VerifyValidConstraint(IParser parser, out string typeConstraintString, TokenKind specifiedToken = TokenKind.EndOfFile)
+        public static bool VerifyValidConstraint(IParser parser, out string typeConstraintString, TokenKind specifiedToken = TokenKind.EndOfFile, bool suppressErrors = false)
         {
             typeConstraintString = null;
             StringBuilder sb = new StringBuilder();
@@ -119,6 +119,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         }
                         break;
                     }
+                case TokenKind.CurrentKeyword:
                 case TokenKind.DatetimeKeyword:
                     {
                         if (_dtQuals.Contains(parser.PeekToken().Kind))
@@ -154,7 +155,8 @@ namespace VSGenero.Analysis.Parsing.AST
                                                 return true;
                                             }
                                         }
-                                        parser.ReportSyntaxError("Invalid datetime fraction specification found.");
+                                        if (!suppressErrors)
+                                            parser.ReportSyntaxError("Invalid datetime fraction specification found.");
                                         return false;
                                     }
 
@@ -163,7 +165,8 @@ namespace VSGenero.Analysis.Parsing.AST
                                 }
                             }
                         }
-                        parser.ReportSyntaxError("Invalid datetime specification found.");
+                        if (!suppressErrors)
+                            parser.ReportSyntaxError("Invalid datetime specification found.");
                         return false;
                     }
                 case TokenKind.IntervalKeyword:
