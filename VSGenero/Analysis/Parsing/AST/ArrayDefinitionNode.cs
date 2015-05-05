@@ -326,5 +326,36 @@ namespace VSGenero.Analysis.Parsing.AST
             }
             return result;
         }
+
+        internal IEnumerable<IAnalysisResult> GetAnalysisResults(GeneroAst ast)
+        {
+            List<IAnalysisResult> results = new List<IAnalysisResult>();
+            if (Children.Count == 1)
+            {
+                // get the table's columns
+                var node = Children[Children.Keys[0]];
+                if(node is TypeReference)
+                {
+                    results.AddRange((node as TypeReference).GetAnalysisMembers(ast));
+                }
+            }
+            results.AddRange(GeneroAst.ArrayFunctions.Values);
+            return results;
+        }
+
+        internal IEnumerable<MemberResult> GetMembersInternal(GeneroAst ast)
+        {
+            List<MemberResult> results = new List<MemberResult>();
+            if(Children.Count == 1)
+            {
+                 var node = Children[Children.Keys[0]];
+                 if (node is TypeReference)
+                 {
+                     results.AddRange((node as TypeReference).GetMembers(ast));
+                 }
+            }
+            results.AddRange(GeneroAst.ArrayFunctions.Values.Select(x => new MemberResult(x.Name, x, GeneroMemberType.Method, ast)));
+            return results;
+        }
     }
 }

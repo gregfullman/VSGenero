@@ -577,7 +577,6 @@ namespace VSGenero.Analysis.Parsing.AST
 
         private bool TryCall(int index, IReverseTokenizer revTokenizer, out List<MemberResult> results)
         {
-            TokenKind startingKeyword = TokenKind.CallKeyword;
             results = new List<MemberResult>();
             CallStatus currStatus = CallStatus.None;
             CallStatus firstStatus = CallStatus.None;
@@ -602,16 +601,6 @@ namespace VSGenero.Analysis.Parsing.AST
                 if (tokInfo.Equals(default(TokenInfo)) || tokInfo.Token.Kind == TokenKind.NewLine || tokInfo.Token.Kind == TokenKind.NLToken || tokInfo.Token.Kind == TokenKind.Comment)
                     continue;   // linebreak
 
-                if(tokInfo.Category == TokenCategory.Keyword)
-                {
-                    // check to see if it's a keyword for another statement
-                    if(tokInfo.Token.Kind != startingKeyword && ValidStatementKeywords.Contains(tokInfo.Token.Kind))
-                    {
-                        results.Clear();
-                        return false;
-                    }
-                }
-
                 if (tokInfo.Token.Kind == TokenKind.CallKeyword)
                 {
                     if (firstStatus == CallStatus.None)
@@ -626,6 +615,11 @@ namespace VSGenero.Analysis.Parsing.AST
                     }
 
                     return true;
+                }
+                else if (ValidStatementKeywords.Contains(tokInfo.Token.Kind))
+                {
+                    results.Clear();
+                    return false;
                 }
                 else if (tokInfo.Token.Kind == TokenKind.ReturningKeyword)
                 {
@@ -826,7 +820,14 @@ namespace VSGenero.Analysis.Parsing.AST
                             {
                                 var members = analysisRes.GetMembers(this);
                                 if (members != null)
-                                    results.AddRange(members);
+                                {
+                                    // TODO: this is a bit of a hack...
+                                    bool varsOnly = sb[sb.Length - 1].Equals(']');
+                                    if (varsOnly)
+                                        results.AddRange(members.Where(x => !(x.Var is IFunctionResult)));
+                                    else
+                                        results.AddRange(members);
+                                }
                             }
 
                             return true;
@@ -2625,6 +2626,11 @@ namespace VSGenero.Analysis.Parsing.AST
                     }
                     return false;
                 }
+                else if(ValidStatementKeywords.Contains(tokInfo.Token.Kind))
+                {
+                    results.Clear();
+                    return false;
+                }
                 else if (tokInfo.Token.Kind == TokenKind.Equals)
                 {
                     if (firstState == LetStatementState.None)
@@ -2786,6 +2792,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                     // we're actually within the variable reference, and should not be returning anything related to the let statement
                                     // TODO: reinvestigate the comment above...I think it would only apply if we were doing the variable reference check by itself
                                     // (not nested in the let statement detection).
+                                    // !!! This is causing some issues when doing an expression in an array index
                                     if (dummyList.Count > 0)
                                     {
                                         results.AddRange(dummyList);

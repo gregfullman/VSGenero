@@ -243,7 +243,7 @@ namespace VSGenero.Analysis.Parsing.AST
             }
         }
 
-        private IEnumerable<IAnalysisResult> GetAnalysisMembers(GeneroAst ast)
+        internal IEnumerable<IAnalysisResult> GetAnalysisMembers(GeneroAst ast)
         {
             List<IAnalysisResult> members = new List<IAnalysisResult>();
             if (Children.Count == 1)
@@ -252,7 +252,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 var node = Children[Children.Keys[0]];
                 if (node is ArrayTypeReference)
                 {
-                    return GeneroAst.ArrayFunctions.Values;
+                    return (node as ArrayTypeReference).GetAnalysisResults(ast);
                 }
                 else if (node is RecordDefinitionNode)
                 {
@@ -299,7 +299,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 var node = Children[Children.Keys[0]];
                 if (node is ArrayTypeReference)
                 {
-                    return GeneroAst.ArrayFunctions.Values.Select(x => new MemberResult(x.Name, x, GeneroMemberType.Method, ast));
+                    return (node as ArrayTypeReference).GetMembersInternal(ast);
                 }
                 else if (node is RecordDefinitionNode)
                 {
