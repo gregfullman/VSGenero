@@ -194,5 +194,17 @@ namespace VSGenero.Analysis.Parsing.AST
         {
             get { return string.IsNullOrWhiteSpace(GlobalsFilename); }
         }
+
+
+        public int DecoratorStart
+        {
+            get
+            {
+                return StartIndex;
+            }
+            set
+            {
+            }
+        }
     }
 }

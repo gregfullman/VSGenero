@@ -3507,5 +3507,17 @@ namespace VSGenero.Analysis.Parsing.AST
         {
             get { return null; }
         }
+
+
+        public int DecoratorStart
+        {
+            get
+            {
+                return StartIndex;
+            }
+            set
+            {
+            }
+        }
     }
 }

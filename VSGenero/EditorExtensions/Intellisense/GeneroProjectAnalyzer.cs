@@ -654,7 +654,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             errorSink = new CollectingErrorSink();
 
             using (var parser = Parser.CreateParser(content, 
-                                                    new ParserOptions() { ErrorSink = errorSink, IndentationInconsistencySeverity = indentationSeverity, BindReferences = true }, 
+                                                    new ParserOptions() { Verbatim = true, ErrorSink = errorSink, IndentationInconsistencySeverity = indentationSeverity, BindReferences = true }, 
                                                     entry))
             {
                 ast = ParseOneFile(ast, parser);
@@ -666,7 +666,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             ast = null;
             errorSink = new CollectingErrorSink();
 
-            using (var parser = Parser.CreateParser(content, new ParserOptions() { ErrorSink = errorSink, IndentationInconsistencySeverity = indentationSeverity, BindReferences = true }, entry))
+            using (var parser = Parser.CreateParser(content, new ParserOptions() { Verbatim = true, ErrorSink = errorSink, IndentationInconsistencySeverity = indentationSeverity, BindReferences = true }, entry))
             {
                 ast = ParseOneFile(ast, parser);
             }

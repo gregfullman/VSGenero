@@ -53,6 +53,11 @@ namespace VSGenero.Analysis.Parsing.AST
         public static readonly object ExtraVerbatimText = new object();
 
         /// <summary>
+        /// Value is a list of tokens that represent #region and #endregion comments.
+        /// </summary>
+        public static readonly object CodeRegions = new object();
+
+        /// <summary>
         /// The tuple expression was constructed without parenthesis.  The value doesn't matter, only the
         /// presence of the metadata indicates the value is set.
         /// </summary>

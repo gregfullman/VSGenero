@@ -112,7 +112,7 @@ namespace VSGenero.Analysis.Parsing
             return tokens;
         }
 
-        public object CurrentState
+        public State CurrentState
         {
             get
             {
@@ -538,6 +538,7 @@ namespace VSGenero.Analysis.Parsing
             if (Verbatim)
             {
                 _state.CurWhiteSpace.Clear();
+                _state.SingleLineComments.Clear();
                 if (_state.NextWhiteSpace.Length != 0)
                 {
                     // flip to the next white space if we have some...
@@ -657,6 +658,7 @@ namespace VSGenero.Analysis.Parsing
                         if ((_options & (TokenizerOptions.VerbatimCommentsAndLineJoins | TokenizerOptions.Verbatim)) != 0)
                         {
                             var commentRes = ReadSingleLineComment(out ch);
+                            _state.SingleLineComments.Add(new TokenWithSpan(commentRes, new IndexSpan(_tokenStartIndex, _tokenEndIndex - _tokenStartIndex)));
                             if ((_options & TokenizerOptions.VerbatimCommentsAndLineJoins) == 0)
                             {
                                 _state.CurWhiteSpace.Append(commentRes.VerbatimImage);
@@ -1796,6 +1798,8 @@ namespace VSGenero.Analysis.Parsing
                             DiscardToken();
 
                             var commentRes = ReadSingleLineComment(out ch);
+
+                            _state.SingleLineComments.Add(new TokenWithSpan(commentRes, new IndexSpan(_tokenStartIndex, _tokenEndIndex - _tokenStartIndex)));
                             _state.NextWhiteSpace.Append(commentRes.VerbatimImage);
                             DiscardToken();
                             //SeekRelative(+1);
@@ -2281,7 +2285,7 @@ namespace VSGenero.Analysis.Parsing
         #endregion
 
         [Serializable]
-        class IncompleteString : IEquatable<IncompleteString>
+        public class IncompleteString : IEquatable<IncompleteString>
         {
             public readonly bool IsRaw, IsUnicode, IsTripleQuoted, IsSingleTickQuote;
 
@@ -2342,7 +2346,7 @@ namespace VSGenero.Analysis.Parsing
         }
 
         [Serializable]
-        struct State : IEquatable<State>
+        public struct State : IEquatable<State>
         {
             // indentation state
             public int[] Indent;
@@ -2362,6 +2366,7 @@ namespace VSGenero.Analysis.Parsing
             public StringBuilder CurWhiteSpace;
             public StringBuilder NextWhiteSpace;
             public GroupingRecovery GroupingRecovery;
+            public List<TokenWithSpan> SingleLineComments;
 
             public State(State state, bool verbatim)
             {
@@ -2379,11 +2384,13 @@ namespace VSGenero.Analysis.Parsing
                 {
                     CurWhiteSpace = new StringBuilder(state.CurWhiteSpace.ToString());
                     NextWhiteSpace = new StringBuilder(state.NextWhiteSpace.ToString());
+                    SingleLineComments = new List<TokenWithSpan>();
                 }
                 else
                 {
                     CurWhiteSpace = null;
                     NextWhiteSpace = null;
+                    SingleLineComments = null;
                 }
                 GroupingRecovery = null;
             }
@@ -2400,11 +2407,13 @@ namespace VSGenero.Analysis.Parsing
                 {
                     CurWhiteSpace = new StringBuilder();
                     NextWhiteSpace = new StringBuilder();
+                    SingleLineComments = new List<TokenWithSpan>();
                 }
                 else
                 {
                     CurWhiteSpace = null;
                     NextWhiteSpace = null;
+                    SingleLineComments = null;
                 }
                 GroupingRecovery = null;
             }
@@ -2462,7 +2471,7 @@ namespace VSGenero.Analysis.Parsing
         /// We only use this when the tokenizer has been created to use group recovery because this alters
         /// how we tokenize the language.  The parser creates the tokenizer in this mode.
         /// </summary>
-        class GroupingRecovery
+        public class GroupingRecovery
         {
             /// <summary>
             /// the new line kind that was in the grouping
@@ -2591,7 +2600,7 @@ namespace VSGenero.Analysis.Parsing
         }
     }
 
-    enum NewLineKind
+    public enum NewLineKind
     {
         None,
         LineFeed,

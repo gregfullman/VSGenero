@@ -822,9 +822,12 @@ namespace VSGenero.Analysis.Parsing.AST
                             string var = sb.ToString();
 
                             var analysisRes = GetValueByIndex(var, index, _functionProvider, _databaseProvider);
-                            var members = analysisRes.GetMembers(this);
-                            if(members != null)
-                                results.AddRange(members);
+                            if (analysisRes != null)
+                            {
+                                var members = analysisRes.GetMembers(this);
+                                if (members != null)
+                                    results.AddRange(members);
+                            }
 
                             return true;
                         }
@@ -845,6 +848,15 @@ namespace VSGenero.Analysis.Parsing.AST
             Operator,
             Operand     // an operand can be a literal, a variable (or constant) reference, or a function call
         }
+
+        private static HashSet<TokenKind> _binaryOperators = new HashSet<TokenKind>
+        {
+            TokenKind.Add, TokenKind.Subtract, TokenKind.Multiply, TokenKind.Divide, TokenKind.Power,
+            TokenKind.DoubleEquals, TokenKind.LessThan, TokenKind.GreaterThan, TokenKind.LessThanOrEqual,
+            TokenKind.GreaterThanOrEqual, TokenKind.Equals, TokenKind.NotEquals, TokenKind.NotEqualsLTGT,
+            TokenKind.DoubleBar, TokenKind.Assign, TokenKind.AndKeyword, TokenKind.OrKeyword, TokenKind.ModKeyword,
+            TokenKind.UsingKeyword, TokenKind.AsKeyword, TokenKind.UnitsKeyword
+        };
 
         private bool TryExpression(int index, IReverseTokenizer revTokenizer, int cursorIndex, out List<MemberResult> results, out int startIndex, TokenKind[] bannedOperators = null)
         {
@@ -873,11 +885,8 @@ namespace VSGenero.Analysis.Parsing.AST
                 if (tokInfo.Equals(default(TokenInfo)) || tokInfo.Token.Kind == TokenKind.NewLine || tokInfo.Token.Kind == TokenKind.NLToken || tokInfo.Token.Kind == TokenKind.Comment)
                     continue;   // linebreak
 
-                if (tokInfo.Token.Kind == TokenKind.ModKeyword ||
-                    tokInfo.Token.Kind == TokenKind.UsingKeyword ||
-                    tokInfo.Token.Kind == TokenKind.Comma ||            // TODO: if we add a function context detection this should be removed
-                  ((int)tokInfo.Token.Kind >= (int)TokenKind.FirstOperator &&
-                  (int)tokInfo.Token.Kind <= (int)TokenKind.LastOperator))
+                if (tokInfo.Token.Kind == TokenKind.Comma ||            // TODO: if we add a function context detection this should be removed
+                    _binaryOperators.Contains(tokInfo.Token.Kind))
                 {
                     if (firstState == ExpressionState.None)
                     {
@@ -896,7 +905,7 @@ namespace VSGenero.Analysis.Parsing.AST
                             if (firstState != ExpressionState.LeftParen &&
                                 firstState != ExpressionState.Operator)
                             {
-                                results.Clear();
+                                //results.Clear();
                                 return false;
                             }
                             return true;
@@ -918,6 +927,8 @@ namespace VSGenero.Analysis.Parsing.AST
                     // if it's not, there should be a grouping within the expression (if it's valid)
                     if (firstState == ExpressionState.None)
                     {
+                        results.AddRange(_binaryOperators.Where(x => x > TokenKind.LastOperator).Select(x => new MemberResult(Tokens.TokenKinds[x], GeneroMemberType.Keyword, this)));
+                        GetStandardStatementKeywords(index, revTokenizer, results);
                         firstState = ExpressionState.RightParen;
                     }
                     if (currState == ExpressionState.None ||
@@ -981,6 +992,9 @@ namespace VSGenero.Analysis.Parsing.AST
 
                             if (firstState == ExpressionState.None)
                             {
+                                // provide all binary operators
+                                results.AddRange(_binaryOperators.Where(x => x > TokenKind.LastOperator).Select(x => new MemberResult(Tokens.TokenKinds[x], GeneroMemberType.Keyword, this)));
+                                GetStandardStatementKeywords(index, revTokenizer, results);
                                 firstState = ExpressionState.Operand;
                             }
                             currState = ExpressionState.Operand;
@@ -988,8 +1002,24 @@ namespace VSGenero.Analysis.Parsing.AST
                         else
                         {
                             // check for literals
-                            if (tokInfo.Category == TokenCategory.NumericLiteral ||
-                               tokInfo.Category == TokenCategory.CharacterLiteral)
+                            if (tokInfo.Category == TokenCategory.NumericLiteral)
+                            {
+                                if (firstState == ExpressionState.None)
+                                {
+                                    // provide MOD, AND, OR, SPACES
+                                    results.AddRange(new List<TokenKind> { TokenKind.ModKeyword, TokenKind.AndKeyword, TokenKind.OrKeyword, TokenKind.SpacesKeyword }
+                                                        .Select(x => new MemberResult(Tokens.TokenKinds[x], GeneroMemberType.Keyword, this)));
+                                    GetStandardStatementKeywords(index, revTokenizer, results);
+                                    firstState = ExpressionState.Operand;
+                                }
+                                currState = ExpressionState.Operand;
+                                if (tokInfo.SourceSpan.End.Index == cursorIndex)
+                                {
+                                    results.Clear();
+                                    return true;
+                                }
+                            }
+                            else if(tokInfo.Category == TokenCategory.CharacterLiteral)
                             {
                                 if (firstState == ExpressionState.None)
                                 {
@@ -1007,6 +1037,9 @@ namespace VSGenero.Analysis.Parsing.AST
                             {
                                 if (firstState == ExpressionState.None)
                                 {
+                                    results.AddRange(new List<TokenKind> { TokenKind.ClippedKeyword }
+                                                        .Select(x => new MemberResult(Tokens.TokenKinds[x], GeneroMemberType.Keyword, this)));
+                                    GetStandardStatementKeywords(index, revTokenizer, results);
                                     firstState = ExpressionState.Operand;
                                 }
 
@@ -1086,8 +1119,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         ((int)dummyToken.Token.Kind >= (int)TokenKind.FirstOperator && (int)dummyToken.Token.Kind <= (int)TokenKind.LastOperator)) ||
                         dummyToken.Token.Kind == TokenKind.LeftParenthesis ||
                         dummyToken.Token.Kind == TokenKind.Comma ||
-                        dummyToken.Token.Kind == TokenKind.ModKeyword ||
-                        dummyToken.Token.Kind == TokenKind.UsingKeyword)    // Looks like we'll just have to maintain the keywords that are used as operators here
+                        _binaryOperators.Contains(dummyToken.Token.Kind))    // Looks like we'll just have to maintain the keywords that are used as operators here
                     {
                         tokInfo = dummyToken;
                         skipGettingNext = true;
@@ -1099,7 +1131,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         if (firstState == ExpressionState.Operand ||
                            firstState == ExpressionState.RightParen)
                         {
-                            results.Clear();
+                            //results.Clear();
                             return false;
                         }
                         return true;
@@ -2574,6 +2606,11 @@ namespace VSGenero.Analysis.Parsing.AST
                         results.AddRange(GetDefinedMembers(index, true, false, false, false));
                         return true;
                     }
+                    else if(firstState == LetStatementState.Expression && secondState == LetStatementState.None)
+                    {
+                        results.Clear();
+                        return true;
+                    }
                     //if(firstState == LetStatementState.Expression ||
                     //   firstState == LetStatementState.VariableReference)
                     else if (firstState != LetStatementState.Expression ||
@@ -2640,6 +2677,7 @@ namespace VSGenero.Analysis.Parsing.AST
 
                             if (firstState == LetStatementState.None)
                             {
+                                results.AddRange(dummyList);
                                 firstState = LetStatementState.Expression;
                             }
                             else if (secondState == LetStatementState.None)
@@ -3078,6 +3116,14 @@ namespace VSGenero.Analysis.Parsing.AST
                 return members;
             }
 
+            GetStandardStatementKeywords(index, revTokenizer, members);
+            // ..And for right now, we'll just include everything else we can include. This will test the performance a bit.
+            //members.AddRange(GetDefinedMembers(index, true, true, true, true));
+            return members;
+        }
+
+        private void GetStandardStatementKeywords(int index, IReverseTokenizer revTokenizer, List<MemberResult> members)
+        {
             List<MemberResult> accessMods;
             bool allowAccessModifiers = TryAllowAccessModifiers(index, revTokenizer, out accessMods);
             members.AddRange(accessMods);
@@ -3085,9 +3131,6 @@ namespace VSGenero.Analysis.Parsing.AST
             // TODO: need some way of knowing whether to include global members outside the scope of _body
             members.AddRange(ValidStatementKeywords.Take(allowAccessModifiers ? ValidStatementKeywords.Length : 6)
                                                    .Select(x => new MemberResult(Tokens.TokenKinds[x], GeneroMemberType.Keyword, this)));
-            // ..And for right now, we'll just include everything else we can include. This will test the performance a bit.
-            //members.AddRange(GetDefinedMembers(index, true, true, true, true));
-            return members;
         }
 
         /// <summary>

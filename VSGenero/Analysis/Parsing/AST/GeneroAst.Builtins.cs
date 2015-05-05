@@ -830,6 +830,18 @@ new ParameterResult("width", "", "integer"),
         {
             get { return null; }
         }
+
+
+        public int DecoratorStart
+        {
+            get
+            {
+                return StartIndex;
+            }
+            set
+            {
+            }
+        }
     }
 
     public class SystemClass : IAnalysisResult

@@ -296,5 +296,17 @@ namespace VSGenero.EditorExtensions.Intellisense
         {
             get { return false; }
         }
+
+
+        public int DecoratorStart
+        {
+            get
+            {
+                return StartIndex;
+            }
+            set
+            {
+            }
+        }
     }
 }

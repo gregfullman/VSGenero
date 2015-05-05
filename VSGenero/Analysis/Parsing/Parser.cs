@@ -40,6 +40,7 @@ namespace VSGenero.Analysis.Parsing
 
         private IProjectEntry _projectEntry;
         private string _filename;
+        private List<TokenWithSpan> _codeRegions;
 
         public readonly FglStatementFactory StatementFactory;
 
@@ -90,6 +91,7 @@ namespace VSGenero.Analysis.Parsing
             Reset();
             StatementFactory = new FglStatementFactory();
             _privatePrefix = privatePrefix;
+            _codeRegions = new List<TokenWithSpan>();
         }
 
         public static Parser CreateParser(TextReader reader, IProjectEntry projEntry = null, string filename = null)
@@ -258,7 +260,12 @@ namespace VSGenero.Analysis.Parsing
             var ast = new GeneroAst(node, _tokenizer.GetLineLocations(), GeneroLanguageVersion.None, _projectEntry, _filename);
             if (_verbatim)
             {
-                AddExtraVerbatimText(node, _lookaheadWhiteSpace + _lookahead.Token.VerbatimImage);
+                if (_lookahead.Token != null)
+                {
+                    AddExtraVerbatimText(node, _lookaheadWhiteSpace + _lookahead.Token.VerbatimImage);
+                }
+                AddCodeRegions(node);
+                _codeRegions.Clear();
             }
             foreach (var keyValue in _attributes)
             {
@@ -286,6 +293,7 @@ namespace VSGenero.Analysis.Parsing
             {
                 return CreateAst(moduleNode);
             }
+            _codeRegions.Clear();
             return null;
 
             //List<Statement> l = new List<Statement>();
@@ -420,9 +428,26 @@ namespace VSGenero.Analysis.Parsing
         {
             // for right now we don't want to see whitespace chars
             var tok = _tokenizer.GetNextToken();
-            while((!_tokenizer.CurrentOptions.HasFlag(TokenizerOptions.VerbatimCommentsAndLineJoins) && Tokenizer.GetTokenInfo(tok).Category == TokenCategory.WhiteSpace) 
-                || tok is DentToken)
+            while ((!_tokenizer.CurrentOptions.HasFlag(TokenizerOptions.VerbatimCommentsAndLineJoins) && 
+                    (Tokenizer.GetTokenInfo(tok).Category == TokenCategory.WhiteSpace || 
+                     Tokenizer.GetTokenInfo(tok).Category == TokenCategory.Comment)) || 
+                  tok is DentToken)
+            {
+                if(_tokenizer.CurrentState.SingleLineComments.Count > 0)
+                {
+                    string str;
+                    foreach(var commentTok in _tokenizer.CurrentState.SingleLineComments)
+                    {
+                        str = commentTok.Token.Value.ToString();
+                        if(str.StartsWith("#region", StringComparison.OrdinalIgnoreCase) ||
+                           str.StartsWith("#endregion", StringComparison.OrdinalIgnoreCase))
+                        {
+                            _codeRegions.Add(commentTok);
+                        }
+                    }
+                }
                 tok = _tokenizer.GetNextToken();
+            }
             _lookaheads.Add(new TokenWithSpan(tok, _tokenizer.TokenSpan));
             _lookaheadWhiteSpaces.Add(_tokenizer.PreceedingWhiteSpace);
         }
@@ -711,6 +736,14 @@ namespace VSGenero.Analysis.Parsing
         {
             Debug.Assert(_verbatim);
             GetNodeAttributes(ret)[NodeAttributes.ExtraVerbatimText] = text;
+        }
+
+        private void AddCodeRegions(AstNode ret)
+        {
+            Debug.Assert(_verbatim);
+            TokenWithSpan[] arr = new TokenWithSpan[_codeRegions.Count];
+            _codeRegions.CopyTo(arr);
+            GetNodeAttributes(ret)[NodeAttributes.CodeRegions] = arr;
         }
 
         private void AddListWhiteSpace(AstNode ret, string[] whiteSpace)

@@ -66,6 +66,7 @@ namespace VSGenero.Analysis
         bool CanOutline { get; }
         int StartIndex { get; set; }
         int EndIndex { get; set; }
+        int DecoratorStart { get; set; }
         int DecoratorEnd { get; set; }
     }
 }

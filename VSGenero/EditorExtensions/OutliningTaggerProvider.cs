@@ -11,6 +11,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using VSGenero.Analysis;
+using VSGenero.Analysis.Parsing;
 using VSGenero.Analysis.Parsing.AST;
 using VSGenero.EditorExtensions.Intellisense;
 
@@ -127,8 +128,16 @@ namespace VSGenero.EditorExtensions
             private IEnumerable<ITagSpan<IOutliningRegionTag>> ProcessSuite(NormalizedSnapshotSpanCollection spans, GeneroAst ast, ModuleNode moduleNode, ITextSnapshot snapshot, bool isTopLevel)
             {
                 if (moduleNode != null)
-                {                  
-                    foreach (var child in moduleNode.Children.Where(x => x.Value is IOutlinableResult).Select(x => x.Value as IOutlinableResult))
+                {
+                    TokenWithSpan[] regionTokens = new TokenWithSpan[0];
+                    object val;
+                    if (ast.TryGetAttribute(moduleNode, NodeAttributes.CodeRegions, out val))
+                    {
+                        regionTokens = val as TokenWithSpan[];
+                    }
+
+                    foreach (var child in moduleNode.Children.Where(x => x.Value is IOutlinableResult)
+                                                             .Select(x => x.Value as IOutlinableResult).Union(GetRegions(regionTokens)))
                     {
                         SnapshotSpan? span = ShouldInclude(child, spans);
                         if (span == null)
@@ -136,7 +145,7 @@ namespace VSGenero.EditorExtensions
                             continue;
                         }
 
-                        TagSpan tagSpan = GetOutlineSpan(ast, snapshot, child);
+                        TagSpan tagSpan = GetOutlineSpan(snapshot, child);
 
                         if (tagSpan != null)
                         {
@@ -146,23 +155,44 @@ namespace VSGenero.EditorExtensions
                 }
             }
 
-            private static TagSpan GetOutlineSpan(GeneroAst ast, ITextSnapshot snapshot, IOutlinableResult outlineResult)
+            private List<GeneroCodeRegion> GetRegions(TokenWithSpan[] regionTokens)
             {
-                return GetTagSpan(snapshot, outlineResult.StartIndex, outlineResult.EndIndex, outlineResult.DecoratorEnd);
+                Stack<GeneroCodeRegion> regions = new Stack<GeneroCodeRegion>();
+                List<GeneroCodeRegion> regionList = new List<GeneroCodeRegion>();
+                foreach(var tok in regionTokens)
+                {
+                    var commentStr = tok.Token.Value.ToString();
+                    if(commentStr.StartsWith("#region", StringComparison.OrdinalIgnoreCase))
+                    {
+                        var codeRegion = new GeneroCodeRegion() { StartIndex = tok.Span.Start };
+                        int startIndex = 7;
+                        while (startIndex < commentStr.Length && char.IsWhiteSpace(commentStr[startIndex++]));
+                        codeRegion.DecoratorStart = tok.Span.Start + --startIndex;
+                        codeRegion.DecoratorEnd = tok.Span.End;
+                        regions.Push(codeRegion);
+                    }
+                    else if(regions.Count > 0)
+                    {
+                        var codeRegion = regions.Pop();
+                        codeRegion.EndIndex = tok.Span.End;
+                        regionList.Add(codeRegion);
+                    }
+                }
+                return regionList;
             }
 
-            private static TagSpan GetTagSpan(ITextSnapshot snapshot, int start, int end, int decoratorEnd)
+            private static TagSpan GetOutlineSpan(ITextSnapshot snapshot, IOutlinableResult outlineResult)
             {
                 TagSpan tagSpan = null;
                 try
                 {
-                    int length = end - start;
-                    if(length > 0)
+                    int length = outlineResult.EndIndex - outlineResult.StartIndex;
+                    if (length > 0)
                     {
-                        var headerLength = decoratorEnd - start;
-                        Span headerSpan = new Span(start, headerLength);
+                        var headerLength = outlineResult.DecoratorEnd - outlineResult.DecoratorStart;
+                        Span headerSpan = new Span(outlineResult.DecoratorStart, headerLength);
 
-                        var span = GetFinalSpan(snapshot, start, length);
+                        var span = GetFinalSpan(snapshot, outlineResult.StartIndex, length);
 
                         tagSpan = new TagSpan(
                                 new SnapshotSpan(snapshot, span),
@@ -331,5 +361,18 @@ namespace VSGenero.EditorExtensions
             }
             return null;
         }
+    }
+
+    public class GeneroCodeRegion : IOutlinableResult
+    {
+        public bool CanOutline
+        {
+            get { return true; }
+        }
+
+        public int StartIndex { get; set; }
+        public int EndIndex { get; set; }
+        public int DecoratorEnd { get; set; }
+        public int DecoratorStart { get; set; }
     }
 }

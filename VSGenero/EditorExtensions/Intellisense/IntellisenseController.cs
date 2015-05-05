@@ -797,7 +797,7 @@ namespace VSGenero.EditorExtensions.Intellisense
 
         private static bool IsIdentifierChar(char ch)
         {
-            return ch == '_' || (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || (ch >= '0' && ch <= '9');
+            return ch == '_' || (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z');// || (ch >= '0' && ch <= '9');
         }
 
         private bool EnterOnCompleteText()

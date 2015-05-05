@@ -25,6 +25,7 @@ namespace VSGenero.Analysis.Parsing
         Subtract = 33,
         Multiply = 34,
         Divide   = 35,
+        Assign   = 36,
         Power    = 37,
 
         // boolean expression operators
@@ -52,7 +53,6 @@ namespace VSGenero.Analysis.Parsing
         Colon            = 55,
         BackQuote        = 56,
         Semicolon        = 57,
-        Assign           = 58,
         
 
         FirstLanguageKeyword = AbsoluteKeyword,
