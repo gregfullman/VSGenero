@@ -203,9 +203,6 @@ namespace VSGenero.EditorExtensions.Intellisense
             string path = bufferParser._currentProjEntry.FilePath;
             if (ImplicitProject && _taskProvider.IsValueCreated && path != null)
             {
-                // remove the file from the error list
-                _taskProvider.Value.Clear(bufferParser._currentProjEntry.FilePath);
-
                 // check to see if the file is still needed
                 string dirPath = Path.GetDirectoryName(path);
 
@@ -215,11 +212,15 @@ namespace VSGenero.EditorExtensions.Intellisense
                     IGeneroProjectEntry entry;
                     if (proj.ProjectEntries.TryGetValue(path, out entry))
                     {
+                        proj.ProjectEntries[path].IsOpen = entry.IsOpen = false;
                         // are there any others that are open?
                         if (!proj.ProjectEntries.Any(x => x.Value != entry && x.Value.IsOpen))
                         {
                             proj.ProjectEntries.Clear();
                             _projects.TryRemove(dirPath, out proj);
+
+                            // remove the file from the error list
+                            _taskProvider.Value.Clear(Path.GetDirectoryName(bufferParser._currentProjEntry.FilePath));
                         }
                     }
                 }
@@ -278,7 +279,7 @@ namespace VSGenero.EditorExtensions.Intellisense
         /// Gets a ExpressionAnalysis for the expression at the provided span.  If the span is in
         /// part of an identifier then the expression is extended to complete the identifier.
         /// </summary>
-        internal static ExpressionAnalysis AnalyzeExpression(ITextSnapshot snapshot, ITrackingSpan span, IFunctionInformationProvider functionProvider, 
+        internal static ExpressionAnalysis AnalyzeExpression(ITextSnapshot snapshot, ITrackingSpan span, IFunctionInformationProvider functionProvider,
                                                              IDatabaseInformationProvider databaseProvider, bool forCompletion = true)
         {
             var buffer = snapshot.TextBuffer;
@@ -514,7 +515,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             List<GeneroAst> asts = new List<GeneroAst>();
             foreach (var snapshot in snapshots)
             {
-                if (pyProjEntry != null && 
+                if (pyProjEntry != null &&
                     VSGeneroPackage.Instance.ProgramCodeContentTypes.Any(x => snapshot.TextBuffer.ContentType.IsOfType(x.TypeName)))
                 {
                     GeneroAst ast;
@@ -653,8 +654,8 @@ namespace VSGenero.EditorExtensions.Intellisense
             ast = null;
             errorSink = new CollectingErrorSink();
 
-            using (var parser = Parser.CreateParser(content, 
-                                                    new ParserOptions() { Verbatim = true, ErrorSink = errorSink, IndentationInconsistencySeverity = indentationSeverity, BindReferences = true }, 
+            using (var parser = Parser.CreateParser(content,
+                                                    new ParserOptions() { Verbatim = true, ErrorSink = errorSink, IndentationInconsistencySeverity = indentationSeverity, BindReferences = true },
                                                     entry))
             {
                 ast = ParseOneFile(ast, parser);
@@ -765,7 +766,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                 }
             }
 
-            return CompletionAnalysis.EmptyCompletionContext;;
+            return CompletionAnalysis.EmptyCompletionContext; ;
         }
 
         private static CompletionAnalysis GetNormalCompletionContext(ITextSnapshot snapshot, ITrackingSpan applicableSpan, ITrackingPoint point, CompletionOptions options)
@@ -839,7 +840,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                     return;
                 }
 
-                _analyzer.AnalyzeDirectoryWorker(_dir, _excludeFile,  _onFileAnalyzed, cancel);
+                _analyzer.AnalyzeDirectoryWorker(_dir, _excludeFile, _onFileAnalyzed, cancel);
             }
 
             #endregion
@@ -857,7 +858,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             {
                 foreach (string filename in Directory.GetFiles(dir, "*.4gl"))
                 {
-                    if(_excludeFile != null && filename.Equals(_excludeFile, StringComparison.OrdinalIgnoreCase))
+                    if (_excludeFile != null && filename.Equals(_excludeFile, StringComparison.OrdinalIgnoreCase))
                     {
                         continue;
                     }
@@ -984,8 +985,8 @@ namespace VSGenero.EditorExtensions.Intellisense
 
         class TaskProvider : IVsTaskProvider
         {
-            private readonly Dictionary<string, List<ErrorResult>> _warnings = new Dictionary<string, List<ErrorResult>>();
-            private readonly Dictionary<string, List<ErrorResult>> _errors = new Dictionary<string, List<ErrorResult>>();
+            private readonly Dictionary<string, List<ErrorResult>> _warnings = new Dictionary<string, List<ErrorResult>>(StringComparer.OrdinalIgnoreCase);
+            private readonly Dictionary<string, List<ErrorResult>> _errors = new Dictionary<string, List<ErrorResult>>(StringComparer.OrdinalIgnoreCase);
             private readonly uint _cookie;
             private readonly IVsTaskList _errorList;
             private readonly object _contentsLock = new object();
@@ -1028,8 +1029,18 @@ namespace VSGenero.EditorExtensions.Intellisense
                             case WorkerMessage.MessageType.Clear:
                                 lock (_contentsLock)
                                 {
-                                    changed = _errors.Remove(msg.Filename) || changed;
-                                    changed = _warnings.Remove(msg.Filename) || changed;
+                                    if (Path.HasExtension(msg.Filename))
+                                    {
+                                        changed = _errors.Remove(msg.Filename) || changed;
+                                        changed = _warnings.Remove(msg.Filename) || changed;
+                                    }
+                                    else
+                                    {
+                                        foreach(var key in _errors.Keys.Where(x => x.StartsWith(msg.Filename, StringComparison.OrdinalIgnoreCase)).ToList())
+                                            changed = _errors.Remove(key) || changed;
+                                        foreach (var key in _warnings.Keys.Where(x => x.StartsWith(msg.Filename, StringComparison.OrdinalIgnoreCase)).ToList())
+                                            changed = _warnings.Remove(key) || changed;
+                                    }
                                 }
                                 break;
                             case WorkerMessage.MessageType.Warnings:
