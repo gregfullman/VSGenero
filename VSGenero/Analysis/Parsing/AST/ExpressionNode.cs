@@ -467,7 +467,7 @@ namespace VSGenero.Analysis.Parsing.AST
 
         public override void AppendExpression(ExpressionNode node)
         {
-            if (node is TokenExpressionNode)
+            if (node != null && node is TokenExpressionNode && _tokens != null && (node as TokenExpressionNode).Tokens != null)
             {
                 _tokens.AddRange((node as TokenExpressionNode).Tokens);
             }
