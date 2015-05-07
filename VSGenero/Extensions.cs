@@ -14,5 +14,11 @@ namespace VSGenero
             Array.Copy(data, index, result, 0, length);
             return result;
         }
+
+        public static void AddRange<T>(this HashSet<T> set, IEnumerable<T> rangeToAdd)
+        {
+            foreach (var item in rangeToAdd)
+                set.Add(item);
+        }
     }
 }

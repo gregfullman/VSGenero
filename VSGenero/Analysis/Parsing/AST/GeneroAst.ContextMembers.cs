@@ -419,7 +419,7 @@ namespace VSGenero.Analysis.Parsing.AST
 
         private IEnumerable<MemberResult> GetDefinedMembers(int index, bool vars, bool consts, bool types, bool funcs)
         {
-            List<MemberResult> members = new List<MemberResult>();
+            HashSet<MemberResult> members = new HashSet<MemberResult>();
 
             HashSet<GeneroPackage> includedPackages = new HashSet<GeneroPackage>();
             if (types)
@@ -475,8 +475,8 @@ namespace VSGenero.Analysis.Parsing.AST
                             members.AddRange((containingNode as IFunctionResult).Constants.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Constant, this)));
                         if (funcs)
                         {
-                            foreach (var res in (containingNode as IFunctionResult).Variables.Where(x => x.Value.HasChildFunctions(this))
-                                                                                            .Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Variable, this)))
+                            foreach (var res in (containingNode as IFunctionResult).Variables/*.Where(x => x.Value.HasChildFunctions(this))
+                                                                                            */.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Variable, this)))
                                 if (!members.Contains(res))
                                     members.Add(res);
                         }
@@ -503,12 +503,12 @@ namespace VSGenero.Analysis.Parsing.AST
                         if (funcs)
                         {
                             members.AddRange((_body as IModuleResult).Functions.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Method, this)));
-                            foreach (var res in (_body as IModuleResult).Variables.Where(x => x.Value.HasChildFunctions(this))
-                                                                                            .Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Variable, this)))
+                            foreach (var res in (_body as IModuleResult).Variables/*.Where(x => x.Value.HasChildFunctions(this))
+                                                                                            */.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Variable, this)))
                                 if (!members.Contains(res))
                                     members.Add(res);
-                            foreach (var res in (_body as IModuleResult).GlobalVariables.Where(x => x.Value.HasChildFunctions(this))
-                                                                                            .Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Variable, this)))
+                            foreach (var res in (_body as IModuleResult).GlobalVariables/*.Where(x => x.Value.HasChildFunctions(this))
+                                                                                            */.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Variable, this)))
                                 if (!members.Contains(res))
                                     members.Add(res);
                         }
@@ -542,8 +542,11 @@ namespace VSGenero.Analysis.Parsing.AST
                                 if (funcs)
                                 {
                                     members.AddRange(modRes.Functions.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Method, this)));
-                                    foreach (var res in modRes.GlobalVariables.Where(x => x.Value.HasChildFunctions(this))
-                                                                                    .Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Variable, this)))
+                                    foreach (var res in modRes.GlobalVariables/*.Where(x => 
+                                        {
+                                            return x.Value.HasChildFunctions(this);
+                                        })*/
+                                        .Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Variable, this)))
                                         if (!members.Contains(res))
                                             members.Add(res);
                                 }
