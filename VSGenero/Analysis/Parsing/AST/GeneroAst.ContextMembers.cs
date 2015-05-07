@@ -611,11 +611,11 @@ namespace VSGenero.Analysis.Parsing.AST
                         // provide functions
                         results.AddRange(GetDefinedMembers(index, false, false, false, true));
                     }
-                    if (firstStatus == CallStatus.Expression)
-                    {
-                        // don't clear the results, since it includes "returning"
-                        return false;
-                    }
+                    //if (firstStatus == CallStatus.Expression)
+                    //{
+                    //    // don't clear the results, since it includes "returning"
+                    //    return false;
+                    //}
 
                     return true;
                 }
@@ -693,6 +693,7 @@ namespace VSGenero.Analysis.Parsing.AST
                             {
                                 firstStatus = CallStatus.Expression;
                                 results.Add(new MemberResult(Tokens.TokenKinds[TokenKind.ReturningKeyword], GeneroMemberType.Keyword, this));
+                                GetStandardStatementKeywords(index, revTokenizer, results);
                             }
                             if (currStatus == CallStatus.None ||
                                currStatus == CallStatus.ReturningKeyword ||
@@ -888,6 +889,23 @@ namespace VSGenero.Analysis.Parsing.AST
                 var tokInfo = enumerator.Current;
                 if (tokInfo.Equals(default(TokenInfo)) || tokInfo.Token.Kind == TokenKind.NewLine || tokInfo.Token.Kind == TokenKind.NLToken || tokInfo.Token.Kind == TokenKind.Comment)
                     continue;   // linebreak
+
+                if (currState == ExpressionState.None ||
+                    currState == ExpressionState.Operand ||
+                    currState == ExpressionState.LeftParen)
+                {
+                    if (bannedOperators != null && bannedOperators.Contains(tokInfo.Token.Kind))
+                    {
+                        startIndex = tokInfo.SourceSpan.End.Index + 1;
+                        if (firstState != ExpressionState.LeftParen &&
+                            firstState != ExpressionState.Operator)
+                        {
+                            //results.Clear();
+                            return false;
+                        }
+                        return true;
+                    }
+                }
 
                 if (tokInfo.Token.Kind == TokenKind.Comma ||            // TODO: if we add a function context detection this should be removed
                     _binaryOperators.Contains(tokInfo.Token.Kind))
@@ -2566,6 +2584,228 @@ namespace VSGenero.Analysis.Parsing.AST
             }
         }
 
+        private enum IfStatementState
+        {
+            None,
+            If,
+            LeftParen,
+            Expression,
+            RightParen,
+            Then
+        }
+
+        private bool TryIfStatement(int index, IReverseTokenizer revTokenizer, out List<MemberResult> results, out bool isMemberAccess)
+        {
+            isMemberAccess = false;
+            results = new List<MemberResult>();
+            IfStatementState firstState = IfStatementState.None;
+            IfStatementState currState = IfStatementState.None;
+            bool skipGettingNext = false;
+            var enumerator = revTokenizer.GetReversedTokens().Where(x => x.SourceSpan.Start.Index < index).GetEnumerator();
+            while (true)
+            {
+                if (!skipGettingNext)
+                {
+                    if (!enumerator.MoveNext())
+                    {
+                        results.Clear();
+                        return false;
+                    }
+                }
+                else
+                {
+                    skipGettingNext = true;
+                }
+
+                var tokInfo = enumerator.Current;
+                if (tokInfo.Equals(default(TokenInfo)) || tokInfo.Token.Kind == TokenKind.NewLine || tokInfo.Token.Kind == TokenKind.NLToken || tokInfo.Token.Kind == TokenKind.Comment)
+                    continue;   // linebreak
+
+                if (tokInfo.Token.Kind == TokenKind.IfKeyword)
+                {
+                    if (firstState == IfStatementState.None || firstState == IfStatementState.LeftParen)
+                    {
+                        results.AddRange(GetDefinedMembers(index, true, true, false, true));
+                        return true;
+                    }
+                    else if (firstState == IfStatementState.Expression || firstState == IfStatementState.RightParen)
+                    {
+                        if (!isMemberAccess)
+                            results.Add(new MemberResult(Tokens.TokenKinds[TokenKind.ThenKeyword], GeneroMemberType.Keyword, this));
+                        return true;
+                    }
+                    if(firstState != IfStatementState.Then && results.Count > 0)
+                    {
+                        return true;
+                    }
+                    results.Clear();
+                    return false;
+                }
+                else if(tokInfo.Token.Kind == TokenKind.LeftParenthesis)
+                {
+                    if (firstState == IfStatementState.None)
+                        firstState = IfStatementState.LeftParen;
+                    currState = IfStatementState.LeftParen;
+                }
+                else if(tokInfo.Token.Kind == TokenKind.RightParenthesis)
+                {
+                    if (firstState == IfStatementState.RightParen)
+                        firstState = IfStatementState.RightParen;
+                    currState = IfStatementState.RightParen;
+                }
+                else if(tokInfo.Token.Kind == TokenKind.ThenKeyword)
+                {
+                    if(firstState == IfStatementState.None)
+                    {
+                        firstState = IfStatementState.Then;
+                    }
+                    currState = IfStatementState.Then;
+                }
+                else
+                {
+                    // 1) see if we're within an expression
+                    List<MemberResult> dummyList;
+                    int currIndex = tokInfo.SourceSpan.Start.Index + 1;
+                    int exprStartIndex;
+                    bool exprSuccess = TryExpression(currIndex, revTokenizer, index, out dummyList, out exprStartIndex, new TokenKind[] { TokenKind.IfKeyword });
+                    if (!exprSuccess)
+                    {
+                        if (exprStartIndex < currIndex)
+                        {
+                            // this means we're not positioned within the expression, but we reversed all the way through one.
+                            while (tokInfo.Equals(default(TokenInfo)) ||
+                                    tokInfo.Token.Kind == TokenKind.NewLine ||
+                                    tokInfo.Token.Kind == TokenKind.NLToken ||
+                                    tokInfo.Token.Kind == TokenKind.Comment ||
+                                    tokInfo.SourceSpan.Start.Index > exprStartIndex)
+                            {
+                                if (!enumerator.MoveNext())
+                                {
+                                    results.Clear();
+                                    return false;
+                                }
+                                tokInfo = enumerator.Current;
+                            }
+
+                            if (firstState == IfStatementState.None)
+                            {
+                                results.AddRange(dummyList);
+                                firstState = IfStatementState.Expression;
+                            }
+                            currState = IfStatementState.Expression;
+                        }
+                        else
+                        {
+                            // 1) See if we're within a variable reference
+                            int newIndex;
+                            if (!TryVariableReference(currIndex, revTokenizer, out dummyList, out newIndex))
+                            {
+                                if (newIndex < currIndex)
+                                {
+                                    // we're not within a variable reference, but we reversed through one
+                                    while (tokInfo.Equals(default(TokenInfo)) ||
+                                            tokInfo.Token.Kind == TokenKind.NewLine ||
+                                            tokInfo.Token.Kind == TokenKind.NLToken ||
+                                            tokInfo.Token.Kind == TokenKind.Comment ||
+                                            tokInfo.SourceSpan.Start.Index > newIndex)
+                                    {
+                                        if (!enumerator.MoveNext())
+                                        {
+                                            results.Clear();
+                                            return false;
+                                        }
+                                        tokInfo = enumerator.Current;
+                                    }
+
+                                    if (firstState == IfStatementState.None)
+                                    {
+                                        firstState = IfStatementState.Expression;
+                                    }
+
+                                    currState = IfStatementState.Expression;
+                                }
+                                else
+                                {
+                                    results.Clear();
+                                    return false;
+                                }
+                            }
+                            else
+                            {
+                                // check for a member access
+                                List<MemberResult> memberAccessResults = new List<MemberResult>();
+                                if (TryMemberAccess(index, revTokenizer, out memberAccessResults))
+                                {
+                                    while (tokInfo.Equals(default(TokenInfo)) ||
+                                           tokInfo.Token.Kind == TokenKind.NewLine ||
+                                           tokInfo.Token.Kind == TokenKind.NLToken ||
+                                           tokInfo.Token.Kind == TokenKind.Comment ||
+                                           tokInfo.SourceSpan.Start.Index > newIndex)
+                                    {
+                                        if (!enumerator.MoveNext())
+                                        {
+                                            results.Clear();
+                                            return false;
+                                        }
+                                        tokInfo = enumerator.Current;
+                                    }
+
+                                    if (firstState == IfStatementState.None)
+                                    {
+                                        firstState = IfStatementState.Expression;
+                                        results.AddRange(memberAccessResults);
+                                        isMemberAccess = true;
+                                    }
+                                    currState = IfStatementState.Expression;
+                                }
+                                else
+                                {
+                                    // we're actually within the variable reference, and should not be returning anything related to the let statement
+                                    // TODO: reinvestigate the comment above...I think it would only apply if we were doing the variable reference check by itself
+                                    // (not nested in the let statement detection).
+                                    // !!! This is causing some issues when doing an expression in an array index
+                                    if (dummyList.Count > 0)
+                                    {
+                                        results.AddRange(dummyList);
+                                        return true;
+                                    }
+                                    else
+                                    {
+                                        // This may still be valid.
+                                        results.Clear();
+                                        return false;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        while (tokInfo.Equals(default(TokenInfo)) ||
+                                           tokInfo.Token.Kind == TokenKind.NewLine ||
+                                           tokInfo.Token.Kind == TokenKind.NLToken ||
+                                           tokInfo.Token.Kind == TokenKind.Comment ||
+                                           tokInfo.SourceSpan.Start.Index > exprStartIndex)
+                        {
+                            if (!enumerator.MoveNext())
+                            {
+                                results.Clear();
+                                return false;
+                            }
+                            tokInfo = enumerator.Current;
+                        }
+
+                        results.AddRange(dummyList);
+                        if (firstState == IfStatementState.None)
+                        {
+                            firstState = IfStatementState.Expression;
+                        }
+                        currState = IfStatementState.Expression;
+                    }
+                }
+            }
+        }
+
         private enum LetStatementState
         {
             None,
@@ -2923,6 +3163,8 @@ namespace VSGenero.Analysis.Parsing.AST
             TokenKind.CallKeyword,      // call func_name([param1 [,...]]) [returning ret1 [,...]] (this is covered)
             TokenKind.ReturnKeyword,    // return [ret1 [,...]]
             TokenKind.CaseKeyword,
+            TokenKind.WhenKeyword,
+            TokenKind.OtherwiseKeyword,
             TokenKind.ContinueKeyword,  // continue { FOR | FOREACH | WHILE | MENU | CONSTRUCT | INPUT | DIALOG }
             TokenKind.ExitKeyword,      // exit { FOR | FOREACH | WHILE | MENU | CONSTRUCT | REPORT | DISPLAY | INPUT | DIALOG }
             TokenKind.ForKeyword,
@@ -3119,6 +3361,26 @@ namespace VSGenero.Analysis.Parsing.AST
                         if (tempRes is GeneroPackageClass)
                         {
                             return (tempRes as GeneroPackageClass).IsStatic;
+                        }
+                        return true;
+                    });
+                }
+                return members;
+            }
+
+            if (TryIfStatement(index, revTokenizer, out members, out isMemberAccess))
+            {
+                //List<MemberResult> memberAccessResults = new List<MemberResult>();
+                //if (TryMemberAccess(index, revTokenizer, out memberAccessResults))
+                if (isMemberAccess)
+                {
+                    // if there are any GeneroPackageClasses, limit them to only ones that are instance classes
+                    return members.Where(x =>
+                    {
+                        IAnalysisResult tempRes = x.Var;
+                        if (tempRes is GeneroPackageClass)
+                        {
+                            return !(tempRes as GeneroPackageClass).IsStatic;
                         }
                         return true;
                     });
