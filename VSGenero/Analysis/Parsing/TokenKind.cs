@@ -356,6 +356,7 @@ namespace VSGenero.Analysis.Parsing
         StartKeyword,
         StatisticsKeyword,
         StatusKeyword,
+        StepKeyword,
         StopKeyword,
         StringKeyword,
         SumKeyword,
