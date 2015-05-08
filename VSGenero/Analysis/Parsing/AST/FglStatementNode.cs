@@ -103,6 +103,51 @@ namespace VSGenero.Analysis.Parsing.AST
                         }
                         break;
                     }
+                case TokenKind.WhileKeyword:
+                    {
+                        WhileStatement whileStmt;
+                        if((result = WhileStatement.TryParseNode(parser, out whileStmt, prepStatementResolver, prepStatementBinder)))
+                        {
+                            node = whileStmt;
+                        }
+                        break;
+                    }
+                case TokenKind.ExitKeyword:
+                    {
+                        ExitStatement exitStatement;
+                        if((result = ExitStatement.TryParseNode(parser, out exitStatement)))
+                        {
+                            node = exitStatement;
+                        }
+                        break;
+                    }
+                case TokenKind.ContinueKeyword:
+                    {
+                        ContinueStatement contStmt;
+                        if((result = ContinueStatement.TryParseNode(parser, out contStmt)))
+                        {
+                            node = contStmt;
+                        }
+                        break;
+                    }
+                case TokenKind.WheneverKeyword:
+                    {
+                        WheneverStatement wheneverStmt;
+                        if((result = WheneverStatement.TryParseNode(parser, out wheneverStmt)))
+                        {
+                            node = wheneverStmt;
+                        }
+                        break;
+                    }
+                case TokenKind.ForKeyword:
+                    {
+                        ForStatement forStmt;
+                        if((result = ForStatement.TryParserNode(parser, out forStmt, prepStatementResolver, prepStatementBinder)))
+                        {
+                            node = forStmt;
+                        }
+                        break;
+                    }
             }
 
             return result;

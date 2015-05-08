@@ -308,6 +308,7 @@ namespace VSGenero.Analysis.Parsing
         PutKeyword,
         Quit_FlagKeyword,
         QuitKeyword,
+        RaiseKeyword,
         ReadKeyword,
         RealKeyword,
         RecordKeyword,

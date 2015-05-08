@@ -18,8 +18,89 @@ namespace VSGenero.Analysis.Parsing.AST
         public static bool TryParseNode(Parser parser, out WheneverStatement defNode)
         {
             defNode = null;
-            // TODO: parse whenever statement
-            return false;
+            bool result = false;
+            
+            if(parser.PeekToken(TokenKind.WheneverKeyword))
+            {
+                result = true;
+                defNode = new WheneverStatement();
+                parser.NextToken();
+                defNode.StartIndex = parser.Token.Span.Start;
+
+                // Parse the exception class
+                switch (parser.PeekToken().Kind)
+                {
+                    case TokenKind.AnyKeyword:
+                        {
+                            parser.NextToken();
+                            if (parser.PeekToken(TokenKind.ErrorKeyword) ||
+                               parser.PeekToken(TokenKind.SqlerrorKeyword))
+                            {
+                                parser.NextToken();
+                            }
+                            else
+                            {
+                                parser.ReportSyntaxError("Invalid token found in whenever statement.");
+                            }
+                            break;
+                        }
+                    case TokenKind.NotKeyword:
+                        {
+                            parser.NextToken();
+                            if(parser.PeekToken(TokenKind.FoundKeyword))
+                            {
+                                parser.NextToken();
+                            }
+                            else
+                            {
+                                parser.ReportSyntaxError("Invalid token found in whenever statement.");
+                            }
+                            break;
+                        }
+                    case TokenKind.ErrorKeyword:
+                    case TokenKind.SqlerrorKeyword:
+                    case TokenKind.WarningKeyword:
+                        {
+                            parser.NextToken();
+                            break;
+                        }
+                    default:
+                        parser.ReportSyntaxError("Invalid exception class found in whenever statement.");
+                        break;
+                }
+
+                // Parse the exception-action
+                switch(parser.PeekToken().Kind)
+                {
+                    case TokenKind.ContinueKeyword:
+                    case TokenKind.StopKeyword:
+                    case TokenKind.RaiseKeyword:
+                        parser.NextToken();
+                        break;
+                    case TokenKind.CallKeyword:
+                    case TokenKind.GotoKeyword:
+                        {
+                            parser.NextToken();
+                            if(parser.PeekToken(TokenCategory.Identifier) ||
+                               parser.PeekToken(TokenCategory.Keyword))
+                            {
+                                parser.NextToken();
+                            }
+                            else
+                            {
+                                parser.ReportSyntaxError("Invalid token found in exception action.");
+                            }
+                            break;
+                        }
+                    default:
+                        parser.ReportSyntaxError("Invalid exception action found in whenever statement.");
+                        break;
+                }
+
+                defNode.EndIndex = parser.Token.Span.End;
+            }
+
+            return result;
         }
     }
 }

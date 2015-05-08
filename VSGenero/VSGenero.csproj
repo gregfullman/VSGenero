@@ -323,8 +323,11 @@
     <Compile Include="Analysis\IReverseTokenizer.cs" />
     <Compile Include="Analysis\Parsing\AST\AstNodeAttributes.cs" />
     <Compile Include="Analysis\Parsing\AST\CallStatement.cs" />
+    <Compile Include="Analysis\Parsing\AST\ContinueStatement.cs" />
     <Compile Include="Analysis\Parsing\AST\DeclareStatement.cs" />
+    <Compile Include="Analysis\Parsing\AST\ExitStatement.cs" />
     <Compile Include="Analysis\Parsing\AST\ExpressionNode.cs" />
+    <Compile Include="Analysis\Parsing\AST\ForStatement.cs" />
     <Compile Include="Analysis\Parsing\AST\GeneroAst.Builtins.cs" />
     <Compile Include="Analysis\Parsing\AST\GeneroAst.cs" />
     <Compile Include="Analysis\Parsing\AST\GeneroAst.Packages.cs" />
@@ -335,6 +338,7 @@
     <Compile Include="Analysis\Parsing\AST\ReturnStatement.cs" />
     <Compile Include="Analysis\Parsing\AST\SqlBlockNode.cs" />
     <Compile Include="Analysis\Parsing\AST\SqlStatement.cs" />
+    <Compile Include="Analysis\Parsing\AST\WhileStatement.cs" />
     <Compile Include="Analysis\Parsing\CodeFormattingOptions.cs" />
     <Compile Include="Analysis\Parsing\CollectingErrorSink.cs" />
     <Compile Include="Analysis\Deque.cs" />
