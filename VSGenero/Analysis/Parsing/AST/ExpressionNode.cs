@@ -24,18 +24,20 @@ namespace VSGenero.Analysis.Parsing.AST
             bool requireExpression = false;
 
             TokenExpressionNode startingToken = null;
-
-            // First check for allowed pre-expression tokens
-            if(_preExpressionTokens.Contains(parser.PeekToken().Kind))
-            {
-                parser.NextToken();
-                startingToken = new TokenExpressionNode(parser.Token);
-                node = startingToken;
-                requireExpression = true;
-            }
             
             while (true)
             {
+                // First check for allowed pre-expression tokens
+                if (_preExpressionTokens.Contains(parser.PeekToken().Kind))
+                {
+                    parser.NextToken();
+                    if(node == null)
+                        node = new TokenExpressionNode(parser.Token);
+                    else
+                        node.AppendExpression(new TokenExpressionNode(parser.Token));
+                    requireExpression = true;
+                }
+
                 if (parser.PeekToken(TokenKind.LeftParenthesis))
                 {
                     ParenWrappedExpressionNode parenExpr;
@@ -149,76 +151,85 @@ namespace VSGenero.Analysis.Parsing.AST
                 else
                 {
                     bool isOperator = true;
-                    // check for non-symbol operators
-                    switch(nextTok.Kind)
+                    while (isOperator && !requireExpression)
                     {
-                        case TokenKind.AsKeyword:
-                        case TokenKind.AndKeyword:
-                        case TokenKind.OrKeyword:
-                        case TokenKind.ModKeyword:
-                        case TokenKind.UsingKeyword:
-                        case TokenKind.InstanceOfKeyword:
-                        case TokenKind.UnitsKeyword:
-                        case TokenKind.LikeKeyword:
-                        case TokenKind.MatchesKeyword:
-                            {
-                                // require another expression
-                                requireExpression = true;
-                                parser.NextToken();
-                                node.AppendExpression(new TokenExpressionNode(parser.Token));
-                            }
-                            break;
-                        case TokenKind.ClippedKeyword:
-                        case TokenKind.SpacesKeyword:
-                            {
-                                parser.NextToken();
-                                node.AppendExpression(new TokenExpressionNode(parser.Token));
-                            }
-                            break;
-                        case TokenKind.IsKeyword:
-                            {
-                                parser.NextToken();
-                                node.AppendExpression(new TokenExpressionNode(parser.Token));
-                                if(parser.PeekToken(TokenKind.NotKeyword))
-                                {
-                                    parser.NextToken();
-                                    node.AppendExpression(new TokenExpressionNode(parser.Token));
-                                }
-                                if(parser.PeekToken(TokenKind.NullKeyword))
-                                {
-                                    parser.NextToken();
-                                    node.AppendExpression(new TokenExpressionNode(parser.Token));
-                                }
-                                else
-                                {
-                                    parser.ReportSyntaxError("NULL keyword required in expression.");
-                                }
-                            }
-                            break;
-                        case TokenKind.NotKeyword:
-                            {
-                                parser.NextToken();
-                                node.AppendExpression(new TokenExpressionNode(parser.Token));
-                                if(parser.PeekToken(TokenKind.LikeKeyword) ||
-                                   parser.PeekToken(TokenKind.MatchesKeyword))
+                        // check for non-symbol operators
+                        switch (nextTok.Kind)
+                        {
+                            case TokenKind.AsKeyword:
+                            case TokenKind.AndKeyword:
+                            case TokenKind.OrKeyword:
+                            case TokenKind.ModKeyword:
+                            case TokenKind.UsingKeyword:
+                            case TokenKind.InstanceOfKeyword:
+                            case TokenKind.UnitsKeyword:
+                            case TokenKind.LikeKeyword:
+                            case TokenKind.MatchesKeyword:
                                 {
                                     // require another expression
                                     requireExpression = true;
                                     parser.NextToken();
                                     node.AppendExpression(new TokenExpressionNode(parser.Token));
                                 }
-                                else
+                                break;
+                            case TokenKind.ClippedKeyword:
+                            case TokenKind.SpacesKeyword:
                                 {
-                                    parser.ReportSyntaxError("LIKE or MATCHES keyword required in expression.");
+                                    parser.NextToken();
+                                    node.AppendExpression(new TokenExpressionNode(parser.Token));
                                 }
-                            }
+                                break;
+                            case TokenKind.IsKeyword:
+                                {
+                                    parser.NextToken();
+                                    node.AppendExpression(new TokenExpressionNode(parser.Token));
+                                    if (parser.PeekToken(TokenKind.NotKeyword))
+                                    {
+                                        parser.NextToken();
+                                        node.AppendExpression(new TokenExpressionNode(parser.Token));
+                                    }
+                                    if (parser.PeekToken(TokenKind.NullKeyword))
+                                    {
+                                        parser.NextToken();
+                                        node.AppendExpression(new TokenExpressionNode(parser.Token));
+                                    }
+                                    else
+                                    {
+                                        parser.ReportSyntaxError("NULL keyword required in expression.");
+                                    }
+                                }
+                                break;
+                            case TokenKind.NotKeyword:
+                                {
+                                    parser.NextToken();
+                                    node.AppendExpression(new TokenExpressionNode(parser.Token));
+                                    if (parser.PeekToken(TokenKind.LikeKeyword) ||
+                                       parser.PeekToken(TokenKind.MatchesKeyword))
+                                    {
+                                        // require another expression
+                                        requireExpression = true;
+                                        parser.NextToken();
+                                        node.AppendExpression(new TokenExpressionNode(parser.Token));
+                                    }
+                                    else
+                                    {
+                                        parser.ReportSyntaxError("LIKE or MATCHES keyword required in expression.");
+                                    }
+                                }
+                                break;
+                            default:
+                                isOperator = false;
+                                break;
+                        }
+                        if (!isOperator)
                             break;
-                        default:
-                            isOperator = false;
-                            break;
+                        else
+                            nextTok = parser.PeekToken();
                     }
-                    if(!isOperator)
+                    if(!requireExpression)
+                    {
                         break;
+                    }
                 }
             }
 

@@ -55,7 +55,12 @@ namespace VSGenero.Analysis.Parsing.AST
                         if ((result = PrepareStatement.TryParseNode(parser, out prepStmt)))
                         {
                             node = prepStmt;
-                            prepStatementBinder(prepStmt);
+                            if (prepStatementBinder != null)
+                                prepStatementBinder(prepStmt);
+                            else
+                            {
+                                int i = 0;
+                            }
                         }
                         break;
                     }
@@ -86,6 +91,15 @@ namespace VSGenero.Analysis.Parsing.AST
                         if((result = CallStatement.TryParseNode(parser, out callStmt)))
                         {
                             node = callStmt;
+                        }
+                        break;
+                    }
+                case TokenKind.IfKeyword:
+                    {
+                        IfStatement ifStmt;
+                        if((result = IfStatement.TryParseNode(parser, out ifStmt, prepStatementResolver, prepStatementBinder)))
+                        {
+                            node = ifStmt;
                         }
                         break;
                     }

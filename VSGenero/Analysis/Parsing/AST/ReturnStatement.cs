@@ -33,6 +33,10 @@ namespace VSGenero.Analysis.Parsing.AST
 
                 while (true)
                 {
+                    var tok = parser.PeekToken();
+                    if (GeneroAst.ValidStatementKeywords.Contains(tok.Kind))
+                        break;
+
                     ExpressionNode expr;
                     if (!ExpressionNode.TryGetExpressionNode(parser, out expr))
                     {
