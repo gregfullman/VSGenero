@@ -551,6 +551,7 @@ new ParameterResult("width", "", "integer"),
             get { return -1; }
         }
 
+        public LocationInfo Location { get { return null; } }
 
         public IAnalysisResult GetMember(string name, GeneroAst ast)
         {
@@ -636,6 +637,8 @@ new ParameterResult("width", "", "integer"),
         {
             get { return -1; }
         }
+
+        public LocationInfo Location { get { return null; } }
 
         public IAnalysisResult GetMember(string name, GeneroAst ast)
         {
@@ -773,6 +776,8 @@ new ParameterResult("width", "", "integer"),
             get { return -1; }
         }
 
+        public LocationInfo Location { get { return null; } }
+
         public IAnalysisResult GetMember(string name, GeneroAst ast)
         {
             return null;
@@ -897,6 +902,8 @@ new ParameterResult("width", "", "integer"),
         {
             get { return -1; }
         }
+
+        public LocationInfo Location { get { return null; } }
 
         public IAnalysisResult GetMember(string name, GeneroAst ast)
         {

@@ -72,6 +72,8 @@ namespace VSGenero.EditorExtensions.Intellisense
             get { return -1; }
         }
 
+        public LocationInfo Location { get { return null; } }
+
         public bool HasChildFunctions(GeneroAst ast)
         {
             return _collections.Count > 0;
@@ -134,6 +136,8 @@ namespace VSGenero.EditorExtensions.Intellisense
         {
             get { return -1; }
         }
+
+        public LocationInfo Location { get { return null; } }
 
         public bool HasChildFunctions(GeneroAst ast)
         {
@@ -232,6 +236,8 @@ namespace VSGenero.EditorExtensions.Intellisense
         {
             get { return -1; }
         }
+
+        public LocationInfo Location { get { return null; } }
 
         public bool HasChildFunctions(GeneroAst ast)
         {

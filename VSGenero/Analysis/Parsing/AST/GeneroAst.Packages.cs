@@ -3214,6 +3214,8 @@ namespace VSGenero.Analysis.Parsing.AST
             get { return -1; }
         }
 
+        public LocationInfo Location { get { return null; } }
+
         public IAnalysisResult GetMember(string name, GeneroAst ast)
         {
             GeneroPackageClass cls = null;
@@ -3306,6 +3308,8 @@ namespace VSGenero.Analysis.Parsing.AST
         {
             get { return -1; }
         }
+
+        public LocationInfo Location { get { return null; } }
 
         public IAnalysisResult GetMember(string name, GeneroAst ast)
         {
@@ -3449,6 +3453,8 @@ namespace VSGenero.Analysis.Parsing.AST
         {
             get { return -1; }
         }
+
+        public LocationInfo Location { get { return null; } }
 
         public IAnalysisResult GetMember(string name, GeneroAst ast)
         {

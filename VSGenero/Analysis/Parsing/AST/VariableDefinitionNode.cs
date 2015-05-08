@@ -52,6 +52,8 @@ namespace VSGenero.Analysis.Parsing.AST
             get { return _locationIndex; }
         }
 
+        public LocationInfo Location { get { return null; } }
+
         public IAnalysisResult GetMember(string name, GeneroAst ast)
         {
             return Type.GetMember(name, ast);

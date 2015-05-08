@@ -228,6 +228,7 @@ namespace VSGenero.Analysis.Parsing.AST
             get { return StartIndex; }
         }
 
+        public LocationInfo Location { get { return null; } }
 
         public IAnalysisResult GetMember(string name, GeneroAst ast)
         {

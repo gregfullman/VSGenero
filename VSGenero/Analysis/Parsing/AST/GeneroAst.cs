@@ -142,9 +142,16 @@ namespace VSGenero.Analysis.Parsing.AST
             IAnalysisResult result = location as IAnalysisResult;
             if (result != null)
             {
-                var locIndex = result.LocationIndex;
-                var loc = IndexToLocation(locIndex);
-                return _projEntry == null ? new LocationInfo(_filename, loc.Line, loc.Column) : new LocationInfo(_projEntry, loc.Line, loc.Column);
+                if (result.Location != null)
+                {
+                    return result.Location;
+                }
+                else
+                {
+                    var locIndex = result.LocationIndex;
+                    var loc = IndexToLocation(locIndex);
+                    return _projEntry == null ? new LocationInfo(_filename, loc.Line, loc.Column) : new LocationInfo(_projEntry, loc.Line, loc.Column);
+                }
             }
             return null;
         }
@@ -726,8 +733,16 @@ namespace VSGenero.Analysis.Parsing.AST
              * 1) Temp tables
              * 2) DB Tables and columns
              * 3) Record fields
-             * 7) Public functions
              */
+
+            if(_functionProvider != null)
+            {
+                IFunctionResult funcRes = _functionProvider.GetFunction(exprText);
+                if(funcRes != null)
+                {
+                    vars.Add(new AnalysisVariable(funcRes.Location, VariableType.Definition));
+                }
+            }
 
             return vars;
         }

@@ -42,11 +42,11 @@ namespace VSGenero.EditorExtensions
                 (span.Span.GetText() == "}" || span.Span.GetText() == "]" || span.Span.GetText() == ")");
         }
 
-        internal static ExpressionAnalysis GetExpressionAnalysis(this ITextView view)
+        internal static ExpressionAnalysis GetExpressionAnalysis(this ITextView view, IFunctionInformationProvider functionProvider, IDatabaseInformationProvider databaseProvider)
         {
             ITrackingSpan span = GetCaretSpan(view);
             // TODO: get the function provider and database provider from EditFilter class.
-            return span.TextBuffer.CurrentSnapshot.AnalyzeExpression(span, false, null, null);
+            return span.TextBuffer.CurrentSnapshot.AnalyzeExpression(span, false, functionProvider, databaseProvider);
         }
 
         internal static ITrackingSpan GetCaretSpan(this ITextView view)

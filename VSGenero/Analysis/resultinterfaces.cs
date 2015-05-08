@@ -15,6 +15,7 @@ namespace VSGenero.Analysis
         string Name { get; }
         string Documentation { get; }
         int LocationIndex { get; }
+        LocationInfo Location { get; }
         bool HasChildFunctions(GeneroAst ast);
         bool CanGetValueFromDebugger { get; }
 

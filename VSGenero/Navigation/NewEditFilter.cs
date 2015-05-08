@@ -28,6 +28,8 @@ namespace VSGenero.Navigation
     {
         private readonly ITextView _textView;
         private readonly IEditorOperations _editorOps;
+        private IFunctionInformationProvider _functionProvider;
+        private IDatabaseInformationProvider _databaseProvider;
         private IOleCommandTarget _next;
 
         public EditFilter(ITextView textView, IEditorOperations editorOps)
@@ -35,6 +37,13 @@ namespace VSGenero.Navigation
             _textView = textView;
             _textView.Properties[typeof(EditFilter)] = this;
             _editorOps = editorOps;
+
+            Genero4glClassifier classifier;
+            if (_textView.TextBuffer.Properties.TryGetProperty<Genero4glClassifier>(typeof(Genero4glClassifier), out classifier))
+            {
+                _functionProvider = classifier.Provider._PublicFunctionProvider;
+                _databaseProvider = classifier.Provider._DatabaseInfoProvider;
+            }
 
             BraceMatcher.WatchBraceHighlights(textView, VSGeneroPackage.ComponentModel);
         }
@@ -57,7 +66,17 @@ namespace VSGenero.Navigation
         public static IEnumerable<LocationInfo> GetLocations(ITextView textView, GetLocationOptions options = GetLocationOptions.Definitions | GetLocationOptions.References | GetLocationOptions.Values)
         {
             List<LocationInfo> locations = new List<LocationInfo>();
-            var analysis = textView.GetExpressionAnalysis();
+
+            Genero4glClassifier classifier;
+            IFunctionInformationProvider funcProvider = null;
+            IDatabaseInformationProvider dbProvider = null;
+            if (textView.TextBuffer.Properties.TryGetProperty<Genero4glClassifier>(typeof(Genero4glClassifier), out classifier))
+            {
+                funcProvider = classifier.Provider._PublicFunctionProvider;
+                dbProvider = classifier.Provider._DatabaseInfoProvider;
+            }
+
+            var analysis = textView.GetExpressionAnalysis(funcProvider, dbProvider);
 
             Dictionary<LocationInfo, SimpleLocationInfo> references, definitions, values;
             GetDefsRefsAndValues(analysis, out definitions, out references, out values);
@@ -101,7 +120,7 @@ namespace VSGenero.Navigation
         {
             UpdateStatusForIncompleteAnalysis();
 
-            var analysis = _textView.GetExpressionAnalysis();
+            var analysis = _textView.GetExpressionAnalysis(_functionProvider, _databaseProvider);
 
             Dictionary<LocationInfo, SimpleLocationInfo> references, definitions, values;
             GetDefsRefsAndValues(analysis, out definitions, out references, out values);
@@ -192,7 +211,7 @@ namespace VSGenero.Navigation
         {
             UpdateStatusForIncompleteAnalysis();
 
-            var analysis = _textView.GetExpressionAnalysis();
+            var analysis = _textView.GetExpressionAnalysis(_functionProvider, _databaseProvider);
 
             var locations = GetFindRefLocations(analysis);
 
@@ -351,7 +370,10 @@ namespace VSGenero.Navigation
                 _locationInfo = locInfo;
                 _glyphType = glyphType;
                 _pathText = GetSearchDisplayText();
-                _lineText = _locationInfo.ProjectEntry.GetLine(_locationInfo.Line);
+                if (_locationInfo.ProjectEntry != null)
+                    _lineText = _locationInfo.ProjectEntry.GetLine(_locationInfo.Line);
+                else
+                    _lineText = "";
             }
 
             public override string Name

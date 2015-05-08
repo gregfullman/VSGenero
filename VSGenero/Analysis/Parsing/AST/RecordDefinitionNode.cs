@@ -172,6 +172,8 @@ namespace VSGenero.Analysis.Parsing.AST
             get { return -1; }
         }
 
+        public LocationInfo Location { get { return null; } }
+
         public IAnalysisResult GetMember(string name, GeneroAst ast)
         {
             if (MemberDictionary.Count == 0 && !string.IsNullOrEmpty(MimicTableName))

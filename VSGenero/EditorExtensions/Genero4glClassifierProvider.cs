@@ -49,6 +49,12 @@ namespace VSGenero.EditorExtensions
         [Import]
         public IClassificationTypeRegistryService _classificationRegistry = null; // Set via MEF
 
+        [Import(AllowDefault = true)]
+        internal IFunctionInformationProvider _PublicFunctionProvider = null;
+
+        [Import(AllowDefault = true)]
+        internal IDatabaseInformationProvider _DatabaseInfoProvider = null;
+
         #region Genero Classification Type Definitions
 
         [Export]
