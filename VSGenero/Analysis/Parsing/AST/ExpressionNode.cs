@@ -8,7 +8,10 @@ namespace VSGenero.Analysis.Parsing.AST
 {
     public abstract class ExpressionNode : AstNode
     {
-        protected static List<TokenKind> _preExpressionTokens = new List<TokenKind> { TokenKind.NotKeyword, TokenKind.ColumnKeyword, TokenKind.Subtract };
+        protected static List<TokenKind> _preExpressionTokens = new List<TokenKind> 
+        { 
+            TokenKind.NotKeyword, TokenKind.ColumnKeyword, TokenKind.Subtract, TokenKind.AsciiKeyword
+        };
 
         public abstract void PrependExpression(ExpressionNode node);
         public abstract void AppendExpression(ExpressionNode node);
@@ -156,6 +159,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         // check for non-symbol operators
                         switch (nextTok.Kind)
                         {
+                            case TokenKind.DoubleBar:
                             case TokenKind.AsKeyword:
                             case TokenKind.AndKeyword:
                             case TokenKind.OrKeyword:

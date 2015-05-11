@@ -46,9 +46,14 @@ namespace VSGenero.Analysis.Parsing.AST
                     if(WhenStatement.TryParseNode(parser, out whenStmt, prepStatementResolver, prepStatementBinder))
                     {
                         if (whenCases)
+                        {
                             node.Children.Add(whenStmt.StartIndex, whenStmt);
+                        }
                         else
+                        {
                             parser.ReportSyntaxError("A when case cannot come after an otherwise case block.");
+                            break;
+                        }
                     }
                     else
                     {
@@ -61,6 +66,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         else
                         {
                             parser.ReportSyntaxError("Invalid statement detected within case statement block.");
+                            break;
                         }
                     }
                 }
@@ -105,7 +111,8 @@ namespace VSGenero.Analysis.Parsing.AST
                 else
                     parser.ReportSyntaxError("Case value or conditional expression expected.");
 
-                while(!parser.PeekToken(TokenKind.WhenKeyword) &&
+                while (!parser.PeekToken(TokenKind.EndOfFile) && 
+                      !parser.PeekToken(TokenKind.WhenKeyword) &&
                       !parser.PeekToken(TokenKind.OtherwiseKeyword) &&
                       !(parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.CaseKeyword, 2)))
                 {
@@ -150,7 +157,8 @@ namespace VSGenero.Analysis.Parsing.AST
                 parser.NextToken();
                 node.StartIndex = parser.Token.Span.Start;
 
-                while (!parser.PeekToken(TokenKind.WhenKeyword) &&
+                while (!parser.PeekToken(TokenKind.EndOfFile) && 
+                      !parser.PeekToken(TokenKind.WhenKeyword) &&
                       !parser.PeekToken(TokenKind.OtherwiseKeyword) &&
                       !(parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.CaseKeyword, 2)))
                 {

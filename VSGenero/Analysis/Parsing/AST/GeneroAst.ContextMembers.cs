@@ -2626,6 +2626,10 @@ namespace VSGenero.Analysis.Parsing.AST
                     if(firstState == KTEStatementState.None || firstState == KTEStatementState.LeftParen)
                     {
                         results.AddRange(GetDefinedMembers(index, true, true, false, true));
+                        if(tokInfo.Token.Kind == TokenKind.CaseKeyword)
+                        {
+                            results.Add(new MemberResult(Tokens.TokenKinds[TokenKind.WhenKeyword], GeneroMemberType.Keyword, this));
+                        }
                     }
                     return true;
                 }
