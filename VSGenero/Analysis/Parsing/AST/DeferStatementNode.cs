@@ -17,8 +17,31 @@ namespace VSGenero.Analysis.Parsing.AST
         public static bool TryParseNode(Parser parser, out DeferStatementNode defNode)
         {
             defNode = null;
-            // TODO: parse constant node
-            return false;
+            bool result = false;
+            
+            if(parser.PeekToken(TokenKind.DeferKeyword))
+            {
+                result = true;
+                defNode = new DeferStatementNode();
+                parser.NextToken();
+                defNode.StartIndex = parser.Token.Span.Start;
+
+                if(parser.PeekToken(TokenKind.InterruptKeyword))
+                {
+                    parser.NextToken();
+                }
+                else if(parser.PeekToken(TokenKind.QuitKeyword))
+                {
+                    parser.NextToken();
+                }
+                else
+                {
+                    parser.ReportSyntaxError("Invalid token found in defer statement.");
+                }
+                defNode.EndIndex = parser.Token.Span.End;
+            }
+
+            return result;
         }
     }
 }

@@ -157,6 +157,24 @@ namespace VSGenero.Analysis.Parsing.AST
                         }
                         break;
                     }
+                case TokenKind.InitializeKeyword:
+                    {
+                        InitializeStatement initStmt;
+                        if((result = InitializeStatement.TryParseNode(parser, out initStmt)))
+                        {
+                            node = initStmt;
+                        }
+                        break;
+                    }
+                case TokenKind.LocateKeyword:
+                    {
+                        LocateStatement locateStmt;
+                        if((result = LocateStatement.TryParseNode(parser, out locateStmt)))
+                        {
+                            node = locateStmt;
+                        }
+                        break;
+                    }
             }
 
             return result;

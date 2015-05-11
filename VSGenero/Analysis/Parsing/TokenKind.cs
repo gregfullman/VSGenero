@@ -255,6 +255,7 @@ namespace VSGenero.Analysis.Parsing
         MatchesKeyword,
         MaxKeyword,
         MdyKeyword,
+        MemoryKeyword,
         MenuKeyword,
         MessageKeyword,
         MinKeyword,

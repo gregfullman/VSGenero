@@ -7,16 +7,76 @@ using System.Threading.Tasks;
 
 namespace VSGenero.Analysis.Parsing.AST
 {
+    public enum LocateLocation
+    {
+        Memory,
+        File
+    }
+
     /// <summary>
     /// For more info, see: http://www.4js.com/online_documentation/fjs-fgl-manual-html/index.html#c_fgl_variables_LOCATE.html
     /// </summary>
     public class LocateStatement : FglStatement
     {
+        public List<NameExpression> TargetVariables { get; private set; }
+        public LocateLocation Location { get; private set; }
+        public ExpressionNode Filename { get; private set; }
+
         public static bool TryParseNode(Parser parser, out LocateStatement defNode)
         {
             defNode = null;
-            // TODO: parse locate statement
-            return false;
+            bool result = false;
+
+            if(parser.PeekToken(TokenKind.LocateKeyword))
+            {
+                result = true;
+                defNode = new LocateStatement();
+                parser.NextToken();
+                defNode.StartIndex = parser.Token.Span.Start;
+                defNode.TargetVariables = new List<NameExpression>();
+
+                NameExpression name;
+                while (NameExpression.TryParseNode(parser, out name))
+                {
+                    defNode.TargetVariables.Add(name);
+                    if (!parser.PeekToken(TokenKind.Comma))
+                        break;
+                    parser.NextToken();
+                }
+
+                if(parser.PeekToken(TokenKind.InKeyword))
+                {
+                    parser.NextToken();
+                    if(parser.PeekToken(TokenKind.MemoryKeyword))
+                    {
+                        parser.NextToken();
+                        defNode.Location = LocateLocation.Memory;
+                    }
+                    else if(parser.PeekToken(TokenKind.FileKeyword))
+                    {
+                        parser.NextToken();
+                        defNode.Location = LocateLocation.File;
+
+                        ExpressionNode filename;
+                        if(ExpressionNode.TryGetExpressionNode(parser, out filename, GeneroAst.ValidStatementKeywords.ToList()))
+                        {
+                            defNode.Filename = filename;
+                        }
+                    }
+                    else
+                    {
+                        parser.ReportSyntaxError("Locate statement can only specify memory or a file.");
+                    }
+                }
+                else
+                {
+                    parser.ReportSyntaxError("Locate statement missing \"in\" keyword.");
+                }
+
+                defNode.EndIndex = parser.Token.Span.End;
+            }
+
+            return result;
         }
     }
 }
