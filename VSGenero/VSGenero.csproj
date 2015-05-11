@@ -323,6 +323,7 @@
     <Compile Include="Analysis\IReverseTokenizer.cs" />
     <Compile Include="Analysis\Parsing\AST\AstNodeAttributes.cs" />
     <Compile Include="Analysis\Parsing\AST\CallStatement.cs" />
+    <Compile Include="Analysis\Parsing\AST\CaseStatement.cs" />
     <Compile Include="Analysis\Parsing\AST\ContinueStatement.cs" />
     <Compile Include="Analysis\Parsing\AST\DeclareStatement.cs" />
     <Compile Include="Analysis\Parsing\AST\ExitStatement.cs" />

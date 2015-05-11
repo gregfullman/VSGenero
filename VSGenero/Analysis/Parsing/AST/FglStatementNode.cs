@@ -148,6 +148,15 @@ namespace VSGenero.Analysis.Parsing.AST
                         }
                         break;
                     }
+                case TokenKind.CaseKeyword:
+                    {
+                        CaseStatement caseStmt;
+                        if((result = CaseStatement.TryParseNode(parser, out caseStmt, prepStatementResolver, prepStatementBinder)))
+                        {
+                            node = caseStmt;
+                        }
+                        break;
+                    }
             }
 
             return result;
