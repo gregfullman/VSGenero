@@ -324,10 +324,14 @@
     <Compile Include="Analysis\Parsing\AST\AstNodeAttributes.cs" />
     <Compile Include="Analysis\Parsing\AST\CallStatement.cs" />
     <Compile Include="Analysis\Parsing\AST\CaseStatement.cs" />
+    <Compile Include="Analysis\Parsing\AST\CloseStatement.cs" />
     <Compile Include="Analysis\Parsing\AST\ContinueStatement.cs" />
     <Compile Include="Analysis\Parsing\AST\DeclareStatement.cs" />
+    <Compile Include="Analysis\Parsing\AST\ExecuteStatement.cs" />
     <Compile Include="Analysis\Parsing\AST\ExitStatement.cs" />
     <Compile Include="Analysis\Parsing\AST\ExpressionNode.cs" />
+    <Compile Include="Analysis\Parsing\AST\FetchStatement.cs" />
+    <Compile Include="Analysis\Parsing\AST\ForeachStatement.cs" />
     <Compile Include="Analysis\Parsing\AST\ForStatement.cs" />
     <Compile Include="Analysis\Parsing\AST\GeneroAst.Builtins.cs" />
     <Compile Include="Analysis\Parsing\AST\GeneroAst.cs" />
@@ -336,7 +340,9 @@
     <Compile Include="Analysis\Parsing\AST\GotoStatement.cs" />
     <Compile Include="Analysis\Parsing\AST\IfStatement.cs" />
     <Compile Include="Analysis\Parsing\AST\LabelStatement.cs" />
+    <Compile Include="Analysis\Parsing\AST\MenuBlock.cs" />
     <Compile Include="Analysis\Parsing\AST\NameNode.cs" />
+    <Compile Include="Analysis\Parsing\AST\OpenStatement.cs" />
     <Compile Include="Analysis\Parsing\AST\OptionsStatement.cs" />
     <Compile Include="Analysis\Parsing\AST\PrepareStatement.cs" />
     <Compile Include="Analysis\Parsing\AST\ReturnStatement.cs" />

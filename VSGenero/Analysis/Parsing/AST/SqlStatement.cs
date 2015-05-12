@@ -15,7 +15,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 case TokenKind.SelectKeyword:
                 case TokenKind.UpdateKeyword:
                 case TokenKind.InsertKeyword:
-                case TokenKind.ExecuteKeyword:
+                case TokenKind.DeleteKeyword:
                     return true;
                 default:
                     return false;
@@ -47,17 +47,29 @@ namespace VSGenero.Analysis.Parsing.AST
                     }
                 case TokenKind.UpdateKeyword:
                     {
-
+                        UpdateStatement updStmt;
+                        if((result = UpdateStatement.TryParseNode(parser, out updStmt)))
+                        {
+                            node = updStmt;
+                        }
                         break;
                     }
                 case TokenKind.InsertKeyword:
                     {
-
+                        InsertStatement insStmt;
+                        if((result = InsertStatement.TryParseNode(parser, out insStmt)))
+                        {
+                            node = insStmt;
+                        }
                         break;
                     }
-                case TokenKind.ExecuteKeyword:
+                case TokenKind.DeleteKeyword:
                     {
-
+                        DeleteStatement delStmt;
+                        if((result = DeleteStatement.TryParseNode(parser, out delStmt)))
+                        {
+                            node = delStmt;
+                        }
                         break;
                     }
             }
@@ -306,6 +318,254 @@ namespace VSGenero.Analysis.Parsing.AST
                         parser.NextToken();
                     }
                 }
+
+                node.EndIndex = parser.Token.Span.End;
+            }
+
+            return result;
+        }
+    }
+
+    #endregion
+
+    #region Insert Statement
+
+    public class InsertStatement : FglStatement
+    {
+        public NameExpression TableSpec { get; private set; }
+        public List<NameExpression> ColumnsSpec { get; private set; }
+        public bool UsesSelectStmt { get; private set; }
+        public List<ExpressionNode> Values { get; private set; }
+
+        public static bool TryParseNode(Parser parser, out InsertStatement node)
+        {
+            node = null;
+            bool result = false;
+
+            if(parser.PeekToken(TokenKind.InsertKeyword))
+            {
+                result = true;
+                node = new InsertStatement();
+                parser.NextToken();
+                node.StartIndex = parser.Token.Span.Start;
+                node.Values = new List<ExpressionNode>();
+
+                if(parser.PeekToken(TokenKind.IntoKeyword))
+                {
+                    parser.NextToken();
+
+                    NameExpression tableExpr;
+                    if(NameExpression.TryParseNode(parser, out tableExpr))
+                    {
+                        node.TableSpec = tableExpr;
+                    }
+                    else
+                    {
+                        parser.ReportSyntaxError("Invalid table name found in insert statement.");
+                    }
+
+                    node.ColumnsSpec = new List<NameExpression>();
+                    // get the column list
+                    if (parser.PeekToken(TokenKind.LeftParenthesis))
+                    {
+                        parser.NextToken();
+                        NameExpression name;
+                        while (NameExpression.TryParseNode(parser, out name))
+                        {
+                            node.ColumnsSpec.Add(name);
+                            if (!parser.PeekToken(TokenKind.Comma))
+                                break;
+                            parser.NextToken();
+                        }
+
+                        if (parser.PeekToken(TokenKind.RightParenthesis))
+                            parser.NextToken();
+                        else
+                            parser.ReportSyntaxError("Column list missing right-paren in insert statement.");
+                    }
+
+                    if(parser.PeekToken(TokenKind.ValuesKeyword))
+                    {
+                        parser.NextToken();
+                        if(parser.PeekToken(TokenKind.LeftParenthesis))
+                            parser.NextToken();
+
+                        ExpressionNode expr;
+                        while (ExpressionNode.TryGetExpressionNode(parser, out expr, GeneroAst.ValidStatementKeywords.Union(new List<TokenKind> { TokenKind.Comma, TokenKind.RightParenthesis }).ToList()))
+                        {
+                            node.Values.Add(expr);
+                            if (!parser.PeekToken(TokenKind.Comma))
+                                break;
+                            parser.NextToken();
+                        }
+
+                        if (parser.PeekToken(TokenKind.RightParenthesis))
+                            parser.NextToken();
+                    }
+                    else
+                    {
+                        node.UsesSelectStmt = true;
+                        SelectStatement selStmt;
+                        bool dummy = false;
+                        if (SelectStatement.TryParseNode(parser, out selStmt, out dummy))
+                            node.Children.Add(selStmt.StartIndex, selStmt);
+                        else
+                            parser.ReportSyntaxError("Expecting select statement in insert statement.");
+                    }
+                }
+                else
+                {
+                    parser.ReportSyntaxError("An insert keyword must be followed by \"into\".");
+                }
+                node.EndIndex = parser.Token.Span.End;
+            }
+
+            return result;
+        }
+    }
+
+    #endregion
+
+    #region Delete Statement
+
+    public class DeleteStatement : FglStatement
+    {
+        public NameExpression TableSpec { get; private set; }
+        public ExpressionNode ConditionalExpression { get; private set; }
+        public NameExpression CursorName { get; private set; }
+
+        public static bool TryParseNode(Parser parser, out DeleteStatement node)
+        {
+            node = null;
+            bool result = false;
+
+            if(parser.PeekToken(TokenKind.DeleteKeyword))
+            {
+                result = true;
+                node = new DeleteStatement();
+                parser.NextToken();
+                node.StartIndex = parser.Token.Span.Start;
+
+                if (parser.PeekToken(TokenKind.FromKeyword))
+                {
+                    parser.NextToken();
+
+                    NameExpression tableExpr;
+                    if (NameExpression.TryParseNode(parser, out tableExpr))
+                        node.TableSpec = tableExpr;
+                    else
+                        parser.ReportSyntaxError("Invalid table name found in delete statement.");
+
+                    if (parser.PeekToken(TokenKind.WhereKeyword))
+                    {
+                        parser.NextToken();
+
+                        if(parser.PeekToken(TokenKind.CurrentKeyword))
+                        {
+                            parser.NextToken();
+                            if (parser.PeekToken(TokenKind.OfKeyword))
+                            {
+                                parser.NextToken();
+                                NameExpression cursorName;
+                                if (NameExpression.TryParseNode(parser, out cursorName))
+                                    node.CursorName = cursorName;
+                                else
+                                    parser.ReportSyntaxError("Invalid cursor name found in delete statement.");
+                            }
+                            else
+                                parser.ReportSyntaxError("Expecting \"of\" keyword in delete statement.");
+                        }
+                        else
+                        {
+                            ExpressionNode conditionalExpr;
+                            if (ExpressionNode.TryGetExpressionNode(parser, out conditionalExpr, GeneroAst.ValidStatementKeywords.ToList()))
+                                node.ConditionalExpression = conditionalExpr;
+                            else
+                                parser.ReportSyntaxError("Invalid conditional expression found in delete statement.");
+                        }
+                    }
+                    else
+                        parser.ReportSyntaxError("Expecting \"where\" keyword in delete statement.");
+                }
+                else
+                    parser.ReportSyntaxError("Expecting \"from\" keyword in delete statement.");
+
+                node.EndIndex = parser.Token.Span.End;
+            }
+
+            return result;
+        }
+    }
+
+    #endregion
+
+    #region Update Statement
+
+    public class UpdateStatement : FglStatement
+    {
+        public NameExpression TableSpec { get; private set; }
+        public ExpressionNode SetExpression { get; private set; }
+        public ExpressionNode ConditionalExpression { get; private set; }
+        public NameExpression CursorName { get; private set; }
+
+        public static bool TryParseNode(Parser parser, out UpdateStatement node)
+        {
+            node = null;
+            bool result = false;
+
+            if(parser.PeekToken(TokenKind.UpdateKeyword))
+            {
+                result = true;
+                node = new UpdateStatement();
+                parser.NextToken();
+                node.StartIndex = parser.Token.Span.Start;
+
+                NameExpression tableExpr;
+                if (NameExpression.TryParseNode(parser, out tableExpr))
+                    node.TableSpec = tableExpr;
+                else
+                    parser.ReportSyntaxError("Invalid table name found in update statement.");
+
+                if (parser.PeekToken(TokenKind.SetKeyword))
+                {
+                    parser.NextToken();
+                    ExpressionNode setExpr;
+                    if (ExpressionNode.TryGetExpressionNode(parser, out setExpr, GeneroAst.ValidStatementKeywords.Union(new[] { TokenKind.WhereKeyword }).ToList()))
+                        node.SetExpression = setExpr;
+                    else
+                        parser.ReportSyntaxError("Invalid expression found in update statement.");
+
+                    if (parser.PeekToken(TokenKind.WhereKeyword))
+                    {
+                        parser.NextToken();
+
+                        if (parser.PeekToken(TokenKind.CurrentKeyword))
+                        {
+                            parser.NextToken();
+                            if (parser.PeekToken(TokenKind.OfKeyword))
+                            {
+                                parser.NextToken();
+                                NameExpression cursorName;
+                                if (NameExpression.TryParseNode(parser, out cursorName))
+                                    node.CursorName = cursorName;
+                                else
+                                    parser.ReportSyntaxError("Invalid cursor name found in update statement.");
+                            }
+                            else
+                                parser.ReportSyntaxError("Expecting \"of\" keyword in update statement.");
+                        }
+                        else
+                        {
+                            ExpressionNode conditionalExpr;
+                            if (ExpressionNode.TryGetExpressionNode(parser, out conditionalExpr, GeneroAst.ValidStatementKeywords.ToList()))
+                                node.ConditionalExpression = conditionalExpr;
+                            else
+                                parser.ReportSyntaxError("Invalid conditional expression found in update statement.");
+                        }
+                    }
+                }
+                else
+                    parser.ReportSyntaxError("Expecting \"set\" keyword in update statement.");
 
                 node.EndIndex = parser.Token.Span.End;
             }

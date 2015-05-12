@@ -235,6 +235,60 @@ namespace VSGenero.Analysis.Parsing.AST
                         }
                         break;
                     }
+                case TokenKind.ExecuteKeyword:
+                    {
+                        ExecuteStatement exeStmt;
+                        if((result = ExecuteStatement.TryParseNode(parser, out exeStmt)))
+                        {
+                            node = exeStmt;
+                        }
+                        break;
+                    }
+                case TokenKind.OpenKeyword:
+                    {
+                        OpenStatement openStmt;
+                        if((result = OpenStatement.TryParseNode(parser, out openStmt)))
+                        {
+                            node = openStmt;
+                        }
+                        break;
+                    }
+                case TokenKind.FetchKeyword:
+                    {
+                        FetchStatement fetchStmt;
+                        if((result = FetchStatement.TryParseNode(parser, out fetchStmt)))
+                        {
+                            node = fetchStmt;
+                        }
+                        break;
+                    }
+                case TokenKind.CloseKeyword:
+                    {
+                        CloseStatement closeStmt;
+                        if((result = CloseStatement.TryParseNode(parser, out closeStmt)))
+                        {
+                            node = closeStmt;
+                        }
+                        break;
+                    }
+                case TokenKind.ForeachKeyword:
+                    {
+                        ForeachStatement foreachStmt;
+                        if((result = ForeachStatement.TryParseNode(parser, out foreachStmt)))
+                        {
+                            node = foreachStmt;
+                        }
+                        break;
+                    }
+                case TokenKind.MenuKeyword:
+                    {
+                        MenuBlock menuStmt;
+                        if ((result = MenuBlock.TryParseNode(parser, out menuStmt)))
+                        {
+                            node = menuStmt;
+                        }
+                        break;
+                    }
                 default:
                     {
                         if (SqlStatementFactory.IsValidStatementStart(parser.PeekToken().Kind))
