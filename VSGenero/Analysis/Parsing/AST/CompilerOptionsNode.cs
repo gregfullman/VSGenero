@@ -26,13 +26,17 @@ namespace VSGenero.Analysis.Parsing.AST
                 defNode.StartIndex = parser.Token.Span.Start;
 
                 // read options
-                if (parser.MaybeEat(TokenKind.ShortKeyword))
+                if (parser.PeekToken(TokenKind.ShortKeyword))
                 {
-                    parser.Eat(TokenKind.CircuitKeyword);
+                    parser.NextToken();
+                    if (parser.PeekToken(TokenKind.CircuitKeyword))
+                        parser.NextToken();
+                    else
+                        parser.ReportSyntaxError("The only compiler options are: short circuit");
                 }
                 else
                 {
-                    // TODO: not sure what to do here.
+                    parser.ReportSyntaxError("The only compiler options are: short circuit");
                 }
 
                 defNode.EndIndex = parser.Token.Span.End;

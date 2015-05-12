@@ -337,6 +337,7 @@
     <Compile Include="Analysis\Parsing\AST\IfStatement.cs" />
     <Compile Include="Analysis\Parsing\AST\LabelStatement.cs" />
     <Compile Include="Analysis\Parsing\AST\NameNode.cs" />
+    <Compile Include="Analysis\Parsing\AST\OptionsStatement.cs" />
     <Compile Include="Analysis\Parsing\AST\PrepareStatement.cs" />
     <Compile Include="Analysis\Parsing\AST\ReturnStatement.cs" />
     <Compile Include="Analysis\Parsing\AST\SleepStatement.cs" />

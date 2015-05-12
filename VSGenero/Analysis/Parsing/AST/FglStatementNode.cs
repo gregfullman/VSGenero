@@ -66,9 +66,8 @@ namespace VSGenero.Analysis.Parsing.AST
                     }
                 case TokenKind.SqlKeyword:
                     {
-                        SqlStatement sqlStmt;
-                        bool dummy;
-                        if ((result = SqlStatement.TryParseNode(parser, out sqlStmt, out dummy)))
+                        SqlBlockNode sqlStmt;
+                        if ((result = SqlBlockNode.TryParseSqlNode(parser, out sqlStmt)))
                         {
                             node = sqlStmt;
                         }
@@ -224,6 +223,24 @@ namespace VSGenero.Analysis.Parsing.AST
                         if((result = ValidateStatement.TryParseNode(parser, out validateStmt)))
                         {
                             node = validateStmt;
+                        }
+                        break;
+                    }
+                case TokenKind.OptionsKeyword:
+                    {
+                        OptionsStatement optionsStmt;
+                        if((result = OptionsStatement.TryParseNode(parser, out optionsStmt)))
+                        {
+                            node = optionsStmt;
+                        }
+                        break;
+                    }
+                default:
+                    {
+                        if (SqlStatementFactory.IsValidStatementStart(parser.PeekToken().Kind))
+                        {
+                            bool dummy;
+                            result = SqlStatementFactory.TryParseSqlStatement(parser, out node, out dummy);
                         }
                         break;
                     }

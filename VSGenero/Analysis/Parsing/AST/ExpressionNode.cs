@@ -19,7 +19,7 @@ namespace VSGenero.Analysis.Parsing.AST
         public abstract string ToString();
         public abstract string GetType();
 
-        public static bool TryGetExpressionNode(Parser parser, out ExpressionNode node, List<TokenKind> breakTokens = null)
+        public static bool TryGetExpressionNode(Parser parser, out ExpressionNode node, List<TokenKind> breakTokens = null, bool allowStarParam = false)
         {
             node = null;
             bool result = false;
@@ -100,7 +100,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 {
                     FunctionCallExpressionNode funcCall;
                     NameExpression nonFuncCallName;
-                    if (FunctionCallExpressionNode.TryParseExpression(parser, out funcCall, out nonFuncCallName))
+                    if (FunctionCallExpressionNode.TryParseExpression(parser, out funcCall, out nonFuncCallName, false, allowStarParam))
                     {
                         result = true;
                         if (node == null)
@@ -126,6 +126,15 @@ namespace VSGenero.Analysis.Parsing.AST
                         else
                             node.AppendExpression(new TokenExpressionNode(parser.Token));
                     }
+                }
+                else if (parser.PeekToken(TokenKind.Multiply) && allowStarParam)
+                {
+                    result = true;
+                    parser.NextToken();
+                    if (node == null)
+                        node = new TokenExpressionNode(parser.Token);
+                    else
+                        node.AppendExpression(new TokenExpressionNode(parser.Token));
                 }
                 else
                 {
@@ -256,7 +265,7 @@ namespace VSGenero.Analysis.Parsing.AST
             }
         }
 
-        public static bool TryParseExpression(Parser parser, out FunctionCallExpressionNode node, out NameExpression nonFunctionCallName, bool leftParenRequired = false)
+        public static bool TryParseExpression(Parser parser, out FunctionCallExpressionNode node, out NameExpression nonFunctionCallName, bool leftParenRequired = false, bool allowStarParam = false)
         {
             node = null;
             nonFunctionCallName = null;
@@ -276,7 +285,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     parser.NextToken();
                     // Parameters can be any expression, comma seperated
                     ExpressionNode expr;
-                    while (ExpressionNode.TryGetExpressionNode(parser, out expr, new List<TokenKind> { TokenKind.Comma, TokenKind.RightParenthesis }))
+                    while (ExpressionNode.TryGetExpressionNode(parser, out expr, new List<TokenKind> { TokenKind.Comma, TokenKind.RightParenthesis }, allowStarParam))
                     {
                         node.Parameters.Add(expr);
                         if (!parser.PeekToken(TokenKind.Comma))

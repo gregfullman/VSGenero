@@ -95,9 +95,9 @@ namespace VSGenero.Analysis.Parsing.AST
                             else if(parser.PeekToken(TokenKind.SelectKeyword))
                             {
                                 // we have a static sql select statement
-                                SqlStatement sqlStmt;
+                                FglStatement sqlStmt;
                                 bool dummy;
-                                if(SqlStatement.TryParseNode(parser, out sqlStmt, out dummy, TokenKind.SelectKeyword))
+                                if (SqlStatementFactory.TryParseSqlStatement(parser, out sqlStmt, out dummy, TokenKind.SelectKeyword))
                                 {
                                     defNode.Children.Add(sqlStmt.StartIndex, sqlStmt);
                                     defNode.EndIndex = sqlStmt.EndIndex;

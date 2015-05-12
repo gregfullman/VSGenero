@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace VSGenero.Analysis.Parsing.AST
 {
-    public class SqlBlockNode : AstNode
+    public class SqlBlockNode : FglStatement
     {
         public static bool TryParseSqlNode(Parser parser, out SqlBlockNode node)
         {
@@ -22,12 +22,12 @@ namespace VSGenero.Analysis.Parsing.AST
 
                 List<List<TokenKind>> breakSequences = new List<List<TokenKind>>() 
                     { 
-                        new List<TokenKind> { TokenKind.EndKeyword, TokenKind.MainKeyword }
+                        new List<TokenKind> { TokenKind.EndKeyword, TokenKind.SqlKeyword }
                     };
 
-                SqlStatement sqlStmt;
+                FglStatement sqlStmt;
                 bool matchedBreakSequence = false;
-                if (SqlStatement.TryParseNode(parser, out sqlStmt, out matchedBreakSequence, TokenKind.EndOfFile, breakSequences))
+                if (SqlStatementFactory.TryParseSqlStatement(parser, out sqlStmt, out matchedBreakSequence, TokenKind.EndOfFile, breakSequences))
                 {
                     node.Children.Add(sqlStmt.StartIndex, sqlStmt);
                 }
