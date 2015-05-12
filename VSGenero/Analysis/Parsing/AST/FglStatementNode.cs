@@ -76,7 +76,6 @@ namespace VSGenero.Analysis.Parsing.AST
                     }
                 case TokenKind.ReturnKeyword:
                     {
-                        // parse out a return statement
                         ReturnStatement retStmt;
                         if((result = ReturnStatement.TryParseNode(parser, out retStmt)))
                         {
@@ -86,7 +85,6 @@ namespace VSGenero.Analysis.Parsing.AST
                     }
                 case TokenKind.CallKeyword:
                     {
-                        // TODO: parse out a call statement
                         CallStatement callStmt;
                         if((result = CallStatement.TryParseNode(parser, out callStmt)))
                         {
@@ -172,6 +170,60 @@ namespace VSGenero.Analysis.Parsing.AST
                         if((result = LocateStatement.TryParseNode(parser, out locateStmt)))
                         {
                             node = locateStmt;
+                        }
+                        break;
+                    }
+                case TokenKind.FreeKeyword:
+                    {
+                        FreeStatement freeStmt;
+                        if((result = FreeStatement.TryParseNode(parser, out freeStmt)))
+                        {
+                            node = freeStmt;
+                        }
+                        break;
+                    }
+                case TokenKind.GotoKeyword:
+                    {
+                        GotoStatement gotoStmt;
+                        if((result = GotoStatement.TryParseNode(parser, out gotoStmt)))
+                        {
+                            node = gotoStmt;
+                        }
+                        break;
+                    }
+                case TokenKind.LabelKeyword:
+                    {
+                        LabelStatement labelStmt;
+                        if((result = LabelStatement.TryParseNode(parser, out labelStmt)))
+                        {
+                            node = labelStmt;
+                        }
+                        break;
+                    }
+                case TokenKind.SleepKeyword:
+                    {
+                        SleepStatement sleepStmt;
+                        if((result = SleepStatement.TryParseNode(parser, out sleepStmt)))
+                        {
+                            node = sleepStmt;
+                        }
+                        break;
+                    }
+                case TokenKind.TryKeyword:
+                    {
+                        TryCatchStatement tryStmt;
+                        if((result = TryCatchStatement.TryParseNode(parser, out tryStmt, prepStatementResolver, prepStatementBinder)))
+                        {
+                            node = tryStmt;
+                        }
+                        break;
+                    }
+                case TokenKind.ValidateKeyword:
+                    {
+                        ValidateStatement validateStmt;
+                        if((result = ValidateStatement.TryParseNode(parser, out validateStmt)))
+                        {
+                            node = validateStmt;
                         }
                         break;
                     }

@@ -333,10 +333,13 @@
     <Compile Include="Analysis\Parsing\AST\GeneroAst.cs" />
     <Compile Include="Analysis\Parsing\AST\GeneroAst.Packages.cs" />
     <Compile Include="Analysis\Parsing\AST\GeneroMemberType.cs" />
+    <Compile Include="Analysis\Parsing\AST\GotoStatement.cs" />
     <Compile Include="Analysis\Parsing\AST\IfStatement.cs" />
+    <Compile Include="Analysis\Parsing\AST\LabelStatement.cs" />
     <Compile Include="Analysis\Parsing\AST\NameNode.cs" />
     <Compile Include="Analysis\Parsing\AST\PrepareStatement.cs" />
     <Compile Include="Analysis\Parsing\AST\ReturnStatement.cs" />
+    <Compile Include="Analysis\Parsing\AST\SleepStatement.cs" />
     <Compile Include="Analysis\Parsing\AST\SqlBlockNode.cs" />
     <Compile Include="Analysis\Parsing\AST\SqlStatement.cs" />
     <Compile Include="Analysis\Parsing\AST\WhileStatement.cs" />

@@ -78,12 +78,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                  Func<string, PrepareStatement> prepStatementResolver = null,
                                  Action<PrepareStatement> prepStatementBinder = null)
         {
-            node = null;
-            bool result = false;
-
             node = new IfBlockContentsNode();
-            result = true;
-
             node.StartIndex = parser.Token.Span.Start;
             while(!parser.PeekToken(TokenKind.EndOfFile) &&
                   !parser.PeekToken(TokenKind.ElseKeyword) &&
@@ -102,7 +97,7 @@ namespace VSGenero.Analysis.Parsing.AST
             }
             node.EndIndex = parser.Token.Span.End;
 
-            return result;
+            return true;
         }
     }
 
@@ -112,12 +107,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                  Func<string, PrepareStatement> prepStatementResolver = null,
                                  Action<PrepareStatement> prepStatementBinder = null)
         {
-            node = null;
-            bool result = false;
-
             node = new ElseBlockContentsNode();
-            result = true;
-
             node.StartIndex = parser.Token.Span.Start;
             while (!parser.PeekToken(TokenKind.EndOfFile) && 
                    !(parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.IfKeyword, 2)))
@@ -135,8 +125,7 @@ namespace VSGenero.Analysis.Parsing.AST
             }
             node.EndIndex = parser.Token.Span.End;
             
-
-            return result;
+            return true;
         }
     }
 }

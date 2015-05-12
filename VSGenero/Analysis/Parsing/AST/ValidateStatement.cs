@@ -19,12 +19,65 @@ namespace VSGenero.Analysis.Parsing.AST
     /// </summary>
     public class ValidateStatement : FglStatement
     {
+        public List<NameExpression> TargetVariables { get; private set; }
+        public string TableName { get; private set; }
+        public string ColumnName { get; private set; }
 
         public static bool TryParseNode(Parser parser, out ValidateStatement defNode)
         {
             defNode = null;
-            // TODO: parse initialization statement
-            return false;
+            bool result = false;
+
+            if (parser.PeekToken(TokenKind.ValidateKeyword))
+            {
+                result = true;
+                defNode = new ValidateStatement();
+                parser.NextToken();
+                defNode.StartIndex = parser.Token.Span.Start;
+
+                NameExpression name;
+                while (NameExpression.TryParseNode(parser, out name))
+                {
+                    defNode.TargetVariables.Add(name);
+                    if (!parser.PeekToken(TokenKind.Comma))
+                        break;
+                    parser.NextToken();
+                }
+
+                if (parser.PeekToken(TokenKind.LikeKeyword))
+                {
+                    parser.NextToken();
+                    defNode.TableName = parser.Token.Token.Value.ToString();
+                    parser.NextToken(); // advance to the dot
+                    if (parser.Token.Token.Kind == TokenKind.Dot)
+                    {
+                        if (parser.PeekToken(TokenKind.Multiply) ||
+                            parser.PeekToken(TokenCategory.Identifier) ||
+                            parser.PeekToken(TokenCategory.Keyword))
+                        {
+                            parser.NextToken(); // advance to the column name
+                            defNode.ColumnName = parser.Token.Token.Value.ToString();
+                            defNode.IsComplete = true;
+                            defNode.EndIndex = parser.Token.Span.End;
+                        }
+                        else
+                        {
+                            parser.ReportSyntaxError("Invalid validation form detected.");
+                        }
+                    }
+                    else
+                    {
+                        parser.ReportSyntaxError("Invalid validation form detected.");
+                    }
+                }
+                else
+                {
+                    parser.ReportSyntaxError("Variables can only be validated against a database table spec.");
+                }
+                defNode.EndIndex = parser.Token.Span.End;
+            }
+
+            return result;
         }
     }
 }

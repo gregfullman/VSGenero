@@ -9,11 +9,34 @@ namespace VSGenero.Analysis.Parsing.AST
 {
     public class FreeStatement : FglStatement
     {
+        public NameExpression Target { get; private set; }
+
         public static bool TryParseNode(Parser parser, out FreeStatement defNode)
         {
             defNode = null;
-            // TODO: parse free statement
-            return false;
+            bool result = false;
+
+            if(parser.PeekToken(TokenKind.FreeKeyword))
+            {
+                result = true;
+                defNode = new FreeStatement();
+                parser.NextToken();
+                defNode.StartIndex = parser.Token.Span.Start;
+
+                NameExpression expr;
+                if(!NameExpression.TryParseNode(parser, out expr))
+                {
+                    parser.ReportSyntaxError("Invalid name found in free statement.");
+                }
+                else
+                {
+                    defNode.Target = expr;
+                }
+
+                defNode.EndIndex = parser.Token.Span.End;
+            }
+
+            return result;
         }
     }
 }
