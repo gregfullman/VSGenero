@@ -15,10 +15,24 @@ namespace VSGenero.Analysis.Parsing.AST
     {
         public bool TryParseNode(Parser parser, out FglStatement node, 
                                  Func<string, PrepareStatement> prepStatementResolver = null, 
-                                 Action<PrepareStatement> prepStatementBinder = null)
+                                 Action<PrepareStatement> prepStatementBinder = null,
+                                 bool returnStatementsOnly = false)
         {
             node = null;
             bool result = false;
+
+            if(returnStatementsOnly)
+            {
+                if(parser.PeekToken(TokenKind.ReturnKeyword))
+                {
+                    ReturnStatement retStmt;
+                    if ((result = ReturnStatement.TryParseNode(parser, out retStmt)))
+                    {
+                        node = retStmt;
+                    }
+                }
+                return result;
+            }
 
             switch (parser.PeekToken().Kind)
             {

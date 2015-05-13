@@ -49,7 +49,7 @@ namespace VSGenero.Analysis.Parsing
                 {
                     return _tokenList[_currIndex];
                 }
-                return new TokenWithSpan(Tokens.EndOfFileToken, new IndexSpan(0, 0));
+                return new TokenWithSpan(Tokens.EndOfFileToken, new IndexSpan(0, 0), 0);
             }
         }
 
@@ -107,7 +107,7 @@ namespace VSGenero.Analysis.Parsing
         {
             if (_currIndex + aheadBy < _tokenList.Count)
                 return _tokenList[_currIndex + (int)aheadBy];
-            return new TokenWithSpan(Tokens.EndOfFileToken, new IndexSpan(0, 0));
+            return new TokenWithSpan(Tokens.EndOfFileToken, new IndexSpan(0, 0), 0);
         }
 
         public bool PeekToken(TokenKind kind, uint aheadBy = 1)

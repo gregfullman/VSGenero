@@ -160,8 +160,11 @@ namespace VSGenero.Analysis.Parsing.AST
             }
         }
 
-        public static bool TryParseNode(Parser parser, out FunctionBlockNode defNode, Func<string, PrepareStatement> prepStatementResolver = null)
+        public static bool TryParseNode(Parser parser, out FunctionBlockNode defNode, out int bufferPosition,
+                                        Func<string, PrepareStatement> prepStatementResolver = null,
+                                        bool abbreviatedParse = false, bool advanceOnEnd = true)
         {
+            bufferPosition = 0;
             defNode = null;
             bool result = false;
             AccessModifier? accMod = null;
@@ -302,7 +305,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         default:
                             {
                                 FglStatement statement;
-                                if (parser.StatementFactory.TryParseNode(parser, out statement, prepStatementResolver, defNode.BindPrepareCursorFromIdentifier))
+                                if (parser.StatementFactory.TryParseNode(parser, out statement, prepStatementResolver, defNode.BindPrepareCursorFromIdentifier, abbreviatedParse))
                                 {
                                     AstNode stmtNode = statement as AstNode;
                                     defNode.Children.Add(stmtNode.StartIndex, stmtNode);
@@ -353,7 +356,10 @@ namespace VSGenero.Analysis.Parsing.AST
                     parser.NextToken();
                     if (parser.PeekToken(TokenKind.FunctionKeyword))
                     {
-                        parser.NextToken();
+                        var tokSpan = parser.PeekTokenWithSpan();
+                        bufferPosition = tokSpan.BufferPosition + tokSpan.Span.Length;
+                        if (advanceOnEnd)
+                            parser.NextToken();
                         defNode.EndIndex = parser.Token.Span.End;
                         defNode.IsComplete = true;
                     }

@@ -339,7 +339,8 @@ namespace VSGenero.Analysis.Parsing.AST
 
                 FunctionBlockNode funcNode;
                 ReportBlockNode repNode;
-                if (FunctionBlockNode.TryParseNode(parser, out funcNode, defNode.PreparedCursorResolver))
+                int dummy;
+                if (FunctionBlockNode.TryParseNode(parser, out funcNode, out dummy, defNode.PreparedCursorResolver))
                 {
                     defNode.Children.Add(funcNode.StartIndex, funcNode);
                     funcNode.Scope = "function";

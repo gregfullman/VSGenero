@@ -12,11 +12,13 @@ namespace VSGenero.Analysis.Parsing
 
         private readonly Token _token;
         private readonly IndexSpan _span;
+        private readonly int _bufferPosition;
 
-        public TokenWithSpan(Token token, IndexSpan span)
+        public TokenWithSpan(Token token, IndexSpan span, int bufferPos)
         {
             _token = token;
             _span = span;
+            _bufferPosition = bufferPos;
         }
 
         public IndexSpan Span
@@ -29,6 +31,10 @@ namespace VSGenero.Analysis.Parsing
             get { return _token; }
         }
 
+        public int BufferPosition
+        {
+            get { return _bufferPosition; }
+        }
     }
 
     public class TokenNameCiComparer : IComparer<TokenWithSpan>, IEqualityComparer<TokenWithSpan>

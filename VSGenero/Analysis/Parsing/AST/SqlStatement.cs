@@ -274,6 +274,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 }
 
                 // get group-by clause
+                node.GroupByList = new List<NameExpression>();
                 if(parser.PeekToken(TokenKind.GroupKeyword) && parser.PeekToken(TokenKind.ByKeyword, 2))
                 {
                     parser.NextToken();
@@ -305,6 +306,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     }
                 }
 
+                node.OrderByList = new List<ExpressionNode>();
                 if(parser.PeekToken(TokenKind.OrderKeyword) && parser.PeekToken(TokenKind.ByKeyword, 2))
                 {
                     parser.NextToken();

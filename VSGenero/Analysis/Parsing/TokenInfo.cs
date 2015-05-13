@@ -62,7 +62,7 @@ namespace VSGenero.Analysis.Parsing
 
         public TokenWithSpan ToTokenWithSpan()
         {
-            return new TokenWithSpan(Token, new IndexSpan(SourceSpan.Start.Index, SourceSpan.Length));
+            return new TokenWithSpan(Token, new IndexSpan(SourceSpan.Start.Index, SourceSpan.Length), 0);
         }
     }
 }

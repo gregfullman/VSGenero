@@ -37,6 +37,16 @@ namespace VSGenero.Analysis.Parsing
         // precalcuated strings for space indentation strings so we usually don't allocate.
         private static readonly string[] SpaceIndentation, TabIndentation;
 
+        public string GetRemainingReadText(int bufferPos)
+        {
+            string res = null;
+            if (bufferPos < _buffer.Length)
+            {
+                res = new string(_buffer.Skip(bufferPos).ToArray());
+            }
+            return res;
+        }
+
         public Tokenizer(ErrorSink errorSink = null, TokenizerOptions options = TokenizerOptions.None)
         {
             errorSink = errorSink ?? ErrorSink.Null;
@@ -183,6 +193,14 @@ namespace VSGenero.Analysis.Parsing
             get
             {
                 return new IndexSpan(_tokenStartIndex, _tokenEndIndex - _tokenStartIndex);
+            }
+        }
+
+        internal int TokenBufferPosition
+        {
+            get
+            {
+                return _position - (_tokenEndIndex - _tokenStartIndex);
             }
         }
 
@@ -658,7 +676,7 @@ namespace VSGenero.Analysis.Parsing
                         if ((_options & (TokenizerOptions.VerbatimCommentsAndLineJoins | TokenizerOptions.Verbatim)) != 0)
                         {
                             var commentRes = ReadSingleLineComment(out ch);
-                            _state.SingleLineComments.Add(new TokenWithSpan(commentRes, new IndexSpan(_tokenStartIndex, _tokenEndIndex - _tokenStartIndex)));
+                            _state.SingleLineComments.Add(new TokenWithSpan(commentRes, new IndexSpan(_tokenStartIndex, _tokenEndIndex - _tokenStartIndex), 0));
                             if ((_options & TokenizerOptions.VerbatimCommentsAndLineJoins) == 0)
                             {
                                 _state.CurWhiteSpace.Append(commentRes.VerbatimImage);
@@ -1799,7 +1817,7 @@ namespace VSGenero.Analysis.Parsing
 
                             var commentRes = ReadSingleLineComment(out ch);
 
-                            _state.SingleLineComments.Add(new TokenWithSpan(commentRes, new IndexSpan(_tokenStartIndex, _tokenEndIndex - _tokenStartIndex)));
+                            _state.SingleLineComments.Add(new TokenWithSpan(commentRes, new IndexSpan(_tokenStartIndex, _tokenEndIndex - _tokenStartIndex), 0));
                             _state.NextWhiteSpace.Append(commentRes.VerbatimImage);
                             DiscardToken();
                             //SeekRelative(+1);

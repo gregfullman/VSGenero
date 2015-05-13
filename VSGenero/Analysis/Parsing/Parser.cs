@@ -277,11 +277,15 @@ namespace VSGenero.Analysis.Parsing
             return ast;
         }
 
-        public bool ParseSingleFunction(out FunctionBlockNode functionNode)
+        public bool ParseSingleFunction(out FunctionBlockNode functionNode, bool abbreviatedParse, out string remainingReadText)
         {
             StartParsing();
             functionNode = null;
-            return FunctionBlockNode.TryParseNode(this, out functionNode);
+            remainingReadText = null;
+            int bufPos;
+            bool result = FunctionBlockNode.TryParseNode(this, out functionNode, out bufPos, null, abbreviatedParse, false);
+            remainingReadText = _tokenizer.GetRemainingReadText(bufPos);
+            return result;
         }
 
         private GeneroAst ParseFileWorker()
@@ -428,12 +432,13 @@ namespace VSGenero.Analysis.Parsing
         {
             // for right now we don't want to see whitespace chars
             var tok = _tokenizer.GetNextToken();
+            int tokenBufferPosition = _tokenizer.TokenBufferPosition;
             while ((!_tokenizer.CurrentOptions.HasFlag(TokenizerOptions.VerbatimCommentsAndLineJoins) && 
                     (Tokenizer.GetTokenInfo(tok).Category == TokenCategory.WhiteSpace || 
                      Tokenizer.GetTokenInfo(tok).Category == TokenCategory.Comment)) || 
                   tok is DentToken)
             {
-                if(_tokenizer.CurrentState.SingleLineComments.Count > 0)
+                if (_tokenizer.CurrentState.SingleLineComments != null && _tokenizer.CurrentState.SingleLineComments.Count > 0)
                 {
                     string str;
                     foreach(var commentTok in _tokenizer.CurrentState.SingleLineComments)
@@ -448,7 +453,7 @@ namespace VSGenero.Analysis.Parsing
                 }
                 tok = _tokenizer.GetNextToken();
             }
-            _lookaheads.Add(new TokenWithSpan(tok, _tokenizer.TokenSpan));
+            _lookaheads.Add(new TokenWithSpan(tok, _tokenizer.TokenSpan, tokenBufferPosition));
             _lookaheadWhiteSpaces.Add(_tokenizer.PreceedingWhiteSpace);
         }
 
