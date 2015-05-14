@@ -101,6 +101,18 @@ namespace VSGenero.EditorExtensions.Intellisense
         {
             return null;
         }
+
+
+        public IEnumerable<string> GetAvailableImportModules()
+        {
+            return new string[0];
+        }
+
+
+        public bool IsPublic
+        {
+            get { return true; }
+        }
     }
 
     internal class TestFunctionCollection : IAnalysisResult
@@ -113,6 +125,11 @@ namespace VSGenero.EditorExtensions.Intellisense
             _functions = new Dictionary<string, TestFunction>(StringComparer.OrdinalIgnoreCase);
             foreach (var func in functions)
                 _functions.Add(func.Name, func);
+        }
+
+        public bool IsPublic
+        {
+            get { return true; }
         }
 
         public string Scope
@@ -180,6 +197,11 @@ namespace VSGenero.EditorExtensions.Intellisense
             _name = name;
             _desc = desc;
             _completionParentName = completionParentName;
+        }
+
+        public bool IsPublic
+        {
+            get { return true; }
         }
 
         private readonly ParameterResult[] _parameters;

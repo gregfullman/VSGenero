@@ -29,6 +29,8 @@ namespace VSGenero.Analysis.Parsing.AST
             get { return false; }
         }
 
+        public bool IsPublic { get { return true; } }
+
         public static bool TryParseNode(Parser parser, out MainBlockNode defNode, Func<string, PrepareStatement> prepStatementResolver = null)
         {
             defNode = null;

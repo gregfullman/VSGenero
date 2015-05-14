@@ -495,6 +495,8 @@ new ParameterResult("width", "", "integer"),
             get { return true; }
         }
 
+        public bool IsPublic { get { return true; } }
+
         public ProgramRegister(string name, string typeName, IEnumerable<ProgramRegister> childRegisters = null)
         {
             _parentRegister = null;
@@ -584,6 +586,8 @@ new ParameterResult("width", "", "integer"),
         private readonly string _typeName;
         private readonly object _value;
 
+        public bool IsPublic { get { return true; } }
+
         public bool CanGetValueFromDebugger
         {
             get { return false; }
@@ -662,6 +666,8 @@ new ParameterResult("width", "", "integer"),
         private readonly List<ParameterResult> _parameters;
         private readonly List<string> _returns;
         private readonly string _description;
+
+        public bool IsPublic { get { return true; } }
 
         public bool CanGetValueFromDebugger
         {
@@ -853,6 +859,8 @@ new ParameterResult("width", "", "integer"),
     {
         private readonly string _name;
         private readonly Dictionary<string, IFunctionResult> _memberFunctions;
+
+        public bool IsPublic { get { return true; } }
 
         public bool CanGetValueFromDebugger
         {

@@ -22,6 +22,9 @@ namespace VSGenero.Analysis.Parsing.AST
     {
         public AttributeSpecifier Attribute { get; private set; }
 
+        private bool _isPublic;
+        public bool IsPublic { get { return _isPublic; } }
+
         private string _typeNameString;
         public string DatabaseName { get; private set; }
         public string TableName { get; private set; }
@@ -67,7 +70,7 @@ namespace VSGenero.Analysis.Parsing.AST
             }
         }
 
-        public static bool TryParseNode(IParser parser, out TypeReference defNode, bool mimickingRecord = false)
+        public static bool TryParseNode(IParser parser, out TypeReference defNode, bool mimickingRecord = false, bool isPublic = false)
         {
             defNode = null;
             bool result = false;
@@ -80,15 +83,17 @@ namespace VSGenero.Analysis.Parsing.AST
                 defNode = new TypeReference();
                 defNode.StartIndex = arrayType.StartIndex;
                 defNode.EndIndex = arrayType.EndIndex;
+                defNode._isPublic = isPublic;
                 defNode.Children.Add(arrayType.StartIndex, arrayType);
                 defNode.IsComplete = true;
             }
-            else if (RecordDefinitionNode.TryParseNode(parser, out recordDef))
+            else if (RecordDefinitionNode.TryParseNode(parser, out recordDef, isPublic))
             {
                 result = true;
                 defNode = new TypeReference();
                 defNode.StartIndex = recordDef.StartIndex;
                 defNode.EndIndex = recordDef.EndIndex;
+                defNode._isPublic = isPublic;
                 defNode.Children.Add(recordDef.StartIndex, recordDef);
                 defNode.IsComplete = true;
             }
@@ -98,6 +103,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 parser.NextToken();
                 defNode = new TypeReference();
                 defNode.StartIndex = parser.Token.Span.Start;
+                defNode._isPublic = isPublic;
 
                 // get db info
                 if (!parser.PeekToken(TokenCategory.Identifier) && parser.PeekToken(TokenKind.Colon, 2))
@@ -279,6 +285,22 @@ namespace VSGenero.Analysis.Parsing.AST
                     {
                         return udt.GetMembers(ast).Select(x => x.Var).Where(y => y != null);
                     }
+                    
+                    // try to get the _typeNameString from types available in imported modules
+                    if(ast.ProjectEntry.ParentProject.ReferencedProjects.Count > 0)
+                    {
+                        foreach(var refProj in ast.ProjectEntry.ParentProject.ReferencedProjects.Values)
+                        {
+                            if(refProj is GeneroProject)
+                            {
+                                udt = (refProj as GeneroProject).GetMemberOfType(_typeNameString, ast, false, true, false, false);
+                                if(udt != null)
+                                {
+                                    return udt.GetMembers(ast).Select(x => x.Var).Where(y => y != null);
+                                }
+                            }
+                        }
+                    }
 
                     // check for package class
                     udt = ast.GetValueByIndex(_typeNameString, LocationIndex, ast._functionProvider, ast._databaseProvider);
@@ -324,6 +346,21 @@ namespace VSGenero.Analysis.Parsing.AST
                     if (udt != null)
                     {
                         return udt.GetMembers(ast);
+                    }
+
+                    if (ast.ProjectEntry.ParentProject.ReferencedProjects.Count > 0)
+                    {
+                        foreach (var refProj in ast.ProjectEntry.ParentProject.ReferencedProjects.Values)
+                        {
+                            if (refProj is GeneroProject)
+                            {
+                                udt = (refProj as GeneroProject).GetMemberOfType(_typeNameString, ast, false, true, false, false);
+                                if (udt != null)
+                                {
+                                    return udt.GetMembers(ast);
+                                }
+                            }
+                        }
                     }
 
                     // check for package class

@@ -512,6 +512,8 @@ namespace VSGenero.Analysis.Parsing.AST
                                 if (!members.Contains(res))
                                     members.Add(res);
                         }
+
+                        members.AddRange((_body as IModuleResult).FglImports.Select(x => new MemberResult(x, GeneroMemberType.Module, this)));
                     }
                 }
             }
@@ -826,6 +828,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                 if (members != null)
                                 {
                                     // TODO: this is a bit of a hack...
+                                    // TODO: need to determine whether the analysisRes is an array type variable. If so, apply the logic below.
                                     bool varsOnly = sb[sb.Length - 1].Equals(']');
                                     if (varsOnly)
                                         results.AddRange(members.Where(x => !(x.Var is IFunctionResult)));
@@ -1852,8 +1855,9 @@ namespace VSGenero.Analysis.Parsing.AST
                 {
                     if(firstState == ImportContextState.None)
                     {
-                        // TODO: provide available fgl imports
-                        // Would this just be all importable programs? Yikes...
+                        // provide available fgl imports
+                        if(_functionProvider != null)
+                            results.AddRange(_functionProvider.GetAvailableImportModules().Select(x => new MemberResult(x, GeneroMemberType.Module, this)));
 
                         firstState = ImportContextState.FglKeyword;
                     }
@@ -3322,7 +3326,8 @@ namespace VSGenero.Analysis.Parsing.AST
             Let,
             VariableReference,
             Equals,
-            Expression
+            Expression,
+            Comma
         }
 
         private bool TryLetStatement(int index, IReverseTokenizer revTokenizer, out List<MemberResult> results, out bool isMemberAccess)
@@ -3383,6 +3388,28 @@ namespace VSGenero.Analysis.Parsing.AST
                 {
                     results.Clear();
                     return false;
+                }
+                else if(tokInfo.Token.Kind == TokenKind.Comma)
+                {
+                    if(firstState == LetStatementState.None)
+                    {
+                        firstState = LetStatementState.Comma;
+                        results.AddRange(GetDefinedMembers(index, true, true, false, true));
+                    }
+                    else if(secondState == LetStatementState.None)
+                    {
+                        secondState = LetStatementState.Comma;
+                    }
+                    if (currState == LetStatementState.VariableReference ||
+                        currState == LetStatementState.Expression)
+                    {
+                        currState = LetStatementState.Comma;
+                    }
+                    else
+                    {
+                        results.Clear();
+                        return false;
+                    }
                 }
                 else if (tokInfo.Token.Kind == TokenKind.Equals)
                 {
@@ -3445,7 +3472,8 @@ namespace VSGenero.Analysis.Parsing.AST
                             }
 
                             if (currState == LetStatementState.None ||
-                                currState == LetStatementState.Equals)
+                                currState == LetStatementState.Equals ||
+                                currState == LetStatementState.Comma)
                             {
                                 currState = LetStatementState.Expression;
                             }
@@ -3488,7 +3516,8 @@ namespace VSGenero.Analysis.Parsing.AST
                                     }
 
                                     if (currState == LetStatementState.None ||
-                                       currState == LetStatementState.Equals)
+                                       currState == LetStatementState.Equals ||
+                                        currState == LetStatementState.Comma)
                                     {
                                         currState = LetStatementState.VariableReference;
                                     }
@@ -3535,7 +3564,8 @@ namespace VSGenero.Analysis.Parsing.AST
                                         secondState = LetStatementState.VariableReference;
                                     }
                                     if (currState == LetStatementState.None ||
-                                        currState == LetStatementState.Equals)
+                                        currState == LetStatementState.Equals ||
+                                        currState == LetStatementState.Comma)
                                     {
                                         currState = LetStatementState.VariableReference;
                                     }
@@ -3588,7 +3618,8 @@ namespace VSGenero.Analysis.Parsing.AST
                         }
 
                         if (currState == LetStatementState.None ||
-                            currState == LetStatementState.Equals)
+                            currState == LetStatementState.Equals ||
+                            currState == LetStatementState.Comma)
                         {
                             currState = LetStatementState.Expression;
                         }

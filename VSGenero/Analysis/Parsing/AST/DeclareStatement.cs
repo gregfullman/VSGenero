@@ -21,6 +21,8 @@ namespace VSGenero.Analysis.Parsing.AST
             get { return false; }
         }
 
+        public bool IsPublic { get { return false; } }
+
         public static bool TryParseNode(Parser parser, out DeclareStatement defNode, Func<string, PrepareStatement> preparedStatementResolver = null)
         {
             defNode = null;
@@ -68,7 +70,7 @@ namespace VSGenero.Analysis.Parsing.AST
                             parser.NextToken();
                             // We have a string expression declare
                             ExpressionNode exprNode;
-                            if(ExpressionNode.TryGetExpressionNode(parser, out exprNode) && exprNode is StringExpressionNode)
+                            if(ExpressionNode.TryGetExpressionNode(parser, out exprNode)/* && exprNode is StringExpressionNode*/)
                             {
                                 defNode.Children.Add(exprNode.StartIndex, exprNode);
                                 defNode.EndIndex = exprNode.EndIndex;

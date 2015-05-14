@@ -124,7 +124,33 @@ namespace VSGenero.EditorExtensions.Intellisense
 
         internal void RemoveImportedProject(string projectPath)
         {
+            IGeneroProject proj;
+            if (_projects.TryGetValue(projectPath, out proj))
+            {
+                // are there any others that are open?
+                if (!proj.ProjectEntries.Any(x => x.Value.IsOpen))
+                {
+                    // before clearing the top level project's entries, we need to go through
+                    // each one and have any Referenced projects remove the entry from their Referencing set.
+                    foreach (var projEntry in proj.ProjectEntries)
+                    {
+                        foreach (var refProj in proj.ReferencedProjects)
+                        {
+                            if (refProj.Value.ReferencingProjectEntries.Contains(projEntry.Value))
+                                refProj.Value.ReferencingProjectEntries.Remove(projEntry.Value);
+                        }
+                    }
+                    proj.ProjectEntries.Clear();
 
+                    // unload any import modules that are not referenced by anything else.
+                    UnloadImportedModules(proj);
+
+                    _projects.TryRemove(projectPath, out proj);
+
+                    // remove the file from the error list
+                    _taskProvider.Value.Clear(projectPath);
+                }
+            }
         }
 
         private IGeneroProjectEntry CreateProjectEntry(ITextBuffer buffer, IAnalysisCookie analysisCookie)

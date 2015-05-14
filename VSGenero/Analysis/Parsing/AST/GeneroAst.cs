@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -570,13 +571,32 @@ namespace VSGenero.Analysis.Parsing.AST
                         if (res == null && _functionProvider != null)
                         {
                             // check for the function name in the function provider
-                            res = _functionProvider.GetFunction(exprText);
+                            res = _functionProvider.GetFunction(dotPiece);
                             if (res != null)
                             {
                                 continue;
                             }
                         }
                     }
+
+                    // try an imported module
+                    if(_body is IModuleResult &&
+                       _projEntry is IGeneroProjectEntry)
+                    {
+                        if((_body as IModuleResult).FglImports.Contains(dotPiece))
+                        {
+                            // need to get the ast for the other project entry
+                            var refProjKVP = (_projEntry as IGeneroProjectEntry).ParentProject.ReferencedProjects.Values.FirstOrDefault(x => Path.GetFileName(x.Directory).Equals(dotPiece, StringComparison.OrdinalIgnoreCase));
+                            if(refProjKVP != null && refProjKVP is IAnalysisResult)
+                            {
+                                res = refProjKVP as IAnalysisResult;
+                                continue;
+                            }
+                        }
+                    }
+
+                    if (res == null)
+                        break;
                 }
             }
 

@@ -26,6 +26,9 @@ namespace VSGenero.Analysis.Parsing.AST
             get { return false; }
         }
 
+        private bool _isPublic;
+        public bool IsPublic { get { return _isPublic; } }
+
         private Dictionary<string, VariableDef> _memberDictionary;
         public Dictionary<string, VariableDef> MemberDictionary
         {
@@ -50,7 +53,7 @@ namespace VSGenero.Analysis.Parsing.AST
             return sb.ToString();
         }
 
-        public new static bool TryParseNode(IParser parser, out RecordDefinitionNode defNode)
+        public new static bool TryParseNode(IParser parser, out RecordDefinitionNode defNode, bool isPublic = false)
         {
             defNode = null;
             bool result = false;
@@ -60,6 +63,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 result = true;
                 defNode = new RecordDefinitionNode();
                 defNode.StartIndex = parser.Token.Span.Start;
+                defNode._isPublic = isPublic;
                 parser.NextToken();     // move past the record keyword
                 if (parser.PeekToken(TokenKind.LikeKeyword))
                 {
@@ -116,7 +120,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         if (TypeReference.TryParseNode(parser, out tr, true))
                         {
                             if (!defNode.MemberDictionary.ContainsKey(tok.Token.Value.ToString()))
-                                defNode.MemberDictionary.Add(tok.Token.Value.ToString(), new VariableDef(tok.Token.Value.ToString(), tr, tok.Span.Start));
+                                defNode.MemberDictionary.Add(tok.Token.Value.ToString(), new VariableDef(tok.Token.Value.ToString(), tr, tok.Span.Start, true));
                             else
                                 parser.ReportSyntaxError(string.Format("Record field {0} defined more than once.", tok.Token.Value.ToString()));
                         }

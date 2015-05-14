@@ -3169,6 +3169,8 @@ namespace VSGenero.Analysis.Parsing.AST
             get { return false; }
         }
 
+        public bool IsPublic { get { return true; } }
+
         public GeneroPackage(string name, bool extension, IEnumerable<GeneroPackageClass> classes)
         {
             _name = name;
@@ -3263,6 +3265,8 @@ namespace VSGenero.Analysis.Parsing.AST
             get { return false; }
         }
 
+        public bool IsPublic { get { return true; } }
+
         public GeneroPackageClass(string name, string parentPackage, bool isStatic, IEnumerable<GeneroPackageClassMethod> methods)
         {
             _name = name;
@@ -3338,6 +3342,8 @@ namespace VSGenero.Analysis.Parsing.AST
         private readonly string _desc;
         private readonly List<ParameterResult> _parameters;
         private readonly List<string> _returns;
+
+        public bool IsPublic { get { return true; } }
 
         public bool CanGetValueFromDebugger
         {

@@ -33,6 +33,8 @@ namespace VSGenero.Analysis.Parsing.AST
             get { return false; }
         }
 
+        public bool IsPublic { get { return AccessModifier == Analysis.AccessModifier.Public; } }
+
         public string DescriptiveName
         {
             get

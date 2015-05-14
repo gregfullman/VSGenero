@@ -19,12 +19,15 @@ namespace VSGenero.Analysis.Parsing.AST
     {
         public string Identifier { get; private set; }
 
+        private bool _isPublic;
+        public bool IsPublic { get { return _isPublic; } }
+
         public bool CanGetValueFromDebugger
         {
             get { return false; }
         }
 
-        public static bool TryParseDefine(IParser parser, out TypeDefinitionNode defNode)
+        public static bool TryParseDefine(IParser parser, out TypeDefinitionNode defNode, bool isPublic = false)
         {
             defNode = null;
             bool result = false;
@@ -35,9 +38,10 @@ namespace VSGenero.Analysis.Parsing.AST
                 parser.NextToken();
                 defNode.StartIndex = parser.Token.Span.Start;
                 defNode.Identifier = parser.Token.Token.Value.ToString();
+                defNode._isPublic = isPublic;
 
                 TypeReference typeRef;
-                if (TypeReference.TryParseNode(parser, out typeRef))
+                if (TypeReference.TryParseNode(parser, out typeRef, false, isPublic))
                 {
                     defNode.Children.Add(typeRef.StartIndex, typeRef);
                     if (defNode.Children.All(x => x.Value.IsComplete))

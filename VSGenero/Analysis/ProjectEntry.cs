@@ -268,7 +268,7 @@ namespace VSGenero.Analysis
                     _lastImportedModules = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                 var modules = ast.GetImportedModules().ToList();
                 HashSet<string> currentlyImportedModules = new HashSet<string>(_lastImportedModules, StringComparer.OrdinalIgnoreCase);
-                _lastImportedModules.Clear();
+                //_lastImportedModules.Clear();
                 VSGeneroPackage.Instance.GlobalFunctionProvider.SetFilename(filename);
                 foreach (var mod in modules.Select(x => VSGeneroPackage.Instance.GlobalFunctionProvider.GetImportModuleFilename(x)).Where(y => y != null))
                 {
@@ -278,7 +278,8 @@ namespace VSGenero.Analysis
                         if (impProj != null)
                         {
                             _lastImportedModules.Add(mod);
-                            impProj.ReferencingProjectEntries.Add(this);
+                            if(!impProj.ReferencingProjectEntries.Contains(this))
+                                impProj.ReferencingProjectEntries.Add(this);
                         }
                     }
                     else
@@ -300,7 +301,7 @@ namespace VSGenero.Analysis
         }
     }
 
-    public class GeneroProject : IGeneroProject
+    public class GeneroProject : IGeneroProject, IAnalysisResult
     {
         private readonly string _directory;
         public GeneroProject(string directory)
@@ -373,6 +374,144 @@ namespace VSGenero.Analysis
                     _referencingProjectEntries = new HashSet<IGeneroProjectEntry>();
                 return _referencingProjectEntries;
             }
+        }
+
+        public string Scope
+        {
+            get
+            {
+                return null;
+            }
+            set
+            {
+            }
+        }
+
+        public string Name
+        {
+            get { return Path.GetFileName(_directory); }
+        }
+
+        public string Documentation
+        {
+            get 
+            {
+                return string.Format("Imported module {0}", Name); 
+            }
+        }
+
+        public int LocationIndex
+        {
+            get { return -1; }
+        }
+
+        public LocationInfo Location
+        {
+            get { return null; }
+        }
+
+        public bool HasChildFunctions(GeneroAst ast)
+        {
+            return false;
+        }
+
+        public bool CanGetValueFromDebugger
+        {
+            get { return true; }
+        }
+
+        public bool IsPublic { get { return true; } }
+
+        internal IAnalysisResult GetMemberOfType(string name, GeneroAst ast, bool vars, bool types, bool consts, bool funcs)
+        {
+            IAnalysisResult res = null;
+            foreach (var projEntry in ProjectEntries)
+            {
+                if (projEntry.Value.Analysis != null &&
+                   projEntry.Value.Analysis.Body != null)
+                {
+                    IModuleResult modRes = projEntry.Value.Analysis.Body as IModuleResult;
+                    if (modRes != null)
+                    {
+                        // check global vars, types, and constants
+                        if ((vars && modRes.GlobalVariables.TryGetValue(name, out res)) ||
+                            (types && modRes.GlobalTypes.TryGetValue(name, out res)) ||
+                            (consts && modRes.GlobalConstants.TryGetValue(name, out res)))
+                        {
+                            //found = true;
+                            break;
+                        }
+
+                        if (((vars && modRes.Variables.TryGetValue(name, out res)) ||
+                             (types && modRes.Types.TryGetValue(name, out res)) ||
+                             (consts && modRes.Constants.TryGetValue(name, out res))) && res.IsPublic)
+                        {
+                            break;
+                        }
+
+                        // check project functions
+                        IFunctionResult funcRes = null;
+                        if (funcs && modRes.Functions.TryGetValue(name, out funcRes))
+                        {
+                            if (funcRes.AccessModifier == AccessModifier.Public)
+                            {
+                                res = funcRes;
+                                //found = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            return res;
+        }
+
+        public IAnalysisResult GetMember(string name, GeneroAst ast)
+        {
+            return GetMemberOfType(name, ast, true, true, true, true);
+        }
+
+        public IEnumerable<MemberResult> GetMembers(GeneroAst ast)
+        {
+            List<MemberResult> members = new List<MemberResult>();
+
+            bool vars = true, types = true, consts = true, funcs = true;
+
+            foreach (var projEntry in ProjectEntries)
+            {
+                if (projEntry.Value.Analysis != null &&
+                   projEntry.Value.Analysis.Body != null)
+                {
+                    IModuleResult modRes = projEntry.Value.Analysis.Body as IModuleResult;
+                    if (modRes != null)
+                    {
+                        if(vars)
+                        {
+                            members.AddRange(modRes.GlobalVariables.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Variable, ast)));
+                            members.AddRange(modRes.Variables.Where(x => x.Value.IsPublic).Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Variable, ast)));
+                        }
+
+                        if (types)
+                        {
+                            members.AddRange(modRes.GlobalTypes.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Class, ast)));
+                            members.AddRange(modRes.Types.Where(x => x.Value.IsPublic).Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Class, ast)));
+                        }
+
+                        if(consts)
+                        {
+                            members.AddRange(modRes.GlobalConstants.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Constant, ast)));
+                            members.AddRange(modRes.Constants.Where(x => x.Value.IsPublic).Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Constant, ast)));
+                        }
+
+                        if(funcs)
+                        {
+                            members.AddRange(modRes.Functions.Where(x => x.Value.IsPublic).Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Function, ast)));
+                        }
+                    }
+                }
+            }
+
+            return members;
         }
     }
 

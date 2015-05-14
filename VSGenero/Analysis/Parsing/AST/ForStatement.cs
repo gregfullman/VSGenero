@@ -61,6 +61,12 @@ namespace VSGenero.Analysis.Parsing.AST
                 if(parser.PeekToken(TokenKind.StepKeyword))
                 {
                     parser.NextToken();
+                    bool negative = false;
+                    if (parser.PeekToken(TokenKind.Subtract))
+                    {
+                        negative = true;
+                        parser.NextToken();
+                    }
                     if(parser.PeekToken(TokenCategory.NumericLiteral))
                     {
                         parser.NextToken();
@@ -68,6 +74,8 @@ namespace VSGenero.Analysis.Parsing.AST
                         if(int.TryParse(parser.Token.Token.Value.ToString(), out temp))
                         {
                             node.StepValue = temp;
+                            if (negative)
+                                node.StepValue = -(node.StepValue);
                         }
                         else
                         {

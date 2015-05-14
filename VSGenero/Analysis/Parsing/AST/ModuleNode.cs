@@ -65,13 +65,13 @@ namespace VSGenero.Analysis.Parsing.AST
             }
         }
 
-        private List<string> _fglImports;
-        public List<string> FglImports
+        private HashSet<string> _fglImports;
+        public HashSet<string> FglImports
         {
             get
             {
                 if (_fglImports == null)
-                    _fglImports = new List<string>();
+                    _fglImports = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                 return _fglImports;
             }
         }
@@ -204,6 +204,8 @@ namespace VSGenero.Analysis.Parsing.AST
                 ConstantDefNode constNode;
                 List<List<TokenKind>> breakSequences = new List<List<TokenKind>>() 
                     { 
+                        new List<TokenKind> { TokenKind.PublicKeyword },
+                        new List<TokenKind> { TokenKind.PrivateKeyword },
                         new List<TokenKind> { TokenKind.ConstantKeyword },
                         new List<TokenKind> { TokenKind.TypeKeyword },
                         new List<TokenKind> { TokenKind.DefineKeyword },
@@ -239,6 +241,8 @@ namespace VSGenero.Analysis.Parsing.AST
                 TypeDefNode typeNode;
                 breakSequences = new List<List<TokenKind>>() 
                     { 
+                        new List<TokenKind> { TokenKind.PublicKeyword },
+                        new List<TokenKind> { TokenKind.PrivateKeyword },
                         new List<TokenKind> { TokenKind.ConstantKeyword },
                         new List<TokenKind> { TokenKind.DefineKeyword },
                         new List<TokenKind> { TokenKind.TypeKeyword },
@@ -276,6 +280,8 @@ namespace VSGenero.Analysis.Parsing.AST
                 DefineNode defineNode;
                 breakSequences = new List<List<TokenKind>>() 
                     { 
+                        new List<TokenKind> { TokenKind.PublicKeyword },
+                        new List<TokenKind> { TokenKind.PrivateKeyword },
                         new List<TokenKind> { TokenKind.TypeKeyword },
                         new List<TokenKind> { TokenKind.ConstantKeyword },
                         new List<TokenKind> { TokenKind.FunctionKeyword },
@@ -291,6 +297,7 @@ namespace VSGenero.Analysis.Parsing.AST
                             foreach (var vardef in def.VariableDefinitions)
                             {
                                 vardef.Scope = "module variable";
+                                vardef.SetIsPublic(defineNode.AccessModifier == AccessModifier.Public);
                                 if (!defNode.Variables.ContainsKey(vardef.Name))
                                     defNode.Variables.Add(vardef.Name, vardef);
                                 else

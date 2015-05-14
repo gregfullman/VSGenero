@@ -65,7 +65,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 ConstantDefinitionNode constDef;
                 while (true)
                 {
-                    if (ConstantDefinitionNode.TryParseNode(parser, out constDef))
+                    if (ConstantDefinitionNode.TryParseNode(parser, out constDef, defNode.AccessModifier == AccessModifier.Public))
                     {
                         defNode.Children.Add(constDef.StartIndex, constDef);
                     }

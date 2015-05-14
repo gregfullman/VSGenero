@@ -24,7 +24,10 @@ namespace VSGenero.Analysis.Parsing.AST
             get { return false; }
         }
 
-        public static bool TryParseNode(IParser parser, out ConstantDefinitionNode defNode)
+        private bool _isPublic;
+        public bool IsPublic { get { return _isPublic; } }
+
+        public static bool TryParseNode(IParser parser, out ConstantDefinitionNode defNode, bool isPublic = false)
         {
             defNode = null;
             bool result = false;
@@ -35,6 +38,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 result = true;
                 parser.NextToken();
                 defNode.StartIndex = parser.Token.Span.Start;
+                defNode._isPublic = isPublic;
                 defNode.Identifier = parser.Token.Token.Value.ToString();
 
                 if (parser.PeekToken(TokenCategory.Identifier) || parser.PeekToken(TokenCategory.Keyword))

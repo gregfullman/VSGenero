@@ -12,11 +12,23 @@ namespace VSGenero.Analysis.Parsing.AST
         public string Name { get; private set; }
         public TypeReference Type { get; private set; }
 
-        public VariableDef(string name, TypeReference type, int location)
+        private bool _isPublic = false;
+        public bool IsPublic
+        {
+            get { return _isPublic; }
+        }
+
+        public void SetIsPublic(bool value)
+        {
+            _isPublic = value;
+        }
+
+        public VariableDef(string name, TypeReference type, int location, bool isPublic = false)
         {
             Name = name;
             Type = type;
             _locationIndex = location;
+            _isPublic = isPublic;
         }
 
         public string Documentation
