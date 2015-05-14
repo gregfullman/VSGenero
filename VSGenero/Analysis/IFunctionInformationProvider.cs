@@ -14,5 +14,6 @@ namespace VSGenero.Analysis
     {
         void SetFilename(string filename);
         IFunctionResult GetFunction(string functionName);
+        string GetImportModuleFilename(string importModule);
     }
 }

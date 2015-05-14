@@ -20,6 +20,8 @@ using System.Text;
 using System.Threading.Tasks;
 using VSGenero.Analysis;
 using VSGenero.Navigation;
+using Microsoft.VisualStudio.VSCommon;
+using Microsoft.VisualStudio.Text;
 
 namespace VSGenero.VS2013_Specific
 {
@@ -61,24 +63,47 @@ namespace VSGenero.VS2013_Specific
 
         private IPeekResult CreatePeekResult(IPeekResultCollection resultCollection, LocationInfo location)
         {
+            IPeekResult result = null;
             string path = location.FilePath;
             FileInfo fi = new FileInfo(path);
             PeekResultDisplayInfo displayInfo = new PeekResultDisplayInfo(BuildLabel(location), path, BuildTitle(location), path);
             // TODO: the location stuff doesn't work 100% correctly. This needs to be fixed
-            int line = location.Line - 1;   // start line
-            if (line < 0)
-                line = 0;
-            int character = location.Column - 1;  // start index
-            //EditorExtensions.EditorExtensions.GetLineAndColumnOfFile(path, location.Position, out line, out character);
-            int endLine = line + 10;    // end line
-            int endIndex = 0;   // end index
-            int positionLine = 0;   // id line
-            int positionChar = 0;   // id index
-            bool isReadOnly = fi.IsReadOnly;
+            string contentType = null;
+            switch(Path.GetExtension(path).ToLower())
+            {
+                case ".4gl": contentType = VSGeneroConstants.ContentType4GL; break;
+                case ".inc": contentType = VSGeneroConstants.ContentTypeINC; break;
+                case ".per": contentType = VSGeneroConstants.ContentTypePER; break;
+            }
+            if(contentType != null)
+            {
+                ITextDocument textDoc = null;
+                int line = location.Line - 1;
+                if (line < 0)
+                {
+                    textDoc = this._factory.TextDocumentFactoryService.CreateAndLoadTextDocument(path, this._factory.ContentTypeRegistryService.GetContentType(contentType));
+                    line = textDoc.TextBuffer.CurrentSnapshot.GetLineNumberFromPosition(location.Index);
+                }
+                int character = location.Column - 1;  // start index
+                if (character < 0)
+                    character = 0;
+                //EditorExtensions.EditorExtensions.GetLineAndColumnOfFile(path, location.Position, out line, out character);
+                int endLine = line + 10;    // end line
+                int endIndex = 0;   // end index
+                int positionLine = 0;   // id line
+                int positionChar = 0;   // id index
+                bool isReadOnly = fi.IsReadOnly;
 
-            // TODO: determine the stuff above.
+                // TODO: determine the stuff above.
 
-            return this._factory.PeekResultFactory.Create(displayInfo, path, line, character, endLine, endIndex, positionLine, positionChar, isReadOnly);
+                result = this._factory.PeekResultFactory.Create(displayInfo, path, line, character, endLine, endIndex, positionLine, positionChar, isReadOnly);
+                result.Disposed += (x, y) =>
+                    {
+                        if (textDoc != null)
+                            textDoc.Dispose();
+                    };
+            }
+            return result;
         }
     }
 }

@@ -96,6 +96,11 @@ namespace VSGenero.EditorExtensions.Intellisense
         {
             get { return false; }
         }
+
+        public string GetImportModuleFilename(string importModule)
+        {
+            return null;
+        }
     }
 
     internal class TestFunctionCollection : IAnalysisResult

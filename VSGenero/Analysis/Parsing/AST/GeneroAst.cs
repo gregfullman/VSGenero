@@ -63,6 +63,15 @@ namespace VSGenero.Analysis.Parsing.AST
             }
         }
 
+        public IEnumerable<string> GetImportedModules()
+        {
+            if(Body is ModuleNode)
+            {
+                return (Body as ModuleNode).FglImports;
+            }
+            return new string[0];
+        }
+
         internal bool TryGetAttribute(AstNode node, object key, out object value)
         {
             Dictionary<object, object> nodeAttrs;

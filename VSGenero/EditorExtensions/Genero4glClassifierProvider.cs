@@ -97,6 +97,11 @@ namespace VSGenero.EditorExtensions
                 buffer.Properties.AddProperty(typeof(Genero4glClassifier), res);
             }
 
+            if(VSGeneroPackage.Instance.GlobalFunctionProvider == null)
+            {
+                VSGeneroPackage.Instance.GlobalFunctionProvider = _PublicFunctionProvider;
+            }
+
             return res;
         }
 

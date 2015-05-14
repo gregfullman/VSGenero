@@ -41,6 +41,9 @@ namespace VSGenero.VS2013_Specific
         [Import]
         public ITextDocumentFactoryService TextDocumentFactoryService { get; set; }
 
+        [Import]
+        public IContentTypeRegistryService ContentTypeRegistryService { get; set; }
+
         public ITextBuffer CurrentBuffer { get; private set; }
 
         public IPeekableItemSource TryCreatePeekableItemSource(ITextBuffer textBuffer)

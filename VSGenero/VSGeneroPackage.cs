@@ -57,6 +57,7 @@ using VSGenero.SqlSupport;
 using System.Reflection;
 using VSGenero.EditorExtensions.Intellisense;
 using Microsoft.VisualStudio.Text.Adornments;
+using VSGenero.Analysis;
 
 namespace VSGenero
 {
@@ -368,6 +369,13 @@ namespace VSGenero
         private GeneroProjectAnalyzer CreateAnalyzer()
         {
             return new GeneroProjectAnalyzer(ComponentModel.GetService<IErrorProviderFactory>());
+        }
+
+        private IFunctionInformationProvider _functionProvider;
+        public IFunctionInformationProvider GlobalFunctionProvider
+        {
+            get { return _functionProvider; }
+            set { _functionProvider = value; }
         }
 
         private List<IContentType> _programCodeContentTypes;

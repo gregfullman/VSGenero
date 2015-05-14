@@ -16,7 +16,7 @@ namespace VSGenero.Analysis
     /// To analyze a file the tree should be updated with a call to UpdateTree and then PreParse
     /// should be called on all files.  Finally Parse should then be called on all files.
     /// </summary>
-    internal sealed class ProjectEntry : IGeneroProjectEntry
+    internal sealed class GeneroProjectEntry : IGeneroProjectEntry
     {
         private readonly string _moduleName;
         private readonly string _filePath;
@@ -32,7 +32,7 @@ namespace VSGenero.Analysis
         // we expect to have at most 1 waiter on updated project entries, so we attempt to share the event.
         private static ManualResetEventSlim _sharedWaitEvent = new ManualResetEventSlim(false);
 
-        internal ProjectEntry(string moduleName, string filePath, IAnalysisCookie cookie)
+        internal GeneroProjectEntry(string moduleName, string filePath, IAnalysisCookie cookie)
         {
             _moduleName = moduleName ?? "";
             _filePath = filePath;
@@ -65,7 +65,8 @@ namespace VSGenero.Analysis
                 }
 
                 _tree = newAst;
-                _cookie = newCookie;
+                if(_cookie == null || _cookie is FileCookie || !(newCookie is FileCookie))
+                    _cookie = newCookie;
 
                 if (_curWaiter != null)
                 {
@@ -257,10 +258,85 @@ namespace VSGenero.Analysis
                 _isOpen = value;
             }
         }
+
+        private HashSet<string> _lastImportedModules;
+        public void UpdateImportedProjects(string filename, GeneroAst ast)
+        {
+            if (VSGeneroPackage.Instance.GlobalFunctionProvider != null)
+            {
+                if (_lastImportedModules == null)
+                    _lastImportedModules = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                var modules = ast.GetImportedModules().ToList();
+                HashSet<string> currentlyImportedModules = new HashSet<string>(_lastImportedModules, StringComparer.OrdinalIgnoreCase);
+                _lastImportedModules.Clear();
+                VSGeneroPackage.Instance.GlobalFunctionProvider.SetFilename(filename);
+                foreach (var mod in modules.Select(x => VSGeneroPackage.Instance.GlobalFunctionProvider.GetImportModuleFilename(x)).Where(y => y != null))
+                {
+                    if (!_lastImportedModules.Contains(mod))
+                    {
+                        var impProj = ParentProject.AddImportedModule(mod);
+                        if (impProj != null)
+                        {
+                            _lastImportedModules.Add(mod);
+                            impProj.ReferencingProjectEntries.Add(this);
+                        }
+                    }
+                    else
+                        currentlyImportedModules.Remove(mod);
+                }
+
+                // delete the leftovers
+                foreach (var mod in currentlyImportedModules)
+                {
+                    ParentProject.RemoveImportedModule(mod);
+                    _lastImportedModules.Remove(mod);
+                }
+            }
+        }
+
+        public bool DetectCircularImports()
+        {
+            return false;
+        }
     }
 
     public class GeneroProject : IGeneroProject
     {
+        private readonly string _directory;
+        public GeneroProject(string directory)
+        {
+            _directory = directory;
+        }
+
+        public IGeneroProject AddImportedModule(string path)
+        {
+            IGeneroProject refProj = null;
+            if (!ReferencedProjects.TryGetValue(path, out refProj))
+            {
+                // need to tell the genero project analyzer to add a directory to the project
+                refProj = VSGeneroPackage.Instance.DefaultAnalyzer.AddImportedProject(path);
+                if (refProj == null)
+                {
+                    // TODO: need to report that the project is invalid?
+                }
+                else
+                {
+                    ReferencedProjects.AddOrUpdate(path, refProj, (x, y) => y);
+                }
+            }
+            return refProj;
+        }
+
+        public void RemoveImportedModule(string path)
+        {
+            VSGeneroPackage.Instance.DefaultAnalyzer.RemoveImportedProject(path);
+            if (ReferencedProjects.ContainsKey(path))
+            {
+                IGeneroProject remEntry;
+                ReferencedProjects.TryRemove(path, out remEntry);
+            }
+        }
+
         private ConcurrentDictionary<string, IGeneroProjectEntry> _projectEntries;
         public ConcurrentDictionary<string, IGeneroProjectEntry> ProjectEntries
         {
@@ -280,6 +356,22 @@ namespace VSGenero.Analysis
                 if (_referencedProjects == null)
                     _referencedProjects = new ConcurrentDictionary<string, IGeneroProject>(StringComparer.OrdinalIgnoreCase);
                 return _referencedProjects;
+            }
+        }
+
+        public string Directory
+        {
+            get { return _directory; }
+        }
+
+        private HashSet<IGeneroProjectEntry> _referencingProjectEntries;
+        public HashSet<IGeneroProjectEntry> ReferencingProjectEntries
+        {
+            get
+            {
+                if (_referencingProjectEntries == null)
+                    _referencingProjectEntries = new HashSet<IGeneroProjectEntry>();
+                return _referencingProjectEntries;
             }
         }
     }
@@ -351,6 +443,10 @@ namespace VSGenero.Analysis
     /// </summary>
     public interface IGeneroProject
     {
+        IGeneroProject AddImportedModule(string path);
+        void RemoveImportedModule(string path);
+
+        string Directory { get; }
         /// <summary>
         /// Enumerable of the project's immediate entries
         /// </summary>
@@ -360,6 +456,8 @@ namespace VSGenero.Analysis
         /// Enumerable of projects that are referenced from this project
         /// </summary>
         ConcurrentDictionary<string, IGeneroProject> ReferencedProjects { get; }
+
+        HashSet<IGeneroProjectEntry> ReferencingProjectEntries { get; }
     }
 
     public interface IGeneroProjectEntry : IProjectEntry
@@ -394,7 +492,8 @@ namespace VSGenero.Analysis
 
         void UpdateTree(GeneroAst ast, IAnalysisCookie fileCookie);
         void GetTreeAndCookie(out GeneroAst ast, out IAnalysisCookie cookie);
-
+        void UpdateImportedProjects(string filename, GeneroAst ast);
+        bool DetectCircularImports();
         /// <summary>
         /// Returns the current tree if no parsing is currently pending, otherwise waits for the 
         /// current parse to finish and returns the up-to-date tree.

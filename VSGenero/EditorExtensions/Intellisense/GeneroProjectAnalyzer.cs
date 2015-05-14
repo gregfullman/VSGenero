@@ -109,6 +109,24 @@ namespace VSGenero.EditorExtensions.Intellisense
             return new MonitoredBufferResult(bufferParser, projEntry);
         }
 
+        internal IGeneroProject AddImportedProject(string projectPath)
+        {
+            IGeneroProject projEntry;
+            if (!_projects.TryGetValue(projectPath, out projEntry))
+            {
+                GeneroProject proj = new GeneroProject(projectPath);
+                _projects.AddOrUpdate(projectPath, proj, (x, y) => y);
+                QueueDirectoryAnalysis(projectPath);
+                projEntry = proj;
+            }
+            return projEntry;
+        }
+
+        internal void RemoveImportedProject(string projectPath)
+        {
+
+        }
+
         private IGeneroProjectEntry CreateProjectEntry(ITextBuffer buffer, IAnalysisCookie analysisCookie)
         {
             IGeneroProjectEntry entry = null;
@@ -125,12 +143,12 @@ namespace VSGenero.EditorExtensions.Intellisense
                     {
                         string moduleName = null;   // TODO: get module name from provider (if provider is null, take the file's directory name)
                         IAnalysisCookie cookie = null;
-                        entry = new ProjectEntry(moduleName, path, cookie);
+                        entry = new GeneroProjectEntry(moduleName, path, cookie);
                     }
 
                     if (entry != null)
                     {
-                        GeneroProject proj = new GeneroProject();
+                        GeneroProject proj = new GeneroProject(dirPath);
                         proj.ProjectEntries.AddOrUpdate(path, entry, (x, y) => y);
                         entry.SetProject(proj);
                         _projects.AddOrUpdate(dirPath, proj, (x, y) => y);
@@ -151,7 +169,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                         {
                             string moduleName = null;   // TODO: get module name from provider (if provider is null, take the file's directory name)
                             IAnalysisCookie cookie = null;
-                            entry = new ProjectEntry(moduleName, path, cookie);
+                            entry = new GeneroProjectEntry(moduleName, path, cookie);
                         }
                     }
                     if (entry != null)
@@ -216,12 +234,61 @@ namespace VSGenero.EditorExtensions.Intellisense
                         // are there any others that are open?
                         if (!proj.ProjectEntries.Any(x => x.Value != entry && x.Value.IsOpen))
                         {
+                            // before clearing the top level project's entries, we need to go through
+                            // each one and have any Referenced projects remove the entry from their Referencing set.
+                            foreach(var projEntry in proj.ProjectEntries)
+                            {
+                                foreach(var refProj in proj.ReferencedProjects)
+                                {
+                                    if (refProj.Value.ReferencingProjectEntries.Contains(projEntry.Value))
+                                        refProj.Value.ReferencingProjectEntries.Remove(projEntry.Value);
+                                }
+                            }
                             proj.ProjectEntries.Clear();
+
+                            // unload any import modules that are not referenced by anything else.
+                            UnloadImportedModules(proj);
+
                             _projects.TryRemove(dirPath, out proj);
 
                             // remove the file from the error list
                             _taskProvider.Value.Clear(Path.GetDirectoryName(bufferParser._currentProjEntry.FilePath));
                         }
+                    }
+                }
+            }
+        }
+
+        internal void UnloadImportedModules(IGeneroProject project)
+        {
+            var refList = project.ReferencedProjects.Select(x => x.Value).ToList();
+            for(int i = 0; i < refList.Count; i++)
+            {
+                // if the project references another project, attempt to unload the referenced project (by recursing into it)
+                if(refList[i].ReferencedProjects.Count > 0)
+                {
+                    UnloadImportedModules(refList[i]);
+                }
+
+                if (refList[i].ReferencingProjectEntries.Count != 0)
+                {
+                    var referrList = refList[i].ReferencingProjectEntries.ToList();
+                    for (int j = 0; j < referrList.Count; j++)
+                    {
+                        if (referrList[j].ParentProject == project)
+                            refList[i].ReferencingProjectEntries.Remove(referrList[j]);
+                    }
+                }
+
+                // if no other things 
+                if(refList[i].ReferencingProjectEntries.Count == 0)
+                {
+                    IGeneroProject remProj;
+                    project.ReferencedProjects.TryRemove(refList[i].Directory, out remProj);
+                    IGeneroProject remProj2;
+                    if(_projects.TryRemove(refList[i].Directory, out remProj2))
+                    {
+                        _taskProvider.Value.Clear(refList[i].Directory);
                     }
                 }
             }
@@ -240,12 +307,12 @@ namespace VSGenero.EditorExtensions.Intellisense
                     {
                         string moduleName = null;   // TODO: get module name from provider (if provider is null, take the file's directory name)
                         IAnalysisCookie cookie = null;
-                        entry = new ProjectEntry(moduleName, path, cookie);
+                        entry = new GeneroProjectEntry(moduleName, path, cookie);
                     }
 
                     if (entry != null)
                     {
-                        GeneroProject proj = new GeneroProject();
+                        GeneroProject proj = new GeneroProject(dirPath);
                         proj.ProjectEntries.AddOrUpdate(path, entry, (x, y) => y);
                         entry.SetProject(proj);
                         _projects.AddOrUpdate(dirPath, proj, (x, y) => y);
@@ -259,7 +326,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                         {
                             string moduleName = null;   // TODO: get module name from provider (if provider is null, take the file's directory name)
                             IAnalysisCookie cookie = null;
-                            entry = new ProjectEntry(moduleName, path, cookie);
+                            entry = new GeneroProjectEntry(moduleName, path, cookie);
                         }
                     }
                     if (entry != null)
@@ -486,13 +553,18 @@ namespace VSGenero.EditorExtensions.Intellisense
                 {
                     pyEntry.UpdateTree(ast, cookie);
                     _analysisQueue.Enqueue(pyEntry, AnalysisPriority.Normal);
+                    pyEntry.UpdateImportedProjects(filename, ast);
+                    //if(pyEntry.DetectCircularImports())
+                    //{
+                    //    // TODO: add error(s) from the (to be defined) errors returned from the function
+                    //}
                 }
                 else
                 {
                     // notify that we failed to update the existing analysis
                     pyEntry.UpdateTree(null, null);
                 }
-
+                
                 if (errorSink.Warnings.Count > 0 || errorSink.Errors.Count > 0)
                 {
                     TaskProvider provider = GetTaskProviderAndClearProjectItems(projectEntry);
@@ -527,6 +599,11 @@ namespace VSGenero.EditorExtensions.Intellisense
                     if (ast != null)
                     {
                         asts.Add(ast);
+                        pyProjEntry.UpdateImportedProjects(pyProjEntry.FilePath, ast);
+                        //if (pyProjEntry.DetectCircularImports())
+                        //{
+                        //    // TODO: add error(s) from the (to be defined) errors returned from the function
+                        //}
                     }
 
                     // update squiggles for the buffer

@@ -21,11 +21,18 @@ namespace VSGenero.EditorExtensions
     {
         internal static void GotoSource(this LocationInfo location)
         {
-            VSGeneroPackage.NavigateTo(
-                location.FilePath,
-                Guid.Empty,
-                location.Line - 1,
-                location.Column - 1);
+            if (location.Line > 0 && location.Column > 0)
+            {
+                VSGeneroPackage.NavigateTo(
+                    location.FilePath,
+                    Guid.Empty,
+                    location.Line - 1,
+                    location.Column - 1);
+            }
+            else
+            {
+                VSGeneroPackage.NavigateTo(location.FilePath, Guid.Empty, location.Index);
+            }
         }
 
         internal static bool IsOpenGrouping(this ClassificationSpan span)

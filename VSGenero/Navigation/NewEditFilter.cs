@@ -184,10 +184,6 @@ namespace VSGenero.Navigation
         /// </summary>
         private void GotoLocation(LocationInfo location)
         {
-            Debug.Assert(location != null);
-            Debug.Assert(location.Line > 0);
-            Debug.Assert(location.Column > 0);
-
             if (CommonUtils.IsSamePath(location.FilePath, _textView.GetFilePath()))
             {
                 var adapterFactory = VSGeneroPackage.ComponentModel.GetService<IVsEditorAdaptersFactoryService>();

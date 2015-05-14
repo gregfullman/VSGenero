@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace VSGenero.Analysis
 {
     public class LocationInfo : IEquatable<LocationInfo>, ILocationResolver {
-        private readonly int _line, _column;
+        private readonly int _line, _column, _index;
         private readonly IProjectEntry _entry;
         private readonly string _filename;
         internal static LocationInfo[] Empty = new LocationInfo[0];
@@ -19,6 +19,12 @@ namespace VSGenero.Analysis
             _filename = filename;
             _line = line;
             _column = column;
+        }
+
+        public LocationInfo(string filename, int index)
+        {
+            _filename = filename;
+            _index = index;
         }
 
         internal LocationInfo(IProjectEntry entry, int line, int column) {
@@ -49,6 +55,8 @@ namespace VSGenero.Analysis
                 return _column;
             }
         }
+
+        public int Index { get { return _index; } }
 
         public override bool Equals(object obj) {
             LocationInfo other = obj as LocationInfo;
