@@ -471,11 +471,9 @@ namespace VSGenero.Analysis
             return GetMemberOfType(name, ast, true, true, true, true);
         }
 
-        public IEnumerable<MemberResult> GetMembers(GeneroAst ast)
+        public IEnumerable<MemberResult> GetMembers(GeneroAst ast, MemberType memberType)
         {
             List<MemberResult> members = new List<MemberResult>();
-
-            bool vars = true, types = true, consts = true, funcs = true;
 
             foreach (var projEntry in ProjectEntries)
             {
@@ -485,25 +483,25 @@ namespace VSGenero.Analysis
                     IModuleResult modRes = projEntry.Value.Analysis.Body as IModuleResult;
                     if (modRes != null)
                     {
-                        if(vars)
+                        if(memberType.HasFlag(MemberType.Variables))
                         {
                             members.AddRange(modRes.GlobalVariables.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Variable, ast)));
                             members.AddRange(modRes.Variables.Where(x => x.Value.IsPublic).Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Variable, ast)));
                         }
 
-                        if (types)
+                        if (memberType.HasFlag(MemberType.Types))
                         {
                             members.AddRange(modRes.GlobalTypes.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Class, ast)));
                             members.AddRange(modRes.Types.Where(x => x.Value.IsPublic).Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Class, ast)));
                         }
 
-                        if(consts)
+                        if(memberType.HasFlag(MemberType.Constants))
                         {
                             members.AddRange(modRes.GlobalConstants.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Constant, ast)));
                             members.AddRange(modRes.Constants.Where(x => x.Value.IsPublic).Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Constant, ast)));
                         }
 
-                        if(funcs)
+                        if(memberType.HasFlag(MemberType.Functions))
                         {
                             members.AddRange(modRes.Functions.Where(x => x.Value.IsPublic).Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Function, ast)));
                         }

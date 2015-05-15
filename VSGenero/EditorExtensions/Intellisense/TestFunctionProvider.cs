@@ -86,7 +86,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             return collection;
         }
 
-        public IEnumerable<MemberResult> GetMembers(GeneroAst ast)
+        public IEnumerable<MemberResult> GetMembers(GeneroAst ast, MemberType memberType)
         {
             return _collections.Values.Select(x => new MemberResult(x.Name, x, GeneroMemberType.Class, ast));
         }
@@ -171,7 +171,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             return GetFunction(name);
         }
 
-        public IEnumerable<MemberResult> GetMembers(GeneroAst ast)
+        public IEnumerable<MemberResult> GetMembers(GeneroAst ast, MemberType memberType)
         {
             return _functions.Values.Select(x => new MemberResult(x.Name, x, GeneroMemberType.Method, ast));
         }
@@ -276,7 +276,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             return null;
         }
 
-        public IEnumerable<MemberResult> GetMembers(GeneroAst ast)
+        public IEnumerable<MemberResult> GetMembers(GeneroAst ast, MemberType memberType)
         {
             return new List<MemberResult>();
         }

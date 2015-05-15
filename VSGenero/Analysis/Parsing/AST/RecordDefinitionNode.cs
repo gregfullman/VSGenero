@@ -205,7 +205,7 @@ namespace VSGenero.Analysis.Parsing.AST
             }
         }
 
-        public IEnumerable<MemberResult> GetMembers(GeneroAst ast)
+        public IEnumerable<MemberResult> GetMembers(GeneroAst ast, MemberType memberType)
         {
             if (MemberDictionary.Count == 0 && !string.IsNullOrEmpty(MimicTableName))
             {

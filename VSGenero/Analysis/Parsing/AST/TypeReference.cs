@@ -245,12 +245,13 @@ namespace VSGenero.Analysis.Parsing.AST
             }
             else
             {
+                MemberType memType = Analysis.MemberType.All;
                 // TODO: there's probably a better way to do this
-                return GetAnalysisMembers(ast).Where(x => x.Name.Equals(name, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+                return GetAnalysisMembers(ast, memType).Where(x => x.Name.Equals(name, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
             }
         }
 
-        internal IEnumerable<IAnalysisResult> GetAnalysisMembers(GeneroAst ast)
+        internal IEnumerable<IAnalysisResult> GetAnalysisMembers(GeneroAst ast, MemberType memberType)
         {
             List<IAnalysisResult> members = new List<IAnalysisResult>();
             if (Children.Count == 1)
@@ -259,7 +260,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 var node = Children[Children.Keys[0]];
                 if (node is ArrayTypeReference)
                 {
-                    return (node as ArrayTypeReference).GetAnalysisResults(ast);
+                    return (node as ArrayTypeReference).GetAnalysisResults(ast, memberType);
                 }
                 else if (node is RecordDefinitionNode)
                 {
@@ -283,7 +284,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     IAnalysisResult udt = ast.TryGetUserDefinedType(_typeNameString, LocationIndex);
                     if (udt != null)
                     {
-                        return udt.GetMembers(ast).Select(x => x.Var).Where(y => y != null);
+                        return udt.GetMembers(ast, memberType).Select(x => x.Var).Where(y => y != null);
                     }
                     
                     // try to get the _typeNameString from types available in imported modules
@@ -296,7 +297,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                 udt = (refProj as GeneroProject).GetMemberOfType(_typeNameString, ast, false, true, false, false);
                                 if(udt != null)
                                 {
-                                    return udt.GetMembers(ast).Select(x => x.Var).Where(y => y != null);
+                                    return udt.GetMembers(ast, memberType).Select(x => x.Var).Where(y => y != null);
                                 }
                             }
                         }
@@ -306,14 +307,14 @@ namespace VSGenero.Analysis.Parsing.AST
                     udt = ast.GetValueByIndex(_typeNameString, LocationIndex, ast._functionProvider, ast._databaseProvider);
                     if (udt != null)
                     {
-                        return udt.GetMembers(ast).Select(x => x.Var).Where(y => y != null);
+                        return udt.GetMembers(ast, memberType).Select(x => x.Var).Where(y => y != null);
                     }
                 }
             }
             return members;
         }
 
-        public IEnumerable<MemberResult> GetMembers(GeneroAst ast)
+        public IEnumerable<MemberResult> GetMembers(GeneroAst ast, MemberType memberType)
         {
             List<MemberResult> members = new List<MemberResult>();
             if (Children.Count == 1)
@@ -322,11 +323,11 @@ namespace VSGenero.Analysis.Parsing.AST
                 var node = Children[Children.Keys[0]];
                 if (node is ArrayTypeReference)
                 {
-                    return (node as ArrayTypeReference).GetMembersInternal(ast);
+                    return (node as ArrayTypeReference).GetMembersInternal(ast, memberType);
                 }
                 else if (node is RecordDefinitionNode)
                 {
-                    return (node as RecordDefinitionNode).GetMembers(ast);
+                    return (node as RecordDefinitionNode).GetMembers(ast, memberType);
                 }
             }
             else
@@ -345,7 +346,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     IAnalysisResult udt = ast.TryGetUserDefinedType(_typeNameString, LocationIndex);
                     if (udt != null)
                     {
-                        return udt.GetMembers(ast);
+                        return udt.GetMembers(ast, memberType);
                     }
 
                     if (ast.ProjectEntry.ParentProject.ReferencedProjects.Count > 0)
@@ -357,7 +358,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                 udt = (refProj as GeneroProject).GetMemberOfType(_typeNameString, ast, false, true, false, false);
                                 if (udt != null)
                                 {
-                                    return udt.GetMembers(ast);
+                                    return udt.GetMembers(ast, memberType);
                                 }
                             }
                         }
@@ -367,7 +368,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     udt = ast.GetValueByIndex(_typeNameString, LocationIndex, ast._functionProvider, ast._databaseProvider);
                     if (udt != null)
                     {
-                        return udt.GetMembers(ast);
+                        return udt.GetMembers(ast, memberType);
                     }
                 }
             }

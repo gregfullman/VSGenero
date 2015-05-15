@@ -767,7 +767,7 @@ namespace VSGenero.Analysis.Parsing.AST
             return false;
         }
 
-        private bool TryMemberAccess(int index, IReverseTokenizer revTokenizer, out List<MemberResult> results)
+        private bool TryMemberAccess(int index, IReverseTokenizer revTokenizer, out List<MemberResult> results, MemberType memberType = MemberType.All)
         {
             results = new List<MemberResult>();
             bool skipGettingNext = false;
@@ -824,7 +824,7 @@ namespace VSGenero.Analysis.Parsing.AST
                             var analysisRes = GetValueByIndex(var, index, _functionProvider, _databaseProvider);
                             if (analysisRes != null)
                             {
-                                var members = analysisRes.GetMembers(this);
+                                var members = analysisRes.GetMembers(this, memberType);
                                 if (members != null)
                                 {
                                     // TODO: this is a bit of a hack...
@@ -1179,7 +1179,7 @@ namespace VSGenero.Analysis.Parsing.AST
             Expression
         }
 
-        private bool TryVariableReference(int index, IReverseTokenizer revTokenizer, out List<MemberResult> results, out int startIndex)
+        private bool TryVariableReference(int index, IReverseTokenizer revTokenizer, out List<MemberResult> results, out int startIndex, TokenKind[] bannedKeywords = null)
         {
             startIndex = index;
             results = new List<MemberResult>();
@@ -1277,7 +1277,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     List<MemberResult> dummyList;
                     int currIndex = tokInfo.SourceSpan.Start.Index;
                     int exprStartIndex;
-                    bool exprSuccess = TryExpression(currIndex, revTokenizer, index, out dummyList, out exprStartIndex);
+                    bool exprSuccess = TryExpression(currIndex, revTokenizer, index, out dummyList, out exprStartIndex, bannedKeywords);
                     if (!exprSuccess)
                     {
                         if (exprStartIndex < currIndex)
@@ -1357,6 +1357,12 @@ namespace VSGenero.Analysis.Parsing.AST
                 }
                 else if (tokInfo.Category == TokenCategory.Keyword || tokInfo.Category == TokenCategory.Identifier)
                 {
+                    if(bannedKeywords != null && bannedKeywords.Contains(tokInfo.Token.Kind))
+                    {
+                        results.Clear();
+                        return false;
+                    }
+
                     if (firstState == VariableReferenceState.None)
                     {
                         firstState = VariableReferenceState.KeywordIdent;
@@ -2625,7 +2631,8 @@ namespace VSGenero.Analysis.Parsing.AST
 
                 if (tokInfo.Token.Kind == TokenKind.WhileKeyword ||
                     tokInfo.Token.Kind == TokenKind.CaseKeyword ||
-                    tokInfo.Token.Kind == TokenKind.WhenKeyword)
+                    tokInfo.Token.Kind == TokenKind.WhenKeyword ||
+                    tokInfo.Token.Kind == TokenKind.ReturnKeyword)
                 {
                     if(firstState == KTEStatementState.None || firstState == KTEStatementState.LeftParen)
                     {
@@ -2653,12 +2660,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     List<MemberResult> dummyList;
                     int currIndex = tokInfo.SourceSpan.Start.Index + 1;
                     int exprStartIndex;
-                    bool exprSuccess = TryExpression(currIndex, revTokenizer, index, out dummyList, out exprStartIndex, new TokenKind[] 
-                    { 
-                        TokenKind.WhileKeyword,
-                        TokenKind.CaseKeyword,
-                        TokenKind.WhenKeyword
-                    });
+                    bool exprSuccess = TryExpression(currIndex, revTokenizer, index, out dummyList, out exprStartIndex, ValidStatementKeywords.ToArray());
                     if (!exprSuccess)
                     {
                         if (exprStartIndex < currIndex)
@@ -2688,7 +2690,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         {
                             // 1) See if we're within a variable reference
                             int newIndex;
-                            if (!TryVariableReference(currIndex, revTokenizer, out dummyList, out newIndex))
+                            if (!TryVariableReference(currIndex, revTokenizer, out dummyList, out newIndex, ValidStatementKeywords.ToArray()))
                             {
                                 if (newIndex < currIndex)
                                 {
@@ -2836,6 +2838,31 @@ namespace VSGenero.Analysis.Parsing.AST
                 {
                     if(firstState == ForStatementState.None)
                     {
+                        if (!enumerator.MoveNext())
+                        {
+                            results.Clear();
+                            return false;
+                        }
+                        tokInfo = enumerator.Current;
+                        // check to see that the previous token is not 'end'
+                        while (tokInfo.Equals(default(TokenInfo)) ||
+                               tokInfo.Token.Kind == TokenKind.NewLine ||
+                               tokInfo.Token.Kind == TokenKind.NLToken ||
+                               tokInfo.Token.Kind == TokenKind.Comment)
+                        {
+                            if (!enumerator.MoveNext())
+                            {
+                                results.Clear();
+                                return false;
+                            }
+                            tokInfo = enumerator.Current;
+                        }
+                        if(tokInfo.Token.Kind == TokenKind.EndKeyword)
+                        {
+                            results.Clear();
+                            return false;
+                        }
+
                         // get all variables that are int, smallint, bigint, and tinyint
                         results.AddRange(GetDefinedMembers(index, true, false, false, false));
                         return true;
@@ -3139,6 +3166,34 @@ namespace VSGenero.Analysis.Parsing.AST
                 {
                     if (firstState == IfStatementState.None || firstState == IfStatementState.LeftParen)
                     {
+                        if (firstState == IfStatementState.None)
+                        {
+                            if (!enumerator.MoveNext())
+                            {
+                                results.Clear();
+                                return false;
+                            }
+                            tokInfo = enumerator.Current;
+                            // check to see that the previous token is not 'end'
+                            while (tokInfo.Equals(default(TokenInfo)) ||
+                                   tokInfo.Token.Kind == TokenKind.NewLine ||
+                                   tokInfo.Token.Kind == TokenKind.NLToken ||
+                                   tokInfo.Token.Kind == TokenKind.Comment)
+                            {
+                                if (!enumerator.MoveNext())
+                                {
+                                    results.Clear();
+                                    return false;
+                                }
+                                tokInfo = enumerator.Current;
+                            }
+                            if (tokInfo.Token.Kind == TokenKind.EndKeyword)
+                            {
+                                results.Clear();
+                                return false;
+                            }
+                        }
+
                         results.AddRange(GetDefinedMembers(index, true, true, false, true));
                         return true;
                     }
@@ -3181,7 +3236,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     List<MemberResult> dummyList;
                     int currIndex = tokInfo.SourceSpan.Start.Index + 1;
                     int exprStartIndex;
-                    bool exprSuccess = TryExpression(currIndex, revTokenizer, index, out dummyList, out exprStartIndex, new TokenKind[] { TokenKind.IfKeyword });
+                    bool exprSuccess = TryExpression(currIndex, revTokenizer, index, out dummyList, out exprStartIndex, ValidStatementKeywords.ToArray());
                     if (!exprSuccess)
                     {
                         if (exprStartIndex < currIndex)
@@ -3212,7 +3267,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         {
                             // 1) See if we're within a variable reference
                             int newIndex;
-                            if (!TryVariableReference(currIndex, revTokenizer, out dummyList, out newIndex))
+                            if (!TryVariableReference(currIndex, revTokenizer, out dummyList, out newIndex, ValidStatementKeywords.ToArray()))
                             {
                                 if (newIndex < currIndex)
                                 {
@@ -3853,7 +3908,7 @@ namespace VSGenero.Analysis.Parsing.AST
             if (TryDefineDefContext(index, revTokenizer, out members, new List<TokenKind> { TokenKind.PublicKeyword, TokenKind.PrivateKeyword, TokenKind.GlobalsKeyword, TokenKind.FunctionKeyword }))
             {
                 List<MemberResult> memberAccessResults = new List<MemberResult>();
-                if (TryMemberAccess(index, revTokenizer, out memberAccessResults))
+                if (TryMemberAccess(index, revTokenizer, out memberAccessResults, MemberType.Types))
                 {
                     // if there are any GeneroPackageClasses, limit them to only ones that are instance classes
                     return memberAccessResults.Where(x =>
@@ -3909,9 +3964,9 @@ namespace VSGenero.Analysis.Parsing.AST
                 return members;
             }
 
-            if (TryIfStatement(index, revTokenizer, out members, out isMemberAccess) ||
-                TryForStatement(index, revTokenizer, out members, out isMemberAccess) ||
-                TryKeywordThenExpressionStatement(index, revTokenizer, out members, out isMemberAccess))
+            if (TryKeywordThenExpressionStatement(index, revTokenizer, out members, out isMemberAccess) ||
+                TryIfStatement(index, revTokenizer, out members, out isMemberAccess) ||
+                TryForStatement(index, revTokenizer, out members, out isMemberAccess))
             {
                 //List<MemberResult> memberAccessResults = new List<MemberResult>();
                 //if (TryMemberAccess(index, revTokenizer, out memberAccessResults))

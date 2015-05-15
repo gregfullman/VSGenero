@@ -71,9 +71,9 @@ namespace VSGenero.Analysis.Parsing.AST
             return Type.GetMember(name, ast);
         }
 
-        public IEnumerable<MemberResult> GetMembers(GeneroAst ast)
+        public IEnumerable<MemberResult> GetMembers(GeneroAst ast, MemberType memberType)
         {
-            return Type.GetMembers(ast);
+            return Type.GetMembers(ast, memberType);
         }
 
         public bool HasChildFunctions(GeneroAst ast)

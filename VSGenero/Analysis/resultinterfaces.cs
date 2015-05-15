@@ -9,6 +9,15 @@ using VSGenero.Analysis.Parsing.AST;
 
 namespace VSGenero.Analysis
 {
+    public enum MemberType
+    {
+        Variables = 1,
+        Types = 2,
+        Constants = 4,
+        Functions = 8,
+        All = 15
+    }
+
     public interface IAnalysisResult
     {
         string Scope { get; set; }
@@ -21,7 +30,7 @@ namespace VSGenero.Analysis
         bool IsPublic { get; }
 
         IAnalysisResult GetMember(string name, GeneroAst ast);
-        IEnumerable<MemberResult> GetMembers(GeneroAst ast);
+        IEnumerable<MemberResult> GetMembers(GeneroAst ast, MemberType memberType);
     }
 
     public enum DatabaseTableType

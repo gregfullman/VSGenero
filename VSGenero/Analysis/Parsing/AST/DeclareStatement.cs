@@ -213,7 +213,7 @@ namespace VSGenero.Analysis.Parsing.AST
             return null;
         }
 
-        public IEnumerable<MemberResult> GetMembers(GeneroAst ast)
+        public IEnumerable<MemberResult> GetMembers(GeneroAst ast, MemberType memberType)
         {
             return null;
         }

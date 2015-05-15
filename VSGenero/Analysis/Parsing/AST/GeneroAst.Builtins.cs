@@ -565,7 +565,7 @@ new ParameterResult("width", "", "integer"),
             return progReg;
         }
 
-        public IEnumerable<MemberResult> GetMembers(GeneroAst ast)
+        public IEnumerable<MemberResult> GetMembers(GeneroAst ast, MemberType memberType)
         {
             if (_childRegisters != null)
             {
@@ -649,7 +649,7 @@ new ParameterResult("width", "", "integer"),
             return null;
         }
 
-        public IEnumerable<MemberResult> GetMembers(GeneroAst ast)
+        public IEnumerable<MemberResult> GetMembers(GeneroAst ast, MemberType memberType)
         {
             return null;
         }
@@ -789,7 +789,7 @@ new ParameterResult("width", "", "integer"),
             return null;
         }
 
-        public IEnumerable<MemberResult> GetMembers(GeneroAst ast)
+        public IEnumerable<MemberResult> GetMembers(GeneroAst ast, MemberType memberType)
         {
             return null;
         }
@@ -920,7 +920,7 @@ new ParameterResult("width", "", "integer"),
             return funcRes;
         }
 
-        public IEnumerable<MemberResult> GetMembers(GeneroAst ast)
+        public IEnumerable<MemberResult> GetMembers(GeneroAst ast, MemberType memberType)
         {
             return _memberFunctions.Values.Select(x => new MemberResult(x.Name, x, GeneroMemberType.Method, ast));
         }

@@ -472,15 +472,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     /* TODO:
                      * Need to check for:
                      * 1) Temp tables
-                     * 2) DB Tables and columns
                      */
-                    if(_databaseProvider != null)
-                    {
-                        res = _databaseProvider.GetTable(dotPiece);
-                        if (res != null)
-                            continue;
-                    }
-
 
                     // Nothing found yet...
                     // If our containing node is at the function or globals level, we need to go deeper
@@ -593,6 +585,13 @@ namespace VSGenero.Analysis.Parsing.AST
                                 continue;
                             }
                         }
+                    }
+
+                    if (_databaseProvider != null)
+                    {
+                        res = _databaseProvider.GetTable(dotPiece);
+                        if (res != null)
+                            continue;
                     }
 
                     if (res == null)

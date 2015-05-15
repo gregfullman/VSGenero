@@ -3225,7 +3225,7 @@ namespace VSGenero.Analysis.Parsing.AST
             return cls;
         }
 
-        public IEnumerable<MemberResult> GetMembers(GeneroAst ast)
+        public IEnumerable<MemberResult> GetMembers(GeneroAst ast, MemberType memberType)
         {
             return _classes.Values.Select(x => new MemberResult(x.Name, x, GeneroMemberType.Class, ast));
         }
@@ -3322,7 +3322,7 @@ namespace VSGenero.Analysis.Parsing.AST
             return method;
         }
 
-        public IEnumerable<MemberResult> GetMembers(GeneroAst ast)
+        public IEnumerable<MemberResult> GetMembers(GeneroAst ast, MemberType memberType)
         {
             return _methods.Values.Select(x => new MemberResult(x.Name, x, GeneroMemberType.Method, ast));
         }
@@ -3467,7 +3467,7 @@ namespace VSGenero.Analysis.Parsing.AST
             return null;
         }
 
-        public IEnumerable<MemberResult> GetMembers(GeneroAst ast)
+        public IEnumerable<MemberResult> GetMembers(GeneroAst ast, MemberType memberType)
         {
             return null;
         }

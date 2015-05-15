@@ -112,12 +112,12 @@ namespace VSGenero.Analysis.Parsing.AST
             return null;
         }
 
-        public IEnumerable<MemberResult> GetMembers(GeneroAst ast)
+        public IEnumerable<MemberResult> GetMembers(GeneroAst ast, MemberType memberType)
         {
             if(Children.Count == 1 &&
                Children[Children.Keys[0]] is TypeReference)
             {
-                return (Children[Children.Keys[0]] as TypeReference).GetMembers(ast);
+                return (Children[Children.Keys[0]] as TypeReference).GetMembers(ast, memberType);
             }
             return null;
         }
