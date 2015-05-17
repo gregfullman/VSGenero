@@ -43,6 +43,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     parser.NextToken();
                     if (parser.PeekToken(TokenKind.LeftParenthesis))
                     {
+                        parser.NextToken();
                         ExpressionNode expr;
                         while (ExpressionNode.TryGetExpressionNode(parser, out expr, new List<TokenKind> { TokenKind.Comma, TokenKind.RightParenthesis }))
                         {
@@ -270,7 +271,7 @@ namespace VSGenero.Analysis.Parsing.AST
 
                                 ExpressionNode optionNumber;
                                 if (ExpressionNode.TryGetExpressionNode(parser, out optionNumber))
-                                    node.OptionComment = optionNumber;
+                                    node.HelpNumber = optionNumber;
                                 else
                                     parser.ReportSyntaxError("Invalid help-number found in menu command option.");
                             }

@@ -35,10 +35,7 @@ namespace VSGenero.Analysis.Parsing.AST
             CompilerOption,
             Imports,
             SchemaSpec,
-            Globals,
-            Constants,
-            TypeDefs,
-            VarDefs,
+            MemberDefinitions,
             Main,
             Body
         }
@@ -116,7 +113,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     continue;
 
                 ImportModuleNode importNode;
-                while (ImportModuleNode.TryParseNode(parser, out importNode))
+                if (ImportModuleNode.TryParseNode(parser, out importNode))
                 {
                     if (processed == NodesProcessed.CompilerOption)
                     {
@@ -162,9 +159,9 @@ namespace VSGenero.Analysis.Parsing.AST
                     continue;
 
                 GlobalsNode globalNode;
-                while (GlobalsNode.TryParseNode(parser, out globalNode))
+                if (GlobalsNode.TryParseNode(parser, out globalNode))
                 {
-                    if (processed == NodesProcessed.SchemaSpec)
+                    if (processed == NodesProcessed.SchemaSpec || processed == NodesProcessed.MemberDefinitions)
                     {
                         defNode.Children.Add(globalNode.StartIndex, globalNode);
                         foreach (var cGlobKVP in globalNode.Constants)
@@ -188,6 +185,7 @@ namespace VSGenero.Analysis.Parsing.AST
                             else
                                 parser.ReportSyntaxError(vGlobKVP.Value.LocationIndex, vGlobKVP.Value.LocationIndex + vGlobKVP.Value.Name.Length, string.Format("Global variable {0} defined more than once.", vGlobKVP.Key));
                         }
+                        continue;
                     }
                     else
                     {
@@ -195,7 +193,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     }
                 }
                 if (processed == NodesProcessed.SchemaSpec)
-                    processed = NodesProcessed.Globals;
+                    processed = NodesProcessed.MemberDefinitions;
 
                 if (CheckForPreprocessorNode(parser))
                     continue;
@@ -203,19 +201,20 @@ namespace VSGenero.Analysis.Parsing.AST
                 bool matchedBreakSequence = false;
                 ConstantDefNode constNode;
                 List<List<TokenKind>> breakSequences = new List<List<TokenKind>>() 
-                    { 
+                    {
+                        new List<TokenKind> { TokenKind.GlobalsKeyword },
                         new List<TokenKind> { TokenKind.PublicKeyword },
                         new List<TokenKind> { TokenKind.PrivateKeyword },
                         new List<TokenKind> { TokenKind.ConstantKeyword },
-                        new List<TokenKind> { TokenKind.TypeKeyword },
                         new List<TokenKind> { TokenKind.DefineKeyword },
+                        new List<TokenKind> { TokenKind.TypeKeyword },
                         new List<TokenKind> { TokenKind.FunctionKeyword },
                         new List<TokenKind> { TokenKind.MainKeyword },
                         new List<TokenKind> { TokenKind.ReportKeyword }
                     };
-                while (ConstantDefNode.TryParseNode(parser, out constNode, out matchedBreakSequence, breakSequences))
+                if (ConstantDefNode.TryParseNode(parser, out constNode, out matchedBreakSequence, breakSequences))
                 {
-                    if (processed == NodesProcessed.Globals)
+                    if (processed == NodesProcessed.SchemaSpec || processed == NodesProcessed.MemberDefinitions)
                     {
                         defNode.Children.Add(constNode.StartIndex, constNode);
                         foreach (var def in constNode.GetDefinitions())
@@ -226,35 +225,23 @@ namespace VSGenero.Analysis.Parsing.AST
                             else
                                 parser.ReportSyntaxError(def.LocationIndex, def.LocationIndex + def.Name.Length, string.Format("Module constant {0} defined more than once.", def.Name));
                         }
+                        continue;
                     }
                     else
                     {
                         parser.ReportSyntaxError("Constant definition found in incorrect position.");
                     }
                 }
-                if (processed == NodesProcessed.Globals)
-                    processed = NodesProcessed.Constants;
+                if (processed == NodesProcessed.SchemaSpec)
+                    processed = NodesProcessed.MemberDefinitions;
 
                 if (CheckForPreprocessorNode(parser))
                     continue;
 
                 TypeDefNode typeNode;
-                breakSequences = new List<List<TokenKind>>() 
-                    { 
-                        new List<TokenKind> { TokenKind.PublicKeyword },
-                        new List<TokenKind> { TokenKind.PrivateKeyword },
-                        new List<TokenKind> { TokenKind.ConstantKeyword },
-                        new List<TokenKind> { TokenKind.DefineKeyword },
-                        new List<TokenKind> { TokenKind.TypeKeyword },
-                        new List<TokenKind> { TokenKind.FunctionKeyword },
-                        new List<TokenKind> { TokenKind.MainKeyword },
-                        new List<TokenKind> { TokenKind.ReportKeyword },
-                        new List<TokenKind> { TokenKind.PublicKeyword },
-                        new List<TokenKind> { TokenKind.PrivateKeyword }
-                    };
-                while (TypeDefNode.TryParseNode(parser, out typeNode, out matchedBreakSequence, breakSequences))
+                if (TypeDefNode.TryParseNode(parser, out typeNode, out matchedBreakSequence, breakSequences))
                 {
-                    if (processed == NodesProcessed.Constants)
+                    if (processed == NodesProcessed.SchemaSpec || processed == NodesProcessed.MemberDefinitions)
                     {
                         defNode.Children.Add(typeNode.StartIndex, typeNode);
                         foreach (var def in typeNode.GetDefinitions())
@@ -265,32 +252,23 @@ namespace VSGenero.Analysis.Parsing.AST
                             else
                                 parser.ReportSyntaxError(def.LocationIndex, def.LocationIndex + def.Name.Length, string.Format("Module type {0} defined more than once.", def.Name));
                         }
+                        continue;
                     }
                     else
                     {
                         parser.ReportSyntaxError("Type definition found in incorrect position.");
                     }
                 }
-                if (processed == NodesProcessed.Constants)
-                    processed = NodesProcessed.TypeDefs;
+                if (processed == NodesProcessed.SchemaSpec)
+                    processed = NodesProcessed.MemberDefinitions;
 
                 if (CheckForPreprocessorNode(parser))
                     continue;
 
                 DefineNode defineNode;
-                breakSequences = new List<List<TokenKind>>() 
-                    { 
-                        new List<TokenKind> { TokenKind.PublicKeyword },
-                        new List<TokenKind> { TokenKind.PrivateKeyword },
-                        new List<TokenKind> { TokenKind.TypeKeyword },
-                        new List<TokenKind> { TokenKind.ConstantKeyword },
-                        new List<TokenKind> { TokenKind.FunctionKeyword },
-                        new List<TokenKind> { TokenKind.MainKeyword },
-                        new List<TokenKind> { TokenKind.ReportKeyword }
-                    };
-                while (DefineNode.TryParseDefine(parser, out defineNode, out matchedBreakSequence, breakSequences))
+                if (DefineNode.TryParseDefine(parser, out defineNode, out matchedBreakSequence, breakSequences))
                 {
-                    if (processed == NodesProcessed.TypeDefs)
+                    if (processed == NodesProcessed.SchemaSpec || processed == NodesProcessed.MemberDefinitions)
                     {
                         defNode.Children.Add(defineNode.StartIndex, defineNode);
                         foreach (var def in defineNode.GetDefinitions())
@@ -303,14 +281,15 @@ namespace VSGenero.Analysis.Parsing.AST
                                 else
                                     parser.ReportSyntaxError(vardef.LocationIndex, vardef.LocationIndex + vardef.Name.Length, string.Format("Module variable {0} defined more than once.", vardef.Name));
                             }
+                        continue;
                     }
                     else
                     {
                         parser.ReportSyntaxError("Variable definition found in incorrect position.");
                     }
                 }
-                if (processed == NodesProcessed.TypeDefs)
-                    processed = NodesProcessed.VarDefs;
+                if (processed == NodesProcessed.SchemaSpec)
+                    processed = NodesProcessed.MemberDefinitions;
 
                 if (CheckForPreprocessorNode(parser))
                     continue;
@@ -318,7 +297,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 MainBlockNode mainBlock;
                 if (MainBlockNode.TryParseNode(parser, out mainBlock, defNode.PreparedCursorResolver))
                 {
-                    if (processed == NodesProcessed.VarDefs)
+                    if (processed == NodesProcessed.MemberDefinitions)
                     {
                         defNode.Children.Add(mainBlock.StartIndex, mainBlock);
                         defNode.Functions.Add(mainBlock.Name, mainBlock);
@@ -336,7 +315,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         parser.ReportSyntaxError("Main block found in incorrect position.");
                     }
                 }
-                if (processed == NodesProcessed.VarDefs)
+                if (processed == NodesProcessed.MemberDefinitions)
                     processed = NodesProcessed.Main;
 
                 if (CheckForPreprocessorNode(parser))

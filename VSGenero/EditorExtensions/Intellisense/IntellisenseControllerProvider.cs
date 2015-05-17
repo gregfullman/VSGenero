@@ -15,6 +15,7 @@ using System.Text;
 using System.Threading.Tasks;
 using VSGenero.Analysis;
 using Microsoft.VisualStudio.VSCommon;
+using VSGenero.Snippets;
 
 namespace VSGenero.EditorExtensions.Intellisense
 {
@@ -33,6 +34,8 @@ namespace VSGenero.EditorExtensions.Intellisense
         internal IQuickInfoBroker _QuickInfoBroker = null; // Set via MEF
         [Import]
         internal IIncrementalSearchFactoryService _IncrementalSearch = null; // Set via MEF
+        [Import]
+        internal IPublicFunctionSnippetizer _PublicFunctionSnippetizer = null;  // Set view MEF
 
         [Import(AllowDefault = true)]
         internal IFunctionInformationProvider _PublicFunctionProvider = null;

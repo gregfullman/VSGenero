@@ -303,6 +303,24 @@ namespace VSGenero.Analysis.Parsing.AST
                         }
                         break;
                     }
+                case TokenKind.InputKeyword:
+                    {
+                        InputBlock inputStmt;
+                        if((result = InputBlock.TryParseNode(parser, out inputStmt)))
+                        {
+                            node = inputStmt;
+                        }
+                        break;
+                    }
+                case TokenKind.ConstructKeyword:
+                    {
+                        ConstructBlock constructStmt;
+                        if ((result = ConstructBlock.TryParseNode(parser, out constructStmt)))
+                        {
+                            node = constructStmt;
+                        }
+                        break;
+                    }
                 default:
                     {
                         if (SqlStatementFactory.IsValidStatementStart(parser.PeekToken().Kind))

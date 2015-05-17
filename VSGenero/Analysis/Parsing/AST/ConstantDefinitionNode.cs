@@ -71,6 +71,15 @@ namespace VSGenero.Analysis.Parsing.AST
                         parser.NextToken();
                         defNode.Literal = string.Format("\'{0}\'", parser.Token.Token.Value.ToString());
                     }
+                    else if(parser.PeekToken(TokenKind.Subtract))
+                    {
+                        parser.NextToken();
+                        if (parser.PeekToken(TokenCategory.NumericLiteral))
+                        {
+                            parser.NextToken();
+                            defNode.Literal = string.Format("-{0}", parser.Token.Token.Value.ToString());
+                        }
+                    }
                     else if(parser.PeekToken(TokenCategory.NumericLiteral))
                     {
                         parser.NextToken();
