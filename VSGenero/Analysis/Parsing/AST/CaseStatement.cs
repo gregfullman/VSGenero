@@ -12,7 +12,8 @@ namespace VSGenero.Analysis.Parsing.AST
 
         public static bool TryParseNode(Parser parser, out CaseStatement node,
                                         Func<string, PrepareStatement> prepStatementResolver = null,
-                                        Action<PrepareStatement> prepStatementBinder = null)
+                                        Action<PrepareStatement> prepStatementBinder = null,
+                                        List<TokenKind> validExitKeywords = null)
         {
             node = null;
             bool result = false;
@@ -37,13 +38,18 @@ namespace VSGenero.Analysis.Parsing.AST
                     }
                 }
 
+                List<TokenKind> validExits = new List<TokenKind>();
+                if (validExitKeywords != null)
+                    validExits.AddRange(validExitKeywords);
+                validExits.Add(TokenKind.CaseKeyword);
+
                 // need to allow multiple when statements
                 bool whenCases = true;
                 while(!parser.PeekToken(TokenKind.EndOfFile) &&
                       !(parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.CaseKeyword, 2)))
                 {
                     WhenStatement whenStmt;
-                    if(WhenStatement.TryParseNode(parser, out whenStmt, prepStatementResolver, prepStatementBinder))
+                    if (WhenStatement.TryParseNode(parser, out whenStmt, prepStatementResolver, prepStatementBinder, validExits))
                     {
                         if (whenCases)
                         {
@@ -58,7 +64,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     else
                     {
                         OtherwiseStatement otherStmt;
-                        if(OtherwiseStatement.TryParseNode(parser, out otherStmt, prepStatementResolver, prepStatementBinder))
+                        if (OtherwiseStatement.TryParseNode(parser, out otherStmt, prepStatementResolver, prepStatementBinder, validExits))
                         {
                             whenCases = false;
                             node.Children.Add(otherStmt.StartIndex, otherStmt);
@@ -93,7 +99,8 @@ namespace VSGenero.Analysis.Parsing.AST
 
         public static bool TryParseNode(Parser parser, out WhenStatement node,
                                         Func<string, PrepareStatement> prepStatementResolver = null,
-                                        Action<PrepareStatement> prepStatementBinder = null)
+                                        Action<PrepareStatement> prepStatementBinder = null,
+                                        List<TokenKind> validExitKeywords = null)
         {
             node = null;
             bool result = false;
@@ -117,7 +124,7 @@ namespace VSGenero.Analysis.Parsing.AST
                       !(parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.CaseKeyword, 2)))
                 {
                     FglStatement statement;
-                    if (parser.StatementFactory.TryParseNode(parser, out statement, prepStatementResolver, prepStatementBinder))
+                    if (parser.StatementFactory.TryParseNode(parser, out statement, prepStatementResolver, prepStatementBinder, false, validExitKeywords))
                     {
                         AstNode stmtNode = statement as AstNode;
                         node.Children.Add(stmtNode.StartIndex, stmtNode);
@@ -125,7 +132,8 @@ namespace VSGenero.Analysis.Parsing.AST
                         if (statement is ExitStatement &&
                            (statement as ExitStatement).ExitType != TokenKind.CaseKeyword)
                         {
-                            parser.ReportSyntaxError("Invalid exit statement for case statement block detected.");
+                            if (!validExitKeywords.Contains((statement as ExitStatement).ExitType))
+                                parser.ReportSyntaxError("Invalid exit statement for case statement block detected.");
                         }
                     }
                     else
@@ -145,7 +153,8 @@ namespace VSGenero.Analysis.Parsing.AST
     {
         public static bool TryParseNode(Parser parser, out OtherwiseStatement node,
                                         Func<string, PrepareStatement> prepStatementResolver = null,
-                                        Action<PrepareStatement> prepStatementBinder = null)
+                                        Action<PrepareStatement> prepStatementBinder = null,
+                                        List<TokenKind> validExitKeywords = null)
         {
             node = null;
             bool result = false;
@@ -163,7 +172,7 @@ namespace VSGenero.Analysis.Parsing.AST
                       !(parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.CaseKeyword, 2)))
                 {
                     FglStatement statement;
-                    if (parser.StatementFactory.TryParseNode(parser, out statement, prepStatementResolver, prepStatementBinder))
+                    if (parser.StatementFactory.TryParseNode(parser, out statement, prepStatementResolver, prepStatementBinder, false, validExitKeywords))
                     {
                         AstNode stmtNode = statement as AstNode;
                         node.Children.Add(stmtNode.StartIndex, stmtNode);
@@ -171,7 +180,8 @@ namespace VSGenero.Analysis.Parsing.AST
                         if (statement is ExitStatement &&
                            (statement as ExitStatement).ExitType != TokenKind.CaseKeyword)
                         {
-                            parser.ReportSyntaxError("Invalid exit statement for case statement block detected.");
+                            if (!validExitKeywords.Contains((statement as ExitStatement).ExitType))
+                                parser.ReportSyntaxError("Invalid exit statement for case statement block detected.");
                         }
                     }
                     else

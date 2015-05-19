@@ -22,7 +22,8 @@ namespace VSGenero.Analysis.Parsing.AST
     {
         public static bool TryParseNode(Parser parser, out TryCatchStatement defNode,
                                  Func<string, PrepareStatement> prepStatementResolver = null,
-                                 Action<PrepareStatement> prepStatementBinder = null)
+                                 Action<PrepareStatement> prepStatementBinder = null,
+                                 List<TokenKind> validExitKeywords = null)
         {
             defNode = null;
             bool result = false;
@@ -35,7 +36,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 defNode.StartIndex = parser.Token.Span.Start;
 
                 TryBlock tryBlock;
-                if(TryBlock.TryParseNode(parser, out tryBlock, prepStatementResolver, prepStatementBinder))
+                if(TryBlock.TryParseNode(parser, out tryBlock, prepStatementResolver, prepStatementBinder, validExitKeywords))
                 {
                     defNode.Children.Add(tryBlock.StartIndex, tryBlock);
                 }
@@ -44,7 +45,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 {
                     parser.NextToken();
                     CatchBlock catchBlock;
-                    if(CatchBlock.TryParseNode(parser, out catchBlock, prepStatementResolver, prepStatementBinder))
+                    if(CatchBlock.TryParseNode(parser, out catchBlock, prepStatementResolver, prepStatementBinder, validExitKeywords))
                     {
                         defNode.Children.Add(catchBlock.StartIndex, catchBlock);
                     }
@@ -70,7 +71,8 @@ namespace VSGenero.Analysis.Parsing.AST
     {
         public static bool TryParseNode(Parser parser, out TryBlock node,
                                  Func<string, PrepareStatement> prepStatementResolver = null,
-                                 Action<PrepareStatement> prepStatementBinder = null)
+                                 Action<PrepareStatement> prepStatementBinder = null,
+                                 List<TokenKind> validExitKeywords = null)
         {
             node = new TryBlock();
             node.StartIndex = parser.Token.Span.Start;
@@ -79,7 +81,7 @@ namespace VSGenero.Analysis.Parsing.AST
                    !(parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.TryKeyword, 2)))
             {
                 FglStatement statement;
-                if (parser.StatementFactory.TryParseNode(parser, out statement, prepStatementResolver, prepStatementBinder))
+                if (parser.StatementFactory.TryParseNode(parser, out statement, prepStatementResolver, prepStatementBinder, false, validExitKeywords))
                 {
                     AstNode stmtNode = statement as AstNode;
                     node.Children.Add(stmtNode.StartIndex, stmtNode);
@@ -98,7 +100,8 @@ namespace VSGenero.Analysis.Parsing.AST
     {
         public static bool TryParseNode(Parser parser, out CatchBlock node,
                                  Func<string, PrepareStatement> prepStatementResolver = null,
-                                 Action<PrepareStatement> prepStatementBinder = null)
+                                 Action<PrepareStatement> prepStatementBinder = null,
+                                 List<TokenKind> validExitKeywords = null)
         {
             node = new CatchBlock();
             node.StartIndex = parser.Token.Span.Start;
@@ -106,7 +109,7 @@ namespace VSGenero.Analysis.Parsing.AST
                    !(parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.TryKeyword, 2)))
             {
                 FglStatement statement;
-                if (parser.StatementFactory.TryParseNode(parser, out statement, prepStatementResolver, prepStatementBinder))
+                if (parser.StatementFactory.TryParseNode(parser, out statement, prepStatementResolver, prepStatementBinder, false, validExitKeywords))
                 {
                     AstNode stmtNode = statement as AstNode;
                     node.Children.Add(stmtNode.StartIndex, stmtNode);

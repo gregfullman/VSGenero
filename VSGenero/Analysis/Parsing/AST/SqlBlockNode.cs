@@ -27,6 +27,7 @@ namespace VSGenero.Analysis.Parsing.AST
 
                 FglStatement sqlStmt;
                 bool matchedBreakSequence = false;
+                // TODO: really any sql statement supported by the SQL server is allowed in the sql block. So we may not want to validate it...
                 if (SqlStatementFactory.TryParseSqlStatement(parser, out sqlStmt, out matchedBreakSequence, TokenKind.EndOfFile, breakSequences))
                 {
                     node.Children.Add(sqlStmt.StartIndex, sqlStmt);

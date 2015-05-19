@@ -32,12 +32,13 @@ namespace VSGenero.Analysis.Parsing.AST
                     case TokenKind.ConstructKeyword:
                     case TokenKind.InputKeyword:
                     case TokenKind.DialogKeyword:
+                    case TokenKind.DisplayKeyword:
                         node.ContinueType = tokKind;
                         parser.NextToken();
                         node.EndIndex = parser.Token.Span.End;
                         break;
                     default:
-                        parser.ReportSyntaxError("Continue statement must be of form: continue { FOR | FOREACH | WHILE | MENU | CONSTRUCT | INPUT | DIALOG }");
+                        parser.ReportSyntaxError("Continue statement must be of form: continue { FOR | FOREACH | WHILE | MENU | CONSTRUCT | INPUT | DIALOG | DISPLAY }");
                         break;
                 }
             }

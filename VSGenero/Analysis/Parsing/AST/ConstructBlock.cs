@@ -12,16 +12,19 @@ namespace VSGenero.Analysis.Parsing.AST
         public NameExpression Variable { get; private set; }
         public List<NameExpression> ColumnList { get; private set; }
         public List<NameExpression> FieldList { get; private set; }
-        public List<ExpressionNode> Attributes { get; private set; }
+        public List<ConstructAttribute> Attributes { get; private set; }
         public ExpressionNode HelpNumber { get; private set; }
 
 
-        public static bool TryParseNode(Parser parser, out ConstructBlock node)
+        public static bool TryParseNode(Parser parser, out ConstructBlock node,
+                                 Func<string, PrepareStatement> prepStatementResolver = null,
+                                 Action<PrepareStatement> prepStatementBinder = null,
+                                 List<TokenKind> validExitKeywords = null)
         {
             node = null;
             bool result = false;
 
-            if(parser.PeekToken(TokenKind.ConstructKeyword))
+            if (parser.PeekToken(TokenKind.ConstructKeyword))
             {
                 result = true;
                 node = new ConstructBlock();
@@ -29,7 +32,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 node.StartIndex = parser.Token.Span.Start;
                 node.ColumnList = new List<NameExpression>();
                 node.FieldList = new List<NameExpression>();
-                node.Attributes = new List<ExpressionNode>();
+                node.Attributes = new List<ConstructAttribute>();
 
                 if (parser.PeekToken(TokenKind.ByKeyword))
                 {
@@ -65,9 +68,9 @@ namespace VSGenero.Analysis.Parsing.AST
                     parser.NextToken();
                 }
 
-                if(!node.IsImplicitMapping)
+                if (!node.IsImplicitMapping)
                 {
-                    if(parser.PeekToken(TokenKind.FromKeyword))
+                    if (parser.PeekToken(TokenKind.FromKeyword))
                     {
                         parser.NextToken();
 
@@ -93,10 +96,10 @@ namespace VSGenero.Analysis.Parsing.AST
                         parser.NextToken();
 
                         // get the list of display or control attributes
-                        ExpressionNode expr;
-                        while (ExpressionNode.TryGetExpressionNode(parser, out expr, new List<TokenKind> { TokenKind.Comma, TokenKind.RightParenthesis }))
+                        ConstructAttribute attrib;
+                        while (ConstructAttribute.TryParseNode(parser, out attrib))
                         {
-                            node.Attributes.Add(expr);
+                            node.Attributes.Add(attrib);
                             if (!parser.PeekToken(TokenKind.Comma))
                                 break;
                             parser.NextToken();
@@ -123,12 +126,17 @@ namespace VSGenero.Analysis.Parsing.AST
                         parser.ReportSyntaxError("Invalid help-number found in construct statement.");
                 }
 
+                List<TokenKind> validExits = new List<TokenKind>();
+                if (validExitKeywords != null)
+                    validExits.AddRange(validExitKeywords);
+                validExits.Add(TokenKind.ConstructKeyword);
+
                 // get the dialog control blocks
                 while (!parser.PeekToken(TokenKind.EndOfFile) &&
                        !(parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.ConstructKeyword, 2)))
                 {
                     ConstructControlBlock icb;
-                    if (ConstructControlBlock.TryParseNode(parser, out icb))
+                    if (ConstructControlBlock.TryParseNode(parser, out icb, prepStatementResolver, prepStatementBinder, validExits))
                         node.Children.Add(icb.StartIndex, icb);
                     else
                         parser.NextToken();
@@ -173,7 +181,8 @@ namespace VSGenero.Analysis.Parsing.AST
 
         public static bool TryParseNode(Parser parser, out ConstructControlBlock node,
                                  Func<string, PrepareStatement> prepStatementResolver = null,
-                                 Action<PrepareStatement> prepStatementBinder = null)
+                                 Action<PrepareStatement> prepStatementBinder = null,
+                                 List<TokenKind> validExitKeywords = null)
         {
             node = new ConstructControlBlock();
             bool result = true;
@@ -286,7 +295,7 @@ namespace VSGenero.Analysis.Parsing.AST
             {
                 // get the dialog statements
                 FglStatement inputStmt;
-                while (ConstructDialogStatementFactory.TryGetStatement(parser, out inputStmt, prepStatementResolver, prepStatementBinder))
+                while (ConstructDialogStatementFactory.TryGetStatement(parser, out inputStmt, prepStatementResolver, prepStatementBinder, validExitKeywords))
                     node.Children.Add(inputStmt.StartIndex, inputStmt);
 
                 if (node.Type == ConstructControlBlockType.None && node.Children.Count == 0)
@@ -301,7 +310,8 @@ namespace VSGenero.Analysis.Parsing.AST
     {
         public static bool TryGetStatement(Parser parser, out FglStatement node,
                                  Func<string, PrepareStatement> prepStatementResolver = null,
-                                 Action<PrepareStatement> prepStatementBinder = null)
+                                 Action<PrepareStatement> prepStatementBinder = null,
+                                 List<TokenKind> validExitKeywords = null)
         {
             bool result = false;
             node = null;
@@ -313,7 +323,7 @@ namespace VSGenero.Analysis.Parsing.AST
             }
             else
             {
-                result = parser.StatementFactory.TryParseNode(parser, out node, prepStatementResolver, prepStatementBinder);
+                result = parser.StatementFactory.TryParseNode(parser, out node, prepStatementResolver, prepStatementBinder, false, validExitKeywords);
             }
 
             return result;
@@ -374,6 +384,96 @@ namespace VSGenero.Analysis.Parsing.AST
                         result = false;
                         break;
                     }
+            }
+
+            return result;
+        }
+    }
+
+    public class ConstructAttribute : AstNode
+    {
+        public static bool TryParseNode(Parser parser, out ConstructAttribute node)
+        {
+            node = new ConstructAttribute();
+            node.StartIndex = parser.Token.Span.Start;
+            bool result = true;
+
+            switch (parser.PeekToken().Kind)
+            {
+                case TokenKind.BlackKeyword:
+                case TokenKind.BlueKeyword:
+                case TokenKind.CyanKeyword:
+                case TokenKind.GreenKeyword:
+                case TokenKind.MagentaKeyword:
+                case TokenKind.RedKeyword:
+                case TokenKind.WhiteKeyword:
+                case TokenKind.YellowKeyword:
+                case TokenKind.BoldKeyword:
+                case TokenKind.DimKeyword:
+                case TokenKind.InvisibleKeyword:
+                case TokenKind.NormalKeyword:
+                case TokenKind.ReverseKeyword:
+                case TokenKind.BlinkKeyword:
+                case TokenKind.UnderlineKeyword:
+                    parser.NextToken();
+                    break;
+                case TokenKind.AcceptKeyword:
+                case TokenKind.CancelKeyword:
+                    {
+                        parser.NextToken();
+                        if (parser.PeekToken(TokenKind.Equals))
+                        {
+                            parser.NextToken();
+                            ExpressionNode boolExpr;
+                            if (!ExpressionNode.TryGetExpressionNode(parser, out boolExpr, new List<TokenKind> { TokenKind.Comma, TokenKind.RightParenthesis }))
+                                parser.ReportSyntaxError("Invalid boolean expression found in construct attribute.");
+                        }
+                        break;
+                    }
+                case TokenKind.HelpKeyword:
+                    {
+                        parser.NextToken();
+                        if (parser.PeekToken(TokenKind.Equals))
+                            parser.NextToken();
+                        else
+                            parser.ReportSyntaxError("Expected equals token in construct attribute.");
+
+                        // get the help number
+                        ExpressionNode optionNumber;
+                        if (!ExpressionNode.TryGetExpressionNode(parser, out optionNumber))
+                            parser.ReportSyntaxError("Invalid help-number found in construct attribute.");
+                        break;
+                    }
+                case TokenKind.NameKeyword:
+                    {
+                        parser.NextToken();
+                        if (parser.PeekToken(TokenKind.Equals))
+                            parser.NextToken();
+                        else
+                            parser.ReportSyntaxError("Expected equals token in construct attribute.");
+
+                        // get the help number
+                        ExpressionNode optionNumber;
+                        if (!ExpressionNode.TryGetExpressionNode(parser, out optionNumber))
+                            parser.ReportSyntaxError("Invalid dialog name found in construct attribute.");
+                        break;
+                    }
+                case TokenKind.FieldKeyword:
+                    {
+                        parser.NextToken();
+                        if (parser.PeekToken(TokenKind.OrderKeyword))
+                            parser.NextToken();
+                        else
+                            parser.ReportSyntaxError("Expected \"order\" keyword in input attribute.");
+                        if (parser.PeekToken(TokenKind.FormKeyword))
+                            parser.NextToken();
+                        else
+                            parser.ReportSyntaxError("Expected \"form\" keyword in input attribute.");
+                        break;
+                    }
+                default:
+                    result = false;
+                    break;
             }
 
             return result;

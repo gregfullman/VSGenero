@@ -14,7 +14,8 @@ namespace VSGenero.Analysis.Parsing.AST
 
         public static bool TryParseNode(Parser parser, out MenuBlock node,
                                  Func<string, PrepareStatement> prepStatementResolver = null,
-                                 Action<PrepareStatement> prepStatementBinder = null)
+                                 Action<PrepareStatement> prepStatementBinder = null,
+                                 List<TokenKind> validExitKeywords = null)
         {
             node = null;
             bool result = false;
@@ -62,6 +63,11 @@ namespace VSGenero.Analysis.Parsing.AST
                         parser.ReportSyntaxError("Expecting left-paren for menu attributes.");
                 }
 
+                List<TokenKind> validExits = new List<TokenKind>();
+                if (validExitKeywords != null)
+                    validExits.AddRange(validExitKeywords);
+                validExits.Add(TokenKind.MenuKeyword);
+
                 if(parser.PeekToken(TokenKind.BeforeKeyword))
                 {
                     parser.NextToken();
@@ -69,7 +75,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     {
                         parser.NextToken();
                         FglStatement menuStmt;
-                        while (MenuStatementFactory.TryGetStatement(parser, out menuStmt, prepStatementResolver, prepStatementBinder))
+                        while (MenuStatementFactory.TryGetStatement(parser, out menuStmt, prepStatementResolver, prepStatementBinder, validExits))
                             node.BeforeMenuStatements.Add(menuStmt);
                     }
                     else
@@ -80,7 +86,7 @@ namespace VSGenero.Analysis.Parsing.AST
                        !(parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.MenuKeyword, 2)))
                 {
                     MenuOption menuOpt;
-                    if (MenuOption.TryParseNode(parser, out menuOpt))
+                    if (MenuOption.TryParseNode(parser, out menuOpt, prepStatementResolver, prepStatementBinder, validExits))
                         node.Children.Add(menuOpt.StartIndex, menuOpt);
                     else
                         parser.NextToken();
@@ -106,7 +112,8 @@ namespace VSGenero.Analysis.Parsing.AST
     {
         public static bool TryGetStatement(Parser parser, out FglStatement node,
                                  Func<string, PrepareStatement> prepStatementResolver = null,
-                                 Action<PrepareStatement> prepStatementBinder = null)
+                                 Action<PrepareStatement> prepStatementBinder = null,
+                                 List<TokenKind> validExitKeywords = null)
         {
             bool result = false;
             node = null;
@@ -118,7 +125,7 @@ namespace VSGenero.Analysis.Parsing.AST
             }
             else
             {
-                result = parser.StatementFactory.TryParseNode(parser, out node, prepStatementResolver, prepStatementBinder);
+                result = parser.StatementFactory.TryParseNode(parser, out node, prepStatementResolver, prepStatementBinder, false, validExitKeywords);
             }
 
             return result;
@@ -214,7 +221,8 @@ namespace VSGenero.Analysis.Parsing.AST
 
         public static bool TryParseNode(Parser parser, out MenuOption node,
                                  Func<string, PrepareStatement> prepStatementResolver = null,
-                                 Action<PrepareStatement> prepStatementBinder = null)
+                                 Action<PrepareStatement> prepStatementBinder = null,
+                                 List<TokenKind> validExitKeywords = null)
         {
             node = new MenuOption();
             node.StartIndex = parser.Token.Span.Start;
@@ -253,7 +261,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         
                         // at this point we need to try to get a menu-statement. If it doesn't work, we have some other stuff to gather
                         FglStatement menuStmt = null;
-                        if(getOptionName || !MenuStatementFactory.TryGetStatement(parser, out menuStmt, prepStatementResolver, prepStatementBinder))
+                        if(getOptionName || !MenuStatementFactory.TryGetStatement(parser, out menuStmt, prepStatementResolver, prepStatementBinder, validExitKeywords))
                         {
                             ExpressionNode optionName;
                             if (ExpressionNode.TryGetExpressionNode(parser, out optionName))
@@ -281,7 +289,7 @@ namespace VSGenero.Analysis.Parsing.AST
                             node.Children.Add(menuStmt.StartIndex, menuStmt);
                         }
 
-                        while (MenuStatementFactory.TryGetStatement(parser, out menuStmt, prepStatementResolver, prepStatementBinder))
+                        while (MenuStatementFactory.TryGetStatement(parser, out menuStmt, prepStatementResolver, prepStatementBinder, validExitKeywords))
                             node.Children.Add(menuStmt.StartIndex, menuStmt);
 
                         break;
@@ -299,7 +307,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                 parser.ReportSyntaxError("Invalid action-name found in menu option.");
 
                             FglStatement menuStmt = null;
-                            while (MenuStatementFactory.TryGetStatement(parser, out menuStmt, prepStatementResolver, prepStatementBinder))
+                            while (MenuStatementFactory.TryGetStatement(parser, out menuStmt, prepStatementResolver, prepStatementBinder, validExitKeywords))
                                 node.Children.Add(menuStmt.StartIndex, menuStmt);
                         }
                         else if (parser.PeekToken(TokenKind.IdleKeyword))
@@ -312,7 +320,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                 parser.ReportSyntaxError("Invalid idle-seconds found in menu block.");
 
                             FglStatement menuStmt = null;
-                            while (MenuStatementFactory.TryGetStatement(parser, out menuStmt, prepStatementResolver, prepStatementBinder))
+                            while (MenuStatementFactory.TryGetStatement(parser, out menuStmt, prepStatementResolver, prepStatementBinder, validExitKeywords))
                                 node.Children.Add(menuStmt.StartIndex, menuStmt);
                         }
                         else

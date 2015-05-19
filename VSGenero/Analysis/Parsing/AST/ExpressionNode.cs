@@ -10,7 +10,7 @@ namespace VSGenero.Analysis.Parsing.AST
     {
         protected static List<TokenKind> _preExpressionTokens = new List<TokenKind> 
         { 
-            TokenKind.NotKeyword, TokenKind.ColumnKeyword, TokenKind.Subtract, TokenKind.AsciiKeyword, TokenKind.WithoutKeyword
+            TokenKind.NotKeyword, TokenKind.ColumnKeyword, TokenKind.Subtract, TokenKind.AsciiKeyword
         };
 
         public abstract void PrependExpression(ExpressionNode node);

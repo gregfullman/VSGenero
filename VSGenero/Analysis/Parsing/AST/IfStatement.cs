@@ -12,7 +12,8 @@ namespace VSGenero.Analysis.Parsing.AST
 
         public static bool TryParseNode(Parser parser, out IfStatement node, 
                                  Func<string, PrepareStatement> prepStatementResolver = null,
-                                 Action<PrepareStatement> prepStatementBinder = null)
+                                 Action<PrepareStatement> prepStatementBinder = null,
+                                 List<TokenKind> validExitKeywords = null)
         {
             node = null;
             bool result = false;
@@ -40,7 +41,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     parser.NextToken();
 
                 IfBlockContentsNode ifBlock;
-                if(IfBlockContentsNode.TryParseNode(parser, out ifBlock, prepStatementResolver, prepStatementBinder))
+                if(IfBlockContentsNode.TryParseNode(parser, out ifBlock, prepStatementResolver, prepStatementBinder, validExitKeywords))
                 {
                     node.Children.Add(ifBlock.StartIndex, ifBlock);
                 }
@@ -49,7 +50,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 {
                     parser.NextToken();
                     ElseBlockContentsNode elseBlock;
-                    if(ElseBlockContentsNode.TryParseNode(parser, out elseBlock, prepStatementResolver, prepStatementBinder))
+                    if(ElseBlockContentsNode.TryParseNode(parser, out elseBlock, prepStatementResolver, prepStatementBinder, validExitKeywords))
                     {
                         node.Children.Add(elseBlock.StartIndex, elseBlock);
                     }
@@ -76,7 +77,8 @@ namespace VSGenero.Analysis.Parsing.AST
     {
         public static bool TryParseNode(Parser parser, out IfBlockContentsNode node,
                                  Func<string, PrepareStatement> prepStatementResolver = null,
-                                 Action<PrepareStatement> prepStatementBinder = null)
+                                 Action<PrepareStatement> prepStatementBinder = null,
+                                 List<TokenKind> validExitKeywords = null)
         {
             node = new IfBlockContentsNode();
             node.StartIndex = parser.Token.Span.Start;
@@ -85,7 +87,7 @@ namespace VSGenero.Analysis.Parsing.AST
                   !(parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.IfKeyword, 2)))
             {
                 FglStatement statement;
-                if (parser.StatementFactory.TryParseNode(parser, out statement, prepStatementResolver, prepStatementBinder))
+                if (parser.StatementFactory.TryParseNode(parser, out statement, prepStatementResolver, prepStatementBinder, false, validExitKeywords))
                 {
                     AstNode stmtNode = statement as AstNode;
                     node.Children.Add(stmtNode.StartIndex, stmtNode);
@@ -105,7 +107,8 @@ namespace VSGenero.Analysis.Parsing.AST
     {
         public static bool TryParseNode(Parser parser, out ElseBlockContentsNode node,
                                  Func<string, PrepareStatement> prepStatementResolver = null,
-                                 Action<PrepareStatement> prepStatementBinder = null)
+                                 Action<PrepareStatement> prepStatementBinder = null,
+                                 List<TokenKind> validExitKeywords = null)
         {
             node = new ElseBlockContentsNode();
             node.StartIndex = parser.Token.Span.Start;
@@ -113,7 +116,7 @@ namespace VSGenero.Analysis.Parsing.AST
                    !(parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.IfKeyword, 2)))
             {
                 FglStatement statement;
-                if (parser.StatementFactory.TryParseNode(parser, out statement, prepStatementResolver, prepStatementBinder))
+                if (parser.StatementFactory.TryParseNode(parser, out statement, prepStatementResolver, prepStatementBinder, false, validExitKeywords))
                 {
                     AstNode stmtNode = statement as AstNode;
                     node.Children.Add(stmtNode.StartIndex, stmtNode);

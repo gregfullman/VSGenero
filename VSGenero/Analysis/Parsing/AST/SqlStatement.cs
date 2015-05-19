@@ -577,4 +577,125 @@ namespace VSGenero.Analysis.Parsing.AST
     }
 
     #endregion
+
+    #region Other Statements
+
+    public class CreateStatement : FglStatement
+    {
+        public static bool TryParseNode(Parser parser, out CreateStatement node)
+        {
+            node = null;
+            bool result = false;
+
+            if (parser.PeekToken(TokenKind.CreateKeyword))
+            {
+                result = true;
+                node = new CreateStatement();
+                parser.NextToken();
+                node.StartIndex = parser.Token.Span.Start;
+
+                // TODO: will get back to this when needed...
+            }
+
+            return result;
+        }
+    }
+
+    public class AlterStatement : FglStatement
+    {
+        public static bool TryParseNode(Parser parser, out AlterStatement node)
+        {
+            node = null;
+            bool result = false;
+
+            if (parser.PeekToken(TokenKind.AlterKeyword))
+            {
+                result = true;
+                node = new AlterStatement();
+                parser.NextToken();
+                node.StartIndex = parser.Token.Span.Start;
+
+                // TODO: will get back to this when needed...
+            }
+
+            return result;
+        }
+    }
+
+    public class DropStatement : FglStatement
+    {
+        public static bool TryParseNode(Parser parser, out DropStatement node)
+        {
+            node = null;
+            bool result = false;
+
+            if (parser.PeekToken(TokenKind.DropKeyword))
+            {
+                result = true;
+                node = new DropStatement();
+                parser.NextToken();
+                node.StartIndex = parser.Token.Span.Start;
+
+                // TODO: will get back to this when needed...
+            }
+
+            return result;
+        }
+    }
+
+    public class RenameStatement : FglStatement
+    {
+        public static bool TryParseNode(Parser parser, out RenameStatement node)
+        {
+            node = null;
+            bool result = false;
+
+            if (parser.PeekToken(TokenKind.RenameKeyword))
+            {
+                result = true;
+                node = new RenameStatement();
+                parser.NextToken();
+                node.StartIndex = parser.Token.Span.Start;
+
+                // TODO: will get back to this when needed...
+            }
+
+            return result;
+        }
+    }
+
+    #endregion
+
+    #region Flush Statement
+
+    public class FlushStatement : FglStatement
+    {
+        public NameExpression CursorId { get; private set; }
+
+        public static bool TryParseNode(Parser parser, out FlushStatement node)
+        {
+            node = null;
+            bool result = false;
+
+            if(parser.PeekToken(TokenKind.FlushKeyword))
+            {
+                result = true;
+                node = new FlushStatement();
+                parser.NextToken();
+                node.StartIndex = parser.Token.Span.Start;
+
+                NameExpression cid;
+                if (NameExpression.TryParseNode(parser, out cid))
+                    node.CursorId = cid;
+                else
+                    parser.ReportSyntaxError("Invalid insert cursor identifier found in flush statement.");
+
+                node.EndIndex = parser.Token.Span.End;
+            }
+
+            return result;
+        }
+    }
+
+    #endregion
 }

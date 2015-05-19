@@ -14,7 +14,8 @@ namespace VSGenero.Analysis.Parsing.AST
 
         public static bool TryParseNode(Parser parser, out ForeachStatement node,
                                         Func<string, PrepareStatement> prepStatementResolver = null,
-                                        Action<PrepareStatement> prepStatementBinder = null)
+                                        Action<PrepareStatement> prepStatementBinder = null,
+                                        List<TokenKind> validExitKeywords = null)
         {
             node = null;
             bool result = false;
@@ -74,11 +75,16 @@ namespace VSGenero.Analysis.Parsing.AST
                         parser.ReportSyntaxError("Expecting keyword \"reoptimization\" in open statement.");
                 }
 
+                List<TokenKind> validExits = new List<TokenKind>();
+                if (validExitKeywords != null)
+                    validExits.AddRange(validExitKeywords);
+                validExits.Add(TokenKind.ForeachKeyword);
+
                 while (!parser.PeekToken(TokenKind.EndOfFile) &&
                       !(parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.ForeachKeyword, 2)))
                 {
                     FglStatement statement;
-                    if (parser.StatementFactory.TryParseNode(parser, out statement, prepStatementResolver, prepStatementBinder))
+                    if (parser.StatementFactory.TryParseNode(parser, out statement, prepStatementResolver, prepStatementBinder, false, validExits))
                     {
                         AstNode stmtNode = statement as AstNode;
                         node.Children.Add(stmtNode.StartIndex, stmtNode);
@@ -86,13 +92,15 @@ namespace VSGenero.Analysis.Parsing.AST
                         if (statement is ExitStatement &&
                            (statement as ExitStatement).ExitType != TokenKind.ForeachKeyword)
                         {
-                            parser.ReportSyntaxError("Invalid exit statement for for loop detected.");
+                            if (validExitKeywords == null || !validExitKeywords.Contains((statement as ExitStatement).ExitType))
+                                parser.ReportSyntaxError("Invalid exit statement for for loop detected.");
                         }
 
                         if (statement is ContinueStatement &&
                            (statement as ContinueStatement).ContinueType != TokenKind.ForeachKeyword)
                         {
-                            parser.ReportSyntaxError("Invalid continue statement for for loop detected.");
+                            if (validExitKeywords == null || !validExitKeywords.Contains((statement as ContinueStatement).ContinueType))
+                                parser.ReportSyntaxError("Invalid continue statement for for loop detected.");
                         }
                     }
                     else
