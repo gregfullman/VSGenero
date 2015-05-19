@@ -258,7 +258,8 @@ namespace VSGenero.EditorExtensions.Intellisense
                     {
                         proj.ProjectEntries[path].IsOpen = entry.IsOpen = false;
                         // are there any others that are open?
-                        if (!proj.ProjectEntries.Any(x => x.Value != entry && x.Value.IsOpen))
+                        if (!proj.ProjectEntries.Any(x => x.Value != entry && x.Value.IsOpen) &&
+                            proj.ReferencingProjectEntries.Count == 0)
                         {
                             // before clearing the top level project's entries, we need to go through
                             // each one and have any Referenced projects remove the entry from their Referencing set.

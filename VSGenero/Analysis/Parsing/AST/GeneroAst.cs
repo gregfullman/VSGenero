@@ -147,6 +147,28 @@ namespace VSGenero.Analysis.Parsing.AST
             return null;
         }
 
+        private LocationInfo ResolveLocationInternal(IGeneroProject project, object location)
+        {
+            IAnalysisResult result = location as IAnalysisResult;
+            if (result != null)
+            {
+                IProjectEntry projEntry;
+                IAnalysisResult trueRes = result;
+                if(project is GeneroProject)
+                {
+                    trueRes = (project as GeneroProject).GetMemberOfType(result.Name, this, true, true, true, true, out projEntry);
+                    if(projEntry is IGeneroProjectEntry)
+                    {
+                        var ast = (projEntry as IGeneroProjectEntry).Analysis;
+                        var locIndex = trueRes.LocationIndex;
+                        var loc = ast.IndexToLocation(locIndex);
+                        return new LocationInfo(projEntry, loc.Line, loc.Column);
+                    }
+                }
+            }
+            return null;
+        }
+
         public LocationInfo ResolveLocation(object location)
         {
             IAnalysisResult result = location as IAnalysisResult;
@@ -274,7 +296,8 @@ namespace VSGenero.Analysis.Parsing.AST
             }
 
             // Check for class methods
-            IAnalysisResult member = GetValueByIndex(exprText, index, _functionProvider, _databaseProvider);
+            IGeneroProject dummyProj;
+            IAnalysisResult member = GetValueByIndex(exprText, index, _functionProvider, _databaseProvider, out dummyProj);
             if (member is IFunctionResult)
             {
                 return new IFunctionResult[1] { member as IFunctionResult };
@@ -299,8 +322,9 @@ namespace VSGenero.Analysis.Parsing.AST
         /// </summary>
         /// <param name="exprText">The expression to determine the result of.</param>
         /// <param name="index">The 0-based absolute index into the file where the expression should be evaluated within the module.</param>
-        public IAnalysisResult GetValueByIndex(string exprText, int index, IFunctionInformationProvider functionProvider, IDatabaseInformationProvider databaseProvider, bool searchInFunctionProvider = false)
+        public IAnalysisResult GetValueByIndex(string exprText, int index, IFunctionInformationProvider functionProvider, IDatabaseInformationProvider databaseProvider, out IGeneroProject definingProject, bool searchInFunctionProvider = false)
         {
+            definingProject = null;
             _functionProvider = functionProvider;
             _databaseProvider = databaseProvider;
 
@@ -581,6 +605,7 @@ namespace VSGenero.Analysis.Parsing.AST
                             var refProjKVP = (_projEntry as IGeneroProjectEntry).ParentProject.ReferencedProjects.Values.FirstOrDefault(x => Path.GetFileName(x.Directory).Equals(dotPiece, StringComparison.OrdinalIgnoreCase));
                             if(refProjKVP != null && refProjKVP is IAnalysisResult)
                             {
+                                definingProject = refProjKVP;
                                 res = refProjKVP as IAnalysisResult;
                                 continue;
                             }
@@ -769,6 +794,23 @@ namespace VSGenero.Analysis.Parsing.AST
                 if(funcRes != null)
                 {
                     vars.Add(new AnalysisVariable(funcRes.Location, VariableType.Definition));
+                }
+            }
+
+            if(exprText.Contains('.') && vars.Count == 0)
+            {
+                IGeneroProject definingProj;
+                IAnalysisResult res = GetValueByIndex(exprText, index, functionProvider, databaseProvider, out definingProj);
+                if(res != null)
+                {
+                    LocationInfo locInfo = null;
+                    if (definingProj != null)
+                    {
+                        locInfo = ResolveLocationInternal(definingProj, res);
+                    }
+                    else
+                        locInfo = this.ResolveLocation(res);
+                    vars.Add(new AnalysisVariable(locInfo, VariableType.Definition));
                 }
             }
 

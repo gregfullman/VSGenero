@@ -86,11 +86,11 @@ namespace VSGenero.Analysis.Parsing.AST
 
     public class ArrayIndexNameExpressionPiece : AstNode
     {
-        private string _expression;
+        private ExpressionNode _expression;
 
         public override string ToString()
         {
-            return string.Format("[{0}]", _expression);
+            return string.Format("[{0}]", _expression.ToString());
         }
 
         public static bool TryParse(Parser parser, out ArrayIndexNameExpressionPiece node, TokenKind breakToken = TokenKind.EndOfFile)
@@ -109,44 +109,58 @@ namespace VSGenero.Analysis.Parsing.AST
 
                 // TODO: need to get an integer expression
                 // for right now, we'll just check for a constant or a ident/keyword
-                if(parser.PeekToken(TokenCategory.NumericLiteral) ||
-                   parser.PeekToken(TokenCategory.Keyword) ||
-                   parser.PeekToken(TokenCategory.Identifier))
+                ExpressionNode indexExpr;
+                while (ExpressionNode.TryGetExpressionNode(parser, out indexExpr, new List<TokenKind> { TokenKind.RightBracket, TokenKind.Comma }))
                 {
-                    parser.NextToken();
-                    sb.Append(parser.Token.Token.Value.ToString());
-                }
-                else
-                {
-                    parser.ReportSyntaxError("The parser is unable to parse a complex expression as an array index. This may not be a syntax error.");
-                }
+                    if (node._expression == null)
+                        node._expression = indexExpr;
+                    else
+                        node._expression.AppendExpression(indexExpr);
 
-                // TODO: check for a nested array index access
-                ArrayIndexNameExpressionPiece arrayIndex;
-                if (ArrayIndexNameExpressionPiece.TryParse(parser, out arrayIndex, breakToken))
-                {
-                    sb.Append(arrayIndex._expression);
-                }
-
-                while(!parser.PeekToken(TokenKind.RightBracket))
-                {
-                    if(parser.PeekToken().Kind == breakToken)
-                    {
-                        parser.ReportSyntaxError("Unexpected end of array index expression.");
+                    if (parser.PeekToken(TokenKind.Comma))
+                        parser.NextToken();
+                    else
                         break;
-                    }
-                    parser.NextToken();
-                    sb.Append(parser.Token.Token.Value.ToString());
                 }
+
+                //if(parser.PeekToken(TokenCategory.NumericLiteral) ||
+                //   parser.PeekToken(TokenCategory.Keyword) ||
+                //   parser.PeekToken(TokenCategory.Identifier))
+                //{
+                //    parser.NextToken();
+                //    sb.Append(parser.Token.Token.Value.ToString());
+                //}
+                //else
+                //{
+                //    parser.ReportSyntaxError("The parser is unable to parse a complex expression as an array index. This may not be a syntax error.");
+                //}
+
+                //// TODO: check for a nested array index access
+                //ArrayIndexNameExpressionPiece arrayIndex;
+                //if (ArrayIndexNameExpressionPiece.TryParse(parser, out arrayIndex, breakToken))
+                //{
+                //    sb.Append(arrayIndex._expression);
+                //}
+
+                //while(!parser.PeekToken(TokenKind.RightBracket))
+                //{
+                //    if(parser.PeekToken().Kind == breakToken)
+                //    {
+                //        parser.ReportSyntaxError("Unexpected end of array index expression.");
+                //        break;
+                //    }
+                //    parser.NextToken();
+                //    sb.Append(parser.Token.Token.Value.ToString());
+                //}
 
                 if (parser.PeekToken(TokenKind.RightBracket))
                 {
                     parser.NextToken();
-                    sb.Append(parser.Token.Token.Value.ToString());
                     node.EndIndex = parser.Token.Span.End;
                     node.IsComplete = true;
-                    node._expression = sb.ToString();
                 }
+                else
+                    parser.ReportSyntaxError("Expected right-bracket in array index.");
             }
 
             return result;

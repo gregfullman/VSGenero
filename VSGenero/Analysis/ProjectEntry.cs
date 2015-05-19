@@ -422,8 +422,9 @@ namespace VSGenero.Analysis
 
         public bool IsPublic { get { return true; } }
 
-        internal IAnalysisResult GetMemberOfType(string name, GeneroAst ast, bool vars, bool types, bool consts, bool funcs)
+        internal IAnalysisResult GetMemberOfType(string name, GeneroAst ast, bool vars, bool types, bool consts, bool funcs, out IProjectEntry definingProjEntry)
         {
+            definingProjEntry = null;
             IAnalysisResult res = null;
             foreach (var projEntry in ProjectEntries)
             {
@@ -439,6 +440,7 @@ namespace VSGenero.Analysis
                             (consts && modRes.GlobalConstants.TryGetValue(name, out res)))
                         {
                             //found = true;
+                            definingProjEntry = projEntry.Value;
                             break;
                         }
 
@@ -446,6 +448,7 @@ namespace VSGenero.Analysis
                              (types && modRes.Types.TryGetValue(name, out res)) ||
                              (consts && modRes.Constants.TryGetValue(name, out res))) && res.IsPublic)
                         {
+                            definingProjEntry = projEntry.Value;
                             break;
                         }
 
@@ -457,6 +460,7 @@ namespace VSGenero.Analysis
                             {
                                 res = funcRes;
                                 //found = true;
+                                definingProjEntry = projEntry.Value;
                                 break;
                             }
                         }
@@ -468,7 +472,8 @@ namespace VSGenero.Analysis
 
         public IAnalysisResult GetMember(string name, GeneroAst ast)
         {
-            return GetMemberOfType(name, ast, true, true, true, true);
+            IProjectEntry dummyProj;
+            return GetMemberOfType(name, ast, true, true, true, true, out dummyProj);
         }
 
         public IEnumerable<MemberResult> GetMembers(GeneroAst ast, MemberType memberType)

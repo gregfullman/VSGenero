@@ -14,9 +14,9 @@ namespace VSGenero.Analysis.Parsing
         Tokenizer Tokenizer { get; }
 
         void Reset();
-        void ReportSyntaxError(string message);
-        void ReportSyntaxError(int start, int end, string message);
-        void ReportSyntaxError(int start, int end, string message, int errorCode);
+        void ReportSyntaxError(string message, Severity severity = Severity.Error);
+        void ReportSyntaxError(int start, int end, string message, Severity severity = Severity.Error);
+        void ReportSyntaxError(int start, int end, string message, int errorCode, Severity severity = Severity.Error);
 
         GeneroAst ParseFile();
         Token NextToken();

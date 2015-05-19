@@ -328,6 +328,7 @@
     <Compile Include="Analysis\Parsing\AST\ConstructBlock.cs" />
     <Compile Include="Analysis\Parsing\AST\ContinueStatement.cs" />
     <Compile Include="Analysis\Parsing\AST\DeclareStatement.cs" />
+    <Compile Include="Analysis\Parsing\AST\DialogBlock.cs" />
     <Compile Include="Analysis\Parsing\AST\DisplayStatement.cs" />
     <Compile Include="Analysis\Parsing\AST\ExecuteStatement.cs" />
     <Compile Include="Analysis\Parsing\AST\ExitStatement.cs" />

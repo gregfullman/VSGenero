@@ -209,20 +209,20 @@ namespace VSGenero.Analysis.Parsing
             return msg;
         }
 
-        public void ReportSyntaxError(string message)
+        public void ReportSyntaxError(string message, Severity severity = Severity.Error)
         {
             if (_lookaheads.Count > 0)
             {
-                ReportSyntaxError(_lookaheads[0].Span.Start, _lookaheads[0].Span.End, message);
+                ReportSyntaxError(_lookaheads[0].Span.Start, _lookaheads[0].Span.End, message, severity);
             }
         }
 
-        public void ReportSyntaxError(int start, int end, string message)
+        public void ReportSyntaxError(int start, int end, string message, Severity severity = Severity.Error)
         {
-            ReportSyntaxError(start, end, message, ErrorCodes.SyntaxError);
+            ReportSyntaxError(start, end, message, ErrorCodes.SyntaxError, severity);
         }
 
-        public void ReportSyntaxError(int start, int end, string message, int errorCode)
+        public void ReportSyntaxError(int start, int end, string message, int errorCode, Severity severity = Severity.Error)
         {
             // save the first one, the next error codes may be induced errors:
             if (_errorCode == 0)
@@ -234,7 +234,7 @@ namespace VSGenero.Analysis.Parsing
                 _tokenizer.GetLineLocations(),
                 start, end,
                 errorCode,
-                Severity.FatalError);
+                severity);
         }
 
         #endregion

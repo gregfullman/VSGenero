@@ -821,7 +821,8 @@ namespace VSGenero.Analysis.Parsing.AST
                             // now we need to analyze the variable reference to get its members
                             string var = sb.ToString();
 
-                            var analysisRes = GetValueByIndex(var, index, _functionProvider, _databaseProvider);
+                            IGeneroProject dummyProj;
+                            var analysisRes = GetValueByIndex(var, index, _functionProvider, _databaseProvider, out dummyProj);
                             if (analysisRes != null)
                             {
                                 var members = analysisRes.GetMembers(this, memberType);

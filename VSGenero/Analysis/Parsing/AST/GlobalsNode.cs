@@ -108,7 +108,8 @@ namespace VSGenero.Analysis.Parsing.AST
                                                 if(!defNode.Variables.ContainsKey(vardef.Name))
                                                     defNode.Variables.Add(vardef.Name, vardef);
                                                 else
-                                                    parser.ReportSyntaxError(string.Format("Global variable {0} is defined more than once.", vardef.Name));
+                                                    parser.ReportSyntaxError(vardef.LocationIndex, (vardef.LocationIndex + vardef.Name.Length), 
+                                                                             string.Format("Global variable {0} is defined more than once.", vardef.Name), Severity.Warning);
                                             }
                                     }
                                     break;

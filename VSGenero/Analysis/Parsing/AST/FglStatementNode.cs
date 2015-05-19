@@ -340,6 +340,15 @@ namespace VSGenero.Analysis.Parsing.AST
                         }
                         break;
                     }
+                case TokenKind.DialogKeyword:
+                    {
+                        DialogBlock dialogBlock;
+                        if((result = DialogBlock.TryParseNode(parser, out dialogBlock, prepStatementResolver, prepStatementBinder, validExitKeywords)))
+                        {
+                            node = dialogBlock;
+                        }
+                        break;
+                    }
                 default:
                     {
                         if (SqlStatementFactory.IsValidStatementStart(parser.PeekToken().Kind))

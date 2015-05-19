@@ -70,19 +70,19 @@ namespace VSGenero.Analysis.Parsing
             (ErrorSink as StubErrorSink).ErrorCount = 0;
         }
 
-        public void ReportSyntaxError(string message)
+        public void ReportSyntaxError(string message, Severity severity = Severity.Error)
         {
-            ErrorSink.Add(message, null, 0, 0, 0, Severity.Error);
+            ErrorSink.Add(message, null, 0, 0, 0, severity);
         }
 
-        public void ReportSyntaxError(int start, int end, string message)
+        public void ReportSyntaxError(int start, int end, string message, Severity severity = Severity.Error)
         {
-            ErrorSink.Add(message, null, start, end, 0, Severity.Error);
+            ErrorSink.Add(message, null, start, end, 0, severity);
         }
 
-        public void ReportSyntaxError(int start, int end, string message, int errorCode)
+        public void ReportSyntaxError(int start, int end, string message, int errorCode, Severity severity = Severity.Error)
         {
-            ErrorSink.Add(message, null, start, end, errorCode, Severity.Error);
+            ErrorSink.Add(message, null, start, end, errorCode, severity);
         }
 
         public GeneroAst ParseFile()

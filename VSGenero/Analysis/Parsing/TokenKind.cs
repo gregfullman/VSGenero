@@ -380,6 +380,7 @@ namespace VSGenero.Analysis.Parsing
         StepKeyword,
         StopKeyword,
         StringKeyword,
+        SubdialogKeyword,
         SumKeyword,
         TabindexKeyword,
         TableKeyword,
