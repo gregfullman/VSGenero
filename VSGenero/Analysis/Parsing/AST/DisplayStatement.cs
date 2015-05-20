@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace VSGenero.Analysis.Parsing.AST
 {
-    public class DisplayBlock : FglStatement
+    public class DisplayBlock : FglStatement, IOutlinableResult
     {
         public bool IsArray { get; private set; }
         public NameExpression ArrayName { get; private set; }
@@ -35,6 +35,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 node.Attributes = new List<DisplayAttribute>();
                 node.ByNameFields = new List<NameExpression>();
                 node.FieldSpecs = new List<NameExpression>();
+                node.DecoratorEnd = parser.Token.Span.End;
 
                 if(parser.PeekToken(TokenKind.ByKeyword))
                 {
@@ -52,6 +53,8 @@ namespace VSGenero.Analysis.Parsing.AST
                                 break;
                             parser.NextToken();
                         }
+
+                        node.DecoratorEnd = parser.Token.Span.End;
 
                         // get the optional attributes
                         if(parser.PeekToken(TokenKind.AttributesKeyword) || parser.PeekToken(TokenKind.AttributeKeyword))
@@ -77,6 +80,7 @@ namespace VSGenero.Analysis.Parsing.AST
                             else
                                 parser.ReportSyntaxError("Expecting left-paren in display attributes section.");
                         }
+                        node.EndIndex = parser.Token.Span.End;
                     }
                     else
                         parser.ReportSyntaxError("Expected \"name\" keyword in display statement.");
@@ -91,6 +95,8 @@ namespace VSGenero.Analysis.Parsing.AST
                         node.ArrayName = arrName;
                     else
                         parser.ReportSyntaxError("Invalid array name found in display array statement.");
+
+                    node.DecoratorEnd = parser.Token.Span.End;
 
                     if (parser.PeekToken(TokenKind.ToKeyword))
                     {
@@ -233,11 +239,31 @@ namespace VSGenero.Analysis.Parsing.AST
                                 parser.ReportSyntaxError("Expecting left-paren in display attributes section.");
                         }
                     }
+
+                    node.EndIndex = parser.Token.Span.End;
                 }
             }
 
             return result;
         }
+
+        public bool CanOutline
+        {
+            get { return true; }
+        }
+
+        public int DecoratorStart
+        {
+            get
+            {
+                return StartIndex;
+            }
+            set
+            {
+            }
+        }
+
+        public int DecoratorEnd { get; set; }
     }
 
     public class DisplayAttribute : AstNode

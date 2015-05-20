@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace VSGenero.Analysis.Parsing.AST
 {
-    public class ForeachStatement : FglStatement
+    public class ForeachStatement : FglStatement, IOutlinableResult
     {
         public NameExpression CursorId { get; private set; }
         public List<NameExpression> InputVars { get; private set; }
@@ -66,6 +66,8 @@ namespace VSGenero.Analysis.Parsing.AST
                     }
                 }
 
+                node.DecoratorEnd = parser.Token.Span.End;
+
                 if (parser.PeekToken(TokenKind.WithKeyword))
                 {
                     parser.NextToken();
@@ -123,5 +125,23 @@ namespace VSGenero.Analysis.Parsing.AST
 
             return result;
         }
+
+        public bool CanOutline
+        {
+            get { return true; }
+        }
+
+        public int DecoratorStart
+        {
+            get
+            {
+                return StartIndex;
+            }
+            set
+            {
+            }
+        }
+
+        public int DecoratorEnd { get; set; }
     }
 }

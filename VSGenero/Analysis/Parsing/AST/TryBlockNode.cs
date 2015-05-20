@@ -18,7 +18,7 @@ namespace VSGenero.Analysis.Parsing.AST
     /// 
     /// For more info, see: http://www.4js.com/online_documentation/fjs-fgl-manual-html/index.html#c_fgl_Exceptions_007.html
     /// </summary>
-    public class TryCatchStatement : FglStatement
+    public class TryCatchStatement : FglStatement, IOutlinableResult
     {
         public static bool TryParseNode(Parser parser, out TryCatchStatement defNode,
                                  Func<string, PrepareStatement> prepStatementResolver = null,
@@ -34,6 +34,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 defNode = new TryCatchStatement();
                 parser.NextToken();
                 defNode.StartIndex = parser.Token.Span.Start;
+                defNode.DecoratorEnd = parser.Token.Span.End;
 
                 TryBlock tryBlock;
                 if(TryBlock.TryParseNode(parser, out tryBlock, prepStatementResolver, prepStatementBinder, validExitKeywords))
@@ -65,6 +66,24 @@ namespace VSGenero.Analysis.Parsing.AST
 
             return result;
         }
+
+        public bool CanOutline
+        {
+            get { return true; }
+        }
+
+        public int DecoratorStart
+        {
+            get
+            {
+                return StartIndex;
+            }
+            set
+            {
+            }
+        }
+
+        public int DecoratorEnd { get; set; }
     }
 
     public class TryBlock : AstNode

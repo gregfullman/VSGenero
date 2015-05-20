@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace VSGenero.Analysis.Parsing.AST
 {
-    public class DialogBlock : FglStatement
+    public class DialogBlock : FglStatement, IOutlinableResult
     {
         public List<DialogAttribute> Attributes { get; private set; }
         public List<NameExpression> Subdialogs { get; private set; }
@@ -27,6 +27,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 node.Subdialogs = new List<NameExpression>();
                 parser.NextToken();
                 node.StartIndex = parser.Token.Span.Start;
+                node.DecoratorEnd = parser.Token.Span.End;
 
                 if(parser.PeekToken(TokenKind.AttributeKeyword) || parser.PeekToken(TokenKind.AttributesKeyword))
                 {
@@ -133,6 +134,24 @@ namespace VSGenero.Analysis.Parsing.AST
 
             return result;
         }
+
+        public bool CanOutline
+        {
+            get { return true; }
+        }
+
+        public int DecoratorStart
+        {
+            get
+            {
+                return StartIndex;
+            }
+            set
+            {
+            }
+        }
+
+        public int DecoratorEnd { get; set; }
     }
 
     public class DialogAttribute : AstNode

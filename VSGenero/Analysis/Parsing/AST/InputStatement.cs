@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace VSGenero.Analysis.Parsing.AST
 {
-    public class InputBlock : FglStatement
+    public class InputBlock : FglStatement, IOutlinableResult
     {
         public bool IsArray { get; private set; }
         public NameExpression ArrayName { get; private set; }
@@ -57,6 +57,8 @@ namespace VSGenero.Analysis.Parsing.AST
                     else
                         parser.ReportSyntaxError("Invalid array name found in input statement.");
                 }
+
+                node.DecoratorEnd = parser.Token.Span.End;
 
                 NameExpression nameExpr;
                 if (!node.IsArray)
@@ -169,6 +171,24 @@ namespace VSGenero.Analysis.Parsing.AST
 
             return result;
         }
+
+        public bool CanOutline
+        {
+            get { return true; }
+        }
+
+        public int DecoratorStart
+        {
+            get
+            {
+                return StartIndex;
+            }
+            set
+            {
+            }
+        }
+
+        public int DecoratorEnd { get; set; }
     }
 
     public enum InputControlBlockType

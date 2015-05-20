@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace VSGenero.Analysis.Parsing.AST
 {
-    public class ConstructBlock : FglStatement
+    public class ConstructBlock : FglStatement, IOutlinableResult
     {
         public bool IsImplicitMapping { get; private set; }
         public NameExpression Variable { get; private set; }
@@ -53,6 +53,8 @@ namespace VSGenero.Analysis.Parsing.AST
                     node.Variable = varName;
                 else
                     parser.ReportSyntaxError("Invalid variable name found in construct statement.");
+
+                node.DecoratorEnd = parser.Token.Span.End;
 
                 if (parser.PeekToken(TokenKind.OnKeyword))
                     parser.NextToken();
@@ -156,6 +158,24 @@ namespace VSGenero.Analysis.Parsing.AST
 
             return result;
         }
+
+        public bool CanOutline
+        {
+            get { return true; }
+        }
+
+        public int DecoratorStart
+        {
+            get
+            {
+                return StartIndex;
+            }
+            set
+            {
+            }
+        }
+
+        public int DecoratorEnd { get; set; }
     }
 
     public enum ConstructControlBlockType

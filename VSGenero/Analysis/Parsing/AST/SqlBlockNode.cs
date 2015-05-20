@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace VSGenero.Analysis.Parsing.AST
 {
-    public class SqlBlockNode : FglStatement
+    public class SqlBlockNode : FglStatement, IOutlinableResult
     {
         public static bool TryParseSqlNode(Parser parser, out SqlBlockNode node)
         {
@@ -19,6 +19,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 node = new SqlBlockNode();
                 parser.NextToken();
                 node.StartIndex = parser.Token.Span.Start;
+                node.DecoratorEnd = parser.Token.Span.End;
 
                 List<List<TokenKind>> breakSequences = new List<List<TokenKind>>() 
                     { 
@@ -59,5 +60,23 @@ namespace VSGenero.Analysis.Parsing.AST
 
             return result;
         }
+
+        public bool CanOutline
+        {
+            get { return true; }
+        }
+
+        public int DecoratorStart
+        {
+            get
+            {
+                return StartIndex;
+            }
+            set
+            {
+            }
+        }
+
+        public int DecoratorEnd { get; set; }
     }
 }

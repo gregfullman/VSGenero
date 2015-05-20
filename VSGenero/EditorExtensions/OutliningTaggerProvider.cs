@@ -136,8 +136,9 @@ namespace VSGenero.EditorExtensions
                         regionTokens = val as TokenWithSpan[];
                     }
 
-                    foreach (var child in moduleNode.Children.Where(x => x.Value is IOutlinableResult)
-                                                             .Select(x => x.Value as IOutlinableResult).Union(GetRegions(regionTokens)))
+                    List<IOutlinableResult> outlinables = new List<IOutlinableResult>();
+                    GetOutlinableResults(moduleNode, ref outlinables);
+                    foreach (var child in outlinables.Union(GetRegions(regionTokens)))
                     {
                         SnapshotSpan? span = ShouldInclude(child, spans);
                         if (span == null)
@@ -152,6 +153,17 @@ namespace VSGenero.EditorExtensions
                             yield return tagSpan;
                         }
                     }
+                }
+            }
+
+            private void GetOutlinableResults(AstNode node, ref List<IOutlinableResult> outlinables)
+            {
+                foreach(var child in node.Children)
+                {
+                    if (child.Value is IOutlinableResult)
+                        outlinables.Add(child.Value as IOutlinableResult);
+                    if (child.Value.Children.Count > 0)
+                        GetOutlinableResults(child.Value, ref outlinables);
                 }
             }
 

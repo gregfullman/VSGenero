@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace VSGenero.Analysis.Parsing.AST
 {
-    public class CaseStatement :FglStatement
+    public class CaseStatement : FglStatement, IOutlinableResult
     {
         public ExpressionNode ConditionExpression { get; private set; }
 
@@ -25,6 +25,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 parser.NextToken();
                 node.StartIndex = parser.Token.Span.Start;
 
+
                 if(!parser.PeekToken(TokenKind.WhenKeyword))
                 {
                     ExpressionNode tempExpr;
@@ -37,6 +38,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         parser.ReportSyntaxError("Invalid conditional expression found in case statement");
                     }
                 }
+                node.DecoratorEnd = parser.Token.Span.End;
 
                 List<TokenKind> validExits = new List<TokenKind>();
                 if (validExitKeywords != null)
@@ -91,6 +93,24 @@ namespace VSGenero.Analysis.Parsing.AST
 
             return result;
         }
+
+        public bool CanOutline
+        {
+            get { return true; }
+        }
+
+        public int DecoratorStart
+        {
+            get
+            {
+                return StartIndex;
+            }
+            set
+            {
+            }
+        }
+
+        public int DecoratorEnd { get; set; }
     }
 
     public class WhenStatement : AstNode
