@@ -152,5 +152,11 @@ namespace VSGenero.Analysis.Parsing
                 return false;
             }
         }
+
+
+        public LocationInfo TokenLocation
+        {
+            get { return null; }
+        }
     }
 }

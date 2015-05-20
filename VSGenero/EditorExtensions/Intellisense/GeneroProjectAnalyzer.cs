@@ -153,60 +153,60 @@ namespace VSGenero.EditorExtensions.Intellisense
             }
         }
 
-        private IGeneroProjectEntry CreateProjectEntry(ITextBuffer buffer, IAnalysisCookie analysisCookie)
+        private IGeneroProjectEntry CreateProjectEntry(string filename, IAnalysisCookie analysisCookie)
         {
             IGeneroProjectEntry entry = null;
-            string path = buffer.GetFilePath();
-            if (path != null)
+            if (filename != null)
             {
-                string dirPath = Path.GetDirectoryName(path);
+                string dirPath = Path.GetDirectoryName(filename);
+                string extension = Path.GetExtension(filename);
                 IGeneroProject projEntry;
                 if (!_projects.TryGetValue(dirPath, out projEntry))
                 {
-                    if (buffer.ContentType.IsOfType(VSGeneroConstants.ContentType4GL) ||
-                        buffer.ContentType.IsOfType(VSGeneroConstants.ContentTypeINC) ||
-                        buffer.ContentType.IsOfType(VSGeneroConstants.ContentTypePER))
+                    if (extension.Equals(VSGeneroConstants.FileExtension4GL, StringComparison.OrdinalIgnoreCase) ||
+                        extension.Equals(VSGeneroConstants.FileExtensionINC, StringComparison.OrdinalIgnoreCase) ||
+                        extension.Equals(VSGeneroConstants.FileExtensionPER, StringComparison.OrdinalIgnoreCase))
                     {
                         string moduleName = null;   // TODO: get module name from provider (if provider is null, take the file's directory name)
                         IAnalysisCookie cookie = null;
-                        entry = new GeneroProjectEntry(moduleName, path, cookie);
+                        entry = new GeneroProjectEntry(moduleName, filename, cookie);
                     }
 
                     if (entry != null)
                     {
                         GeneroProject proj = new GeneroProject(dirPath);
-                        proj.ProjectEntries.AddOrUpdate(path, entry, (x, y) => y);
+                        proj.ProjectEntries.AddOrUpdate(filename, entry, (x, y) => y);
                         entry.SetProject(proj);
                         _projects.AddOrUpdate(dirPath, proj, (x, y) => y);
 
-                        if (ImplicitProject && ShouldAnalyzePath(path))
+                        if (ImplicitProject && ShouldAnalyzePath(filename))
                         { // don't analyze std lib
-                            QueueDirectoryAnalysis(dirPath, path);
+                            QueueDirectoryAnalysis(dirPath, filename);
                         }
                     }
                 }
                 else
                 {
-                    if (!projEntry.ProjectEntries.TryGetValue(path, out entry))
+                    if (!projEntry.ProjectEntries.TryGetValue(filename, out entry))
                     {
-                        if (buffer.ContentType.IsOfType(VSGeneroConstants.ContentType4GL) ||
-                            buffer.ContentType.IsOfType(VSGeneroConstants.ContentTypeINC) ||
-                            buffer.ContentType.IsOfType(VSGeneroConstants.ContentTypePER))
+                        if (extension.Equals(VSGeneroConstants.FileExtension4GL, StringComparison.OrdinalIgnoreCase) ||
+                            extension.Equals(VSGeneroConstants.FileExtensionINC, StringComparison.OrdinalIgnoreCase) ||
+                            extension.Equals(VSGeneroConstants.FileExtensionPER, StringComparison.OrdinalIgnoreCase))
                         {
                             string moduleName = null;   // TODO: get module name from provider (if provider is null, take the file's directory name)
                             IAnalysisCookie cookie = null;
-                            entry = new GeneroProjectEntry(moduleName, path, cookie);
+                            entry = new GeneroProjectEntry(moduleName, filename, cookie);
                         }
                     }
                     if (entry != null)
                     {
-                        projEntry.ProjectEntries.AddOrUpdate(path, entry, (x, y) => y);
+                        projEntry.ProjectEntries.AddOrUpdate(filename, entry, (x, y) => y);
                         entry.SetProject(projEntry);
                         _projects.AddOrUpdate(dirPath, projEntry, (x, y) => y);
 
-                        if (ImplicitProject && ShouldAnalyzePath(path))
+                        if (ImplicitProject && ShouldAnalyzePath(filename))
                         { // don't analyze std lib
-                            QueueDirectoryAnalysis(dirPath, path);
+                            QueueDirectoryAnalysis(dirPath, filename);
                         }
                     }
                 }
@@ -217,6 +217,11 @@ namespace VSGenero.EditorExtensions.Intellisense
                 entry.IsOpen = true;
             }
             return entry;
+        }
+
+        private IGeneroProjectEntry CreateProjectEntry(ITextBuffer buffer, IAnalysisCookie analysisCookie)
+        {
+            return CreateProjectEntry(buffer.GetFilePath(), analysisCookie);
         }
 
         private void ProjectEntryAnalyzed(string path, IGeneroProjectEntry projEntry)
@@ -232,6 +237,11 @@ namespace VSGenero.EditorExtensions.Intellisense
         private void QueueDirectoryAnalysis(string path, string excludeFile = null)
         {
             ThreadPool.QueueUserWorkItem(x => { lock (_contentsLock) { AnalyzeDirectory(CommonUtils.NormalizeDirectoryPath(path), excludeFile, ProjectEntryAnalyzed); } });
+        }
+
+        private void QueueFileAnalysis(string filename)
+        {
+            ThreadPool.QueueUserWorkItem(x => { lock (_contentsLock) { AnalyzeFile(filename, ProjectEntryAnalyzed); } });
         }
 
         private bool ShouldAnalyzePath(string path)
@@ -263,9 +273,9 @@ namespace VSGenero.EditorExtensions.Intellisense
                         {
                             // before clearing the top level project's entries, we need to go through
                             // each one and have any Referenced projects remove the entry from their Referencing set.
-                            foreach(var projEntry in proj.ProjectEntries)
+                            foreach (var projEntry in proj.ProjectEntries)
                             {
-                                foreach(var refProj in proj.ReferencedProjects)
+                                foreach (var refProj in proj.ReferencedProjects)
                                 {
                                     if (refProj.Value.ReferencingProjectEntries.Contains(projEntry.Value))
                                         refProj.Value.ReferencingProjectEntries.Remove(projEntry.Value);
@@ -289,10 +299,10 @@ namespace VSGenero.EditorExtensions.Intellisense
         internal void UnloadImportedModules(IGeneroProject project)
         {
             var refList = project.ReferencedProjects.Select(x => x.Value).ToList();
-            for(int i = 0; i < refList.Count; i++)
+            for (int i = 0; i < refList.Count; i++)
             {
                 // if the project references another project, attempt to unload the referenced project (by recursing into it)
-                if(refList[i].ReferencedProjects.Count > 0)
+                if (refList[i].ReferencedProjects.Count > 0)
                 {
                     UnloadImportedModules(refList[i]);
                 }
@@ -308,12 +318,12 @@ namespace VSGenero.EditorExtensions.Intellisense
                 }
 
                 // if no other things 
-                if(refList[i].ReferencingProjectEntries.Count == 0)
+                if (refList[i].ReferencingProjectEntries.Count == 0)
                 {
                     IGeneroProject remProj;
                     project.ReferencedProjects.TryRemove(refList[i].Directory, out remProj);
                     IGeneroProject remProj2;
-                    if(_projects.TryRemove(refList[i].Directory, out remProj2))
+                    if (_projects.TryRemove(refList[i].Directory, out remProj2))
                     {
                         _taskProvider.Value.Clear(refList[i].Directory);
                     }
@@ -374,7 +384,7 @@ namespace VSGenero.EditorExtensions.Intellisense
         /// part of an identifier then the expression is extended to complete the identifier.
         /// </summary>
         internal static ExpressionAnalysis AnalyzeExpression(ITextSnapshot snapshot, ITrackingSpan span, IFunctionInformationProvider functionProvider,
-                                                             IDatabaseInformationProvider databaseProvider, bool forCompletion = true)
+                                                             IDatabaseInformationProvider databaseProvider, IProgramFileProvider programFileProvider, bool forCompletion = true)
         {
             var buffer = snapshot.TextBuffer;
             Genero4glReverseParser parser = new Genero4glReverseParser(snapshot, buffer, span);
@@ -410,7 +420,8 @@ namespace VSGenero.EditorExtensions.Intellisense
                         applicableSpan,
                         parser.Snapshot,
                         functionProvider,
-                        databaseProvider);
+                        databaseProvider,
+                        programFileProvider);
                 }
             }
 
@@ -421,9 +432,10 @@ namespace VSGenero.EditorExtensions.Intellisense
         /// Gets a CompletionList providing a list of possible members the user can dot through.
         /// </summary>
         internal static CompletionAnalysis GetCompletions(ITextSnapshot snapshot, ITrackingSpan span, ITrackingPoint point, CompletionOptions options,
-                                                          IFunctionInformationProvider functionProvider, IDatabaseInformationProvider databaseProvider)
+                                                          IFunctionInformationProvider functionProvider, IDatabaseInformationProvider databaseProvider,
+                                                          IProgramFileProvider programFileProvider)
         {
-            return TrySpecialCompletions(snapshot, span, point, options, functionProvider, databaseProvider); /*??
+            return TrySpecialCompletions(snapshot, span, point, options, functionProvider, databaseProvider, programFileProvider); /*??
                    GetNormalCompletionContext(snapshot, span, point, options)*/
         }
 
@@ -580,7 +592,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                 {
                     pyEntry.UpdateTree(ast, cookie);
                     _analysisQueue.Enqueue(pyEntry, AnalysisPriority.Normal);
-                    pyEntry.UpdateImportedProjects(filename, ast);
+                    pyEntry.UpdateIncludesAndImports(filename, ast);
                     //if(pyEntry.DetectCircularImports())
                     //{
                     //    // TODO: add error(s) from the (to be defined) errors returned from the function
@@ -591,7 +603,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                     // notify that we failed to update the existing analysis
                     pyEntry.UpdateTree(null, null);
                 }
-                
+
                 if (errorSink.Warnings.Count > 0 || errorSink.Errors.Count > 0)
                 {
                     TaskProvider provider = GetTaskProviderAndClearProjectItems(projectEntry);
@@ -626,7 +638,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                     if (ast != null)
                     {
                         asts.Add(ast);
-                        pyProjEntry.UpdateImportedProjects(pyProjEntry.FilePath, ast);
+                        pyProjEntry.UpdateIncludesAndImports(pyProjEntry.FilePath, ast);
                         //if (pyProjEntry.DetectCircularImports())
                         //{
                         //    // TODO: add error(s) from the (to be defined) errors returned from the function
@@ -806,7 +818,8 @@ namespace VSGenero.EditorExtensions.Intellisense
         }
 
         private static CompletionAnalysis TrySpecialCompletions(ITextSnapshot snapshot, ITrackingSpan span, ITrackingPoint point, CompletionOptions options,
-                                                                IFunctionInformationProvider functionProvider, IDatabaseInformationProvider databaseProvider)
+                                                                IFunctionInformationProvider functionProvider, IDatabaseInformationProvider databaseProvider,
+                                                                IProgramFileProvider programFileProvider)
         {
             var snapSpan = span.GetSpan(snapshot);
             var buffer = snapshot.TextBuffer;
@@ -863,7 +876,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             var entry = (IGeneroProjectEntry)buffer.GetAnalysis();
             if (entry != null && entry.Analysis != null)
             {
-                var members = entry.Analysis.GetContextMembersByIndex(start, parser, functionProvider, databaseProvider);
+                var members = entry.Analysis.GetContextMembersByIndex(start, parser, functionProvider, databaseProvider, programFileProvider);
                 if (members != null)
                 {
                     return new ContextSensitiveCompletionAnalysis(members, span, buffer, options);
@@ -920,6 +933,11 @@ namespace VSGenero.EditorExtensions.Intellisense
             _analysisQueue.Enqueue(new AddDirectoryAnalysis(dir, excludeFile, onFileAnalyzed, this), AnalysisPriority.High);
         }
 
+        public void AnalyzeFile(string filename, Action<string, IGeneroProjectEntry> onFileAnalyzed = null)
+        {
+            _analysisQueue.Enqueue(new AddFileAnalysis(filename, onFileAnalyzed, this), AnalysisPriority.High);
+        }
+
         class AddDirectoryAnalysis : IAnalyzable
         {
             private readonly string _dir;
@@ -948,6 +966,59 @@ namespace VSGenero.EditorExtensions.Intellisense
             }
 
             #endregion
+        }
+
+        class AddFileAnalysis : IAnalyzable
+        {
+            private readonly string _filename;
+            private readonly Action<string, IGeneroProjectEntry> _onFileAnalyzed;
+            private readonly GeneroProjectAnalyzer _analyzer;
+
+            public AddFileAnalysis(string filename, Action<string, IGeneroProjectEntry> onFileAnalyzed, GeneroProjectAnalyzer analyzer)
+            {
+                _filename = filename;
+                _onFileAnalyzed = onFileAnalyzed;
+                _analyzer = analyzer;
+            }
+
+            #region IAnalyzable Members
+
+            public void Analyze(CancellationToken cancel)
+            {
+                if (cancel.IsCancellationRequested)
+                {
+                    return;
+                }
+
+                _analyzer.AnalyzeFileWorker(_filename, _onFileAnalyzed);
+            }
+
+            #endregion
+        }
+
+        private void AnalyzeFileWorker(string filename, Action<string, IGeneroProjectEntry> onFileAnalyzed)
+        {
+            if (string.IsNullOrEmpty(filename))
+            {
+                Debug.Assert(false, "Unexpected empty filename");
+                return;
+            }
+
+            try
+            {
+                IGeneroProjectEntry entry = AnalyzeFile(filename);
+                if (onFileAnalyzed != null)
+                {
+                    onFileAnalyzed(filename, entry);
+                }
+            }
+            catch (IOException)
+            {
+                // We want to handle DirectoryNotFound, DriveNotFound, PathTooLong
+            }
+            catch (UnauthorizedAccessException)
+            {
+            }
         }
 
         private void AnalyzeDirectoryWorker(string dir, string _excludeFile, Action<string, IGeneroProjectEntry> onFileAnalyzed, CancellationToken cancel)
@@ -1140,7 +1211,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                                     }
                                     else
                                     {
-                                        foreach(var key in _errors.Keys.Where(x => x.StartsWith(msg.Filename, StringComparison.OrdinalIgnoreCase)).ToList())
+                                        foreach (var key in _errors.Keys.Where(x => x.StartsWith(msg.Filename, StringComparison.OrdinalIgnoreCase)).ToList())
                                             changed = _errors.Remove(key) || changed;
                                         foreach (var key in _warnings.Keys.Where(x => x.StartsWith(msg.Filename, StringComparison.OrdinalIgnoreCase)).ToList())
                                             changed = _warnings.Remove(key) || changed;

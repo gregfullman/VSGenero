@@ -146,6 +146,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 defNode.ArrayType = ArrayType.Dynamic;
                 parser.NextToken();
                 defNode.StartIndex = parser.Token.Span.Start;
+                defNode._location = parser.TokenLocation;
 
                 if (!parser.PeekToken(TokenKind.ArrayKeyword))
                     parser.ReportSyntaxError("Missing \"array\" keyword after \"dynamic\" array keyword.");
@@ -227,6 +228,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 defNode = new ArrayTypeReference();
                 parser.NextToken();
                 defNode.StartIndex = parser.Token.Span.Start;
+                defNode._location = parser.TokenLocation;
 
                 if (!parser.PeekToken(TokenKind.LeftBracket))
                     parser.ReportSyntaxError("A non-dynamic array definition must have brackets.");

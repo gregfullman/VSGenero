@@ -234,7 +234,8 @@ namespace VSGenero.Analysis.Parsing.AST
             get { return StartIndex; }
         }
 
-        public LocationInfo Location { get { return null; } }
+        protected LocationInfo _location;
+        public LocationInfo Location { get { return _location; } }
 
         public IAnalysisResult GetMember(string name, GeneroAst ast)
         {
@@ -306,7 +307,7 @@ namespace VSGenero.Analysis.Parsing.AST
 
                     // check for package class
                     IGeneroProject dummyProject;
-                    udt = ast.GetValueByIndex(_typeNameString, LocationIndex, ast._functionProvider, ast._databaseProvider, out dummyProject);
+                    udt = ast.GetValueByIndex(_typeNameString, LocationIndex, ast._functionProvider, ast._databaseProvider, ast._programFileProvider, out dummyProject);
                     if (udt != null)
                     {
                         return udt.GetMembers(ast, memberType).Select(x => x.Var).Where(y => y != null);
@@ -369,7 +370,7 @@ namespace VSGenero.Analysis.Parsing.AST
 
                     // check for package class
                     IGeneroProject dummyProject;
-                    udt = ast.GetValueByIndex(_typeNameString, LocationIndex, ast._functionProvider, ast._databaseProvider, out dummyProject);
+                    udt = ast.GetValueByIndex(_typeNameString, LocationIndex, ast._functionProvider, ast._databaseProvider, ast._programFileProvider, out dummyProject);
                     if (udt != null)
                     {
                         return udt.GetMembers(ast, memberType);
@@ -413,7 +414,7 @@ namespace VSGenero.Analysis.Parsing.AST
 
                         // check for package class
                         IGeneroProject dummyProj;
-                        udt = ast.GetValueByIndex(_typeNameString, LocationIndex, ast._functionProvider, ast._databaseProvider, out dummyProj);
+                        udt = ast.GetValueByIndex(_typeNameString, LocationIndex, ast._functionProvider, ast._databaseProvider, ast._programFileProvider, out dummyProj);
                         if(udt != null)
                         {
                             return udt.HasChildFunctions(ast);

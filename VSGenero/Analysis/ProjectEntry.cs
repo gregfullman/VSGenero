@@ -259,18 +259,20 @@ namespace VSGenero.Analysis
             }
         }
 
+        private HashSet<string> _lastIncludedFiles;
         private HashSet<string> _lastImportedModules;
-        public void UpdateImportedProjects(string filename, GeneroAst ast)
+
+        public void UpdateIncludesAndImports(string filename, GeneroAst ast)
         {
-            if (VSGeneroPackage.Instance.GlobalFunctionProvider != null)
+            if (VSGeneroPackage.Instance.ProgramFileProvider != null)
             {
+                // first do imports
                 if (_lastImportedModules == null)
                     _lastImportedModules = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                 var modules = ast.GetImportedModules().ToList();
                 HashSet<string> currentlyImportedModules = new HashSet<string>(_lastImportedModules, StringComparer.OrdinalIgnoreCase);
-                //_lastImportedModules.Clear();
-                VSGeneroPackage.Instance.GlobalFunctionProvider.SetFilename(filename);
-                foreach (var mod in modules.Select(x => VSGeneroPackage.Instance.GlobalFunctionProvider.GetImportModuleFilename(x)).Where(y => y != null))
+                VSGeneroPackage.Instance.ProgramFileProvider.SetFilename(filename);
+                foreach (var mod in modules.Select(x => VSGeneroPackage.Instance.ProgramFileProvider.GetImportModuleFilename(x)).Where(y => y != null))
                 {
                     if (!_lastImportedModules.Contains(mod))
                     {
@@ -292,6 +294,21 @@ namespace VSGenero.Analysis
                     ParentProject.RemoveImportedModule(mod);
                     _lastImportedModules.Remove(mod);
                 }
+
+                // next do includes
+                if (_lastIncludedFiles == null)
+                    _lastIncludedFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                var includes = ast.GetIncludedFiles();
+                HashSet<string> currentlyIncludedFiles = new HashSet<string>(_lastIncludedFiles, StringComparer.OrdinalIgnoreCase);
+                foreach(var incl in includes.Select(x => VSGeneroPackage.Instance.ProgramFileProvider.GetIncludeFile(x)).Where(y => y != null))
+                {
+                    if (!_lastIncludedFiles.Contains(incl))
+                    {
+
+                    }
+                    else
+                        currentlyIncludedFiles.Remove(incl);
+                }
             }
         }
 
@@ -307,6 +324,11 @@ namespace VSGenero.Analysis
         public GeneroProject(string directory)
         {
             _directory = directory;
+        }
+
+        public void AddIncludedFile(string path)
+        {
+
         }
 
         public IGeneroProject AddImportedModule(string path)
@@ -326,6 +348,11 @@ namespace VSGenero.Analysis
                 }
             }
             return refProj;
+        }
+
+        public void RemoveIncludedFile(string path)
+        {
+
         }
 
         public void RemoveImportedModule(string path)
@@ -586,7 +613,9 @@ namespace VSGenero.Analysis
     public interface IGeneroProject
     {
         IGeneroProject AddImportedModule(string path);
+        void AddIncludedFile(string path);
         void RemoveImportedModule(string path);
+        void RemoveIncludedFile(string path);
 
         string Directory { get; }
         /// <summary>
@@ -634,7 +663,7 @@ namespace VSGenero.Analysis
 
         void UpdateTree(GeneroAst ast, IAnalysisCookie fileCookie);
         void GetTreeAndCookie(out GeneroAst ast, out IAnalysisCookie cookie);
-        void UpdateImportedProjects(string filename, GeneroAst ast);
+        void UpdateIncludesAndImports(string filename, GeneroAst ast);
         bool DetectCircularImports();
         /// <summary>
         /// Returns the current tree if no parsing is currently pending, otherwise waits for the 

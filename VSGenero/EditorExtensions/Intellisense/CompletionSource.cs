@@ -50,10 +50,13 @@ namespace VSGenero.EditorExtensions.Intellisense
                 _provider._PublicFunctionProvider.SetFilename(textBuffer.GetFilePath());
             if (_provider._DatabaseInfoProvider != null)
                 _provider._DatabaseInfoProvider.SetFilename(textBuffer.GetFilePath());
+            if (_provider._ProgramFileProvider != null)
+                _provider._ProgramFileProvider.SetFilename(textBuffer.GetFilePath());
+            
             var span = session.GetApplicableSpan(textBuffer);
             var triggerPoint = session.GetTriggerPoint(textBuffer);
             var options = session.GetOptions();
-            var provider = textBuffer.CurrentSnapshot.GetCompletions(span, triggerPoint, options, _provider._PublicFunctionProvider, _provider._DatabaseInfoProvider);
+            var provider = textBuffer.CurrentSnapshot.GetCompletions(span, triggerPoint, options, _provider._PublicFunctionProvider, _provider._DatabaseInfoProvider, _provider._ProgramFileProvider);
             
             var completions = provider.GetCompletions(_provider._glyphService);
 

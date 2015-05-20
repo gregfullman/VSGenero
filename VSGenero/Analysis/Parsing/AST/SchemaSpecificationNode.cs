@@ -34,7 +34,9 @@ namespace VSGenero.Analysis.Parsing.AST
 
                 parser.NextToken();
                 var tokenInfo = Tokenizer.GetTokenInfo(parser.Token.Token);
-                if (tokenInfo.Category == TokenCategory.Keyword || tokenInfo.Category == TokenCategory.Identifier)
+                if (tokenInfo.Category == TokenCategory.Keyword || 
+                    tokenInfo.Category == TokenCategory.Identifier ||
+                    tokenInfo.Category == TokenCategory.StringLiteral)
                 {
                     defNode.SchemaName = parser.Token.Token.Value.ToString();
                     defNode.EndIndex = parser.Token.Span.End;

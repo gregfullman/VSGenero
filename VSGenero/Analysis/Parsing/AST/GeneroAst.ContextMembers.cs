@@ -324,6 +324,7 @@ namespace VSGenero.Analysis.Parsing.AST
 
         internal IFunctionInformationProvider _functionProvider;
         internal IDatabaseInformationProvider _databaseProvider;
+        internal IProgramFileProvider _programFileProvider;
 
         private IEnumerable<MemberResult> GetAdditionalUserDefinedTypes(int index, string token)
         {
@@ -822,7 +823,7 @@ namespace VSGenero.Analysis.Parsing.AST
                             string var = sb.ToString();
 
                             IGeneroProject dummyProj;
-                            var analysisRes = GetValueByIndex(var, index, _functionProvider, _databaseProvider, out dummyProj);
+                            var analysisRes = GetValueByIndex(var, index, _functionProvider, _databaseProvider, _programFileProvider, out dummyProj);
                             if (analysisRes != null)
                             {
                                 var members = analysisRes.GetMembers(this, memberType);
@@ -1863,8 +1864,8 @@ namespace VSGenero.Analysis.Parsing.AST
                     if(firstState == ImportContextState.None)
                     {
                         // provide available fgl imports
-                        if(_functionProvider != null)
-                            results.AddRange(_functionProvider.GetAvailableImportModules().Select(x => new MemberResult(x, GeneroMemberType.Module, this)));
+                        if(_programFileProvider != null)
+                            results.AddRange(_programFileProvider.GetAvailableImportModules().Select(x => new MemberResult(x, GeneroMemberType.Module, this)));
 
                         firstState = ImportContextState.FglKeyword;
                     }
@@ -3866,10 +3867,11 @@ namespace VSGenero.Analysis.Parsing.AST
         #region Public Member Providers
 
         public IEnumerable<MemberResult> GetContextMembersByIndex(int index, IReverseTokenizer revTokenizer, IFunctionInformationProvider functionProvider,
-                                                                  IDatabaseInformationProvider databaseProvider, GetMemberOptions options = GetMemberOptions.IntersectMultipleResults)
+                                                                  IDatabaseInformationProvider databaseProvider, IProgramFileProvider programFileProvider, GetMemberOptions options = GetMemberOptions.IntersectMultipleResults)
         {
             _functionProvider = functionProvider;
             _databaseProvider = databaseProvider;
+            _programFileProvider = programFileProvider;
 
             // set up the static providers
             SetMemberProviders(GetAdditionalUserDefinedTypes, GetDatabaseTables, GetDatabaseTableColumns);

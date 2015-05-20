@@ -73,12 +73,32 @@ namespace VSGenero.Analysis.Parsing.AST
             }
         }
 
-        private static bool CheckForPreprocessorNode(Parser parser)
+        private HashSet<string> _includeFiles;
+        public HashSet<string> IncludeFiles
+        {
+            get
+            {
+                if (_includeFiles == null)
+                    _includeFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                return _includeFiles;
+            }
+        }
+
+        private static bool CheckForPreprocessorNode(Parser parser, ModuleNode node)
         {
             PreprocessorNode preNode;
             if (PreprocessorNode.TryParseNode(parser, out preNode))
             {
-                // not storing it right now
+                if(preNode.Type == PreprocessorType.Include &&
+                   !string.IsNullOrWhiteSpace(preNode.IncludeFile))
+                {
+                    //node.IncludeFiles.Add(preNode.IncludeFile);
+                    var fullFilename = VSGeneroPackage.Instance.ProgramFileProvider.GetIncludeFile(preNode.IncludeFile);
+                    if(!string.IsNullOrWhiteSpace(fullFilename))
+                    {
+                        parser.CreateIncludeParser(fullFilename);
+                    }
+                }
                 return true;
             }
             return false;
@@ -91,7 +111,7 @@ namespace VSGenero.Analysis.Parsing.AST
 
             while (!parser.PeekToken(TokenKind.EndOfFile))
             {
-                if (CheckForPreprocessorNode(parser))
+                if (CheckForPreprocessorNode(parser, defNode))
                     continue;
 
                 CompilerOptionsNode compOptionsNode;
@@ -109,7 +129,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 if (processed == NodesProcessed.None)
                     processed = NodesProcessed.CompilerOption;
 
-                if (CheckForPreprocessorNode(parser))
+                if (CheckForPreprocessorNode(parser, defNode))
                     continue;
 
                 ImportModuleNode importNode;
@@ -137,7 +157,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 if (processed == NodesProcessed.CompilerOption)
                     processed = NodesProcessed.Imports;
 
-                if (CheckForPreprocessorNode(parser))
+                if (CheckForPreprocessorNode(parser, defNode))
                     continue;
 
                 SchemaSpecificationNode schemaNode;
@@ -155,7 +175,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 if (processed == NodesProcessed.Imports)
                     processed = NodesProcessed.SchemaSpec;
 
-                if (CheckForPreprocessorNode(parser))
+                if (CheckForPreprocessorNode(parser, defNode))
                     continue;
 
                 GlobalsNode globalNode;
@@ -195,7 +215,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 if (processed == NodesProcessed.SchemaSpec)
                     processed = NodesProcessed.MemberDefinitions;
 
-                if (CheckForPreprocessorNode(parser))
+                if (CheckForPreprocessorNode(parser, defNode))
                     continue;
 
                 bool matchedBreakSequence = false;
@@ -235,7 +255,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 if (processed == NodesProcessed.SchemaSpec)
                     processed = NodesProcessed.MemberDefinitions;
 
-                if (CheckForPreprocessorNode(parser))
+                if (CheckForPreprocessorNode(parser, defNode))
                     continue;
 
                 TypeDefNode typeNode;
@@ -262,7 +282,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 if (processed == NodesProcessed.SchemaSpec)
                     processed = NodesProcessed.MemberDefinitions;
 
-                if (CheckForPreprocessorNode(parser))
+                if (CheckForPreprocessorNode(parser, defNode))
                     continue;
 
                 DefineNode defineNode;
@@ -291,7 +311,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 if (processed == NodesProcessed.SchemaSpec)
                     processed = NodesProcessed.MemberDefinitions;
 
-                if (CheckForPreprocessorNode(parser))
+                if (CheckForPreprocessorNode(parser, defNode))
                     continue;
 
                 MainBlockNode mainBlock;
@@ -318,7 +338,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 if (processed == NodesProcessed.MemberDefinitions)
                     processed = NodesProcessed.Main;
 
-                if (CheckForPreprocessorNode(parser))
+                if (CheckForPreprocessorNode(parser, defNode))
                     continue;
 
                 // TODO: declared dialog block

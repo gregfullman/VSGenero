@@ -49,11 +49,12 @@ namespace VSGenero.EditorExtensions
                 (span.Span.GetText() == "}" || span.Span.GetText() == "]" || span.Span.GetText() == ")");
         }
 
-        internal static ExpressionAnalysis GetExpressionAnalysis(this ITextView view, IFunctionInformationProvider functionProvider, IDatabaseInformationProvider databaseProvider)
+        internal static ExpressionAnalysis GetExpressionAnalysis(this ITextView view, IFunctionInformationProvider functionProvider, IDatabaseInformationProvider databaseProvider,
+                                                                 IProgramFileProvider programFileProvider)
         {
             ITrackingSpan span = GetCaretSpan(view);
             // TODO: get the function provider and database provider from EditFilter class.
-            return span.TextBuffer.CurrentSnapshot.AnalyzeExpression(span, false, functionProvider, databaseProvider);
+            return span.TextBuffer.CurrentSnapshot.AnalyzeExpression(span, false, functionProvider, databaseProvider, programFileProvider);
         }
 
         internal static ITrackingSpan GetCaretSpan(this ITextView view)
@@ -308,9 +309,10 @@ namespace VSGenero.EditorExtensions
         /// Gets a CompletionAnalysis providing a list of possible members the user can dot through.
         /// </summary>
         public static CompletionAnalysis GetCompletions(this ITextSnapshot snapshot, ITrackingSpan span, ITrackingPoint point, CompletionOptions options, 
-                                                        IFunctionInformationProvider functionProvider, IDatabaseInformationProvider databaseProvider)
+                                                        IFunctionInformationProvider functionProvider, IDatabaseInformationProvider databaseProvider,
+                                                        IProgramFileProvider programFileProvider)
         {
-            return GeneroProjectAnalyzer.GetCompletions(snapshot, span, point, options, functionProvider, databaseProvider);
+            return GeneroProjectAnalyzer.GetCompletions(snapshot, span, point, options, functionProvider, databaseProvider, programFileProvider);
         }
 
         /// <summary>
@@ -326,9 +328,10 @@ namespace VSGenero.EditorExtensions
         /// part of an identifier then the expression is extended to complete the identifier.
         /// </summary>
         public static ExpressionAnalysis AnalyzeExpression(this ITextSnapshot snapshot, ITrackingSpan span, bool forCompletion, 
-                                                           IFunctionInformationProvider functionProvider, IDatabaseInformationProvider databaseProvider)
+                                                           IFunctionInformationProvider functionProvider, IDatabaseInformationProvider databaseProvider,
+                                                           IProgramFileProvider programFileProvider)
         {
-            return GeneroProjectAnalyzer.AnalyzeExpression(snapshot, span, functionProvider, databaseProvider, forCompletion);
+            return GeneroProjectAnalyzer.AnalyzeExpression(snapshot, span, functionProvider, databaseProvider, programFileProvider, forCompletion);
         }
 
         internal static GeneroProjectAnalyzer GetAnalyzer(this ITextView textView)

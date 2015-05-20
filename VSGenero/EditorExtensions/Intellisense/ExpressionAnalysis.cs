@@ -22,10 +22,11 @@ namespace VSGenero.EditorExtensions.Intellisense
         private readonly ITextSnapshot _snapshot;
         private readonly IFunctionInformationProvider _functionProvider;
         private readonly IDatabaseInformationProvider _databaseProvider;
-        public static readonly ExpressionAnalysis Empty = new ExpressionAnalysis(null, "", null, 0, null, null, null, null);
+        private readonly IProgramFileProvider _programFileProvider;
+        public static readonly ExpressionAnalysis Empty = new ExpressionAnalysis(null, "", null, 0, null, null, null, null, null);
 
         internal ExpressionAnalysis(GeneroProjectAnalyzer analyzer, string expression, GeneroAst analysis, int index, ITrackingSpan span, ITextSnapshot snapshot,
-                                    IFunctionInformationProvider functionProvider, IDatabaseInformationProvider databaseProvider)
+                                    IFunctionInformationProvider functionProvider, IDatabaseInformationProvider databaseProvider, IProgramFileProvider programFileProvider)
         {
             _expr = expression;
             _analysis = analysis;
@@ -35,6 +36,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             _snapshot = snapshot;
             _functionProvider = functionProvider;
             _databaseProvider = databaseProvider;
+            _programFileProvider = programFileProvider;
         }
 
         /// <summary>
@@ -70,7 +72,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                 {
                     lock (_analyzer)
                     {
-                        return _analysis.GetVariablesByIndex(_expr, TranslatedIndex, _functionProvider, _databaseProvider);
+                        return _analysis.GetVariablesByIndex(_expr, TranslatedIndex, _functionProvider, _databaseProvider, _programFileProvider);
                     }
                 }
                 return new IAnalysisVariable[0];
@@ -91,7 +93,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                     lock (_analyzer)
                     {
                         IGeneroProject dummyProj;
-                        return _analysis.GetValueByIndex(_expr, TranslatedIndex, _functionProvider, _databaseProvider, out dummyProj, true);
+                        return _analysis.GetValueByIndex(_expr, TranslatedIndex, _functionProvider, _databaseProvider, _programFileProvider, out dummyProj, true);
                     }
                 }
                 return null;

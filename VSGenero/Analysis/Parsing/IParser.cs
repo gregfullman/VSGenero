@@ -12,6 +12,7 @@ namespace VSGenero.Analysis.Parsing
         ErrorSink ErrorSink { get; set; }
         TokenWithSpan Token { get; }
         Tokenizer Tokenizer { get; }
+        LocationInfo TokenLocation { get; }
 
         void Reset();
         void ReportSyntaxError(string message, Severity severity = Severity.Error);

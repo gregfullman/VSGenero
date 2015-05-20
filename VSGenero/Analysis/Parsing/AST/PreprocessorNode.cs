@@ -6,8 +6,21 @@ using System.Threading.Tasks;
 
 namespace VSGenero.Analysis.Parsing.AST
 {
+    public enum PreprocessorType
+    {
+        Include,
+        Define,
+        Undef,
+        Ifdef,
+        Else,
+        Endif
+    }
+
     public class PreprocessorNode : AstNode
     {
+        public PreprocessorType Type { get; private set; }
+        public string IncludeFile { get; private set; }
+
         private List<Token> _preprocessorTokens;
         public List<Token> PreprocessorTokens
         {
@@ -26,8 +39,8 @@ namespace VSGenero.Analysis.Parsing.AST
 
             if(parser.PeekToken(TokenKind.Ampersand))
             {
-                var options = parser.Tokenizer.CurrentOptions;
-                var newOptions = options | TokenizerOptions.VerbatimCommentsAndLineJoins;
+                var options = parser.Tokenizer.CurrentOptions;                              // backup the current parser options
+                var newOptions = options | TokenizerOptions.VerbatimCommentsAndLineJoins;   // allow us to continue until the newline
                 parser.Tokenizer.AdjustOptions(newOptions);
                 parser.NextToken();
                 result = true;
@@ -35,11 +48,46 @@ namespace VSGenero.Analysis.Parsing.AST
                 node.StartIndex = parser.Token.Span.Start;
                 StringBuilder sb = new StringBuilder();
                 
+                switch(parser.PeekToken().Kind)
+                {
+                    case TokenKind.IncludeKeyword:
+                        parser.NextToken();
+                        node.Type = PreprocessorType.Include;
+                        ExpressionNode strExpr;
+                        if (ExpressionNode.TryGetExpressionNode(parser, out strExpr) && strExpr is StringExpressionNode)
+                            node.IncludeFile = (strExpr as StringExpressionNode).LiteralValue;
+                        else
+                            parser.ReportSyntaxError("Invalid include file preprocessor directive found.");
+                        break;
+                    case TokenKind.DefineKeyword:
+                        parser.NextToken();
+                        node.Type = PreprocessorType.Define;
+                        break;
+                    case TokenKind.UndefKeyword:
+                        parser.NextToken();
+                        node.Type = PreprocessorType.Undef;
+                        break;
+                    case TokenKind.IfdefKeyword:
+                        parser.NextToken();
+                        node.Type = PreprocessorType.Ifdef;
+                        break;
+                    case TokenKind.ElseKeyword:
+                        parser.NextToken();
+                        node.Type = PreprocessorType.Else;
+                        break;
+                    case TokenKind.EndifKeyword:
+                        parser.NextToken();
+                        node.Type = PreprocessorType.Endif;
+                        break;
+                    default:
+                        break;
+                }
+
                 while(!parser.PeekToken(TokenKind.NewLine) && !parser.PeekToken(TokenKind.EndOfFile))
                 {
                     node.PreprocessorTokens.Add(parser.NextToken());
                 }
-                parser.Tokenizer.AdjustOptions(options);
+                parser.Tokenizer.AdjustOptions(options);                                    // restore the backed up parser options
                 while(parser.PeekToken(TokenKind.NewLine))
                     parser.NextToken();
                 node.IsComplete = true;
@@ -47,5 +95,10 @@ namespace VSGenero.Analysis.Parsing.AST
 
             return result;
         }
+    }
+
+    public class IncludedPreprocessorNode : AstNode
+    {
+
     }
 }

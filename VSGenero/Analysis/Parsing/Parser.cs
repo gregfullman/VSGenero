@@ -23,6 +23,7 @@ namespace VSGenero.Analysis.Parsing
         private TokenWithSpan _lookahead;
         private List<TokenWithSpan> _lookaheads = new List<TokenWithSpan>();
 
+        private readonly ParserOptions _options;
         //private Stack<FunctionDefinition> _functions;
         private int _classDepth;
         private bool _fromFutureAllowed;
@@ -42,6 +43,9 @@ namespace VSGenero.Analysis.Parsing
         private string _filename;
         private List<TokenWithSpan> _codeRegions;
 
+        private Parser _includeParser;
+        private TextReader _includeParserReader;
+
         public readonly FglStatementFactory StatementFactory;
 
         public ErrorSink ErrorSink
@@ -59,7 +63,13 @@ namespace VSGenero.Analysis.Parsing
 
         public TokenWithSpan Token
         {
-            get { return _token; }
+            get 
+            {
+                if (_includeParser != null)
+                    return _includeParser.Token;
+                else
+                    return _token; 
+            }
         }
 
         public Tokenizer Tokenizer
@@ -69,7 +79,7 @@ namespace VSGenero.Analysis.Parsing
 
         #region Construction
 
-        private Parser(Tokenizer tokenizer, ErrorSink errorSink, bool verbatim, bool bindRefs, string privatePrefix)
+        private Parser(Tokenizer tokenizer, ErrorSink errorSink, bool verbatim, bool bindRefs, string privatePrefix, ParserOptions options)
         {
             Contract.Assert(tokenizer != null);
             Contract.Assert(errorSink != null);
@@ -81,6 +91,7 @@ namespace VSGenero.Analysis.Parsing
             //_langVersion = langVersion;
             _verbatim = verbatim;
             _bindReferences = bindRefs;
+            _options = options;
 
             //if (langVersion.Is3x())
             //{
@@ -117,7 +128,8 @@ namespace VSGenero.Analysis.Parsing
                 options.ErrorSink ?? ErrorSink.Null,
                 options.Verbatim,
                 options.BindReferences,
-                options.PrivatePrefix
+                options.PrivatePrefix,
+                options
             );
             result._projectEntry = projEntry;
             result._filename = filename;
@@ -148,6 +160,14 @@ namespace VSGenero.Analysis.Parsing
             var reader = new StreamReader(stream, true);//GetStreamReaderWithEncoding(stream, defaultEncoding, options.ErrorSink);
 
             return CreateParser(reader, options, projEntry);
+        }
+
+
+        public Parser CreateIncludeParser(string filename)
+        {
+            _includeParserReader = new StreamReader(filename);
+            _includeParser = CreateParser(_includeParserReader, _options, null, filename);
+            return _includeParser;
         }
 
         #endregion
@@ -181,17 +201,22 @@ namespace VSGenero.Analysis.Parsing
 
         private void ReportSyntaxError(Token t, IndexSpan span, int errorCode, bool allowIncomplete)
         {
-            var start = span.Start;
-            var end = span.End;
-
-            if (allowIncomplete && (t.Kind == TokenKind.EndOfFile || (_tokenizer.IsEndOfFile && (t.Kind == TokenKind.Dedent || t.Kind == TokenKind.NLToken))))
+            if (_includeParser != null)
+                _includeParser.ReportSyntaxError(t, span, errorCode, allowIncomplete);
+            else
             {
-                errorCode |= ErrorCodes.IncompleteStatement;
+                var start = span.Start;
+                var end = span.End;
+
+                if (allowIncomplete && (t.Kind == TokenKind.EndOfFile || (_tokenizer.IsEndOfFile && (t.Kind == TokenKind.Dedent || t.Kind == TokenKind.NLToken))))
+                {
+                    errorCode |= ErrorCodes.IncompleteStatement;
+                }
+
+                string msg = String.Format(System.Globalization.CultureInfo.InvariantCulture, GetErrorMessage(t, errorCode), t.Image);
+
+                ReportSyntaxError(start, end, msg, errorCode);
             }
-
-            string msg = String.Format(System.Globalization.CultureInfo.InvariantCulture, GetErrorMessage(t, errorCode), t.Image);
-
-            ReportSyntaxError(start, end, msg, errorCode);
         }
 
         private static string GetErrorMessage(Token t, int errorCode)
@@ -211,30 +236,43 @@ namespace VSGenero.Analysis.Parsing
 
         public void ReportSyntaxError(string message, Severity severity = Severity.Error)
         {
-            if (_lookaheads.Count > 0)
+            if (_includeParser != null)
+                _includeParser.ReportSyntaxError(message, severity);
+            else
             {
-                ReportSyntaxError(_lookaheads[0].Span.Start, _lookaheads[0].Span.End, message, severity);
+                if (_lookaheads.Count > 0)
+                {
+                    ReportSyntaxError(_lookaheads[0].Span.Start, _lookaheads[0].Span.End, message, severity);
+                }
             }
         }
 
         public void ReportSyntaxError(int start, int end, string message, Severity severity = Severity.Error)
         {
-            ReportSyntaxError(start, end, message, ErrorCodes.SyntaxError, severity);
+            if (_includeParser != null)
+                _includeParser.ReportSyntaxError(start, end, message, severity);
+            else
+                ReportSyntaxError(start, end, message, ErrorCodes.SyntaxError, severity);
         }
 
         public void ReportSyntaxError(int start, int end, string message, int errorCode, Severity severity = Severity.Error)
         {
-            // save the first one, the next error codes may be induced errors:
-            if (_errorCode == 0)
+            if (_includeParser != null)
+                _includeParser.ReportSyntaxError(start, end, message, errorCode, severity);
+            else
             {
-                _errorCode = errorCode;
+                // save the first one, the next error codes may be induced errors:
+                if (_errorCode == 0)
+                {
+                    _errorCode = errorCode;
+                }
+                _errors.Add(
+                    message,
+                    _tokenizer.GetLineLocations(),
+                    start, end,
+                    errorCode,
+                    severity);
             }
-            _errors.Add(
-                message,
-                _tokenizer.GetLineLocations(),
-                start, end,
-                errorCode,
-                severity);
         }
 
         #endregion
@@ -379,53 +417,102 @@ namespace VSGenero.Analysis.Parsing
 
         private int GetEnd()
         {
-            Debug.Assert(_token.Token != null, "No token fetched");
-            return _token.Span.End;
+            if (_includeParser != null)
+                return _includeParser.GetEnd();
+            else
+            {
+                Debug.Assert(_token.Token != null, "No token fetched");
+                return _token.Span.End;
+            }
         }
 
         private int GetStart()
         {
-            Debug.Assert(_token.Token != null, "No token fetched");
-            return _token.Span.Start;
+            if (_includeParser != null)
+                return _includeParser.GetStart();
+            else
+            {
+                Debug.Assert(_token.Token != null, "No token fetched");
+                return _token.Span.Start;
+            }
         }
 
         public Token NextToken()
         {
-            _token = _lookaheads[0];
-            _tokenWhiteSpace = _lookaheadWhiteSpaces[0];
-            _lookaheads.RemoveAt(0);
-            _lookaheadWhiteSpaces.RemoveAt(0);
-            if (_lookaheads.Count == 0)
+            if (_includeParser != null)
             {
-                FetchLookahead();
+                var token = _includeParser.NextToken();
+                if (token.Kind == TokenKind.EndOfFile)
+                {
+                    _includeParser.Dispose();
+                    _includeParser = null;
+                }
+                return token;
             }
-            return _token.Token;
+            else
+            {
+                _token = _lookaheads[0];
+                _tokenWhiteSpace = _lookaheadWhiteSpaces[0];
+                _lookaheads.RemoveAt(0);
+                _lookaheadWhiteSpaces.RemoveAt(0);
+                if (_lookaheads.Count == 0)
+                {
+                    FetchLookahead();
+                }
+                return _token.Token;
+            }
         }
 
         public Token PeekToken(uint aheadBy = 1)
         {
-            if(aheadBy == 0)
+            if (_includeParser != null)
             {
-                throw new InvalidOperationException("Cannot peek at the current token");
+                var tok = _includeParser.PeekToken(aheadBy);
+                if(tok.Kind == TokenKind.EndOfFile)
+                {
+                    _includeParser.Dispose();
+                    _includeParser = null;
+                }
+                return tok;
             }
-            while(_lookaheads.Count < aheadBy)
+            else
             {
-                FetchLookahead();
+                if (aheadBy == 0)
+                {
+                    throw new InvalidOperationException("Cannot peek at the current token");
+                }
+                while (_lookaheads.Count < aheadBy)
+                {
+                    FetchLookahead();
+                }
+                return _lookaheads[(int)aheadBy - 1].Token;
             }
-            return _lookaheads[(int)aheadBy - 1].Token;
         }
 
         public TokenWithSpan PeekTokenWithSpan(uint aheadBy = 1)
         {
-            if (aheadBy == 0)
+            if (_includeParser != null)
             {
-                throw new InvalidOperationException("Cannot peek at the current token");
+                var tok = _includeParser.PeekTokenWithSpan(aheadBy);
+                if (tok.Token.Kind == TokenKind.EndOfFile)
+                {
+                    _includeParser.Dispose();
+                    _includeParser = null;
+                }
+                return tok;
             }
-            while (_lookaheads.Count < aheadBy)
+            else
             {
-                FetchLookahead();
+                if (aheadBy == 0)
+                {
+                    throw new InvalidOperationException("Cannot peek at the current token");
+                }
+                while (_lookaheads.Count < aheadBy)
+                {
+                    FetchLookahead();
+                }
+                return _lookaheads[(int)aheadBy - 1];
             }
-            return _lookaheads[(int)aheadBy - 1];
         }
 
         private void FetchLookahead()
@@ -459,94 +546,171 @@ namespace VSGenero.Analysis.Parsing
 
         public bool PeekToken(TokenKind kind, uint aheadBy = 1)
         {
-            return PeekToken(aheadBy).Kind == kind;
+            if (_includeParser != null)
+            {
+                var tok = _includeParser.PeekToken(aheadBy);
+                if(tok.Kind == TokenKind.EndOfFile)
+                {
+                    _includeParser.Dispose();
+                    _includeParser = null;
+                }
+                return tok.Kind == kind;
+            }
+            else
+                return PeekToken(aheadBy).Kind == kind;
         }
 
         public bool PeekToken(Token check, uint aheadBy = 1)
         {
-            return PeekToken(aheadBy) == check;
+            if (_includeParser != null)
+            {
+                var tok = _includeParser.PeekToken(aheadBy);
+                if (tok.Kind == TokenKind.EndOfFile)
+                {
+                    _includeParser.Dispose();
+                    _includeParser = null;
+                }
+                return tok == check;
+            }
+            else
+                return PeekToken(aheadBy) == check;
         }
 
         public bool PeekToken(TokenCategory category, uint aheadBy = 1)
         {
-            var tok = PeekToken(aheadBy);
-            return Tokenizer.GetTokenInfo(tok).Category == category;
+            if (_includeParser != null)
+            {
+                var tok = _includeParser.PeekToken(aheadBy);
+                if (tok.Kind == TokenKind.EndOfFile)
+                {
+                    _includeParser.Dispose();
+                    _includeParser = null;
+                }
+                return Tokenizer.GetTokenInfo(tok).Category == category;
+            }
+            else
+            {
+                var tok = PeekToken(aheadBy);
+                return Tokenizer.GetTokenInfo(tok).Category == category;
+            }
         }
 
         public bool Eat(TokenKind kind)
         {
-            Token next = PeekToken();
-            if (next.Kind != kind)
+            if (_includeParser != null)
             {
-                ReportSyntaxError(_lookaheads[0]);
-                return false;
+                return _includeParser.Eat(kind);
             }
             else
             {
-                NextToken();
-                return true;
+                Token next = PeekToken();
+                if (next.Kind != kind)
+                {
+                    ReportSyntaxError(_lookaheads[0]);
+                    return false;
+                }
+                else
+                {
+                    NextToken();
+                    return true;
+                }
             }
         }
 
         internal bool EatNoEof(TokenKind kind)
         {
-            Token next = PeekToken();
-            if (next.Kind != kind)
+            if (_includeParser != null)
             {
-                ReportSyntaxError(_lookaheads[0].Token, _lookaheads[0].Span, ErrorCodes.SyntaxError, false);
-                return false;
+                return _includeParser.EatNoEof(kind);
             }
-            NextToken();
-            return true;
+            else
+            {
+                Token next = PeekToken();
+                if (next.Kind != kind)
+                {
+                    ReportSyntaxError(_lookaheads[0].Token, _lookaheads[0].Span, ErrorCodes.SyntaxError, false);
+                    return false;
+                }
+                NextToken();
+                return true;
+            }
         }
 
         public bool MaybeEat(TokenKind kind)
         {
-            if (PeekToken().Kind == kind)
+            if (_includeParser != null)
             {
-                NextToken();
-                return true;
+                return _includeParser.MaybeEat(kind);
             }
             else
             {
-                return false;
+                if (PeekToken().Kind == kind)
+                {
+                    NextToken();
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
             }
         }
 
         internal bool MaybeEatName(string name)
         {
-            var peeked = PeekToken();
-            if (peeked.Kind == TokenKind.Name && ((NameToken)peeked).Name.Equals(name, StringComparison.OrdinalIgnoreCase))
+            if (_includeParser != null)
             {
-                NextToken();
-                return true;
+                return _includeParser.MaybeEatName(name);
             }
             else
             {
-                return false;
+                var peeked = PeekToken();
+                if (peeked.Kind == TokenKind.Name && ((NameToken)peeked).Name.Equals(name, StringComparison.OrdinalIgnoreCase))
+                {
+                    NextToken();
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
             }
         }
 
         internal bool MaybeEatEof()
         {
-            if (PeekToken().Kind == TokenKind.EndOfFile)
+            if (_includeParser != null)
             {
-                return true;
+                return _includeParser.MaybeEatEof();
             }
+            else
+            {
+                if (PeekToken().Kind == TokenKind.EndOfFile)
+                {
+                    return true;
+                }
 
-            return false;
+                return false;
+            }
         }
 
         internal NameToken ReadName()
         {
-            NameToken n = PeekToken() as NameToken;
-            if (n == null)
+            if (_includeParser != null)
             {
-                ReportSyntaxError(_lookaheads[0]);
+                return _includeParser.ReadName();
+            }
+            else
+            {
+                NameToken n = PeekToken() as NameToken;
+                if (n == null)
+                {
+                    ReportSyntaxError(_lookaheads[0]);
+                    return n;
+                }
+                NextToken();
                 return n;
             }
-            NextToken();
-            return n;
         }
 
         /// <summary>
@@ -565,38 +729,52 @@ namespace VSGenero.Analysis.Parsing
         /// </summary>
         internal bool MaybeEatNewLine()
         {
-            string curWhiteSpace = "";
-            string newWhiteSpace;
-            if (MaybeEatNewLine(out newWhiteSpace))
+            if (_includeParser != null)
             {
-                if (_verbatim)
-                {
-                    _lookaheadWhiteSpaces[0] = curWhiteSpace + newWhiteSpace + _lookaheadWhiteSpaces[0];
-                }
-                return true;
+                return _includeParser.MaybeEatNewLine();
             }
-            return false;
+            else
+            {
+                string curWhiteSpace = "";
+                string newWhiteSpace;
+                if (MaybeEatNewLine(out newWhiteSpace))
+                {
+                    if (_verbatim)
+                    {
+                        _lookaheadWhiteSpaces[0] = curWhiteSpace + newWhiteSpace + _lookaheadWhiteSpaces[0];
+                    }
+                    return true;
+                }
+                return false;
+            }
         }
 
         internal bool MaybeEatNewLine(out string whitespace)
         {
-            whitespace = _verbatim ? "" : null;
-            if (MaybeEat(TokenKind.NewLine))
+            if (_includeParser != null)
             {
-                if (whitespace != null)
-                {
-                    whitespace += _tokenWhiteSpace + _token.Token.VerbatimImage;
-                }
-                while (MaybeEat(TokenKind.NLToken))
+                return _includeParser.MaybeEatNewLine(out whitespace);
+            }
+            else
+            {
+                whitespace = _verbatim ? "" : null;
+                if (MaybeEat(TokenKind.NewLine))
                 {
                     if (whitespace != null)
                     {
                         whitespace += _tokenWhiteSpace + _token.Token.VerbatimImage;
                     }
+                    while (MaybeEat(TokenKind.NLToken))
+                    {
+                        if (whitespace != null)
+                        {
+                            whitespace += _tokenWhiteSpace + _token.Token.VerbatimImage;
+                        }
+                    }
+                    return true;
                 }
-                return true;
+                return false;
             }
-            return false;
         }
 
         /// <summary>
@@ -611,39 +789,53 @@ namespace VSGenero.Analysis.Parsing
         /// </summary>
         internal bool EatNewLine(out string whitespace)
         {
-            whitespace = _verbatim ? "" : null;
-            if (Eat(TokenKind.NewLine))
+            if (_includeParser != null)
             {
-                if (whitespace != null)
-                {
-                    whitespace += _tokenWhiteSpace + _token.Token.VerbatimImage;
-                }
-
-                while (MaybeEat(TokenKind.NLToken))
+                return _includeParser.EatNewLine(out whitespace);
+            }
+            else
+            {
+                whitespace = _verbatim ? "" : null;
+                if (Eat(TokenKind.NewLine))
                 {
                     if (whitespace != null)
                     {
                         whitespace += _tokenWhiteSpace + _token.Token.VerbatimImage;
                     }
+
+                    while (MaybeEat(TokenKind.NLToken))
+                    {
+                        if (whitespace != null)
+                        {
+                            whitespace += _tokenWhiteSpace + _token.Token.VerbatimImage;
+                        }
+                    }
+                    return true;
                 }
-                return true;
+                return false;
             }
-            return false;
         }
 
         internal Token EatEndOfInput()
         {
-            while (MaybeEatNewLine() || MaybeEat(TokenKind.Dedent))
+            if (_includeParser != null)
             {
-                ;
+                return _includeParser.EatEndOfInput();
             }
+            else
+            {
+                while (MaybeEatNewLine() || MaybeEat(TokenKind.Dedent))
+                {
+                    ;
+                }
 
-            Token t = NextToken();
-            if (t.Kind != TokenKind.EndOfFile)
-            {
-                ReportSyntaxError(_token);
+                Token t = NextToken();
+                if (t.Kind != TokenKind.EndOfFile)
+                {
+                    ReportSyntaxError(_token);
+                }
+                return t;
             }
-            return t;
         }
 
         private class TokenizerErrorSink : ErrorSink
@@ -808,7 +1000,30 @@ namespace VSGenero.Analysis.Parsing
 
         public void Dispose()
         {
-            // TODO: dispose
+            if (_includeParserReader != null)
+            {
+                _includeParserReader.Close();
+                _includeParserReader.Dispose();
+                _includeParserReader = null;
+            }
+        }
+
+
+        public LocationInfo TokenLocation
+        {
+            get
+            {
+                if (_includeParser != null)
+                {
+                    return _includeParser.TokenLocation;
+                }
+                else
+                {
+                    if (!string.IsNullOrWhiteSpace(_filename))
+                        return new LocationInfo(_filename, _token.Span.Start);
+                    return null;
+                }
+            }
         }
     }
 }

@@ -55,6 +55,9 @@ namespace VSGenero.EditorExtensions
         [Import(AllowDefault = true)]
         internal IDatabaseInformationProvider _DatabaseInfoProvider = null;
 
+        [Import(AllowDefault = true)]
+        internal IProgramFileProvider _ProgramFileProvider = null;
+
         #region Genero Classification Type Definitions
 
         [Export]
@@ -100,6 +103,11 @@ namespace VSGenero.EditorExtensions
             if(VSGeneroPackage.Instance.GlobalFunctionProvider == null)
             {
                 VSGeneroPackage.Instance.GlobalFunctionProvider = _PublicFunctionProvider;
+            }
+
+            if(VSGeneroPackage.Instance.ProgramFileProvider == null)
+            {
+                VSGeneroPackage.Instance.ProgramFileProvider = _ProgramFileProvider;
             }
 
             return res;

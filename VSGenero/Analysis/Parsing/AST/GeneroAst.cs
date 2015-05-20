@@ -73,6 +73,15 @@ namespace VSGenero.Analysis.Parsing.AST
             return new string[0];
         }
 
+        public IEnumerable<string> GetIncludedFiles()
+        {
+            if(Body is ModuleNode)
+            {
+                return (Body as ModuleNode).IncludeFiles;
+            }
+            return new string[0];
+        }
+
         internal bool TryGetAttribute(AstNode node, object key, out object value)
         {
             Dictionary<object, object> nodeAttrs;
@@ -297,7 +306,7 @@ namespace VSGenero.Analysis.Parsing.AST
 
             // Check for class methods
             IGeneroProject dummyProj;
-            IAnalysisResult member = GetValueByIndex(exprText, index, _functionProvider, _databaseProvider, out dummyProj);
+            IAnalysisResult member = GetValueByIndex(exprText, index, _functionProvider, _databaseProvider, _programFileProvider, out dummyProj);
             if (member is IFunctionResult)
             {
                 return new IFunctionResult[1] { member as IFunctionResult };
@@ -322,11 +331,12 @@ namespace VSGenero.Analysis.Parsing.AST
         /// </summary>
         /// <param name="exprText">The expression to determine the result of.</param>
         /// <param name="index">The 0-based absolute index into the file where the expression should be evaluated within the module.</param>
-        public IAnalysisResult GetValueByIndex(string exprText, int index, IFunctionInformationProvider functionProvider, IDatabaseInformationProvider databaseProvider, out IGeneroProject definingProject, bool searchInFunctionProvider = false)
+        public IAnalysisResult GetValueByIndex(string exprText, int index, IFunctionInformationProvider functionProvider, IDatabaseInformationProvider databaseProvider, IProgramFileProvider programFileProvider, out IGeneroProject definingProject, bool searchInFunctionProvider = false)
         {
             definingProject = null;
             _functionProvider = functionProvider;
             _databaseProvider = databaseProvider;
+            _programFileProvider = programFileProvider;
 
             AstNode containingNode = null;
             List<int> keys = null;
@@ -635,10 +645,11 @@ namespace VSGenero.Analysis.Parsing.AST
         /// 
         /// index is a 0-based absolute index into the file.
         /// </summary>
-        public IEnumerable<IAnalysisVariable> GetVariablesByIndex(string exprText, int index, IFunctionInformationProvider functionProvider, IDatabaseInformationProvider databaseProvider)
+        public IEnumerable<IAnalysisVariable> GetVariablesByIndex(string exprText, int index, IFunctionInformationProvider functionProvider, IDatabaseInformationProvider databaseProvider, IProgramFileProvider programFileProvider)
         {
             _functionProvider = functionProvider;
             _databaseProvider = databaseProvider;
+            _programFileProvider = programFileProvider;
 
             List<IAnalysisVariable> vars = new List<IAnalysisVariable>();
 
@@ -800,7 +811,7 @@ namespace VSGenero.Analysis.Parsing.AST
             if(exprText.Contains('.') && vars.Count == 0)
             {
                 IGeneroProject definingProj;
-                IAnalysisResult res = GetValueByIndex(exprText, index, functionProvider, databaseProvider, out definingProj);
+                IAnalysisResult res = GetValueByIndex(exprText, index, functionProvider, databaseProvider, _programFileProvider, out definingProj);
                 if(res != null)
                 {
                     LocationInfo locInfo = null;

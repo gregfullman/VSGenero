@@ -37,6 +37,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 result = true;
                 parser.NextToken();
                 defNode.StartIndex = parser.Token.Span.Start;
+                defNode._location = parser.TokenLocation;
                 defNode.Identifier = parser.Token.Token.Value.ToString();
                 defNode._isPublic = isPublic;
 
@@ -100,7 +101,8 @@ namespace VSGenero.Analysis.Parsing.AST
             get { return StartIndex; }
         }
 
-        public LocationInfo Location { get { return null; } }
+        private LocationInfo _location;
+        public LocationInfo Location { get { return _location; } }
 
         public IAnalysisResult GetMember(string name, GeneroAst ast)
         {

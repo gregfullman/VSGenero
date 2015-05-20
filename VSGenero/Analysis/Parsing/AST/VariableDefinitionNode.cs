@@ -11,6 +11,7 @@ namespace VSGenero.Analysis.Parsing.AST
     {
         public string Name { get; private set; }
         public TypeReference Type { get; private set; }
+        private string _filename;
 
         private bool _isPublic = false;
         public bool IsPublic
@@ -23,12 +24,13 @@ namespace VSGenero.Analysis.Parsing.AST
             _isPublic = value;
         }
 
-        public VariableDef(string name, TypeReference type, int location, bool isPublic = false)
+        public VariableDef(string name, TypeReference type, int location, bool isPublic = false, string filename = null)
         {
             Name = name;
             Type = type;
             _locationIndex = location;
             _isPublic = isPublic;
+            _filename = filename;
         }
 
         public string Documentation
@@ -64,7 +66,17 @@ namespace VSGenero.Analysis.Parsing.AST
             get { return _locationIndex; }
         }
 
-        public LocationInfo Location { get { return null; } }
+        public LocationInfo Location 
+        { 
+            get 
+            { 
+                if(!string.IsNullOrWhiteSpace(_filename))
+                {
+                    return new LocationInfo(_filename, _locationIndex);
+                }
+                return null; 
+            } 
+        }
 
         public IAnalysisResult GetMember(string name, GeneroAst ast)
         {
@@ -112,6 +124,8 @@ namespace VSGenero.Analysis.Parsing.AST
             }
         }
 
+        public LocationInfo Location { get; private set; }
+
         private List<VariableDef> _varDefs;
         public List<VariableDef> VariableDefinitions
         {
@@ -148,6 +162,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 result = true;
                 defNode = new VariableDefinitionNode();
                 defNode.StartIndex = parser.Token.Span.Start;
+                defNode.Location = parser.TokenLocation;
                 defNode.Identifiers = new List<Tuple<string, int>>(identifiers);
                 while (peekaheadCount > 1)
                 {
@@ -175,7 +190,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 {
                     foreach (var ident in defNode.Identifiers)
                     {
-                        var varDef = new VariableDef(ident.Item1, typeRef, ident.Item2);
+                        var varDef = new VariableDef(ident.Item1, typeRef, ident.Item2, false, (defNode.Location != null ? defNode.Location.FilePath : null));
                         defNode.VariableDefinitions.Add(varDef);
                         if(binder != null)
                         {

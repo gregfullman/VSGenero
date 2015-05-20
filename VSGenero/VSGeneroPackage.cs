@@ -378,6 +378,13 @@ namespace VSGenero
             set { _functionProvider = value; }
         }
 
+        private IProgramFileProvider _programFileProvider;
+        public IProgramFileProvider ProgramFileProvider
+        {
+            get { return _programFileProvider; }
+            set { _programFileProvider = value; }
+        }
+
         private List<IContentType> _programCodeContentTypes;
         public IList<IContentType> ProgramCodeContentTypes
         {

@@ -30,6 +30,7 @@ namespace VSGenero.Navigation
         private readonly IEditorOperations _editorOps;
         private IFunctionInformationProvider _functionProvider;
         private IDatabaseInformationProvider _databaseProvider;
+        private IProgramFileProvider _programFileProvider;
         private IOleCommandTarget _next;
 
         public EditFilter(ITextView textView, IEditorOperations editorOps)
@@ -43,6 +44,7 @@ namespace VSGenero.Navigation
             {
                 _functionProvider = classifier.Provider._PublicFunctionProvider;
                 _databaseProvider = classifier.Provider._DatabaseInfoProvider;
+                _programFileProvider = classifier.Provider._ProgramFileProvider;
             }
 
             BraceMatcher.WatchBraceHighlights(textView, VSGeneroPackage.ComponentModel);
@@ -70,13 +72,15 @@ namespace VSGenero.Navigation
             Genero4glClassifier classifier;
             IFunctionInformationProvider funcProvider = null;
             IDatabaseInformationProvider dbProvider = null;
+            IProgramFileProvider progfileProvider = null;
             if (textView.TextBuffer.Properties.TryGetProperty<Genero4glClassifier>(typeof(Genero4glClassifier), out classifier))
             {
                 funcProvider = classifier.Provider._PublicFunctionProvider;
                 dbProvider = classifier.Provider._DatabaseInfoProvider;
+                progfileProvider = classifier.Provider._ProgramFileProvider;
             }
 
-            var analysis = textView.GetExpressionAnalysis(funcProvider, dbProvider);
+            var analysis = textView.GetExpressionAnalysis(funcProvider, dbProvider, progfileProvider);
 
             Dictionary<LocationInfo, SimpleLocationInfo> references, definitions, values;
             GetDefsRefsAndValues(analysis, out definitions, out references, out values);
@@ -120,7 +124,7 @@ namespace VSGenero.Navigation
         {
             UpdateStatusForIncompleteAnalysis();
 
-            var analysis = _textView.GetExpressionAnalysis(_functionProvider, _databaseProvider);
+            var analysis = _textView.GetExpressionAnalysis(_functionProvider, _databaseProvider, _programFileProvider);
 
             Dictionary<LocationInfo, SimpleLocationInfo> references, definitions, values;
             GetDefsRefsAndValues(analysis, out definitions, out references, out values);
@@ -207,7 +211,7 @@ namespace VSGenero.Navigation
         {
             UpdateStatusForIncompleteAnalysis();
 
-            var analysis = _textView.GetExpressionAnalysis(_functionProvider, _databaseProvider);
+            var analysis = _textView.GetExpressionAnalysis(_functionProvider, _databaseProvider, _programFileProvider);
 
             var locations = GetFindRefLocations(analysis);
 

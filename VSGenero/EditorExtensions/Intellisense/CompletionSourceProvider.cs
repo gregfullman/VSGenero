@@ -23,6 +23,9 @@ namespace VSGenero.EditorExtensions.Intellisense
         [Import(AllowDefault = true)]
         internal IDatabaseInformationProvider _DatabaseInfoProvider = null;
 
+        [Import(AllowDefault = true)]
+        internal IProgramFileProvider _ProgramFileProvider = null;
+
         public ICompletionSource TryCreateCompletionSource(ITextBuffer textBuffer)
         {
             return new CompletionSource(this, textBuffer);

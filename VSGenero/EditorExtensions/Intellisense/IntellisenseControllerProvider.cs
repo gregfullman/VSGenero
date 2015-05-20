@@ -44,6 +44,9 @@ namespace VSGenero.EditorExtensions.Intellisense
         internal IDatabaseInformationProvider _DatabaseInfoProvider = null;
 
         [Import(AllowDefault = true)]
+        internal IProgramFileProvider _ProgramFileProvider = null;
+
+        [Import(AllowDefault = true)]
         internal IGeneroTextViewCommandTarget GeneroCommandTarget;
 
         internal static IntellisenseControllerProvider Instance { get; private set; }
@@ -67,6 +70,12 @@ namespace VSGenero.EditorExtensions.Intellisense
                     _PublicFunctionProvider.SetFilename(buffer.GetFilePath());
                 if (_DatabaseInfoProvider != null)
                     _DatabaseInfoProvider.SetFilename(buffer.GetFilePath());
+                if (_ProgramFileProvider != null)
+                {
+                    _ProgramFileProvider.SetFilename(buffer.GetFilePath());
+                    if (VSGeneroPackage.Instance.ProgramFileProvider == null)
+                        VSGeneroPackage.Instance.ProgramFileProvider = _ProgramFileProvider;
+                }
                 foreach (var subjBuf in subjectBuffers)
                 {
                     controller.PropagateAnalyzer(subjBuf);
