@@ -396,11 +396,13 @@ namespace VSGenero.Analysis.Parsing.AST
                 case TokenKind.ContinueKeyword:
                 case TokenKind.ExitKeyword:
                     {
-                        parser.NextToken();
-                        if (parser.PeekToken(TokenKind.DialogKeyword))
+                        if (parser.PeekToken(TokenKind.DialogKeyword, 2))
+                        {
                             parser.NextToken();
+                            parser.NextToken();
+                        }
                         else
-                            parser.ReportSyntaxError("Expecting \"dialog\" keyword in input statement.");
+                            result = false;
                         break;
                     }
                 case TokenKind.NextKeyword:

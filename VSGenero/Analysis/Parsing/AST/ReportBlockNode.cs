@@ -99,76 +99,22 @@ namespace VSGenero.Analysis.Parsing.AST
                     { 
                         new List<TokenKind> { TokenKind.EndKeyword, TokenKind.ReportKeyword }
                     };
-                // try to parse one or more declaration statements
-                while (!parser.PeekToken(TokenKind.EndOfFile) &&
-                          !(parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.ReportKeyword, 2)))
+
+                // only defines are allowed in reports
+                DefineNode defineNode;
+                bool matchedBreakSequence = false;
+                while (DefineNode.TryParseDefine(parser, out defineNode, out matchedBreakSequence, breakSequences))
                 {
-                    DefineNode defineNode;
-                    TypeDefNode typeNode;
-                    ConstantDefNode constNode;
-                    bool matchedBreakSequence = false;
-                    switch (parser.PeekToken().Kind)
-                    {
-                        case TokenKind.TypeKeyword:
-                            {
-                                if (TypeDefNode.TryParseNode(parser, out typeNode, out matchedBreakSequence, breakSequences))
-                                {
-                                    defNode.Children.Add(typeNode.StartIndex, typeNode);
-                                    foreach (var def in typeNode.GetDefinitions())
-                                    {
-                                        def.Scope = "local type";
-                                        if (!defNode.Types.ContainsKey(def.Name))
-                                            defNode.Types.Add(def.Name, def);
-                                        else
-                                            parser.ReportSyntaxError(def.LocationIndex, def.LocationIndex + def.Name.Length, string.Format("Type {0} defined more than once.", def.Name));
-                                    }
-                                }
-                                break;
-                            }
-                        case TokenKind.ConstantKeyword:
-                            {
-                                if (ConstantDefNode.TryParseNode(parser, out constNode, out matchedBreakSequence, breakSequences))
-                                {
-                                    defNode.Children.Add(constNode.StartIndex, constNode);
-                                    foreach (var def in constNode.GetDefinitions())
-                                    {
-                                        def.Scope = "local constant";
-                                        if (!defNode.Constants.ContainsKey(def.Name))
-                                            defNode.Constants.Add(def.Name, def);
-                                        else
-                                            parser.ReportSyntaxError(def.LocationIndex, def.LocationIndex + def.Name.Length, string.Format("Constant {0} defined more than once.", def.Name));
-                                    }
-                                }
-                                break;
-                            }
-                        case TokenKind.DefineKeyword:
-                            {
-                                if (DefineNode.TryParseDefine(parser, out defineNode, out matchedBreakSequence, breakSequences, defNode.BindArgument))
-                                {
-                                    defNode.Children.Add(defineNode.StartIndex, defineNode);
-                                    foreach (var def in defineNode.GetDefinitions())
-                                        foreach (var vardef in def.VariableDefinitions)
-                                        {
-                                            vardef.Scope = "local variable";
-                                            if (!defNode.Variables.ContainsKey(vardef.Name))
-                                                defNode.Variables.Add(vardef.Name, vardef);
-                                            else
-                                                parser.ReportSyntaxError(vardef.LocationIndex, vardef.LocationIndex + vardef.Name.Length, string.Format("Variable {0} defined more than once.", vardef.Name));
-                                        }
-                                }
-                                break;
-                            }
-                        default:
-                            {
-                                FglStatement statement;
-                                if (parser.StatementFactory.TryParseNode(parser, out statement, prepStatementResolver, defNode.BindPrepareCursorFromIdentifier))
-                                {
-                                    AstNode stmtNode = statement as AstNode;
-                                    defNode.Children.Add(stmtNode.StartIndex, stmtNode);
-                                }
-                                break;
-                            }
-                    }
+                    defNode.Children.Add(defineNode.StartIndex, defineNode);
+                    foreach (var def in defineNode.GetDefinitions())
+                        foreach (var vardef in def.VariableDefinitions)
+                        {
+                            vardef.Scope = "local variable";
+                            if (!defNode.Variables.ContainsKey(vardef.Name))
+                                defNode.Variables.Add(vardef.Name, vardef);
+                            else
+                                parser.ReportSyntaxError(vardef.LocationIndex, vardef.LocationIndex + vardef.Name.Length, string.Format("Variable {0} defined more than once.", vardef.Name));
+                        }
 
                     if (parser.PeekToken(TokenKind.EndOfFile) ||
                           (parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.ReportKeyword, 2)))
@@ -183,6 +129,105 @@ namespace VSGenero.Analysis.Parsing.AST
                         parser.NextToken();
                     }
                 }
+
+                // try to parse one or more declaration statements
+                while (!parser.PeekToken(TokenKind.EndOfFile) &&
+                       !(parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.ReportKeyword, 2)))
+                {
+                    FglStatement statement;
+                    if (parser.StatementFactory.TryParseNode(parser, out statement, prepStatementResolver, defNode.BindPrepareCursorFromIdentifier))
+                    {
+                        AstNode stmtNode = statement as AstNode;
+                        defNode.Children.Add(stmtNode.StartIndex, stmtNode);
+                    }
+                    else
+                        parser.NextToken();
+                }
+
+                // try to parse one or more declaration statements
+                //while (!parser.PeekToken(TokenKind.EndOfFile) &&
+                //       !(parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.ReportKeyword, 2)))
+                //{
+                //    DefineNode defineNode;
+                //    TypeDefNode typeNode;
+                //    ConstantDefNode constNode;
+                //    bool matchedBreakSequence = false;
+                //    switch (parser.PeekToken().Kind)
+                //    {
+                //        case TokenKind.TypeKeyword:
+                //            {
+                //                if (TypeDefNode.TryParseNode(parser, out typeNode, out matchedBreakSequence, breakSequences))
+                //                {
+                //                    defNode.Children.Add(typeNode.StartIndex, typeNode);
+                //                    foreach (var def in typeNode.GetDefinitions())
+                //                    {
+                //                        def.Scope = "local type";
+                //                        if (!defNode.Types.ContainsKey(def.Name))
+                //                            defNode.Types.Add(def.Name, def);
+                //                        else
+                //                            parser.ReportSyntaxError(def.LocationIndex, def.LocationIndex + def.Name.Length, string.Format("Type {0} defined more than once.", def.Name));
+                //                    }
+                //                }
+                //                break;
+                //            }
+                //        case TokenKind.ConstantKeyword:
+                //            {
+                //                if (ConstantDefNode.TryParseNode(parser, out constNode, out matchedBreakSequence, breakSequences))
+                //                {
+                //                    defNode.Children.Add(constNode.StartIndex, constNode);
+                //                    foreach (var def in constNode.GetDefinitions())
+                //                    {
+                //                        def.Scope = "local constant";
+                //                        if (!defNode.Constants.ContainsKey(def.Name))
+                //                            defNode.Constants.Add(def.Name, def);
+                //                        else
+                //                            parser.ReportSyntaxError(def.LocationIndex, def.LocationIndex + def.Name.Length, string.Format("Constant {0} defined more than once.", def.Name));
+                //                    }
+                //                }
+                //                break;
+                //            }
+                //        case TokenKind.DefineKeyword:
+                //            {
+                //                if (DefineNode.TryParseDefine(parser, out defineNode, out matchedBreakSequence, breakSequences, defNode.BindArgument))
+                //                {
+                //                    defNode.Children.Add(defineNode.StartIndex, defineNode);
+                //                    foreach (var def in defineNode.GetDefinitions())
+                //                        foreach (var vardef in def.VariableDefinitions)
+                //                        {
+                //                            vardef.Scope = "local variable";
+                //                            if (!defNode.Variables.ContainsKey(vardef.Name))
+                //                                defNode.Variables.Add(vardef.Name, vardef);
+                //                            else
+                //                                parser.ReportSyntaxError(vardef.LocationIndex, vardef.LocationIndex + vardef.Name.Length, string.Format("Variable {0} defined more than once.", vardef.Name));
+                //                        }
+                //                }
+                //                break;
+                //            }
+                //        default:
+                //            {
+                //                FglStatement statement;
+                //                if (parser.StatementFactory.TryParseNode(parser, out statement, prepStatementResolver, defNode.BindPrepareCursorFromIdentifier))
+                //                {
+                //                    AstNode stmtNode = statement as AstNode;
+                //                    defNode.Children.Add(stmtNode.StartIndex, stmtNode);
+                //                }
+                //                break;
+                //            }
+                //    }
+
+                //    if (parser.PeekToken(TokenKind.EndOfFile) ||
+                //          (parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.ReportKeyword, 2)))
+                //    {
+                //        break;
+                //    }
+
+                //    // if a break sequence was matched, we don't want to advance the token
+                //    if (!matchedBreakSequence)
+                //    {
+                //        // TODO: not sure whether to break or keep going...for right now, let's keep going until we hit the end keyword
+                //        parser.NextToken();
+                //    }
+                //}
 
                 if (!parser.PeekToken(TokenKind.EndOfFile))
                 {

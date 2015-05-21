@@ -321,6 +321,7 @@
     <Compile Include="Analysis\IProgramFileProvider.cs" />
     <Compile Include="Analysis\IReferenceableContainer.cs" />
     <Compile Include="Analysis\IReverseTokenizer.cs" />
+    <Compile Include="Analysis\Parsing\AST\AcceptStatement.cs" />
     <Compile Include="Analysis\Parsing\AST\AstNodeAttributes.cs" />
     <Compile Include="Analysis\Parsing\AST\CallStatement.cs" />
     <Compile Include="Analysis\Parsing\AST\CaseStatement.cs" />

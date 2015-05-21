@@ -632,11 +632,13 @@ namespace VSGenero.Analysis.Parsing.AST
                 case TokenKind.ContinueKeyword:
                 case TokenKind.ExitKeyword:
                     {
-                        parser.NextToken();
-                        if (parser.PeekToken(TokenKind.DisplayKeyword))
+                        if (parser.PeekToken(TokenKind.DisplayKeyword, 2))
+                        {
                             parser.NextToken();
+                            parser.NextToken();
+                        }
                         else
-                            parser.ReportSyntaxError("Expecting \"display\" keyword in display array statement.");
+                            result = false;
                         break;
                     }
                 default:

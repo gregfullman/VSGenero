@@ -323,9 +323,12 @@ namespace VSGenero
                 String.Equals(ext, VSGeneroConstants.FileExtensionPER, StringComparison.OrdinalIgnoreCase);
         }
 
+        private GeneroLibraryManager _generoLibManager;
         public override LibraryManager CreateLibraryManager(CommonPackage package)
         {
-            return new GeneroLibraryManager((VSGeneroPackage)package);
+            if (_generoLibManager == null)
+                _generoLibManager = new GeneroLibraryManager((VSGeneroPackage)package);
+            return _generoLibManager;
         }
 
         public void LoadLibraryManager()

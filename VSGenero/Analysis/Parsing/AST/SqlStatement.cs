@@ -486,8 +486,6 @@ namespace VSGenero.Analysis.Parsing.AST
                                 parser.ReportSyntaxError("Invalid conditional expression found in delete statement.");
                         }
                     }
-                    else
-                        parser.ReportSyntaxError("Expecting \"where\" keyword in delete statement.");
                 }
                 else
                     parser.ReportSyntaxError("Expecting \"from\" keyword in delete statement.");
