@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace VSGenero.Analysis.Parsing.AST
 {
-    public class MenuBlock : FglStatement
+    public class MenuBlock : FglStatement, IOutlinableResult
     {
         public ExpressionNode MenuTitle { get; private set; }
         public List<ExpressionNode> Attributes { get; private set; }
@@ -38,6 +38,8 @@ namespace VSGenero.Analysis.Parsing.AST
                     node.MenuTitle = titleExpr;
                 else
                     parser.ReportSyntaxError("Invalid expression found in menu title.");
+
+                node.DecoratorEnd = parser.Token.Span.End;
 
                 if(parser.PeekToken(TokenKind.AttributesKeyword))
                 {
@@ -106,6 +108,24 @@ namespace VSGenero.Analysis.Parsing.AST
 
             return result;
         }
+
+        public bool CanOutline
+        {
+            get { return true; }
+        }
+
+        public int DecoratorStart
+        {
+            get
+            {
+                return StartIndex;
+            }
+            set
+            {
+            }
+        }
+
+        public int DecoratorEnd { get; set; }
     }
 
     public class MenuStatementFactory

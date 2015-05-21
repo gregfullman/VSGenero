@@ -804,7 +804,8 @@ namespace VSGenero.Analysis.Parsing.AST
                 IFunctionResult funcRes = _functionProvider.GetFunction(exprText);
                 if(funcRes != null)
                 {
-                    vars.Add(new AnalysisVariable(funcRes.Location, VariableType.Definition));
+                    if(vars.Count == 0 || (vars.Count > 0 && funcRes.Location.Line != 0))
+                        vars.Add(new AnalysisVariable(funcRes.Location, VariableType.Definition));
                 }
             }
 
