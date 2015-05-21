@@ -361,7 +361,10 @@ namespace VSGenero.Analysis.Parsing.AST
                         foreach (var cursor in funcNode.Children.Values.Where(x => x is PrepareStatement || x is DeclareStatement))
                         {
                             IAnalysisResult curRes = cursor as IAnalysisResult;
-                            defNode.Cursors.Add(curRes.Name, curRes);
+                            if(!defNode.Cursors.ContainsKey(curRes.Name))
+                                defNode.Cursors.Add(curRes.Name, curRes);
+                            else
+                                parser.ReportSyntaxError(curRes.LocationIndex, curRes.LocationIndex + curRes.Name.Length, string.Format("Module cursor {0} defined more than once.", curRes.Name));
                         }
                     }
                     else
@@ -383,7 +386,10 @@ namespace VSGenero.Analysis.Parsing.AST
                         foreach (var cursor in repNode.Children.Values.Where(x => x is PrepareStatement || x is DeclareStatement))
                         {
                             IAnalysisResult curRes = cursor as IAnalysisResult;
-                            defNode.Cursors.Add(curRes.Name, curRes);
+                            if (!defNode.Cursors.ContainsKey(curRes.Name))
+                                defNode.Cursors.Add(curRes.Name, curRes);
+                            else
+                                parser.ReportSyntaxError(curRes.LocationIndex, curRes.LocationIndex + curRes.Name.Length, string.Format("Module cursor {0} defined more than once.", curRes.Name));
                         }
                     }
                     else

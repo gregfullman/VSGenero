@@ -41,12 +41,12 @@ namespace VSGenero.EditorExtensions.Intellisense
             int i = 0;
         }
 
-        public IFunctionResult GetFunction(string functionName)
+        public IEnumerable<IFunctionResult> GetFunction(string functionName)
         {
             string moduleName = null;
             if(_reverseMap.TryGetValue(functionName, out moduleName))
             {
-                return _collections[moduleName].GetFunction(functionName);
+                return new List<TestFunction> { _collections[moduleName].GetFunction(functionName) };
             }
             return null;
         }

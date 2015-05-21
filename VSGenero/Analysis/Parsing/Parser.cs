@@ -315,7 +315,7 @@ namespace VSGenero.Analysis.Parsing
             return ast;
         }
 
-        public bool ParseSingleFunction(out FunctionBlockNode functionNode, bool abbreviatedParse, out string remainingReadText)
+        public bool ParseSingleFunction(out FunctionBlockNode functionNode, bool abbreviatedParse, out string remainingReadText, out int[] lineLocations)
         {
             StartParsing();
             functionNode = null;
@@ -323,6 +323,7 @@ namespace VSGenero.Analysis.Parsing
             int bufPos;
             bool result = FunctionBlockNode.TryParseNode(this, out functionNode, out bufPos, null, abbreviatedParse, false);
             remainingReadText = _tokenizer.GetRemainingReadText(bufPos);
+            lineLocations = _tokenizer.GetLineLocations();
             return result;
         }
 

@@ -275,7 +275,10 @@ namespace VSGenero.Navigation
         private static void ShowFindSymbolsDialog(ExpressionAnalysis provider, IVsNavInfo symbols)
         {
             // ensure our library is loaded so find all references will go to our library
-            VSGeneroPackage.GetGlobalService(typeof(IGeneroLibraryManager));
+            //VSGeneroPackage.GetGlobalService(typeof(IGeneroLibraryManager));
+            // For some reason, using the GetGlobalService call was calling resulting in a call to an external package function, if it existed.
+            // We want to keep the call to within this package.
+            VSGeneroPackage.Instance.LoadLibraryManager();
 
             if (provider.Expression != "")
             {
@@ -288,7 +291,8 @@ namespace VSGenero.Navigation
 
                 Guid guid = Guid.Empty;
                 //  new Guid("{a5a527ea-cf0a-4abf-b501-eafe6b3ba5c6}")
-                ErrorHandler.ThrowOnFailure(findSym.DoSearch(new Guid(CommonConstants.LibraryGuid), new VSOBSEARCHCRITERIA2[] { searchCriteria }));
+                int hResult = findSym.DoSearch(new Guid(CommonConstants.LibraryGuid), new VSOBSEARCHCRITERIA2[] { searchCriteria });
+                ErrorHandler.ThrowOnFailure(hResult);
             }
             else
             {

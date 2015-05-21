@@ -328,6 +328,11 @@ namespace VSGenero
             return new GeneroLibraryManager((VSGeneroPackage)package);
         }
 
+        public void LoadLibraryManager()
+        {
+            this.CreateService(null, typeof(IGeneroLibraryManager));
+        }
+
         public object GetPackageService(Type t)
         {
             return Instance.GetService(t);

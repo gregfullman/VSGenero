@@ -318,7 +318,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 var func = _functionProvider.GetFunction(exprText);
                 if (func != null)
                 {
-                    return new IFunctionResult[1] { func };
+                    return func;
                 }
             }
 
@@ -597,10 +597,14 @@ namespace VSGenero.Analysis.Parsing.AST
                         if (res == null && _functionProvider != null)
                         {
                             // check for the function name in the function provider
-                            res = _functionProvider.GetFunction(dotPiece);
-                            if (res != null)
+                            var funcs = _functionProvider.GetFunction(dotPiece);
+                            if(funcs != null)
                             {
-                                continue;
+                                res = funcs.FirstOrDefault();
+                                if (res != null)
+                                {
+                                    continue;
+                                }
                             }
                         }
                     }
@@ -801,11 +805,10 @@ namespace VSGenero.Analysis.Parsing.AST
 
             if(_functionProvider != null)
             {
-                IFunctionResult funcRes = _functionProvider.GetFunction(exprText);
+                var funcRes = _functionProvider.GetFunction(exprText);
                 if(funcRes != null)
                 {
-                    if(vars.Count == 0 || (vars.Count > 0 && funcRes.Location.Line != 0))
-                        vars.Add(new AnalysisVariable(funcRes.Location, VariableType.Definition));
+                    vars.AddRange(funcRes.Select(x => new AnalysisVariable(x.Location, VariableType.Definition)));
                 }
             }
 

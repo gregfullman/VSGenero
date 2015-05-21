@@ -89,7 +89,7 @@ namespace Microsoft.VisualStudioTools {
             }
         }
 
-        private object CreateService(IServiceContainer container, Type serviceType) {
+        protected object CreateService(IServiceContainer container, Type serviceType) {
             if (GetLibraryManagerType() == serviceType) {
                 return _libraryManager = CreateLibraryManager(this);
             }

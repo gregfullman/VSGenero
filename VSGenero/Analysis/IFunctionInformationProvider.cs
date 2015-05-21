@@ -13,6 +13,6 @@ namespace VSGenero.Analysis
     public interface IFunctionInformationProvider : IAnalysisResult
     {
         void SetFilename(string filename);
-        IFunctionResult GetFunction(string functionName);
+        IEnumerable<IFunctionResult> GetFunction(string functionName);
     }
 }
