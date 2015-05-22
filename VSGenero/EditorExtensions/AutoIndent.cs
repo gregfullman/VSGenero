@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
 using VSGenero.Analysis;
+using VSGenero.Analysis.Parsing;
 
 namespace VSGenero.EditorExtensions
 {
@@ -193,13 +194,13 @@ namespace VSGenero.EditorExtensions
                         current.ShouldDedentAfter = true;
                     }
 
-                    if (token != null && token.Span.GetText() == ":" &&         // indent after a colon
+                    if (token != null && IsStatementStart(token.Span.GetText()) &&         // indent after a colon
                         indentStack.Count == 0)
                     {                               // except in a grouping
                         current.ShouldIndentAfter = true;
                         // If the colon isn't at the end of the line, cancel it out.
                         // If the following is a ShouldDedentAfterKeyword, only one dedent will occur.
-                        current.ShouldDedentAfter = (tokenStack.Count != 0 && tokenStack.Peek() != null);
+                        //current.ShouldDedentAfter = (tokenStack.Count != 0 && tokenStack.Peek() != null);
                     }
                 }
 
@@ -209,6 +210,27 @@ namespace VSGenero.EditorExtensions
             }
 
             return indentation;
+        }
+
+        private static bool IsStatementStart(string tokenText)
+        {
+            var tok = Tokens.GetToken(tokenText);
+            if (tok == null)
+                return false;
+            switch(tok.Kind)
+            {
+                case TokenKind.ForeachKeyword:
+                case TokenKind.ForKeyword:
+                case TokenKind.IfKeyword:
+                case TokenKind.WhileKeyword:
+                case TokenKind.MainKeyword:
+                case TokenKind.FunctionKeyword:
+                case TokenKind.ReportKeyword:
+                case TokenKind.ElseKeyword:
+                    return true;
+                default:
+                    return false;
+            }
         }
 
         private static bool IsUnterminatedStringToken(ClassificationSpan lastToken)
@@ -297,7 +319,7 @@ namespace VSGenero.EditorExtensions
             if (classifier == null)
             {
                 // workaround debugger canvas bug - they wire our auto-indent provider up to a C# buffer
-                // (they query MEF for extensions by hand and filter incorrectly) and we don't have a Python classifier.  
+                // (they query MEF for extensions by hand and filter incorrectly) and we don't have a Genero classifier.  
                 // So now the user's auto-indent is broken in C# but returning null is better than crashing.
                 return null;
             }

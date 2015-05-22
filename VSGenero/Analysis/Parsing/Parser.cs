@@ -154,10 +154,7 @@ namespace VSGenero.Analysis.Parsing
         public static Parser CreateParser(Stream stream, ParserOptions parserOptions = null, IProjectEntry projEntry = null)
         {
             var options = parserOptions ?? ParserOptions.Default;
-
-            //var defaultEncoding = version.Is3x() ? Encoding.UTF8 : PythonAsciiEncoding.Instance;
-
-            var reader = new StreamReader(stream, true);//GetStreamReaderWithEncoding(stream, defaultEncoding, options.ErrorSink);
+            var reader = new StreamReader(stream, true);
 
             return CreateParser(reader, options, projEntry);
         }
@@ -717,16 +714,6 @@ namespace VSGenero.Analysis.Parsing
         /// <summary>
         /// Maybe eats a new line token returning true if the token was
         /// eaten.
-        /// 
-        /// Python always tokenizes to have only 1  new line character in a 
-        /// row.  But we also craete NLToken's and ignore them except for 
-        /// error reporting purposes.  This gives us the same errors as 
-        /// CPython and also matches the behavior of the standard library 
-        /// tokenize module.  This function eats any present NL tokens and throws
-        /// them away.
-        /// 
-        /// We also need to add the new lines into any proceeding white space
-        /// when we're parsing in verbatim mode.
         /// </summary>
         internal bool MaybeEatNewLine()
         {
@@ -780,13 +767,6 @@ namespace VSGenero.Analysis.Parsing
 
         /// <summary>
         /// Eats a new line token throwing if the next token isn't a new line.  
-        /// 
-        /// Python always tokenizes to have only 1  new line character in a 
-        /// row.  But we also craete NLToken's and ignore them except for 
-        /// error reporting purposes.  This gives us the same errors as 
-        /// CPython and also matches the behavior of the standard library 
-        /// tokenize module.  This function eats any present NL tokens and throws
-        /// them away.
         /// </summary>
         internal bool EatNewLine(out string whitespace)
         {

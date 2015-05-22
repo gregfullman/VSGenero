@@ -555,7 +555,7 @@ namespace VSGenero.Analysis
 
     /// <summary>
     /// Represents a file which is capable of being analyzed.  Can be cast to other project entry types
-    /// for more functionality.  See also IPythonProjectEntry and IXamlProjectEntry.
+    /// for more functionality.  See also IGeneroProjectEntry
     /// </summary>
     public interface IProjectEntry : IAnalyzable
     {

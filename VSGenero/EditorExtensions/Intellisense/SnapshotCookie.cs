@@ -29,7 +29,9 @@ namespace VSGenero.EditorExtensions.Intellisense
 
         public string GetLine(int lineNo)
         {
-            return _snapshot.GetLineFromLineNumber(lineNo - 1).GetText();
+            if(lineNo > 0)
+                return _snapshot.GetLineFromLineNumber(lineNo - 1).GetText();
+            return null;
         }
 
         #endregion

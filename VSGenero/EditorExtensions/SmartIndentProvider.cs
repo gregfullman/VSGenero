@@ -16,7 +16,6 @@ namespace VSGenero.EditorExtensions
     [ContentType(VSGeneroConstants.ContentTypeINC)]
     public sealed class SmartIndentProvider : ISmartIndentProvider
     {
-
         private sealed class Indent : ISmartIndent
         {
             private readonly ITextView _textView;

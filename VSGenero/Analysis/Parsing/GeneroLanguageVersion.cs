@@ -15,7 +15,7 @@ namespace VSGenero.Analysis.Parsing
         V250
     }
 
-    public static class PythonLanguageVersionExtensions
+    public static class GeneroLanguageVersionExtensions
     {
         public static Version ToVersion(this GeneroLanguageVersion version)
         {

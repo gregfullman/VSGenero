@@ -519,6 +519,8 @@ namespace VSGenero.Analysis.Parser
                 // however Python doesn't. Since we use CLR floating point number parser,
                 // we must check explicitly for the strings that end with '\0'
                 //
+                // Don't know if this applies to Genero, but we'll leave it in for now
+                //
                 if (text != null && text.Length > 0 && text[text.Length - 1] == '\0')
                 {
                     throw new ArgumentException("null byte in float literal");

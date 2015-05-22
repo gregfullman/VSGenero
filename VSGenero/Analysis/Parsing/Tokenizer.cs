@@ -747,11 +747,6 @@ namespace VSGenero.Analysis.Parsing
                     case 'u':
                     case 'U':
                         _state.LastNewLine = false;
-                        // The u prefix was reintroduced to Python 3.3 in PEP 414
-                        //if (_langVersion.Is2x() || _langVersion >= PythonLanguageVersion.V33)
-                        //{
-                        //    return ReadNameOrUnicodeString();
-                        //}
                         return ReadName();
                     case 'r':
                     case 'R':
@@ -760,10 +755,6 @@ namespace VSGenero.Analysis.Parsing
                     case 'b':
                     case 'B':
                         _state.LastNewLine = false;
-                        //if (_langVersion >= PythonLanguageVersion.V26)
-                        //{
-                        //    return ReadNameOrBytes();
-                        //}
                         return ReadName();
                     case '_':
                         _state.LastNewLine = false;
@@ -943,10 +934,6 @@ namespace VSGenero.Analysis.Parsing
         private Token ReadNameOrRawString()
         {
             bool isBytes = false;
-            //if (this._langVersion >= PythonLanguageVersion.V33)
-            //{
-            //    isBytes = NextChar('b') || NextChar('B');
-            //}
             if (NextChar('\"')) return ReadString('\"', true, false, isBytes);
             if (NextChar('\'')) return ReadString('\'', true, false, isBytes);
             return ReadName();
@@ -1134,9 +1121,6 @@ namespace VSGenero.Analysis.Parsing
 
                     if (isTriple)
                     {
-                        // CPython reports the multi-line string error as if it is a single line
-                        // ending at the last char in the file.
-
                         MarkTokenEnd();
 
                         ReportSyntaxError(new IndexSpan(_tokenEndIndex, 0), "EOF while scanning triple-quoted string", ErrorCodes.SyntaxError | ErrorCodes.IncompleteToken);
@@ -1341,26 +1325,6 @@ namespace VSGenero.Analysis.Parsing
         private Token ReadNumber(int start)
         {
             int b = 10;
-            //if (start == '0')
-            //{
-            //    if (NextChar('x') || NextChar('X'))
-            //    {
-            //        return ReadHexNumber();
-            //    }
-            //    else if (_langVersion >= PythonLanguageVersion.V26)
-            //    {
-            //        if ((NextChar('b') || NextChar('B')))
-            //        {
-            //            return ReadBinaryNumber();
-            //        }
-            //        else if (NextChar('o') || NextChar('O'))
-            //        {
-            //            return ReadOctalNumber();
-            //        }
-            //    }
-
-            //    b = 8;
-            //}
 
             while (true)
             {
@@ -1375,43 +1339,6 @@ namespace VSGenero.Analysis.Parsing
                     case 'E':
                         return ReadExponent();
 
-                    //case 'j':
-                    //case 'J':
-                    //    MarkTokenEnd();
-
-                    //    // TODO: parse in place
-                    //    if (Verbatim)
-                    //    {
-                    //        string tokenStr = GetTokenString();
-                    //        return new VerbatimConstantValueToken(LiteralParser.ParseImaginary(tokenStr), tokenStr);
-                    //    }
-                    //    return new ConstantValueToken(LiteralParser.ParseImaginary(GetTokenString()));
-
-                    //case 'l':
-                    //case 'L':
-                    //    {
-                    //        MarkTokenEnd();
-
-                    //        if (_langVersion.Is3x())
-                    //        {
-                    //            ReportSyntaxError(new IndexSpan(_tokenEndIndex - 1, 1), "invalid token", ErrorCodes.SyntaxError);
-                    //        }
-                    //        string tokenStr = GetTokenString();
-                    //        try
-                    //        {
-                    //            // TODO: parse in place
-                    //            if (Verbatim)
-                    //            {
-                    //                return new VerbatimConstantValueToken(LiteralParser.ParseBigInteger(tokenStr, b), tokenStr);
-                    //            }
-
-                    //            return new ConstantValueToken(LiteralParser.ParseBigInteger(tokenStr, b));
-                    //        }
-                    //        catch (ArgumentException e)
-                    //        {
-                    //            return new ErrorToken(e.Message, tokenStr);
-                    //        }
-                    //    }
                     case '0':
                     case '1':
                     case '2':
@@ -1430,16 +1357,10 @@ namespace VSGenero.Analysis.Parsing
 
                         string image = GetTokenString();
                         object val = ParseInteger(GetTokenString(), b);
-                        //if (b == 8 && _langVersion.Is3x() && (!(val is int) || !((int)val == 0)))
-                        //{
-                        //    ReportSyntaxError(BufferTokenSpan, "invalid token", ErrorCodes.SyntaxError);
-                        //}
-
                         if (Verbatim)
                         {
                             return new VerbatimConstantValueToken(val, image);
                         }
-                        // TODO: parse in place
                         return new ConstantValueToken(val);
                 }
             }
@@ -1874,9 +1795,7 @@ namespace VSGenero.Analysis.Parsing
                         }
 
                         // if there's a blank line then we don't want to mess w/ the
-                        // indentation level - Python says that blank lines are ignored.
-                        // And if we're the last blank line in a file we don't want to
-                        // increase the new indentation level.
+                        // indentation level
                         if (ch == EOF)
                         {
                             if (spaces < _state.Indent[_state.IndentLevel])

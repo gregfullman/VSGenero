@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using VSGenero.Analysis.Parsing;
+using VSGenero.Analysis.Parsing.AST;
 
 namespace VSGenero.Analysis
 {
@@ -72,13 +73,12 @@ namespace VSGenero.Analysis
         /// </summary>
         public static IEnumerable<string> Statement(GeneroLanguageVersion version = GeneroLanguageVersion.None)
         {
-            yield return null;
-            // TODO:
+            return GeneroAst.ValidStatementKeywords.Select(x => Tokens.TokenKinds[x]);
         }
 
         /// <summary>
         /// Returns a sequence of all keywords that are invalid outside of
-        /// function definitions in a particular version of Python.
+        /// function definitions in a particular version of Genero.
         /// </summary>
         public static IEnumerable<string> InvalidOutsideFunction(
             GeneroLanguageVersion version = GeneroLanguageVersion.None

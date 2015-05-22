@@ -825,7 +825,8 @@ namespace VSGenero.Analysis.Parsing.AST
                     }
                     else
                         locInfo = this.ResolveLocation(res);
-                    vars.Add(new AnalysisVariable(locInfo, VariableType.Definition));
+                    if(locInfo.Index > 0)
+                        vars.Add(new AnalysisVariable(locInfo, VariableType.Definition));
                 }
             }
 

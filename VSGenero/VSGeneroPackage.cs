@@ -89,7 +89,7 @@ namespace VSGenero
     [RegisterSnippetsAttribute(VSGenero.Snippets.Constants.guidVSGeneroLanuageServiceString, false, 131, "Genero4GL", @"Snippets\CodeSnippets\SnippetsIndex.xml", @"Snippets\CodeSnippets\Snippets\", @"Snippets\CodeSnippets\Snippets\")]
     [ProvideLanguageService(typeof(VSGenero4GLLanguageInfo), VSGeneroConstants.LanguageName4GL, 106,
                             RequestStockColors = true,
-                            //ShowSmartIndent = true,       // enable this when we want to support smart indenting
+                            ShowSmartIndent = true,       // enable this when we want to support smart indenting
                             ShowCompletion = true,
                             DefaultToInsertSpaces = true,
                             HideAdvancedMembersByDefault = true,
@@ -107,7 +107,7 @@ namespace VSGenero
     [ProvideLanguageExtension(typeof(VSGeneroPERLanguageInfo), VSGeneroConstants.FileExtensionPER)]
     [ProvideLanguageService(typeof(VSGeneroINCLanguageInfo), VSGeneroConstants.LanguageNameINC, 108,
                             RequestStockColors = true,
-        //ShowSmartIndent = true,       // enable this when we want to support smart indenting
+                            ShowSmartIndent = true,       // enable this when we want to support smart indenting
                             ShowCompletion = true,
                             DefaultToInsertSpaces = true,
                             HideAdvancedMembersByDefault = true,
