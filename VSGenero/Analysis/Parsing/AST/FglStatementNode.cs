@@ -358,6 +358,15 @@ namespace VSGenero.Analysis.Parsing.AST
                         }
                         break;
                     }
+                case TokenKind.LoadKeyword:
+                    {
+                        LoadStatement loadStmt;
+                        if((result = LoadStatement.TryParseNode(parser, out loadStmt)))
+                        {
+                            node = loadStmt;
+                        }
+                        break;
+                    }
                 default:
                     {
                         if (SqlStatementFactory.IsValidStatementStart(parser.PeekToken().Kind))

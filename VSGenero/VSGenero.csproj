@@ -345,6 +345,7 @@
     <Compile Include="Analysis\Parsing\AST\IfStatement.cs" />
     <Compile Include="Analysis\Parsing\AST\InputStatement.cs" />
     <Compile Include="Analysis\Parsing\AST\LabelStatement.cs" />
+    <Compile Include="Analysis\Parsing\AST\LoadStatement.cs" />
     <Compile Include="Analysis\Parsing\AST\MenuBlock.cs" />
     <Compile Include="Analysis\Parsing\AST\NameNode.cs" />
     <Compile Include="Analysis\Parsing\AST\OpenStatement.cs" />
@@ -376,7 +377,9 @@
     <Compile Include="Analysis\VariableType.cs" />
     <Compile Include="EditorExtensions\AutoIndent.cs" />
     <Compile Include="EditorExtensions\BraceHighlighter.cs" />
+    <Compile Include="EditorExtensions\GeneroLexer.cs" />
     <Compile Include="EditorExtensions\GeneroTextViewListener.cs" />
+    <Compile Include="EditorExtensions\GeneroToken.cs" />
     <Compile Include="EditorExtensions\IGeneroTextViewChangedListener.cs" />
     <Compile Include="EditorExtensions\IGeneroTextViewCommandTarget.cs" />
     <Compile Include="EditorExtensions\Intellisense\AnalysisQueue.cs" />
