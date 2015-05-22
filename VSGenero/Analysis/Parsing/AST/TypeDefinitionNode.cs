@@ -104,12 +104,13 @@ namespace VSGenero.Analysis.Parsing.AST
         private LocationInfo _location;
         public LocationInfo Location { get { return _location; } }
 
-        public IAnalysisResult GetMember(string name, GeneroAst ast)
+        public IAnalysisResult GetMember(string name, GeneroAst ast, out IGeneroProject definingProject)
         {
+            definingProject = null;
             if (Children.Count == 1 &&
                Children[Children.Keys[0]] is TypeReference)
             {
-                return (Children[Children.Keys[0]] as TypeReference).GetMember(name, ast);
+                return (Children[Children.Keys[0]] as TypeReference).GetMember(name, ast, out definingProject);
             }
             return null;
         }

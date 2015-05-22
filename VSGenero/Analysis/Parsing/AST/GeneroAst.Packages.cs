@@ -3218,8 +3218,9 @@ namespace VSGenero.Analysis.Parsing.AST
 
         public LocationInfo Location { get { return null; } }
 
-        public IAnalysisResult GetMember(string name, GeneroAst ast)
+        public IAnalysisResult GetMember(string name, GeneroAst ast, out IGeneroProject definingProject)
         {
+            definingProject = null;
             GeneroPackageClass cls = null;
             _classes.TryGetValue(name, out cls);
             return cls;
@@ -3315,8 +3316,9 @@ namespace VSGenero.Analysis.Parsing.AST
 
         public LocationInfo Location { get { return null; } }
 
-        public IAnalysisResult GetMember(string name, GeneroAst ast)
+        public IAnalysisResult GetMember(string name, GeneroAst ast, out IGeneroProject definingProject)
         {
+            definingProject = null;
             GeneroPackageClassMethod method = null;
             _methods.TryGetValue(name, out method);
             return method;
@@ -3462,8 +3464,9 @@ namespace VSGenero.Analysis.Parsing.AST
 
         public LocationInfo Location { get { return null; } }
 
-        public IAnalysisResult GetMember(string name, GeneroAst ast)
+        public IAnalysisResult GetMember(string name, GeneroAst ast, out IGeneroProject definingProject)
         {
+            definingProject = null;
             return null;
         }
 

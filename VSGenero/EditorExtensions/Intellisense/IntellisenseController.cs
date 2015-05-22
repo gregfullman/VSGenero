@@ -456,6 +456,8 @@ namespace VSGenero.EditorExtensions.Intellisense
         [ThreadStatic]
         internal static bool ForceCompletions;
 
+        Span? _parentSpan = null;
+
         internal void TriggerCompletionSession(bool completeWord)
         {
             Dismiss();
@@ -470,9 +472,14 @@ namespace VSGenero.EditorExtensions.Intellisense
                     (set = _activeSession.CompletionSets[0] as FuzzyCompletionSet) != null &&
                     set.SelectSingleBest())
                 {
-                    var parentSpan = GetCompletionParentSpan();
+                    if(_parentSpan == null)
+                        _parentSpan = GetCompletionParentSpan();
                     _activeSession.Commit();
-                    RemoveParentSpan(parentSpan);
+                    if (_parentSpan != null)
+                    {
+                        RemoveParentSpan(_parentSpan);
+                        _parentSpan = null;
+                    }
                     _activeSession = null;
                 }
                 else
@@ -539,10 +546,23 @@ namespace VSGenero.EditorExtensions.Intellisense
                             IntellisenseExtensions.LastCommittedCompletions.RemoveAt(indexOfMRU);
                         }
                         IntellisenseExtensions.LastCommittedCompletions.Insert(0, _activeSession.SelectedCompletionSet.SelectionStatus.Completion);
+
+                        if (_parentSpan == null)
+                        {
+                            _parentSpan = GetCompletionParentSpan();
+                            if (_parentSpan != null)
+                            {
+                                RemoveParentSpan(_parentSpan);
+                                _parentSpan = null;
+                            }
+                        }
                     }
                 }
-                _activeSession.Committed -= OnCompletionSessionCommitted;
-                _activeSession = null;
+                if (_activeSession != null)
+                {
+                    _activeSession.Committed -= OnCompletionSessionCommitted;
+                    _activeSession = null;
+                }
             }
         }
 
@@ -778,9 +798,14 @@ namespace VSGenero.EditorExtensions.Intellisense
                             (VSGeneroPackage.Instance.IntellisenseOptions4GLPage.CompletionCommittedBy.IndexOf(ch) != -1 ||
                              (ch == ' ' && VSGeneroPackage.Instance.IntellisenseOptions4GLPage.SpaceCommitsIntellisense)))
                         {
-                            var parentSpan = GetCompletionParentSpan();
+                            if(_parentSpan == null)
+                                _parentSpan = GetCompletionParentSpan();
                             _activeSession.Commit();
-                            RemoveParentSpan(parentSpan);
+                            if (_parentSpan != null)
+                            {
+                                RemoveParentSpan(_parentSpan);
+                                _parentSpan = null;
+                            }
                         }
                         else if (!IsIdentifierChar(ch))
                         {
@@ -818,9 +843,14 @@ namespace VSGenero.EditorExtensions.Intellisense
                                 bool enterOnComplete = VSGeneroPackage.Instance.IntellisenseOptions4GLPage.AddNewLineAtEndOfFullyTypedWord &&
                                          EnterOnCompleteText();
 
-                                var parentSpan = GetCompletionParentSpan();
+                                if(_parentSpan == null)
+                                    _parentSpan = GetCompletionParentSpan();
                                 _activeSession.Commit();
-                                RemoveParentSpan(parentSpan);
+                                if (_parentSpan != null)
+                                {
+                                    RemoveParentSpan(_parentSpan);
+                                    _parentSpan = null;
+                                }
 
 
                                 if (!enterOnComplete)
@@ -836,9 +866,14 @@ namespace VSGenero.EditorExtensions.Intellisense
                         case VSConstants.VSStd2KCmdID.TAB:
                             if (!_activeSession.IsDismissed)
                             {
-                                var parentSpan = GetCompletionParentSpan();
+                                if(_parentSpan == null)
+                                    _parentSpan = GetCompletionParentSpan();
                                 _activeSession.Commit();
-                                RemoveParentSpan(parentSpan);
+                                if (_parentSpan != null)
+                                {
+                                    RemoveParentSpan(_parentSpan);
+                                    _parentSpan = null;
+                                }
                                 return VSConstants.S_OK;
                             }
                             break;

@@ -375,7 +375,13 @@ namespace VSGenero.Analysis.Parsing.AST
 
                 if (res != null)
                 {
-                    IAnalysisResult tempRes = res.GetMember(dotPiece, this);
+                    IGeneroProject tempProj;
+                    IAnalysisResult tempRes = res.GetMember(dotPiece, this, out tempProj);
+                    if(tempProj != null)
+                    {
+                        if (definingProject != tempProj)
+                            definingProject = tempProj;
+                    }
                     res = tempRes;
                     if (tempRes == null)
                     {
@@ -825,8 +831,38 @@ namespace VSGenero.Analysis.Parsing.AST
                     }
                     else
                         locInfo = this.ResolveLocation(res);
-                    if(locInfo.Index > 0)
+                    if (locInfo != null && (locInfo.Index > 0 || (locInfo.Line > 0 && locInfo.Column > 0)))
                         vars.Add(new AnalysisVariable(locInfo, VariableType.Definition));
+                }
+            }
+
+            if (_body is IModuleResult &&
+                _projEntry is IGeneroProjectEntry)
+            {
+                string dotPiece = exprText;
+                string[] dotPieces = exprText.Split(new[] { '.' }, StringSplitOptions.RemoveEmptyEntries);
+                if (dotPieces.Length > 1)
+                    dotPiece = dotPieces[0];
+                if ((_body as IModuleResult).FglImports.Contains(dotPiece))
+                {
+                    // need to get the ast for the other project entry
+                    var refProjKVP = (_projEntry as IGeneroProjectEntry).ParentProject.ReferencedProjects.Values.FirstOrDefault(x => Path.GetFileName(x.Directory).Equals(dotPiece, StringComparison.OrdinalIgnoreCase));
+                    if (refProjKVP != null && refProjKVP is IAnalysisResult)
+                    {
+                        IAnalysisResult res = GetValueByIndex(exprText, index, functionProvider, databaseProvider, _programFileProvider, out refProjKVP);
+                        if (res != null)
+                        {
+                            LocationInfo locInfo = null;
+                            if (refProjKVP != null)
+                            {
+                                locInfo = ResolveLocationInternal(refProjKVP, res);
+                            }
+                            else
+                                locInfo = this.ResolveLocation(res);
+                            if (locInfo != null && (locInfo.Index > 0 || (locInfo.Line > 0 && locInfo.Column > 0)))
+                                vars.Add(new AnalysisVariable(locInfo, VariableType.Definition));
+                        }
+                    }
                 }
             }
 

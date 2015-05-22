@@ -208,8 +208,9 @@ namespace VSGenero.Analysis.Parsing.AST
 
         public LocationInfo Location { get { return null; } }
 
-        public IAnalysisResult GetMember(string name, GeneroAst ast)
+        public IAnalysisResult GetMember(string name, GeneroAst ast, out IGeneroProject definingProject)
         {
+            definingProject = null;
             return null;
         }
 

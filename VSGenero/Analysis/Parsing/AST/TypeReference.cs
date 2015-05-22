@@ -237,8 +237,9 @@ namespace VSGenero.Analysis.Parsing.AST
         protected LocationInfo _location;
         public LocationInfo Location { get { return _location; } }
 
-        public IAnalysisResult GetMember(string name, GeneroAst ast)
+        public IAnalysisResult GetMember(string name, GeneroAst ast, out IGeneroProject definingProject)
         {
+            definingProject = null;
             if (!string.IsNullOrWhiteSpace(TableName))
             {
                 // TODO: get the specified column from the database provider
@@ -248,12 +249,13 @@ namespace VSGenero.Analysis.Parsing.AST
             {
                 MemberType memType = Analysis.MemberType.All;
                 // TODO: there's probably a better way to do this
-                return GetAnalysisMembers(ast, memType).Where(x => x.Name.Equals(name, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+                return GetAnalysisMembers(ast, memType, out definingProject).Where(x => x.Name.Equals(name, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
             }
         }
 
-        internal IEnumerable<IAnalysisResult> GetAnalysisMembers(GeneroAst ast, MemberType memberType)
+        internal IEnumerable<IAnalysisResult> GetAnalysisMembers(GeneroAst ast, MemberType memberType, out IGeneroProject definingProject)
         {
+            definingProject = null;
             List<IAnalysisResult> members = new List<IAnalysisResult>();
             if (Children.Count == 1)
             {
@@ -261,7 +263,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 var node = Children[Children.Keys[0]];
                 if (node is ArrayTypeReference)
                 {
-                    return (node as ArrayTypeReference).GetAnalysisResults(ast, memberType);
+                    return (node as ArrayTypeReference).GetAnalysisResults(ast, memberType, out definingProject);
                 }
                 else if (node is RecordDefinitionNode)
                 {
@@ -306,8 +308,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     }
 
                     // check for package class
-                    IGeneroProject dummyProject;
-                    udt = ast.GetValueByIndex(_typeNameString, LocationIndex, ast._functionProvider, ast._databaseProvider, ast._programFileProvider, out dummyProject);
+                    udt = ast.GetValueByIndex(_typeNameString, LocationIndex, ast._functionProvider, ast._databaseProvider, ast._programFileProvider, out definingProject);
                     if (udt != null)
                     {
                         return udt.GetMembers(ast, memberType).Select(x => x.Var).Where(y => y != null);

@@ -78,9 +78,9 @@ namespace VSGenero.Analysis.Parsing.AST
             } 
         }
 
-        public IAnalysisResult GetMember(string name, GeneroAst ast)
+        public IAnalysisResult GetMember(string name, GeneroAst ast, out IGeneroProject definingProject)
         {
-            return Type.GetMember(name, ast);
+            return Type.GetMember(name, ast, out definingProject);
         }
 
         public IEnumerable<MemberResult> GetMembers(GeneroAst ast, MemberType memberType)

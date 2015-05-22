@@ -92,8 +92,11 @@ namespace VSGenero.EditorExtensions.Intellisense
                 {
                     lock (_analyzer)
                     {
-                        IGeneroProject dummyProj;
-                        return _analysis.GetValueByIndex(_expr, TranslatedIndex, _functionProvider, _databaseProvider, _programFileProvider, out dummyProj, true);
+                        if (!_expr.StartsWith("\""))
+                        {
+                            IGeneroProject dummyProj;
+                            return _analysis.GetValueByIndex(_expr, TranslatedIndex, _functionProvider, _databaseProvider, _programFileProvider, out dummyProj, true);
+                        }
                     }
                 }
                 return null;

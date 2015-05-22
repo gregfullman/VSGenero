@@ -48,6 +48,8 @@ namespace VSGenero.Analysis.Parsing
 
         public readonly FglStatementFactory StatementFactory;
 
+        public string Filename { get { return _filename; } }
+
         public ErrorSink ErrorSink
         {
             get

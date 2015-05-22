@@ -497,10 +497,14 @@ namespace VSGenero.Analysis
             return res;
         }
 
-        public IAnalysisResult GetMember(string name, GeneroAst ast)
+        public IAnalysisResult GetMember(string name, GeneroAst ast, out IGeneroProject definingProject)
         {
+            definingProject = null;
             IProjectEntry dummyProj;
-            return GetMemberOfType(name, ast, true, true, true, true, out dummyProj);
+            var res = GetMemberOfType(name, ast, true, true, true, true, out dummyProj);
+            if (dummyProj != null && dummyProj is IGeneroProjectEntry)
+                definingProject = (dummyProj as IGeneroProjectEntry).ParentProject;
+            return res;
         }
 
         public IEnumerable<MemberResult> GetMembers(GeneroAst ast, MemberType memberType)
