@@ -31,7 +31,7 @@ namespace VSGenero.Analysis.Parsing.AST
 
         public bool IsPublic { get { return true; } }
 
-        public static bool TryParseNode(Parser parser, out MainBlockNode defNode, Func<string, PrepareStatement> prepStatementResolver = null)
+        public static bool TryParseNode(Parser parser, out MainBlockNode defNode, IModuleResult containingModule)
         {
             defNode = null;
             bool result = false;
@@ -117,7 +117,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         default:
                             {
                                 FglStatement statement;
-                                if (parser.StatementFactory.TryParseNode(parser, out statement, prepStatementResolver, defNode.BindPrepareCursorFromIdentifier))
+                                if (parser.StatementFactory.TryParseNode(parser, out statement, containingModule, defNode.BindPrepareCursorFromIdentifier))
                                 {
                                     AstNode stmtNode = statement as AstNode;
                                     defNode.Children.Add(stmtNode.StartIndex, stmtNode);

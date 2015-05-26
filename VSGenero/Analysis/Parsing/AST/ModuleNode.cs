@@ -315,7 +315,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     continue;
 
                 MainBlockNode mainBlock;
-                if (MainBlockNode.TryParseNode(parser, out mainBlock, defNode.PreparedCursorResolver))
+                if (MainBlockNode.TryParseNode(parser, out mainBlock, defNode))
                 {
                     if (processed == NodesProcessed.MemberDefinitions)
                     {
@@ -346,7 +346,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 FunctionBlockNode funcNode;
                 ReportBlockNode repNode;
                 int dummy;
-                if (FunctionBlockNode.TryParseNode(parser, out funcNode, out dummy, defNode.PreparedCursorResolver))
+                if (FunctionBlockNode.TryParseNode(parser, out funcNode, out dummy, defNode))
                 {
                     defNode.Children.Add(funcNode.StartIndex, funcNode);
                     funcNode.Scope = "function";
@@ -358,21 +358,13 @@ namespace VSGenero.Analysis.Parsing.AST
                     else if (!defNode.Functions.ContainsKey(funcNode.Name))
                     {
                         defNode.Functions.Add(funcNode.Name, funcNode);
-                        foreach (var cursor in funcNode.Children.Values.Where(x => x is PrepareStatement || x is DeclareStatement))
-                        {
-                            IAnalysisResult curRes = cursor as IAnalysisResult;
-                            if(!defNode.Cursors.ContainsKey(curRes.Name))
-                                defNode.Cursors.Add(curRes.Name, curRes);
-                            else
-                                parser.ReportSyntaxError(curRes.LocationIndex, curRes.LocationIndex + curRes.Name.Length, string.Format("Module cursor {0} defined more than once.", curRes.Name));
-                        }
                     }
                     else
                     {
                         parser.ReportSyntaxError(funcNode.LocationIndex, funcNode.LocationIndex + funcNode.Name.Length, string.Format("Function {0} defined more than once.", funcNode.Name));
                     }
                 }
-                else if (ReportBlockNode.TryParseNode(parser, out repNode, defNode.PreparedCursorResolver))
+                else if (ReportBlockNode.TryParseNode(parser, out repNode, defNode))
                 {
                     defNode.Children.Add(repNode.StartIndex, repNode);
                     repNode.Scope = "report";
@@ -383,14 +375,6 @@ namespace VSGenero.Analysis.Parsing.AST
                     else if (!defNode.Functions.ContainsKey(repNode.Name))
                     {
                         defNode.Functions.Add(repNode.Name, repNode);
-                        foreach (var cursor in repNode.Children.Values.Where(x => x is PrepareStatement || x is DeclareStatement))
-                        {
-                            IAnalysisResult curRes = cursor as IAnalysisResult;
-                            if (!defNode.Cursors.ContainsKey(curRes.Name))
-                                defNode.Cursors.Add(curRes.Name, curRes);
-                            else
-                                parser.ReportSyntaxError(curRes.LocationIndex, curRes.LocationIndex + curRes.Name.Length, string.Format("Module cursor {0} defined more than once.", curRes.Name));
-                        }
                     }
                     else
                     {
@@ -490,15 +474,15 @@ namespace VSGenero.Analysis.Parsing.AST
             }
         }
 
-        private void BindCursorResult(IAnalysisResult cursorResult)
+        public void BindCursorResult(IAnalysisResult cursorResult, IParser parser)
         {
             if (!Cursors.ContainsKey(cursorResult.Name))
-            {
                 Cursors.Add(cursorResult.Name, cursorResult);
-            }
+            else
+                parser.ReportSyntaxError(cursorResult.LocationIndex, cursorResult.LocationIndex + cursorResult.Name.Length, string.Format("Module cursor {0} defined more than once.", cursorResult.Name));
         }
 
-        private PrepareStatement PreparedCursorResolver(string prepIdent)
+        public PrepareStatement PreparedCursorResolver(string prepIdent)
         {
             IAnalysisResult prepRes;
             if (Cursors.TryGetValue(prepIdent, out prepRes))

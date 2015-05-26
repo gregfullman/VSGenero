@@ -19,7 +19,7 @@ namespace VSGenero.Analysis.Parsing.AST
     /// </summary>
     public class ReportBlockNode : FunctionBlockNode
     {
-        public static bool TryParseNode(Parser parser, out ReportBlockNode defNode, Func<string, PrepareStatement> prepStatementResolver = null)
+        public static bool TryParseNode(Parser parser, out ReportBlockNode defNode, IModuleResult containingModule)
         {
             defNode = null;
             bool result = false;
@@ -135,7 +135,7 @@ namespace VSGenero.Analysis.Parsing.AST
                        !(parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.ReportKeyword, 2)))
                 {
                     FglStatement statement;
-                    if (parser.StatementFactory.TryParseNode(parser, out statement, prepStatementResolver, defNode.BindPrepareCursorFromIdentifier))
+                    if (parser.StatementFactory.TryParseNode(parser, out statement, containingModule, defNode.BindPrepareCursorFromIdentifier))
                     {
                         AstNode stmtNode = statement as AstNode;
                         defNode.Children.Add(stmtNode.StartIndex, stmtNode);

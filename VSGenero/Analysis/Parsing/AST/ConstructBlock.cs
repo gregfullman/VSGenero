@@ -17,7 +17,7 @@ namespace VSGenero.Analysis.Parsing.AST
 
 
         public static bool TryParseNode(Parser parser, out ConstructBlock node,
-                                 Func<string, PrepareStatement> prepStatementResolver = null,
+                                 IModuleResult containingModule,
                                  Action<PrepareStatement> prepStatementBinder = null,
                                  List<TokenKind> validExitKeywords = null)
         {
@@ -138,7 +138,7 @@ namespace VSGenero.Analysis.Parsing.AST
                        !(parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.ConstructKeyword, 2)))
                 {
                     ConstructControlBlock icb;
-                    if (ConstructControlBlock.TryParseNode(parser, out icb, prepStatementResolver, prepStatementBinder, validExits))
+                    if (ConstructControlBlock.TryParseNode(parser, out icb, containingModule, prepStatementBinder, validExits))
                         node.Children.Add(icb.StartIndex, icb);
                     else
                         parser.NextToken();
@@ -200,7 +200,7 @@ namespace VSGenero.Analysis.Parsing.AST
         public ConstructControlBlockType Type { get; private set; }
 
         public static bool TryParseNode(Parser parser, out ConstructControlBlock node,
-                                 Func<string, PrepareStatement> prepStatementResolver = null,
+                                 IModuleResult containingModule,
                                  Action<PrepareStatement> prepStatementBinder = null,
                                  List<TokenKind> validExitKeywords = null)
         {
@@ -315,7 +315,7 @@ namespace VSGenero.Analysis.Parsing.AST
             {
                 // get the dialog statements
                 FglStatement inputStmt;
-                while (ConstructDialogStatementFactory.TryGetStatement(parser, out inputStmt, prepStatementResolver, prepStatementBinder, validExitKeywords))
+                while (ConstructDialogStatementFactory.TryGetStatement(parser, out inputStmt, containingModule, prepStatementBinder, validExitKeywords))
                     node.Children.Add(inputStmt.StartIndex, inputStmt);
 
                 if (node.Type == ConstructControlBlockType.None && node.Children.Count == 0)
@@ -329,7 +329,7 @@ namespace VSGenero.Analysis.Parsing.AST
     public class ConstructDialogStatementFactory
     {
         public static bool TryGetStatement(Parser parser, out FglStatement node,
-                                 Func<string, PrepareStatement> prepStatementResolver = null,
+                                 IModuleResult containingModule,
                                  Action<PrepareStatement> prepStatementBinder = null,
                                  List<TokenKind> validExitKeywords = null)
         {
@@ -343,7 +343,7 @@ namespace VSGenero.Analysis.Parsing.AST
             }
             else
             {
-                result = parser.StatementFactory.TryParseNode(parser, out node, prepStatementResolver, prepStatementBinder, false, validExitKeywords);
+                result = parser.StatementFactory.TryParseNode(parser, out node, containingModule, prepStatementBinder, false, validExitKeywords);
             }
 
             return result;

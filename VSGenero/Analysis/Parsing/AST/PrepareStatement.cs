@@ -18,7 +18,7 @@ namespace VSGenero.Analysis.Parsing.AST
 
         public bool IsPublic { get { return false; } }
 
-        public static bool TryParseNode(Parser parser, out PrepareStatement defNode)
+        public static bool TryParseNode(Parser parser, out PrepareStatement defNode, IModuleResult containingModule)
         {
             defNode = null;
             bool result = false;
@@ -45,6 +45,8 @@ namespace VSGenero.Analysis.Parsing.AST
                             defNode.Children.Add(exprNode.StartIndex, exprNode);
                             defNode.EndIndex = exprNode.EndIndex;
                             defNode.IsComplete = true;
+
+                            containingModule.BindCursorResult(defNode, parser);
                         }
                         else
                         {

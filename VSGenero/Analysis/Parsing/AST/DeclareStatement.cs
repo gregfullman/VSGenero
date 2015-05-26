@@ -23,7 +23,7 @@ namespace VSGenero.Analysis.Parsing.AST
 
         public bool IsPublic { get { return false; } }
 
-        public static bool TryParseNode(Parser parser, out DeclareStatement defNode, Func<string, PrepareStatement> preparedStatementResolver = null)
+        public static bool TryParseNode(Parser parser, out DeclareStatement defNode, IModuleResult containingModule)
         {
             defNode = null;
             bool result = false;
@@ -34,7 +34,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 defNode = new DeclareStatement();
                 parser.NextToken();
                 defNode.StartIndex = parser.Token.Span.Start;
-                defNode._prepStatementResolver = preparedStatementResolver;
+                defNode._prepStatementResolver = containingModule.PreparedCursorResolver;
 
                 if (parser.PeekToken(TokenCategory.Identifier) || parser.PeekToken(TokenCategory.Keyword))
                 {
@@ -74,6 +74,8 @@ namespace VSGenero.Analysis.Parsing.AST
                             {
                                 defNode.Children.Add(exprNode.StartIndex, exprNode);
                                 defNode.EndIndex = exprNode.EndIndex;
+
+                                containingModule.BindCursorResult(defNode, parser);
                             }
                             else
                             {
@@ -92,6 +94,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                     defNode.Children.Add(sqlBlock.StartIndex, sqlBlock);
                                     defNode.EndIndex = sqlBlock.EndIndex;
                                     defNode.IsComplete = true;
+                                    containingModule.BindCursorResult(defNode, parser);
                                 }
                             }
                             else if(parser.PeekToken(TokenKind.SelectKeyword))
@@ -104,6 +107,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                     defNode.Children.Add(sqlStmt.StartIndex, sqlStmt);
                                     defNode.EndIndex = sqlStmt.EndIndex;
                                     defNode.IsComplete = true;
+                                    containingModule.BindCursorResult(defNode, parser);
                                 }
                                 else
                                 {
@@ -117,6 +121,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                 defNode.PreparedStatementId = parser.Token.Token.Value.ToString();
                                 defNode.EndIndex = parser.Token.Span.End;
                                 defNode.IsComplete = true;
+                                containingModule.BindCursorResult(defNode, parser);
                             }
                             else
                             {

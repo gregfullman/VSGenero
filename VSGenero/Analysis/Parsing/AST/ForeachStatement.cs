@@ -13,7 +13,7 @@ namespace VSGenero.Analysis.Parsing.AST
         public List<NameExpression> OutputVars { get; private set; }
 
         public static bool TryParseNode(Parser parser, out ForeachStatement node,
-                                        Func<string, PrepareStatement> prepStatementResolver = null,
+                                        IModuleResult containingModule,
                                         Action<PrepareStatement> prepStatementBinder = null,
                                         List<TokenKind> validExitKeywords = null)
         {
@@ -86,7 +86,7 @@ namespace VSGenero.Analysis.Parsing.AST
                       !(parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.ForeachKeyword, 2)))
                 {
                     FglStatement statement;
-                    if (parser.StatementFactory.TryParseNode(parser, out statement, prepStatementResolver, prepStatementBinder, false, validExits))
+                    if (parser.StatementFactory.TryParseNode(parser, out statement, containingModule, prepStatementBinder, false, validExits))
                     {
                         AstNode stmtNode = statement as AstNode;
                         node.Children.Add(stmtNode.StartIndex, stmtNode);

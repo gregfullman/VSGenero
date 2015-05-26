@@ -116,10 +116,10 @@ namespace VSGenero.Analysis.Parsing.AST
                 }
                 else
                 {
-                    TokenExpressionNode exprNode = prepStmt.Children[prepStmt.Children.Keys[0]] as TokenExpressionNode;
-                    if (exprNode != null && exprNode.Tokens.Count == 1)
+                    NameExpression exprNode = prepStmt.Children[prepStmt.Children.Keys[0]] as NameExpression;
+                    if (exprNode != null)
                     {
-                        string ident = exprNode.Tokens[0].Value.ToString();
+                        string ident = exprNode.Name;
 
                         List<int> keys = Children.Select(x => x.Key).ToList();
                         int searchIndex = keys.BinarySearch(prepStmt.StartIndex);
@@ -163,8 +163,7 @@ namespace VSGenero.Analysis.Parsing.AST
         }
 
         public static bool TryParseNode(Parser parser, out FunctionBlockNode defNode, out int bufferPosition,
-                                        Func<string, PrepareStatement> prepStatementResolver = null,
-                                        bool abbreviatedParse = false, bool advanceOnEnd = true)
+                                        IModuleResult containingModule, bool abbreviatedParse = false, bool advanceOnEnd = true)
         {
             bufferPosition = 0;
             defNode = null;
@@ -307,7 +306,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         default:
                             {
                                 FglStatement statement;
-                                if (parser.StatementFactory.TryParseNode(parser, out statement, prepStatementResolver, defNode.BindPrepareCursorFromIdentifier, abbreviatedParse))
+                                if (parser.StatementFactory.TryParseNode(parser, out statement, containingModule, defNode.BindPrepareCursorFromIdentifier, abbreviatedParse))
                                 {
                                     AstNode stmtNode = statement as AstNode;
                                     defNode.Children.Add(stmtNode.StartIndex, stmtNode);
