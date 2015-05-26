@@ -131,7 +131,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         }
 
                         LetStatement letStmt = null;
-                        do
+                        while (searchIndex >= 0)
                         {
                             int key = keys[searchIndex];
                             letStmt = Children[key] as LetStatement;
@@ -145,7 +145,6 @@ namespace VSGenero.Analysis.Parsing.AST
                             }
                             searchIndex--;
                         }
-                        while (searchIndex >= 0);
 
                         if (letStmt != null)
                         {

@@ -24,7 +24,7 @@ using Microsoft.VisualStudio.VSCommon;
 
 namespace VSGenero.Navigation
 {
-    internal sealed class EditFilter : IOleCommandTarget
+    public sealed class EditFilter : IOleCommandTarget
     {
         private readonly ITextView _textView;
         private readonly IEditorOperations _editorOps;
@@ -110,6 +110,18 @@ namespace VSGenero.Navigation
             }
 
             return locations;
+        }
+
+        public static IAnalysisResult GetAnalysisItemUnderCaret(ITextView textView)
+        {
+            IAnalysisResult result = null;
+            // don't need the various providers, at least right now
+            var analysis = textView.GetExpressionAnalysis(null, null, null);
+            if(analysis != null)
+            {
+                result = analysis.Value;
+            }
+            return result;
         }
 
         /// <summary>
