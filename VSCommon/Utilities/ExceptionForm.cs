@@ -144,12 +144,19 @@ namespace Microsoft.VisualStudio.VSCommon.Utilities
 
         private string GetTargetMethodFormat(Exception e)
         {
-            if (e.TargetSite != null)
+            if (e.TargetSite != null &&
+                e.TargetSite.DeclaringType != null &&
+                e.TargetSite.DeclaringType.Assembly != null &&
+                e.TargetSite.Name != null)
             {
-                return "[" +
-                    e.TargetSite.DeclaringType.Assembly.GetName().Name +
+                var name = e.TargetSite.DeclaringType.Assembly.GetName();
+                if(name != null && name.Name != null)
+                {
+                    return "[" +
+                    name.Name +
                     "]" + e.TargetSite.DeclaringType +
                     "::" + e.TargetSite.Name + "()";
+                }
             }
 
             return "";
