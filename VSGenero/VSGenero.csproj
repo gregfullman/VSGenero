@@ -338,6 +338,7 @@
     <Compile Include="Analysis\Parsing\AST\ForeachStatement.cs" />
     <Compile Include="Analysis\Parsing\AST\ForStatement.cs" />
     <Compile Include="Analysis\Parsing\AST\GeneroAst.Builtins.cs" />
+    <Compile Include="Analysis\Parsing\AST\GeneroAst.ContextDetermination.cs" />
     <Compile Include="Analysis\Parsing\AST\GeneroAst.cs" />
     <Compile Include="Analysis\Parsing\AST\GeneroAst.Packages.cs" />
     <Compile Include="Analysis\Parsing\AST\GeneroMemberType.cs" />

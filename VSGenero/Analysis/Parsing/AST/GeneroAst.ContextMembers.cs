@@ -202,7 +202,9 @@ namespace VSGenero.Analysis.Parsing.AST
                         new List<TokenKindWithConstraint>
                         {
                             new TokenKindWithConstraint(TokenKind.RecordKeyword),
-                            new TokenKindWithConstraint(TokenKind.LikeKeyword)
+                            new TokenKindWithConstraint(TokenKind.LikeKeyword),
+                            new TokenKindWithConstraint(TokenKind.ArrayKeyword),
+                            new TokenKindWithConstraint(TokenKind.DynamicKeyword)
                         }, ProvideAdditionalTypes),
                     new CategoryCompletionPossiblity(new HashSet<TokenCategory> { TokenCategory.Keyword, TokenCategory.Identifier }, new List<TokenKindWithConstraint>())
                 };
@@ -3991,7 +3993,8 @@ namespace VSGenero.Analysis.Parsing.AST
 
             GetStandardStatementKeywords(index, revTokenizer, members);
             // ..And for right now, we'll just include everything else we can include. This will test the performance a bit.
-            //members.AddRange(GetDefinedMembers(index, true, true, true, true));
+            //GetAllKeywords(members);
+            //members.AddRange(GetDefinedMembers(index, true, true, false, true));
             return members;
         }
 
@@ -4004,6 +4007,11 @@ namespace VSGenero.Analysis.Parsing.AST
             // TODO: need some way of knowing whether to include global members outside the scope of _body
             members.AddRange(ValidStatementKeywords.Take(allowAccessModifiers ? ValidStatementKeywords.Length : 6)
                                                    .Select(x => new MemberResult(Tokens.TokenKinds[x], GeneroMemberType.Keyword, this)));
+        }
+
+        private void GetAllKeywords(List<MemberResult> members)
+        {
+            members.AddRange(Tokens.TokenKinds.Keys.Except(ValidStatementKeywords).Select(x => new MemberResult(Tokens.TokenKinds[x], GeneroMemberType.Keyword, this)));
         }
 
         /// <summary>
