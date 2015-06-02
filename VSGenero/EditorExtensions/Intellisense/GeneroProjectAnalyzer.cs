@@ -876,7 +876,8 @@ namespace VSGenero.EditorExtensions.Intellisense
             var entry = (IGeneroProjectEntry)buffer.GetAnalysis();
             if (entry != null && entry.Analysis != null)
             {
-                var members = entry.Analysis.GetContextMembersByIndex(start, parser, functionProvider, databaseProvider, programFileProvider);
+                //var members = entry.Analysis.GetContextMembersByIndex(start, parser, functionProvider, databaseProvider, programFileProvider);
+                var members = entry.Analysis.GetContextMembers(start, parser, functionProvider, databaseProvider, programFileProvider);
                 if (members != null)
                 {
                     return new ContextSensitiveCompletionAnalysis(members, span, buffer, options);

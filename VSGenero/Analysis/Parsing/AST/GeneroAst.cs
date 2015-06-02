@@ -29,7 +29,8 @@ namespace VSGenero.Analysis.Parsing.AST
             _lineLocations = lineLocations;
             _projEntry = projEntry;
 
-            InitializeCompletionContextMaps();
+            //InitializeCompletionContextMaps();
+            InitializeContextMap();
             InitializeBuiltins();
             InitializeImportedPackages();   // for this instance
             InitializePackages();

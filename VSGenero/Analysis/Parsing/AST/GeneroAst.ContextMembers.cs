@@ -3737,7 +3737,7 @@ namespace VSGenero.Analysis.Parsing.AST
             IdentOrKeyword
         }
 
-        public static TokenKind[] ValidStatementKeywords = new TokenKind[]
+        public static HashSet<TokenKind> ValidStatementKeywords = new HashSet<TokenKind>
         {
             // keywords that are valid after an access mod
             TokenKind.ConstantKeyword,
@@ -3838,6 +3838,29 @@ namespace VSGenero.Analysis.Parsing.AST
             TokenKind.NeedKeyword,
             TokenKind.PauseKeyword,
             TokenKind.SkipKeyword
+        };
+
+        private static TokenKind[] OptionsStartTokens = new TokenKind[]
+        {
+            TokenKind.ShortKeyword,
+            TokenKind.MenuKeyword,
+            TokenKind.MessageKeyword,
+            TokenKind.Comment,
+            TokenKind.PromptKeyword,
+            TokenKind.ErrorKeyword,
+            TokenKind.FormKeyword,
+            TokenKind.InputKeyword,
+            TokenKind.DisplayKeyword,
+            TokenKind.FieldKeyword,
+            TokenKind.OnKeyword,
+            TokenKind.HelpKeyword,
+            TokenKind.InsertKeyword,
+            TokenKind.DeleteKeyword,
+            TokenKind.NextKeyword,
+            TokenKind.PreviousKeyword,
+            TokenKind.AcceptKeyword,
+            TokenKind.RunKeyword,
+            TokenKind.SqlKeyword
         };
 
         private static TokenKind[] BuiltinTypes = new TokenKind[]
@@ -4005,7 +4028,7 @@ namespace VSGenero.Analysis.Parsing.AST
             members.AddRange(accessMods);
 
             // TODO: need some way of knowing whether to include global members outside the scope of _body
-            members.AddRange(ValidStatementKeywords.Take(allowAccessModifiers ? ValidStatementKeywords.Length : 6)
+            members.AddRange(ValidStatementKeywords.Take(allowAccessModifiers ? ValidStatementKeywords.Count : 6)
                                                    .Select(x => new MemberResult(Tokens.TokenKinds[x], GeneroMemberType.Keyword, this)));
         }
 
@@ -4129,6 +4152,55 @@ namespace VSGenero.Analysis.Parsing.AST
         }
 
         #endregion
+
+        private IEnumerable<MemberResult> GetInstanceExpressionComponents(int index)
+        {
+            // TODO: return
+            // 1) Variables (system, local, module, global)
+            
+            // 2) Constants (system, local, module, global)
+            // 3) Functions
+            // 4) Function provider
+            // 5) Imported modules
+            // 6) Available packages
+            // maybe more...
+            return new MemberResult[0];
+        }
+
+        private IEnumerable<MemberResult> GetInstanceTypes(int index)
+        {
+            return new MemberResult[0];
+        }
+
+        private IEnumerable<MemberResult> GetInstanceFunctions(int index)
+        {
+            return new MemberResult[0];
+        }
+
+        private IEnumerable<MemberResult> GetInstanceLabels(int index)
+        {
+            return new MemberResult[0];
+        }
+
+        private IEnumerable<MemberResult> GetInstanceVariables(int index)
+        {
+            return new MemberResult[0];
+        }
+
+        private IEnumerable<MemberResult> GetInstanceConstants(int index)
+        {
+            return new MemberResult[0];
+        }
+
+        private IEnumerable<MemberResult> GetInstanceImportModules(int index)
+        {
+            return new MemberResult[0];
+        }
+
+        private IEnumerable<MemberResult> GetInstanceCursors(int index)
+        {
+            return new MemberResult[0];
+        }
     }
 
     #region Context Completion Helper Classes

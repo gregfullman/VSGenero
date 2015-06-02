@@ -6,996 +6,2280 @@ using System.Threading.Tasks;
 
 namespace VSGenero.Analysis.Parsing.AST
 {
-    public delegate IEnumerable<IAnalysisResult> ContextSetProvider(int index);
+    public delegate IEnumerable<MemberResult> ContextSetProvider(int index);
 
     public partial class GeneroAst
     {
+        private static object _contextMapLock = new object();
         private static Dictionary<object, IEnumerable<ContextPossibilities>> _contextMap;
+        private static GeneroAst _instance;
+
+        #region Context Map Init
 
         private static void InitializeContextMap()
         {
-            _contextMap = new Dictionary<object, IEnumerable<ContextPossibilities>>();
-            var nothing = new ContextPossibilities[0];
-            var emptyTokenKindSet = new TokenKind[0];
-            var emptyContextSetProviderSet = new ContextSetProvider[0];
-            var emptyBackwardTokenSearchSet = new BackwardTokenSearchItem[0];
-            _contextMap.Add(TokenKind.AllKeyword, new List<ContextPossibilities>
+            lock (_contextMapLock)
             {
-                new ContextPossibilities(
-                    new TokenKind[] { TokenKind.IntoKeyword, TokenKind.FromKeyword },
-                    emptyContextSetProviderSet,
-                    new BackwardTokenSearchItem[] 
-                    { new BackwardTokenSearchItem(TokenKind.SelectKeyword) }
-                )
-            });
-            _contextMap.Add(TokenKind.AlterKeyword, new List<ContextPossibilities>
-            {
-                new ContextPossibilities(
-                    new TokenKind[] { TokenKind.SequenceKeyword },
-                    emptyContextSetProviderSet,
-                    emptyBackwardTokenSearchSet
-                )
-            });
-            _contextMap.Add(TokenKind.Ampersand, new List<ContextPossibilities>
-            {
-                new ContextPossibilities(
-                    new TokenKind[] 
-                    { 
-                        TokenKind.IncludeKeyword, 
-                        TokenKind.DefineKeyword, 
-                        TokenKind.UndefKeyword, 
-                        TokenKind.IfdefKeyword, 
-                        TokenKind.EndifKeyword 
-                    },
-                    emptyContextSetProviderSet,
-                    emptyBackwardTokenSearchSet
-                )
-            });
-            _contextMap.Add(TokenKind.AndKeyword, new List<ContextPossibilities>
-            {
-                new ContextPossibilities(
-                    new TokenKind[] { },
-                    new ContextSetProvider[] { GetExpressionComponents },
-                    new BackwardTokenSearchItem[] { }
-                )
-            });
-            _contextMap.Add(TokenKind.AnyKeyword, new List<ContextPossibilities>
-            {
-                new ContextPossibilities(
-                    new TokenKind[] { TokenKind.ErrorKeyword, TokenKind.SqlerrorKeyword },
-                    emptyContextSetProviderSet,
-                    new BackwardTokenSearchItem[] 
-                    { new BackwardTokenSearchItem(TokenKind.WheneverKeyword) }
-                )
-            });
-            _contextMap.Add(TokenKind.ArrayKeyword, new List<ContextPossibilities>
-            {
-                new ContextPossibilities(
-                    new TokenKind[] { TokenKind.OfKeyword },
-                    emptyContextSetProviderSet,
-                    emptyBackwardTokenSearchSet
-                ),
-                new ContextPossibilities(
-                    new TokenKind[] { TokenKind.OfKeyword, TokenKind.WithKeyword },
-                    emptyContextSetProviderSet,
-                    new BackwardTokenSearchItem[] 
-                    { new BackwardTokenSearchItem(TokenKind.DynamicKeyword) }
-                )
-            });
-            _contextMap.Add(TokenKind.AsKeyword, new List<ContextPossibilities>
-            {
-                new ContextPossibilities(
-                    emptyTokenKindSet,
-                    emptyContextSetProviderSet,
-                    new BackwardTokenSearchItem[] 
-                    { new BackwardTokenSearchItem(TokenKind.SelectKeyword) }
-                ),
-                new ContextPossibilities(
-                    emptyTokenKindSet,
-                    new ContextSetProvider[] { GetTypes },
-                    new BackwardTokenSearchItem[] 
-                    { new BackwardTokenSearchItem(TokenKind.CastKeyword) }
-                )
-            });
-            _contextMap.Add(TokenKind.AsciiKeyword, new List<ContextPossibilities>
-            {
-                new ContextPossibilities(
-                    emptyTokenKindSet,
-                    new ContextSetProvider[] { GetExpressionComponents },
-                    emptyBackwardTokenSearchSet
-                )
-            });
-            _contextMap.Add(TokenKind.Assign, new List<ContextPossibilities>
-            {
-                new ContextPossibilities(
-                    emptyTokenKindSet,
-                    new ContextSetProvider[] { GetExpressionComponents },
-                    emptyBackwardTokenSearchSet
-                )
-            });
-            _contextMap.Add(TokenKind.ByKeyword, new List<ContextPossibilities>
-            {
-                new ContextPossibilities(
-                    emptyTokenKindSet,
-                    emptyContextSetProviderSet,
-                    new BackwardTokenSearchItem[] { 
-                        new BackwardTokenSearchItem(TokenKind.GroupKeyword),
-                        new BackwardTokenSearchItem(TokenKind.OrderKeyword),
-                        new BackwardTokenSearchItem(TokenKind.IncrementKeyword) 
-                    }
-                )
-            });
-            _contextMap.Add(TokenKind.CacheKeyword, new List<ContextPossibilities>
-            {
-                new ContextPossibilities(
-                    emptyTokenKindSet,
-                    emptyContextSetProviderSet,
-                    new BackwardTokenSearchItem[] { 
-                        new BackwardTokenSearchItem(TokenKind.SequenceKeyword) 
-                    }
-                )
-            });
-            _contextMap.Add(TokenKind.CallKeyword, new List<ContextPossibilities>
-            {
-                new ContextPossibilities(
-                    emptyTokenKindSet,
-                    new ContextSetProvider[] { GetFunctions },
-                    emptyBackwardTokenSearchSet
-                )
-            });
-            _contextMap.Add(TokenKind.CaseKeyword, new List<ContextPossibilities>
-            {
-                new ContextPossibilities(
-                    new TokenKind[] { TokenKind.WhenKeyword },
-                    new ContextSetProvider[] { GetExpressionComponents },
-                    new BackwardTokenSearchItem[] 
-                    { new BackwardTokenSearchItem(TokenKind.ExitKeyword, false) }
-                )
-            });
-            _contextMap.Add(TokenKind.Colon, new List<ContextPossibilities>
-            {
-                new ContextPossibilities(
-                    emptyTokenKindSet,
-                    new ContextSetProvider[] { GetLabels },
-                    new BackwardTokenSearchItem[] 
-                    { new BackwardTokenSearchItem(TokenKind.GotoKeyword) }
-                )
-            });
-            _contextMap.Add(TokenKind.ColumnKeyword, new List<ContextPossibilities>
-            {
-                new ContextPossibilities(
-                    emptyTokenKindSet,
-                    new ContextSetProvider[] { GetExpressionComponents },
-                    emptyBackwardTokenSearchSet
-                )
-            });
-            _contextMap.Add(TokenKind.Comma, new List<ContextPossibilities>
-            {
-                new ContextPossibilities(
-                    emptyTokenKindSet,
-                    emptyContextSetProviderSet,
-                    new BackwardTokenSearchItem[]
+                if (_contextMap == null)
+                {
+                    _contextMap = new Dictionary<object, IEnumerable<ContextPossibilities>>();
+                    var nothing = new ContextPossibilities[0];
+                    var emptyTokenKindSet = new TokenKind[0];
+                    var emptyContextSetProviderSet = new ContextSetProvider[0];
+                    var emptyBackwardTokenSearchSet = new BackwardTokenSearchItem[0];
+                    #region Context Rules
+                    _contextMap.Add(TokenKind.AllKeyword, new List<ContextPossibilities>
                     {
-                        new BackwardTokenSearchItem(TokenKind.DefineKeyword),
-                        new BackwardTokenSearchItem(TokenKind.TypeKeyword),
-                        new BackwardTokenSearchItem(TokenKind.ConstantKeyword),
-                        new BackwardTokenSearchItem(TokenKind.FunctionKeyword),
-                        new BackwardTokenSearchItem(TokenKind.ReportKeyword),
-                        new BackwardTokenSearchItem(TokenKind.SelectKeyword),
-                        new BackwardTokenSearchItem(TokenKind.OrderKeyword),
-                        new BackwardTokenSearchItem(TokenKind.GroupKeyword),
-                        new BackwardTokenSearchItem(new OrderedTokenSet(new TokenKind[] { TokenKind.IntoKeyword, TokenKind.InsertKeyword})),
-                        new BackwardTokenSearchItem(new OrderedTokenSet(new TokenKind[] { TokenKind.LeftParenthesis, TokenKind.SetKeyword}))
-                    }),
-                new ContextPossibilities(
-                    emptyTokenKindSet,
-                    new ContextSetProvider[] { GetVariables },
-                    new BackwardTokenSearchItem[]
+                        new ContextPossibilities(
+                            new TokenKind[] { TokenKind.IntoKeyword, TokenKind.FromKeyword },
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { new BackwardTokenSearchItem(TokenKind.SelectKeyword) }
+                        )
+                    });
+                        _contextMap.Add(TokenKind.AlterKeyword, new List<ContextPossibilities>
                     {
-                        new BackwardTokenSearchItem(TokenKind.ReturningKeyword),
-                        new BackwardTokenSearchItem(TokenKind.InitializeKeyword),
-                        new BackwardTokenSearchItem(TokenKind.LocateKeyword),
-                        new BackwardTokenSearchItem(TokenKind.ValidateKeyword),
-                        new BackwardTokenSearchItem(new OrderedTokenSet(new TokenKind[] { TokenKind.IntoKeyword, TokenKind.SelectKeyword}))
-                    }),
-                new ContextPossibilities(
-                    emptyTokenKindSet,
-                    new ContextSetProvider[] { GetOptionsStartKeywords },
-                    new BackwardTokenSearchItem[] 
-                    { new BackwardTokenSearchItem(TokenKind.OptionsKeyword) }
-                ),
-                new ContextPossibilities(
-                    emptyTokenKindSet,
-                    new ContextSetProvider[] { GetExpressionComponents },
-                    emptyBackwardTokenSearchSet
-                ),
-                new ContextPossibilities(
-                    emptyTokenKindSet,
-                    new ContextSetProvider[] { GetDatabaseTables },
-                    new BackwardTokenSearchItem[] 
-                    { new BackwardTokenSearchItem(TokenKind.FromKeyword) }
-                ),
-                new ContextPossibilities(
-                    emptyTokenKindSet,
-                    new ContextSetProvider[] { GetVariables, GetConstants },
-                    new BackwardTokenSearchItem[] 
-                    { new BackwardTokenSearchItem(TokenKind.ValuesKeyword) }
-                )
-            });
-            _contextMap.Add(TokenKind.DoubleBar, new List<ContextPossibilities>
-            {
-                new ContextPossibilities(
-                    emptyTokenKindSet,
-                    new ContextSetProvider[] { GetExpressionComponents },
-                    emptyBackwardTokenSearchSet
-                )
-            });
-            _contextMap.Add(TokenKind.ContinueKeyword, new List<ContextPossibilities>
-            {
-                new ContextPossibilities(
-                    new TokenKind[] { 
-                        TokenKind.ForKeyword, 
-                        TokenKind.ForeachKeyword, 
-                        TokenKind.WhileKeyword, 
-                        TokenKind.MenuKeyword, 
-                        TokenKind.ConstructKeyword,
-                        TokenKind.InputKeyword,
-                        TokenKind.DialogKeyword
-                    },
-                    emptyContextSetProviderSet,
-                    emptyBackwardTokenSearchSet
-                )
-            });
-            _contextMap.Add(TokenKind.CreateKeyword, new List<ContextPossibilities>
-            {
-                new ContextPossibilities(
-                    new TokenKind[] { 
-                        TokenKind.SequenceKeyword, 
-                        TokenKind.TempKeyword, 
-                        TokenKind.TableKeyword
-                    },
-                    emptyContextSetProviderSet,
-                    emptyBackwardTokenSearchSet
-                )
-            });
-            _contextMap.Add(TokenKind.CurrentKeyword, new List<ContextPossibilities>
-            {
-                new ContextPossibilities(
-                    new TokenKind[] { TokenKind.OfKeyword },
-                    emptyContextSetProviderSet,
-                    new BackwardTokenSearchItem[] { new BackwardTokenSearchItem(TokenKind.WhereKeyword) }
-                ),
-                new ContextPossibilities(
-                    new TokenKind[] { 
-                        TokenKind.YearKeyword, 
-                        TokenKind.MonthKeyword, 
-                        TokenKind.DayKeyword, 
-                        TokenKind.HourKeyword, 
-                        TokenKind.MinuteKeyword,
-                        TokenKind.SecondKeyword,
-                        TokenKind.FractionKeyword
-                    },
-                    emptyContextSetProviderSet,
-                    emptyBackwardTokenSearchSet
-                )
-            });
-            _contextMap.Add(TokenKind.DatabaseKeyword, nothing);
-            _contextMap.Add(TokenKind.DatetimeKeyword, new List<ContextPossibilities>
-            {
-                new ContextPossibilities(
-                    new TokenKind[] { 
-                        TokenKind.YearKeyword, 
-                        TokenKind.MonthKeyword, 
-                        TokenKind.DayKeyword, 
-                        TokenKind.HourKeyword, 
-                        TokenKind.MinuteKeyword,
-                        TokenKind.SecondKeyword,
-                        TokenKind.FractionKeyword
-                    },
-                    emptyContextSetProviderSet,
-                    emptyBackwardTokenSearchSet
-                )
-            });
-            _contextMap.Add(TokenKind.DefineKeyword, nothing);
-            _contextMap.Add(TokenKind.TypeKeyword, nothing);
-            _contextMap.Add(TokenKind.ConstantKeyword, nothing);
-            _contextMap.Add(TokenKind.FunctionKeyword, nothing);
-            _contextMap.Add(TokenKind.ReportKeyword, nothing);
-            _contextMap.Add(TokenKind.DeleteKeyword, new List<ContextPossibilities>
-            {
-                new ContextPossibilities(
-                    new TokenKind[] { 
-                        TokenKind.FromKeyword
-                    },
-                    emptyContextSetProviderSet,
-                    emptyBackwardTokenSearchSet
-                )
-            });
-            _contextMap.Add(TokenKind.DescribeKeyword, new List<ContextPossibilities>
-            {
-                new ContextPossibilities(
-                    new TokenKind[] { 
-                        TokenKind.DatabaseKeyword
-                    },
-                    emptyContextSetProviderSet,
-                    emptyBackwardTokenSearchSet
-                )
-            });
-            _contextMap.Add(TokenKind.DimensionKeyword, nothing);
-            _contextMap.Add(TokenKind.DistinctKeyword, new List<ContextPossibilities>
-            {
-                new ContextPossibilities(
-                    new TokenKind[] { TokenKind.IntoKeyword, TokenKind.FromKeyword },
-                    emptyContextSetProviderSet,
-                    new BackwardTokenSearchItem[] { new BackwardTokenSearchItem(TokenKind.SelectKeyword) }
-                )
-            });
-            _contextMap.Add(TokenKind.Divide, new List<ContextPossibilities>
-            {
-                new ContextPossibilities(
-                    emptyTokenKindSet,
-                    new ContextSetProvider[] { GetExpressionComponents },
-                    emptyBackwardTokenSearchSet
-                )
-            });
-            _contextMap.Add(TokenKind.DropKeyword, new List<ContextPossibilities>
-            {
-                new ContextPossibilities(
-                    new TokenKind[] { 
-                        TokenKind.SequenceKeyword
-                    },
-                    emptyContextSetProviderSet,
-                    emptyBackwardTokenSearchSet
-                )
-            });
-            _contextMap.Add(TokenKind.DynamicKeyword, new List<ContextPossibilities>
-            {
-                new ContextPossibilities(
-                    new TokenKind[] { 
-                        TokenKind.ArrayKeyword
-                    },
-                    emptyContextSetProviderSet,
-                    emptyBackwardTokenSearchSet
-                )
-            });
-            _contextMap.Add(TokenKind.EndKeyword, new List<ContextPossibilities>
-            {
-                new ContextPossibilities(
-                    new TokenKind[] { 
-                        TokenKind.MainKeyword, 
-                        TokenKind.GlobalsKeyword, 
-                        TokenKind.FunctionKeyword, 
-                        TokenKind.ReportKeyword, 
-                        TokenKind.RecordKeyword,
-                        TokenKind.CaseKeyword,
-                        TokenKind.TryKeyword,
-                        TokenKind.ForKeyword,
-                        TokenKind.IfKeyword,
-                        TokenKind.WhileKeyword,
-                        TokenKind.SqlKeyword,
-                    },
-                    emptyContextSetProviderSet,
-                    emptyBackwardTokenSearchSet
-                )
-            });
-            _contextMap.Add(TokenKind.Equals, new List<ContextPossibilities>
-            {
-                new ContextPossibilities(
-                    emptyTokenKindSet,
-                    new ContextSetProvider[] { GetExpressionComponents },
-                    new BackwardTokenSearchItem[] 
-                    { 
-                        new BackwardTokenSearchItem(TokenKind.LetKeyword),
-                        new BackwardTokenSearchItem(TokenKind.ForKeyword),
-                        new BackwardTokenSearchItem(TokenKind.IfKeyword),
-                        new BackwardTokenSearchItem(TokenKind.WhileKeyword),
-                        new BackwardTokenSearchItem(TokenKind.WhereKeyword)
-                    }
-                ),
-                new ContextPossibilities(
-                    emptyTokenKindSet,
-                    new ContextSetProvider[] { GetVariables },
-                    new BackwardTokenSearchItem[] 
-                    { 
-                        new BackwardTokenSearchItem(TokenKind.SetKeyword)
-                    }
-                )
-            });
-            _contextMap.Add(TokenKind.DoubleEquals, new List<ContextPossibilities>
-            {
-                new ContextPossibilities(
-                    emptyTokenKindSet,
-                    new ContextSetProvider[] { GetExpressionComponents },
-                    emptyBackwardTokenSearchSet
-                )
-            });
-            _contextMap.Add(TokenKind.ExistsKeyword, new List<ContextPossibilities>
-            {
-                new ContextPossibilities(
-                    emptyTokenKindSet,
-                    emptyContextSetProviderSet,
-                    new BackwardTokenSearchItem[] { 
-                        new BackwardTokenSearchItem(TokenKind.SequenceKeyword),
-                        new BackwardTokenSearchItem(TokenKind.TableKeyword)
-                    }
-                )
-            });
-            _contextMap.Add(TokenKind.ExitKeyword, new List<ContextPossibilities>
-            {
-                new ContextPossibilities(
-                    new TokenKind[] { 
-                        TokenKind.ProgramKeyword, 
-                        TokenKind.CaseKeyword, 
-                        TokenKind.ForKeyword, 
-                        TokenKind.ForeachKeyword, 
-                        TokenKind.WhileKeyword,
-                        TokenKind.MenuKeyword,
-                        TokenKind.ConstructKeyword,
-                        TokenKind.ReportKeyword,
-                        TokenKind.DisplayKeyword,
-                        TokenKind.InputKeyword,
-                        TokenKind.DialogKeyword,
-                    },
-                    emptyContextSetProviderSet,
-                    emptyBackwardTokenSearchSet
-                )
-            });
-            _contextMap.Add(TokenKind.Power, new List<ContextPossibilities>
-            {
-                new ContextPossibilities(
-                    emptyTokenKindSet,
-                    new ContextSetProvider[] { GetExpressionComponents },
-                    emptyBackwardTokenSearchSet
-                )
-            });
-            _contextMap.Add(TokenKind.FglKeyword, new List<ContextPossibilities>
-            {
-                new ContextPossibilities(
-                    emptyTokenKindSet,
-                    new ContextSetProvider[] { GetAvailableImportModules },
-                    new BackwardTokenSearchItem[] 
-                    { new BackwardTokenSearchItem(TokenKind.ImportKeyword) }
-                )
-            });
-            _contextMap.Add(TokenKind.FirstKeyword, new List<ContextPossibilities>
-            {
-                new ContextPossibilities(
-                    emptyTokenKindSet,
-                    new ContextSetProvider[] { GetVariables },
-                    new BackwardTokenSearchItem[] 
-                    { new BackwardTokenSearchItem(TokenKind.SelectKeyword) }
-                )
-            });
-            _contextMap.Add(TokenKind.FirstKeyword, new List<ContextPossibilities>
-            {
-                new ContextPossibilities(
-                    emptyTokenKindSet,
-                    new ContextSetProvider[] { GetVariables },
-                    emptyBackwardTokenSearchSet
-                )
-            });
-            _contextMap.Add(TokenKind.FreeKeyword, new List<ContextPossibilities>
-            {
-                new ContextPossibilities(
-                    emptyTokenKindSet,
-                    new ContextSetProvider[] { GetVariables },
-                    emptyBackwardTokenSearchSet
-                )
-            });
-            _contextMap.Add(TokenKind.FromKeyword, new List<ContextPossibilities>
-            {
-                new ContextPossibilities(
-                    emptyTokenKindSet,
-                    new ContextSetProvider[] { GetDatabaseTables },
-                    new BackwardTokenSearchItem[] 
-                    { 
-                        new BackwardTokenSearchItem(TokenKind.SelectKeyword),
-                        new BackwardTokenSearchItem(TokenKind.DeleteKeyword)
-                    }
-                )
-            });
-            _contextMap.Add(TokenKind.FunctionKeyword, new List<ContextPossibilities>
-            {
-                new ContextPossibilities(
-                    emptyTokenKindSet,
-                    new ContextSetProvider[] { GetStatementStartKeywords },
-                    new BackwardTokenSearchItem[] 
-                    { 
-                        new BackwardTokenSearchItem(TokenKind.EndKeyword)
-                    }),
-                new ContextPossibilities(
-                    emptyTokenKindSet,
-                    emptyContextSetProviderSet,
-                    emptyBackwardTokenSearchSet)
-            });
+                        new ContextPossibilities(
+                            new TokenKind[] { TokenKind.SequenceKeyword },
+                            emptyContextSetProviderSet,
+                            emptyBackwardTokenSearchSet
+                        )
+                    });
+                        _contextMap.Add(TokenKind.Ampersand, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            new TokenKind[] 
+                            { 
+                                TokenKind.IncludeKeyword, 
+                                TokenKind.DefineKeyword, 
+                                TokenKind.UndefKeyword, 
+                                TokenKind.IfdefKeyword, 
+                                TokenKind.EndifKeyword 
+                            },
+                            emptyContextSetProviderSet,
+                            emptyBackwardTokenSearchSet
+                        )
+                    });
+                        _contextMap.Add(TokenKind.AndKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            new TokenKind[] { },
+                            new ContextSetProvider[] { GetExpressionComponents },
+                            new BackwardTokenSearchItem[] { }
+                        )
+                    });
+                        _contextMap.Add(TokenKind.AnyKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            new TokenKind[] { TokenKind.ErrorKeyword, TokenKind.SqlerrorKeyword },
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { new BackwardTokenSearchItem(TokenKind.WheneverKeyword) }
+                        )
+                    });
+                        _contextMap.Add(TokenKind.ArrayKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            new TokenKind[] { TokenKind.OfKeyword },
+                            emptyContextSetProviderSet,
+                            emptyBackwardTokenSearchSet
+                        ),
+                        new ContextPossibilities(
+                            new TokenKind[] { TokenKind.OfKeyword, TokenKind.WithKeyword },
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { new BackwardTokenSearchItem(TokenKind.DynamicKeyword) }
+                        )
+                    });
+                        _contextMap.Add(TokenKind.AsKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { new BackwardTokenSearchItem(TokenKind.SelectKeyword) }
+                        ),
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetTypes },
+                            new BackwardTokenSearchItem[] 
+                            { new BackwardTokenSearchItem(TokenKind.CastKeyword) }
+                        )
+                    });
+                        _contextMap.Add(TokenKind.AsciiKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetExpressionComponents },
+                            emptyBackwardTokenSearchSet
+                        )
+                    });
+                        _contextMap.Add(TokenKind.Assign, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetExpressionComponents },
+                            emptyBackwardTokenSearchSet
+                        )
+                    });
+                        _contextMap.Add(TokenKind.ByKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] { 
+                                new BackwardTokenSearchItem(TokenKind.GroupKeyword),
+                                new BackwardTokenSearchItem(TokenKind.OrderKeyword),
+                                new BackwardTokenSearchItem(TokenKind.IncrementKeyword) 
+                            }
+                        )
+                    });
+                        _contextMap.Add(TokenKind.CacheKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] { 
+                                new BackwardTokenSearchItem(TokenKind.SequenceKeyword) 
+                            }
+                        )
+                    });
+                        _contextMap.Add(TokenKind.CallKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetFunctions },
+                            emptyBackwardTokenSearchSet
+                        )
+                    });
+                        _contextMap.Add(TokenKind.CaseKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            new TokenKind[] { TokenKind.WhenKeyword },
+                            new ContextSetProvider[] { GetExpressionComponents },
+                            new BackwardTokenSearchItem[] 
+                            { new BackwardTokenSearchItem(TokenKind.ExitKeyword, false) }
+                        )
+                    });
+                        _contextMap.Add(TokenKind.Colon, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetLabels },
+                            new BackwardTokenSearchItem[] 
+                            { new BackwardTokenSearchItem(TokenKind.GotoKeyword) }
+                        )
+                    });
+                        _contextMap.Add(TokenKind.ColumnKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetExpressionComponents },
+                            emptyBackwardTokenSearchSet
+                        )
+                    });
+                        _contextMap.Add(TokenKind.Comma, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[]
+                            {
+                                new BackwardTokenSearchItem(TokenKind.DefineKeyword),
+                                new BackwardTokenSearchItem(TokenKind.TypeKeyword),
+                                new BackwardTokenSearchItem(TokenKind.ConstantKeyword),
+                                new BackwardTokenSearchItem(TokenKind.FunctionKeyword),
+                                new BackwardTokenSearchItem(TokenKind.ReportKeyword),
+                                new BackwardTokenSearchItem(TokenKind.SelectKeyword),
+                                new BackwardTokenSearchItem(TokenKind.OrderKeyword),
+                                new BackwardTokenSearchItem(TokenKind.GroupKeyword),
+                                new BackwardTokenSearchItem(new OrderedTokenSet(new TokenKind[] { TokenKind.IntoKeyword, TokenKind.InsertKeyword})),
+                                new BackwardTokenSearchItem(new OrderedTokenSet(new TokenKind[] { TokenKind.LeftParenthesis, TokenKind.SetKeyword}))
+                            }),
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetVariables },
+                            new BackwardTokenSearchItem[]
+                            {
+                                new BackwardTokenSearchItem(TokenKind.ReturningKeyword),
+                                new BackwardTokenSearchItem(TokenKind.InitializeKeyword),
+                                new BackwardTokenSearchItem(TokenKind.LocateKeyword),
+                                new BackwardTokenSearchItem(TokenKind.ValidateKeyword),
+                                new BackwardTokenSearchItem(new OrderedTokenSet(new TokenKind[] { TokenKind.IntoKeyword, TokenKind.SelectKeyword}))
+                            }),
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetOptionsStartKeywords },
+                            new BackwardTokenSearchItem[] 
+                            { new BackwardTokenSearchItem(TokenKind.OptionsKeyword) }
+                        ),
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetExpressionComponents },
+                            emptyBackwardTokenSearchSet
+                        ),
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetDatabaseTables },
+                            new BackwardTokenSearchItem[] 
+                            { new BackwardTokenSearchItem(TokenKind.FromKeyword) }
+                        ),
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetVariables, GetConstants },
+                            new BackwardTokenSearchItem[] 
+                            { new BackwardTokenSearchItem(TokenKind.ValuesKeyword) }
+                        )
+                    });
+                        _contextMap.Add(TokenKind.DoubleBar, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetExpressionComponents },
+                            emptyBackwardTokenSearchSet
+                        )
+                    });
+                        _contextMap.Add(TokenKind.ContinueKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            new TokenKind[] { 
+                                TokenKind.ForKeyword, 
+                                TokenKind.ForeachKeyword, 
+                                TokenKind.WhileKeyword, 
+                                TokenKind.MenuKeyword, 
+                                TokenKind.ConstructKeyword,
+                                TokenKind.InputKeyword,
+                                TokenKind.DialogKeyword
+                            },
+                            emptyContextSetProviderSet,
+                            emptyBackwardTokenSearchSet
+                        )
+                    });
+                        _contextMap.Add(TokenKind.CreateKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            new TokenKind[] { 
+                                TokenKind.SequenceKeyword, 
+                                TokenKind.TempKeyword, 
+                                TokenKind.TableKeyword
+                            },
+                            emptyContextSetProviderSet,
+                            emptyBackwardTokenSearchSet
+                        )
+                    });
+                        _contextMap.Add(TokenKind.CurrentKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            new TokenKind[] { TokenKind.OfKeyword },
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] { new BackwardTokenSearchItem(TokenKind.WhereKeyword) }
+                        ),
+                        new ContextPossibilities(
+                            new TokenKind[] { 
+                                TokenKind.YearKeyword, 
+                                TokenKind.MonthKeyword, 
+                                TokenKind.DayKeyword, 
+                                TokenKind.HourKeyword, 
+                                TokenKind.MinuteKeyword,
+                                TokenKind.SecondKeyword,
+                                TokenKind.FractionKeyword
+                            },
+                            emptyContextSetProviderSet,
+                            emptyBackwardTokenSearchSet
+                        )
+                    });
+                        _contextMap.Add(TokenKind.DatabaseKeyword, nothing);
+                        _contextMap.Add(TokenKind.DatetimeKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            new TokenKind[] { 
+                                TokenKind.YearKeyword, 
+                                TokenKind.MonthKeyword, 
+                                TokenKind.DayKeyword, 
+                                TokenKind.HourKeyword, 
+                                TokenKind.MinuteKeyword,
+                                TokenKind.SecondKeyword,
+                                TokenKind.FractionKeyword
+                            },
+                            emptyContextSetProviderSet,
+                            emptyBackwardTokenSearchSet
+                        )
+                    });
+                        _contextMap.Add(TokenKind.DayKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            new TokenKind[] { 
+                                TokenKind.ToKeyword
+                            },
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.DatetimeKeyword),
+                                new BackwardTokenSearchItem(TokenKind.IntervalKeyword)
+                            }
+                        )
+                    });
+                        _contextMap.Add(TokenKind.DefineKeyword, nothing);
+                        _contextMap.Add(TokenKind.TypeKeyword, nothing);
+                        _contextMap.Add(TokenKind.ConstantKeyword, nothing);
+                        _contextMap.Add(TokenKind.DeleteKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            new TokenKind[] { 
+                                TokenKind.FromKeyword
+                            },
+                            emptyContextSetProviderSet,
+                            emptyBackwardTokenSearchSet
+                        )
+                    });
+                        _contextMap.Add(TokenKind.DescribeKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            new TokenKind[] { 
+                                TokenKind.DatabaseKeyword
+                            },
+                            emptyContextSetProviderSet,
+                            emptyBackwardTokenSearchSet
+                        )
+                    });
+                        _contextMap.Add(TokenKind.DimensionKeyword, nothing);
+                        _contextMap.Add(TokenKind.DistinctKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            new TokenKind[] { TokenKind.IntoKeyword, TokenKind.FromKeyword },
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] { new BackwardTokenSearchItem(TokenKind.SelectKeyword) }
+                        )
+                    });
+                        _contextMap.Add(TokenKind.Divide, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetExpressionComponents },
+                            emptyBackwardTokenSearchSet
+                        )
+                    });
+                        _contextMap.Add(TokenKind.DropKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            new TokenKind[] { 
+                                TokenKind.SequenceKeyword
+                            },
+                            emptyContextSetProviderSet,
+                            emptyBackwardTokenSearchSet
+                        )
+                    });
+                        _contextMap.Add(TokenKind.DynamicKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            new TokenKind[] { 
+                                TokenKind.ArrayKeyword
+                            },
+                            emptyContextSetProviderSet,
+                            emptyBackwardTokenSearchSet
+                        )
+                    });
+                        _contextMap.Add(TokenKind.EndKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            new TokenKind[] { 
+                                TokenKind.MainKeyword, 
+                                TokenKind.GlobalsKeyword, 
+                                TokenKind.FunctionKeyword, 
+                                TokenKind.ReportKeyword, 
+                                TokenKind.RecordKeyword,
+                                TokenKind.CaseKeyword,
+                                TokenKind.TryKeyword,
+                                TokenKind.ForKeyword,
+                                TokenKind.IfKeyword,
+                                TokenKind.WhileKeyword,
+                                TokenKind.SqlKeyword,
+                            },
+                            emptyContextSetProviderSet,
+                            emptyBackwardTokenSearchSet
+                        )
+                    });
+                        _contextMap.Add(TokenKind.Equals, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetExpressionComponents },
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.LetKeyword),
+                                new BackwardTokenSearchItem(TokenKind.ForKeyword),
+                                new BackwardTokenSearchItem(TokenKind.IfKeyword),
+                                new BackwardTokenSearchItem(TokenKind.WhileKeyword),
+                                new BackwardTokenSearchItem(TokenKind.WhereKeyword)
+                            }
+                        ),
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetVariables },
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.SetKeyword)
+                            }
+                        )
+                    });
+                        _contextMap.Add(TokenKind.DoubleEquals, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetExpressionComponents },
+                            emptyBackwardTokenSearchSet
+                        )
+                    });
+                        _contextMap.Add(TokenKind.ErrorKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            new TokenKind[] { 
+                                TokenKind.ContinueKeyword, 
+                                TokenKind.StopKeyword, 
+                                TokenKind.CallKeyword, 
+                                TokenKind.RaiseKeyword, 
+                                TokenKind.GotoKeyword
+                            },
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.WheneverKeyword)
+                            }
+                        )
+                    });
+                        _contextMap.Add(TokenKind.ExistsKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] { 
+                                new BackwardTokenSearchItem(TokenKind.SequenceKeyword),
+                                new BackwardTokenSearchItem(TokenKind.TableKeyword)
+                            }
+                        )
+                    });
+                        _contextMap.Add(TokenKind.ExitKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            new TokenKind[] { 
+                                TokenKind.ProgramKeyword, 
+                                TokenKind.CaseKeyword, 
+                                TokenKind.ForKeyword, 
+                                TokenKind.ForeachKeyword, 
+                                TokenKind.WhileKeyword,
+                                TokenKind.MenuKeyword,
+                                TokenKind.ConstructKeyword,
+                                TokenKind.ReportKeyword,
+                                TokenKind.DisplayKeyword,
+                                TokenKind.InputKeyword,
+                                TokenKind.DialogKeyword,
+                            },
+                            emptyContextSetProviderSet,
+                            emptyBackwardTokenSearchSet
+                        )
+                    });
+                        _contextMap.Add(TokenKind.Power, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetExpressionComponents },
+                            emptyBackwardTokenSearchSet
+                        )
+                    });
+                        _contextMap.Add(TokenKind.FglKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetAvailableImportModules },
+                            new BackwardTokenSearchItem[] 
+                            { new BackwardTokenSearchItem(TokenKind.ImportKeyword) }
+                        )
+                    });
+                        _contextMap.Add(TokenKind.FirstKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetVariables },
+                            new BackwardTokenSearchItem[] 
+                            { new BackwardTokenSearchItem(TokenKind.SelectKeyword) }
+                        )
+                    });
+                        _contextMap.Add(TokenKind.ForKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetVariables },
+                            emptyBackwardTokenSearchSet
+                        )
+                    });
+                        _contextMap.Add(TokenKind.FractionKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            new TokenKind[] { 
+                                TokenKind.ToKeyword
+                            },
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.DatetimeKeyword),
+                                new BackwardTokenSearchItem(TokenKind.IntervalKeyword)
+                            }
+                        )
+                    });
+                        _contextMap.Add(TokenKind.FreeKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetVariables },
+                            emptyBackwardTokenSearchSet
+                        )
+                    });
+                        _contextMap.Add(TokenKind.FromKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetDatabaseTables },
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.SelectKeyword),
+                                new BackwardTokenSearchItem(TokenKind.DeleteKeyword)
+                            }
+                        )
+                    });
+                        _contextMap.Add(TokenKind.FoundKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            new TokenKind[] { 
+                                TokenKind.ContinueKeyword, 
+                                TokenKind.StopKeyword, 
+                                TokenKind.CallKeyword, 
+                                TokenKind.RaiseKeyword, 
+                                TokenKind.GotoKeyword
+                            },
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.WheneverKeyword)
+                            }
+                        )
+                    });
+                        _contextMap.Add(TokenKind.FunctionKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetStatementStartKeywords },
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.EndKeyword)
+                            }),
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            emptyContextSetProviderSet,
+                            emptyBackwardTokenSearchSet)
+                    });
 
-            _contextMap.Add(TokenKind.GlobalsKeyword, new List<ContextPossibilities>
-            {
-                new ContextPossibilities(
-                    new TokenKind[] { 
-                        TokenKind.DefineKeyword, 
-                        TokenKind.TypeKeyword, 
-                        TokenKind.ConstantKeyword, 
-                        TokenKind.EndKeyword
-                    },
-                    emptyContextSetProviderSet,
-                    emptyBackwardTokenSearchSet
-                )
-            });
-            _contextMap.Add(TokenKind.GotoKeyword, new List<ContextPossibilities>
-            {
-                new ContextPossibilities(
-                    emptyTokenKindSet,
-                    new ContextSetProvider[] { GetLabels },
-                    emptyBackwardTokenSearchSet
-                )
-            });
-            _contextMap.Add(TokenKind.GreaterThan, new List<ContextPossibilities>
-            {
-                new ContextPossibilities(
-                    emptyTokenKindSet,
-                    new ContextSetProvider[] { GetExpressionComponents },
-                    emptyBackwardTokenSearchSet
-                )
-            });
-            _contextMap.Add(TokenKind.GreaterThanOrEqual, new List<ContextPossibilities>
-            {
-                new ContextPossibilities(
-                    emptyTokenKindSet,
-                    new ContextSetProvider[] { GetExpressionComponents },
-                    emptyBackwardTokenSearchSet
-                )
-            });
-            _contextMap.Add(TokenKind.GroupKeyword, new List<ContextPossibilities>
-            {
-                new ContextPossibilities(
-                    new TokenKind [] { TokenKind.ByKeyword },
-                    emptyContextSetProviderSet,
-                    new BackwardTokenSearchItem[] 
-                    { 
-                        new BackwardTokenSearchItem(TokenKind.FromKeyword)
-                    }
-                )
-            });
-            _contextMap.Add(TokenKind.IfKeyword, new List<ContextPossibilities>
-            {
-                new ContextPossibilities(
-                    new TokenKind [] { TokenKind.NotKeyword },
-                    emptyContextSetProviderSet,
-                    new BackwardTokenSearchItem[] 
-                    { 
-                        new BackwardTokenSearchItem(new OrderedTokenSet(new TokenKind[] { TokenKind.SequenceKeyword, TokenKind.CreateKeyword }))
-                    }
-                ),
-                new ContextPossibilities(
-                    new TokenKind [] { TokenKind.ExistsKeyword },
-                    emptyContextSetProviderSet,
-                    new BackwardTokenSearchItem[] 
-                    { 
-                        new BackwardTokenSearchItem(new OrderedTokenSet(new TokenKind[] { TokenKind.SequenceKeyword, TokenKind.DropKeyword }))
-                    }
-                ),
-                new ContextPossibilities(
-                    emptyTokenKindSet,
-                    new ContextSetProvider[] { GetExpressionComponents },
-                    emptyBackwardTokenSearchSet
-                )
-            });
-            _contextMap.Add(TokenKind.ImportKeyword, new List<ContextPossibilities>
-            {
-                new ContextPossibilities(
-                    new TokenKind[] { 
-                        TokenKind.FglKeyword, 
-                        TokenKind.JavaKeyword
-                    },
-                    emptyContextSetProviderSet,
-                    emptyBackwardTokenSearchSet
-                )
-            });
-            _contextMap.Add(TokenKind.InKeyword, new List<ContextPossibilities>
-            {
-                new ContextPossibilities(
-                    new TokenKind [] { TokenKind.MemoryKeyword, TokenKind.FileKeyword },
-                    emptyContextSetProviderSet,
-                    new BackwardTokenSearchItem[] 
-                    { 
-                        new BackwardTokenSearchItem(TokenKind.LocateKeyword)
-                    }
-                ),
-                new ContextPossibilities(
-                    emptyTokenKindSet,
-                    emptyContextSetProviderSet,
-                    new BackwardTokenSearchItem[] 
-                    { 
-                        new BackwardTokenSearchItem(TokenKind.TableKeyword)
-                    }
-                )
-            });
-            _contextMap.Add(TokenKind.IncrementKeyword, new List<ContextPossibilities>
-            {
-                new ContextPossibilities(
-                    new TokenKind [] { TokenKind.ByKeyword },
-                    emptyContextSetProviderSet,
-                    new BackwardTokenSearchItem[] 
-                    { 
-                        new BackwardTokenSearchItem(TokenKind.SequenceKeyword)
-                    }
-                )
-            });
-            _contextMap.Add(TokenKind.InitializeKeyword, new List<ContextPossibilities>
-            {
-                new ContextPossibilities(
-                    emptyTokenKindSet,
-                    new ContextSetProvider[] { GetVariables },
-                    emptyBackwardTokenSearchSet
-                )
-            });
-            _contextMap.Add(TokenKind.InsertKeyword, new List<ContextPossibilities>
-            {
-                new ContextPossibilities(
-                    new TokenKind[] { 
-                        TokenKind.IntoKeyword
-                    },
-                    emptyContextSetProviderSet,
-                    emptyBackwardTokenSearchSet
-                )
-            });
-            _contextMap.Add(TokenKind.InstanceOfKeyword, new List<ContextPossibilities>
-            {
-                new ContextPossibilities(
-                    emptyTokenKindSet,
-                    new ContextSetProvider[] { GetTypes },
-                    emptyBackwardTokenSearchSet
-                )
-            });
-            _contextMap.Add(TokenKind.IntervalKeyword, new List<ContextPossibilities>
-            {
-                new ContextPossibilities(
-                    new TokenKind[] { 
-                        TokenKind.YearKeyword, 
-                        TokenKind.MonthKeyword, 
-                        TokenKind.DayKeyword, 
-                        TokenKind.HourKeyword, 
-                        TokenKind.MinuteKeyword,
-                        TokenKind.SecondKeyword,
-                        TokenKind.FractionKeyword
-                    },
-                    emptyContextSetProviderSet,
-                    emptyBackwardTokenSearchSet
-                )
-            });
-            _contextMap.Add(TokenKind.IntoKeyword, new List<ContextPossibilities>
-            {
-                new ContextPossibilities(
-                    emptyTokenKindSet,
-                    new ContextSetProvider[] { GetVariables },
-                    new BackwardTokenSearchItem[] 
-                    { 
-                        new BackwardTokenSearchItem(TokenKind.SelectKeyword)
-                    }
-                ),
-                new ContextPossibilities(
-                    emptyTokenKindSet,
-                    emptyContextSetProviderSet,
-                    new BackwardTokenSearchItem[] 
-                    { 
-                        new BackwardTokenSearchItem(TokenKind.InsertKeyword)
-                    }
-                )
-            });
-            _contextMap.Add(TokenKind.IsKeyword, new List<ContextPossibilities>
-            {
-                new ContextPossibilities(
-                    new TokenKind[] { 
-                        TokenKind.NotKeyword,
-                        TokenKind.NullKeyword
-                    },
-                    emptyContextSetProviderSet,
-                    emptyBackwardTokenSearchSet
-                )
-            });
-            _contextMap.Add(TokenKind.KeyKeyword, nothing);
-            _contextMap.Add(TokenKind.JavaKeyword, new List<ContextPossibilities>
-            {
-                new ContextPossibilities(
-                    emptyTokenKindSet,
-                    emptyContextSetProviderSet,     // TODO: eventually it would be nice to return available java classes
-                    new BackwardTokenSearchItem[] 
-                    { 
-                        new BackwardTokenSearchItem(TokenKind.ImportKeyword)
-                    }
-                )
-            });
-            _contextMap.Add(TokenKind.LabelKeyword, nothing);
-            _contextMap.Add(TokenKind.LeftBracket, new List<ContextPossibilities>
-            {
-                new ContextPossibilities(
-                    emptyTokenKindSet,
-                    new ContextSetProvider[] { GetConstants },
-                    new BackwardTokenSearchItem[] 
-                    { 
-                        new BackwardTokenSearchItem(TokenKind.ArrayKeyword)
-                    }
-                ),
-                new ContextPossibilities(
-                    emptyTokenKindSet,
-                    new ContextSetProvider[] { GetExpressionComponents },
-                    emptyBackwardTokenSearchSet
-                )
-            });
-            _contextMap.Add(TokenKind.LeftParenthesis, new List<ContextPossibilities>
-            {
-                new ContextPossibilities(
-                    emptyTokenKindSet,
-                    emptyContextSetProviderSet,
-                    new BackwardTokenSearchItem[] 
-                    { 
-                        new BackwardTokenSearchItem(TokenKind.CharKeyword),
-                        new BackwardTokenSearchItem(TokenKind.CharacterKeyword),
-                        new BackwardTokenSearchItem(TokenKind.VarcharKeyword),
-                        new BackwardTokenSearchItem(TokenKind.DecKeyword),
-                        new BackwardTokenSearchItem(TokenKind.DecimalKeyword),
-                        new BackwardTokenSearchItem(TokenKind.NumericKeyword),
-                        new BackwardTokenSearchItem(TokenKind.MoneyKeyword),
-                        new BackwardTokenSearchItem(TokenKind.FractionKeyword),
-                        new BackwardTokenSearchItem(TokenKind.YearKeyword),
-                        new BackwardTokenSearchItem(TokenKind.MonthKeyword),
-                        new BackwardTokenSearchItem(TokenKind.DayKeyword),
-                        new BackwardTokenSearchItem(TokenKind.HourKeyword),
-                        new BackwardTokenSearchItem(TokenKind.MinuteKeyword),
-                        new BackwardTokenSearchItem(TokenKind.SecondKeyword),
-                        new BackwardTokenSearchItem(TokenKind.FunctionKeyword),
-                        new BackwardTokenSearchItem(TokenKind.InsertKeyword),
-                        new BackwardTokenSearchItem(TokenKind.SetKeyword)
-                    }
-                ),
-                new ContextPossibilities(
-                    emptyTokenKindSet,
-                    new ContextSetProvider[] { GetExpressionComponents },
-                    new BackwardTokenSearchItem[] 
-                    { 
-                        new BackwardTokenSearchItem(TokenKind.CallKeyword),
-                        new BackwardTokenSearchItem(TokenKind.Equals),
-                        new BackwardTokenSearchItem(TokenKind.DoubleEquals),
-                        new BackwardTokenSearchItem(TokenKind.IfKeyword),
-                        new BackwardTokenSearchItem(TokenKind.ForKeyword),
-                        new BackwardTokenSearchItem(TokenKind.AsciiKeyword),
-                        new BackwardTokenSearchItem(TokenKind.ColumnKeyword)
-                    }
-                ),
-                new ContextPossibilities(
-                    emptyTokenKindSet,
-                    new ContextSetProvider[] { GetDatabaseTables },
-                    new BackwardTokenSearchItem[] 
-                    { 
-                        new BackwardTokenSearchItem(TokenKind.FromKeyword)
-                    }
-                ),
-                new ContextPossibilities(
-                    emptyTokenKindSet,
-                    new ContextSetProvider[] { GetVariables },
-                    new BackwardTokenSearchItem[] 
-                    { 
-                        new BackwardTokenSearchItem(TokenKind.CastKeyword)
-                    }
-                ),
-                new ContextPossibilities(
-                    emptyTokenKindSet,
-                    new ContextSetProvider[] { GetVariables, GetConstants },
-                    new BackwardTokenSearchItem[] 
-                    { 
-                        new BackwardTokenSearchItem(TokenKind.ValuesKeyword)
-                    }
-                ),
-                new ContextPossibilities(
-                    new TokenKind[] { TokenKind.PrimaryKeyword, TokenKind.UniqueKeyword, TokenKind.CheckKeyword, TokenKind.ForeignKeyword },
-                    emptyContextSetProviderSet,
-                    new BackwardTokenSearchItem[] 
-                    { 
-                        new BackwardTokenSearchItem(new OrderedTokenSet(new TokenKind[] { TokenKind.TableKeyword, TokenKind.CreateKeyword }))
-                    }
-                )
-            });
-            _contextMap.Add(TokenKind.LessThan, new List<ContextPossibilities>
-            {
-                new ContextPossibilities(
-                    emptyTokenKindSet,
-                    new ContextSetProvider[] { GetExpressionComponents },
-                    emptyBackwardTokenSearchSet
-                )
-            });
-            _contextMap.Add(TokenKind.LessThanOrEqual, new List<ContextPossibilities>
-            {
-                new ContextPossibilities(
-                    emptyTokenKindSet,
-                    new ContextSetProvider[] { GetExpressionComponents },
-                    emptyBackwardTokenSearchSet
-                )
-            });
-            _contextMap.Add(TokenKind.LetKeyword, new List<ContextPossibilities>
-            {
-                new ContextPossibilities(
-                    emptyTokenKindSet,
-                    new ContextSetProvider[] { GetVariables },
-                    emptyBackwardTokenSearchSet
-                )
-            });
-            _contextMap.Add(TokenKind.LikeKeyword, new List<ContextPossibilities>
-            {
-                new ContextPossibilities(
-                    emptyTokenKindSet,
-                    new ContextSetProvider[] { GetDatabaseTables },
-                    new BackwardTokenSearchItem[] 
-                    { 
-                        new BackwardTokenSearchItem(TokenKind.DefineKeyword),
-                        new BackwardTokenSearchItem(TokenKind.TypeKeyword),
-                        new BackwardTokenSearchItem(TokenKind.RecordKeyword),
-                        new BackwardTokenSearchItem(TokenKind.InitializeKeyword),
-                        new BackwardTokenSearchItem(TokenKind.ValidateKeyword)
-                    }
-                ),
-                new ContextPossibilities(
-                    emptyTokenKindSet,
-                    new ContextSetProvider[] { GetExpressionComponents },
-                    emptyBackwardTokenSearchSet
-                )
-            });
-            _contextMap.Add(TokenKind.LimitKeyword, new List<ContextPossibilities>
-            {
-                new ContextPossibilities(
-                    emptyTokenKindSet,
-                    new ContextSetProvider[] { GetVariables },
-                    new BackwardTokenSearchItem[] 
-                    { 
-                        new BackwardTokenSearchItem(TokenKind.SelectKeyword)
-                    }
-                )
-            });
-            _contextMap.Add(TokenKind.LocateKeyword, new List<ContextPossibilities>
-            {
-                new ContextPossibilities(
-                    emptyTokenKindSet,
-                    new ContextSetProvider[] { GetVariables },
-                    emptyBackwardTokenSearchSet
-                )
-            });
-            _contextMap.Add(TokenKind.LogKeyword, new List<ContextPossibilities>
-            {
-                new ContextPossibilities(
-                    new TokenKind[] { TokenKind.InKeyword, TokenKind.ExtentKeyword, TokenKind.NextKeyword, TokenKind.LockKeyword },
-                    new ContextSetProvider[] { GetStatementStartKeywords },
-                    new BackwardTokenSearchItem[] 
-                    { 
-                        new BackwardTokenSearchItem(TokenKind.WithKeyword)
-                    }
-                )
-            });
-            _contextMap.Add(TokenKind.MainKeyword, new List<ContextPossibilities>
-            {
-                new ContextPossibilities(
-                    emptyTokenKindSet,
-                    new ContextSetProvider[] { GetStatementStartKeywords },
-                    emptyBackwardTokenSearchSet
-                )
-            });
-            _contextMap.Add(TokenKind.MatchesKeyword, new List<ContextPossibilities>
-            {
-                new ContextPossibilities(
-                    emptyTokenKindSet,
-                    new ContextSetProvider[] { GetExpressionComponents },
-                    emptyBackwardTokenSearchSet
-                )
-            });
-            _contextMap.Add(TokenKind.MaxvalueKeyword, new List<ContextPossibilities>
-            {
-                new ContextPossibilities(
-                    emptyTokenKindSet,
-                    emptyContextSetProviderSet,
-                    new BackwardTokenSearchItem[] 
-                    { 
-                        new BackwardTokenSearchItem(TokenKind.SequenceKeyword)
-                    }
-                )
-            });
-            _contextMap.Add(TokenKind.MiddleKeyword, new List<ContextPossibilities>
-            {
-                new ContextPossibilities(
-                    emptyTokenKindSet,
-                    new ContextSetProvider[] { GetVariables },
-                    new BackwardTokenSearchItem[] 
-                    { 
-                        new BackwardTokenSearchItem(TokenKind.SelectKeyword)
-                    }
-                )
-            });
-            _contextMap.Add(TokenKind.Subtract, new List<ContextPossibilities>
-            {
-                new ContextPossibilities(
-                    emptyTokenKindSet,
-                    new ContextSetProvider[] { GetExpressionComponents },
-                    emptyBackwardTokenSearchSet
-                )
-            });
-            _contextMap.Add(TokenKind.MinvalueKeyword, new List<ContextPossibilities>
-            {
-                new ContextPossibilities(
-                    emptyTokenKindSet,
-                    emptyContextSetProviderSet,
-                    new BackwardTokenSearchItem[] 
-                    { 
-                        new BackwardTokenSearchItem(TokenKind.SequenceKeyword)
-                    }
-                )
-            });
-            _contextMap.Add(TokenKind.ModKeyword, new List<ContextPossibilities>
-            {
-                new ContextPossibilities(
-                    emptyTokenKindSet,
-                    new ContextSetProvider[] { GetExpressionComponents },
-                    emptyBackwardTokenSearchSet
-                )
-            });
-            _contextMap.Add(TokenKind.NoKeyword, new List<ContextPossibilities>
-            {
-                new ContextPossibilities(
-                    new TokenKind[] { TokenKind.LogKeyword },
-                    emptyContextSetProviderSet,
-                    new BackwardTokenSearchItem[] 
-                    { 
-                        new BackwardTokenSearchItem(TokenKind.WithKeyword)
-                    }
-                )
-            });
+                        _contextMap.Add(TokenKind.GlobalsKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            new TokenKind[] { 
+                                TokenKind.DefineKeyword, 
+                                TokenKind.TypeKeyword, 
+                                TokenKind.ConstantKeyword, 
+                                TokenKind.EndKeyword
+                            },
+                            emptyContextSetProviderSet,
+                            emptyBackwardTokenSearchSet
+                        )
+                    });
+                        _contextMap.Add(TokenKind.GotoKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetLabels },
+                            emptyBackwardTokenSearchSet
+                        )
+                    });
+                        _contextMap.Add(TokenKind.GreaterThan, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetExpressionComponents },
+                            emptyBackwardTokenSearchSet
+                        )
+                    });
+                        _contextMap.Add(TokenKind.GreaterThanOrEqual, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetExpressionComponents },
+                            emptyBackwardTokenSearchSet
+                        )
+                    });
+                        _contextMap.Add(TokenKind.GroupKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            new TokenKind [] { TokenKind.ByKeyword },
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.FromKeyword)
+                            }
+                        )
+                    });
+                        _contextMap.Add(TokenKind.HourKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            new TokenKind[] { 
+                                TokenKind.ToKeyword
+                            },
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.DatetimeKeyword),
+                                new BackwardTokenSearchItem(TokenKind.IntervalKeyword)
+                            }
+                        )
+                    });
+                        _contextMap.Add(TokenCategory.Identifier, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            new TokenKind [] { TokenKind.LikeKeyword, TokenKind.RecordKeyword, TokenKind.ArrayKeyword, TokenKind.DynamicKeyword },
+                            new ContextSetProvider[] { GetTypes },
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.DefineKeyword),
+                                new BackwardTokenSearchItem(TokenKind.TypeKeyword)
+                            }
+                        ),
+                        new ContextPossibilities(
+                            new TokenKind [] { TokenKind.LikeKeyword, TokenKind.RecordKeyword },
+                            new ContextSetProvider[] { GetTypes },
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.RecordKeyword)
+                            }
+                        ),
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetSystemTypes },
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.ConstantKeyword),
+                                new BackwardTokenSearchItem(TokenKind.TableKeyword)
+                            }
+                        ),
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.LetKeyword),
+                                new BackwardTokenSearchItem(TokenKind.ForKeyword),
+                                new BackwardTokenSearchItem(TokenKind.TableKeyword),
+                                new BackwardTokenSearchItem(new OrderedTokenSet(new TokenKind[] { TokenKind.LeftParenthesis, TokenKind.IntoKeyword, TokenKind.InsertKeyword }))
+                            }
+                        ),
+                        new ContextPossibilities(
+                            new TokenKind [] { TokenKind.ToKeyword, TokenKind.ThruKeyword },
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.InitializeKeyword)
+                            }
+                        ),
+                        new ContextPossibilities(
+                            new TokenKind [] { TokenKind.InKeyword, TokenKind.ThruKeyword },
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.LocateKeyword)
+                            }
+                        ),
+                        new ContextPossibilities(
+                            new TokenKind [] { TokenKind.LikeKeyword, TokenKind.ThruKeyword },
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.ValidateKeyword)
+                            }
+                        ),
+                        new ContextPossibilities(
+                            new TokenKind [] { TokenKind.WhenKeyword },
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.CaseKeyword)
+                            }
+                        ),
+                        new ContextPossibilities(
+                            new TokenKind [] { TokenKind.StepKeyword },
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(new OrderedTokenSet(new TokenKind[] { TokenKind.ToKeyword, TokenKind.Equals, TokenKind.ForKeyword }))
+                            }
+                        ),
+                        new ContextPossibilities(
+                            new TokenKind [] { TokenKind.ThenKeyword },
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.IfKeyword)
+                            }
+                        ),
+                        new ContextPossibilities(
+                            new TokenKind [] { TokenKind.AsKeyword, TokenKind.IntoKeyword, TokenKind.FromKeyword },
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.SelectKeyword)
+                            }
+                        ),
+                        new ContextPossibilities(
+                            new TokenKind [] { TokenKind.FromKeyword },
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(new OrderedTokenSet(new TokenKind[] { TokenKind.IntoKeyword, TokenKind.SelectKeyword }))
+                            }
+                        ),
+                        new ContextPossibilities(
+                            new TokenKind [] { TokenKind.ValuesKeyword, TokenKind.SelectKeyword },
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(new OrderedTokenSet(new TokenKind[] { TokenKind.IntoKeyword, TokenKind.InsertKeyword }))
+                            }
+                        ),
+                        new ContextPossibilities(
+                            new TokenKind [] { TokenKind.OuterKeyword, TokenKind.WhereKeyword, TokenKind.GroupKeyword, TokenKind.OrderKeyword },
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(new OrderedTokenSet(new TokenKind[] { TokenKind.FromKeyword, TokenKind.SelectKeyword }))
+                            }
+                        ),
+                        new ContextPossibilities(
+                            new TokenKind [] { TokenKind.WhereKeyword },
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(new OrderedTokenSet(new TokenKind[] { TokenKind.FromKeyword, TokenKind.DeleteKeyword }))
+                            }
+                        ),
+                        new ContextPossibilities(
+                            new TokenKind [] { TokenKind.BetweenKeyword, TokenKind.LikeKeyword, TokenKind.InKeyword },
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.WhereKeyword)
+                            }
+                        ),
+                        new ContextPossibilities(
+                            new TokenKind [] { TokenKind.AscKeyword, TokenKind.DescKeyword },
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.OrderKeyword)
+                            }
+                        ),
+                        new ContextPossibilities(
+                            new TokenKind [] { TokenKind.HavingKeyword },
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.GroupKeyword)
+                            }
+                        ),
+                        new ContextPossibilities(
+                            new TokenKind [] { TokenKind.SetKeyword },
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.UpdateKeyword)
+                            }
+                        ),
+                        new ContextPossibilities(
+                            new TokenKind [] 
+                            { 
+                                TokenKind.IncrementKeyword, 
+                                TokenKind.StartKeyword, 
+                                TokenKind.RestartKeyword,
+                                TokenKind.NomaxvalueKeyword,
+                                TokenKind.MaxvalueKeyword, 
+                                TokenKind.NominvalueKeyword, 
+                                TokenKind.MinvalueKeyword,
+                                TokenKind.CycleKeyword,
+                                TokenKind.NocycleKeyword, 
+                                TokenKind.CacheKeyword, 
+                                TokenKind.NocacheKeyword,
+                                TokenKind.OrderKeyword,
+                                TokenKind.NoorderKeyword
+                            },
+                            new ContextSetProvider[] { GetTypes },
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.SequenceKeyword)
+                            }
+                        ),
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetBinaryOperatorKeywords, GetStatementStartKeywords },
+                            emptyBackwardTokenSearchSet
+                        ),
+                    });
+                        _contextMap.Add(TokenKind.IfKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            new TokenKind [] { TokenKind.NotKeyword },
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(new OrderedTokenSet(new TokenKind[] { TokenKind.SequenceKeyword, TokenKind.CreateKeyword }))
+                            }
+                        ),
+                        new ContextPossibilities(
+                            new TokenKind [] { TokenKind.ExistsKeyword },
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(new OrderedTokenSet(new TokenKind[] { TokenKind.SequenceKeyword, TokenKind.DropKeyword }))
+                            }
+                        ),
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetExpressionComponents },
+                            emptyBackwardTokenSearchSet
+                        )
+                    });
+                        _contextMap.Add(TokenKind.ImportKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            new TokenKind[] { 
+                                TokenKind.FglKeyword, 
+                                TokenKind.JavaKeyword
+                            },
+                            emptyContextSetProviderSet,
+                            emptyBackwardTokenSearchSet
+                        )
+                    });
+                        _contextMap.Add(TokenKind.InKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            new TokenKind [] { TokenKind.MemoryKeyword, TokenKind.FileKeyword },
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.LocateKeyword)
+                            }
+                        ),
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.TableKeyword)
+                            }
+                        )
+                    });
+                        _contextMap.Add(TokenKind.IncrementKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            new TokenKind [] { TokenKind.ByKeyword },
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.SequenceKeyword)
+                            }
+                        )
+                    });
+                        _contextMap.Add(TokenKind.InitializeKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetVariables },
+                            emptyBackwardTokenSearchSet
+                        )
+                    });
+                        _contextMap.Add(TokenKind.InsertKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            new TokenKind[] { 
+                                TokenKind.IntoKeyword
+                            },
+                            emptyContextSetProviderSet,
+                            emptyBackwardTokenSearchSet
+                        )
+                    });
+                        _contextMap.Add(TokenKind.InstanceOfKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetTypes },
+                            emptyBackwardTokenSearchSet
+                        )
+                    });
+                        _contextMap.Add(TokenKind.IntervalKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            new TokenKind[] { 
+                                TokenKind.YearKeyword, 
+                                TokenKind.MonthKeyword, 
+                                TokenKind.DayKeyword, 
+                                TokenKind.HourKeyword, 
+                                TokenKind.MinuteKeyword,
+                                TokenKind.SecondKeyword,
+                                TokenKind.FractionKeyword
+                            },
+                            emptyContextSetProviderSet,
+                            emptyBackwardTokenSearchSet
+                        )
+                    });
+                        _contextMap.Add(TokenKind.IntoKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetVariables },
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.SelectKeyword)
+                            }
+                        ),
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.InsertKeyword)
+                            }
+                        )
+                    });
+                        _contextMap.Add(TokenKind.IsKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            new TokenKind[] { 
+                                TokenKind.NotKeyword,
+                                TokenKind.NullKeyword
+                            },
+                            emptyContextSetProviderSet,
+                            emptyBackwardTokenSearchSet
+                        )
+                    });
+                        _contextMap.Add(TokenKind.KeyKeyword, nothing);
+                        _contextMap.Add(TokenKind.JavaKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            emptyContextSetProviderSet,     // TODO: eventually it would be nice to return available java classes
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.ImportKeyword)
+                            }
+                        )
+                    });
+                        _contextMap.Add(TokenKind.LabelKeyword, nothing);
+                        _contextMap.Add(TokenKind.LeftBracket, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetConstants },
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.ArrayKeyword)
+                            }
+                        ),
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetExpressionComponents },
+                            emptyBackwardTokenSearchSet
+                        )
+                    });
+                        _contextMap.Add(TokenKind.LeftParenthesis, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.CharKeyword),
+                                new BackwardTokenSearchItem(TokenKind.CharacterKeyword),
+                                new BackwardTokenSearchItem(TokenKind.VarcharKeyword),
+                                new BackwardTokenSearchItem(TokenKind.DecKeyword),
+                                new BackwardTokenSearchItem(TokenKind.DecimalKeyword),
+                                new BackwardTokenSearchItem(TokenKind.NumericKeyword),
+                                new BackwardTokenSearchItem(TokenKind.MoneyKeyword),
+                                new BackwardTokenSearchItem(TokenKind.FractionKeyword),
+                                new BackwardTokenSearchItem(TokenKind.YearKeyword),
+                                new BackwardTokenSearchItem(TokenKind.MonthKeyword),
+                                new BackwardTokenSearchItem(TokenKind.DayKeyword),
+                                new BackwardTokenSearchItem(TokenKind.HourKeyword),
+                                new BackwardTokenSearchItem(TokenKind.MinuteKeyword),
+                                new BackwardTokenSearchItem(TokenKind.SecondKeyword),
+                                new BackwardTokenSearchItem(TokenKind.FunctionKeyword),
+                                new BackwardTokenSearchItem(TokenKind.InsertKeyword),
+                                new BackwardTokenSearchItem(TokenKind.SetKeyword)
+                            }
+                        ),
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetExpressionComponents },
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.CallKeyword),
+                                new BackwardTokenSearchItem(TokenKind.Equals),
+                                new BackwardTokenSearchItem(TokenKind.DoubleEquals),
+                                new BackwardTokenSearchItem(TokenKind.IfKeyword),
+                                new BackwardTokenSearchItem(TokenKind.ForKeyword),
+                                new BackwardTokenSearchItem(TokenKind.AsciiKeyword),
+                                new BackwardTokenSearchItem(TokenKind.ColumnKeyword)
+                            }
+                        ),
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetDatabaseTables },
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.FromKeyword)
+                            }
+                        ),
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetVariables },
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.CastKeyword)
+                            }
+                        ),
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetVariables, GetConstants },
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.ValuesKeyword)
+                            }
+                        ),
+                        new ContextPossibilities(
+                            new TokenKind[] { TokenKind.PrimaryKeyword, TokenKind.UniqueKeyword, TokenKind.CheckKeyword, TokenKind.ForeignKeyword },
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(new OrderedTokenSet(new TokenKind[] { TokenKind.TableKeyword, TokenKind.CreateKeyword }))
+                            }
+                        )
+                    });
+                        _contextMap.Add(TokenKind.LessThan, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetExpressionComponents },
+                            emptyBackwardTokenSearchSet
+                        )
+                    });
+                        _contextMap.Add(TokenKind.LessThanOrEqual, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetExpressionComponents },
+                            emptyBackwardTokenSearchSet
+                        )
+                    });
+                        _contextMap.Add(TokenKind.LetKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetVariables },
+                            emptyBackwardTokenSearchSet
+                        )
+                    });
+                        _contextMap.Add(TokenKind.LikeKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetDatabaseTables },
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.DefineKeyword),
+                                new BackwardTokenSearchItem(TokenKind.TypeKeyword),
+                                new BackwardTokenSearchItem(TokenKind.RecordKeyword),
+                                new BackwardTokenSearchItem(TokenKind.InitializeKeyword),
+                                new BackwardTokenSearchItem(TokenKind.ValidateKeyword)
+                            }
+                        ),
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetExpressionComponents },
+                            emptyBackwardTokenSearchSet
+                        )
+                    });
+                        _contextMap.Add(TokenKind.LimitKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetVariables },
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.SelectKeyword)
+                            }
+                        )
+                    });
+                        _contextMap.Add(TokenKind.LocateKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetVariables },
+                            emptyBackwardTokenSearchSet
+                        )
+                    });
+                        _contextMap.Add(TokenKind.LogKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            new TokenKind[] { TokenKind.InKeyword, TokenKind.ExtentKeyword, TokenKind.NextKeyword, TokenKind.LockKeyword },
+                            new ContextSetProvider[] { GetStatementStartKeywords },
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.WithKeyword)
+                            }
+                        )
+                    });
+                        _contextMap.Add(TokenKind.MainKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetStatementStartKeywords },
+                            emptyBackwardTokenSearchSet
+                        )
+                    });
+                        _contextMap.Add(TokenKind.MatchesKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetExpressionComponents },
+                            emptyBackwardTokenSearchSet
+                        )
+                    });
+                        _contextMap.Add(TokenKind.MaxvalueKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.SequenceKeyword)
+                            }
+                        )
+                    });
+                        _contextMap.Add(TokenKind.MiddleKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetVariables },
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.SelectKeyword)
+                            }
+                        )
+                    });
+                        _contextMap.Add(TokenKind.Subtract, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetExpressionComponents },
+                            emptyBackwardTokenSearchSet
+                        )
+                    });
+                        _contextMap.Add(TokenKind.MinuteKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            new TokenKind[] { 
+                                TokenKind.ToKeyword
+                            },
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.DatetimeKeyword),
+                                new BackwardTokenSearchItem(TokenKind.IntervalKeyword)
+                            }
+                        )
+                    });
+                        _contextMap.Add(TokenKind.MinvalueKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.SequenceKeyword)
+                            }
+                        )
+                    });
+                        _contextMap.Add(TokenKind.ModKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetExpressionComponents },
+                            emptyBackwardTokenSearchSet
+                        )
+                    });
+                        _contextMap.Add(TokenKind.MonthKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            new TokenKind[] { 
+                                TokenKind.ToKeyword
+                            },
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.DatetimeKeyword),
+                                new BackwardTokenSearchItem(TokenKind.IntervalKeyword)
+                            }
+                        )
+                    });
+                        _contextMap.Add(TokenKind.NoKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            new TokenKind[] { TokenKind.LogKeyword },
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.WithKeyword)
+                            }
+                        )
+                    });
+                        _contextMap.Add(TokenKind.NotKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            new TokenKind[] { TokenKind.NullKeyword },
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.IsKeyword)
+                            }
+                        ),
+                        new ContextPossibilities(
+                            new TokenKind[] { TokenKind.FoundKeyword },
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.WheneverKeyword)
+                            }
+                        ),
+                        new ContextPossibilities(
+                            new TokenKind[] { TokenKind.ExistsKeyword },
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.SequenceKeyword)
+                            }
+                        ),
+                        new ContextPossibilities(
+                            new TokenKind[] { TokenKind.LikeKeyword, TokenKind.MatchesKeyword },
+                            new ContextSetProvider[] { GetExpressionComponents },
+                            emptyBackwardTokenSearchSet
+                        )
+                    });
+                        _contextMap.Add(TokenKind.NotEquals, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetExpressionComponents },
+                            emptyBackwardTokenSearchSet
+                        )
+                    });
+                        _contextMap.Add(TokenKind.NotEqualsLTGT, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetExpressionComponents },
+                            emptyBackwardTokenSearchSet
+                        )
+                    });
+                        _contextMap.Add(TokenCategory.NumericLiteral, new List<ContextPossibilities>
+                    {
+                         new ContextPossibilities(
+                            emptyTokenKindSet,
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.LeftParenthesis),
+                                new BackwardTokenSearchItem(TokenKind.LeftBracket),
+                            }
+                        ),
+                        new ContextPossibilities(
+                            new TokenKind[] { TokenKind.OfKeyword },
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.DimensionKeyword)
+                            }
+                        ),
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetBinaryOperatorKeywords, GetStatementStartKeywords },
+                            emptyBackwardTokenSearchSet
+                        )
+                    });
+                        _contextMap.Add(TokenKind.OfKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            new TokenKind[] { TokenKind.RecordKeyword },
+                            new ContextSetProvider[] { GetTypes },
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.ArrayKeyword)
+                            }
+                        ),
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetCursors },
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.CurrentKeyword)
+                            }
+                        )
+                    });
+                        _contextMap.Add(TokenKind.OptionsKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            new TokenKind[] { 
+                                TokenKind.ShortKeyword, 
+                                TokenKind.MenuKeyword, 
+                                TokenKind.MessageKeyword, 
+                                TokenKind.CommentKeyword, 
+                                TokenKind.PromptKeyword,
+                                TokenKind.ErrorKeyword,
+                                TokenKind.FormKeyword,
+                                TokenKind.InputKeyword,
+                                TokenKind.DisplayKeyword,
+                                TokenKind.FieldKeyword,
+                                TokenKind.OnKeyword,
+                                TokenKind.HelpKeyword,
+                                TokenKind.InsertKeyword,
+                                TokenKind.DeleteKeyword,
+                                TokenKind.NextKeyword,
+                                TokenKind.PreviousKeyword,
+                                TokenKind.AcceptKeyword,
+                                TokenKind.RunKeyword,
+                                TokenKind.SqlKeyword,
+                            },
+                            emptyContextSetProviderSet,
+                            emptyBackwardTokenSearchSet
+                        )
+                    });
+                        _contextMap.Add(TokenKind.OrKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetExpressionComponents },
+                            emptyBackwardTokenSearchSet
+                        )
+                    });
+                        _contextMap.Add(TokenKind.OrderKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            new TokenKind[] { TokenKind.ByKeyword },
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.FromKeyword)
+                            }
+                        )
+                    });
+                        _contextMap.Add(TokenKind.Add, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetExpressionComponents },
+                            emptyBackwardTokenSearchSet
+                        )
+                    });
+                        _contextMap.Add(TokenKind.PrimaryKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            new TokenKind[] { TokenKind.KeyKeyword },
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.TableKeyword)
+                            }
+                        )
+                    });
+                        _contextMap.Add(TokenKind.PrivateKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            new TokenKind[] { 
+                                TokenKind.DefineKeyword, 
+                                TokenKind.TypeKeyword, 
+                                TokenKind.ConstantKeyword, 
+                                TokenKind.FunctionKeyword, 
+                                TokenKind.ReportKeyword
+                            },
+                            emptyContextSetProviderSet,
+                            emptyBackwardTokenSearchSet
+                        )
+                    });
+                        _contextMap.Add(TokenKind.PublicKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            new TokenKind[] { 
+                                TokenKind.DefineKeyword, 
+                                TokenKind.TypeKeyword, 
+                                TokenKind.ConstantKeyword, 
+                                TokenKind.FunctionKeyword, 
+                                TokenKind.ReportKeyword
+                            },
+                            emptyContextSetProviderSet,
+                            emptyBackwardTokenSearchSet
+                        )
+                    });
+                        _contextMap.Add(TokenKind.RecordKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            new TokenKind[] { TokenKind.EndKeyword, TokenKind.LikeKeyword },
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.DefineKeyword),
+                                new BackwardTokenSearchItem(TokenKind.TypeKeyword)
+                            }
+                        ),
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetStatementStartKeywords },
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.EndKeyword)
+                            }
+                        )
+                    });
+                        _contextMap.Add(TokenKind.ReportKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetStatementStartKeywords },
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.EndKeyword)
+                            }
+                        ),
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            emptyContextSetProviderSet,
+                            emptyBackwardTokenSearchSet
+                        )
+                    });
+                        _contextMap.Add(TokenKind.RestartKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            new TokenKind[] { TokenKind.WithKeyword },
+                            emptyContextSetProviderSet,
+                            emptyBackwardTokenSearchSet
+                        )
+                    });
+                        _contextMap.Add(TokenKind.ReturnKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetExpressionComponents },
+                            emptyBackwardTokenSearchSet
+                        )
+                    });
+                        _contextMap.Add(TokenKind.RightBracket, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            new TokenKind[] { TokenKind.StepKeyword },
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(new OrderedTokenSet(new TokenKind[] { TokenKind.ToKeyword, TokenKind.Equals, TokenKind.ForKeyword }))
+                            }
+                        ),
+                        new ContextPossibilities(
+                            new TokenKind[] { TokenKind.ThenKeyword },
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.IfKeyword)
+                            }
+                        ),
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetBinaryOperatorKeywords, GetStatementStartKeywords },
+                            emptyBackwardTokenSearchSet
+                        )
+                    });
+                        _contextMap.Add(TokenKind.RightParenthesis, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            new TokenKind[] { TokenKind.ToKeyword },
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.YearKeyword),
+                                new BackwardTokenSearchItem(TokenKind.MonthKeyword),
+                                new BackwardTokenSearchItem(TokenKind.DayKeyword),
+                                new BackwardTokenSearchItem(TokenKind.HourKeyword),
+                                new BackwardTokenSearchItem(TokenKind.MinuteKeyword),
+                                new BackwardTokenSearchItem(TokenKind.SecondKeyword),
+                                new BackwardTokenSearchItem(TokenKind.ForKeyword)
+                            }
+                        ),
+                        new ContextPossibilities(
+                            new TokenKind[] { TokenKind.EndKeyword },
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.RecordKeyword)
+                            }
+                        ),
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetStatementStartKeywords },
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.DefineKeyword),
+                                new BackwardTokenSearchItem(TokenKind.TypeKeyword),
+                                new BackwardTokenSearchItem(TokenKind.ConstantKeyword),
+                                new BackwardTokenSearchItem(TokenKind.FunctionKeyword),
+                                new BackwardTokenSearchItem(TokenKind.ReportKeyword)
+                            }
+                        ),
+                        new ContextPossibilities(
+                            new TokenKind[] { TokenKind.ReturningKeyword },
+                            new ContextSetProvider[] { GetStatementStartKeywords },
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.CallKeyword)
+                            }
+                        ),
+                        new ContextPossibilities(
+                            new TokenKind[] { TokenKind.YearKeyword, TokenKind.MonthKeyword, 
+                                              TokenKind.DayKeyword, TokenKind.HourKeyword, 
+                                              TokenKind.MinuteKeyword, TokenKind.SecondKeyword, TokenKind.FractionKeyword },
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.DatetimeKeyword),
+                                new BackwardTokenSearchItem(TokenKind.IntervalKeyword)
+                            }
+                        ),
+                        new ContextPossibilities(
+                            new TokenKind[] { TokenKind.StepKeyword },
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(new OrderedTokenSet(new TokenKind[] { TokenKind.ToKeyword, TokenKind.Equals, TokenKind.ForKeyword }))
+                            }
+                        ),
+                        new ContextPossibilities(
+                            new TokenKind[] { TokenKind.ThenKeyword },
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.IfKeyword)
+                            }
+                        ),
+                        new ContextPossibilities(
+                            new TokenKind[] { TokenKind.OuterKeyword, TokenKind.WhereKeyword, 
+                                              TokenKind.GroupKeyword, TokenKind.OrderKeyword },
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.FromKeyword)
+                            }
+                        ),
+                        new ContextPossibilities(
+                            new TokenKind[] { TokenKind.ValuesKeyword, TokenKind.SelectKeyword },
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(new OrderedTokenSet(new TokenKind[] { TokenKind.IntoKeyword, TokenKind.InsertKeyword }))
+                            }
+                        ),
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.SetKeyword)
+                            }
+                        ),
+                        new ContextPossibilities(
+                            new TokenKind[] { TokenKind.WithKeyword, TokenKind.InKeyword, 
+                                              TokenKind.ExtentKeyword, TokenKind.NextKeyword, TokenKind.LockKeyword },
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.TableKeyword)
+                            }
+                        ),
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetBinaryOperatorKeywords, GetStatementStartKeywords },
+                            emptyBackwardTokenSearchSet
+                        ),
+                    });
+                        _contextMap.Add(TokenKind.SchemaKeyword, nothing);
+                        _contextMap.Add(TokenKind.SecondKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            new TokenKind[] { 
+                                TokenKind.ToKeyword
+                            },
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.DatetimeKeyword),
+                                new BackwardTokenSearchItem(TokenKind.IntervalKeyword)
+                            }
+                        )
+                    });
+                        _contextMap.Add(TokenKind.SelectKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            new TokenKind[] { 
+                                TokenKind.SkipKeyword, 
+                                TokenKind.FirstKeyword, 
+                                TokenKind.MiddleKeyword, 
+                                TokenKind.LimitKeyword, 
+                                TokenKind.AllKeyword,
+                                TokenKind.DistinctKeyword,
+                                TokenKind.UniqueKeyword
+                            },
+                            emptyContextSetProviderSet,
+                            emptyBackwardTokenSearchSet
+                        )
+                    });
+                        _contextMap.Add(TokenKind.SequenceKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            new TokenKind[] { TokenKind.IfKeyword },
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.CreateKeyword),
+                                new BackwardTokenSearchItem(TokenKind.DropKeyword)
+                            }
+                        ),
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.AlterKeyword)
+                            }
+                        )
+                    });
+                        _contextMap.Add(TokenKind.SetKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetDatabaseTables },
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.UpdateKeyword)
+                            }
+                        )
+                    });
+                        _contextMap.Add(TokenKind.ShortKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            new TokenKind[] { TokenKind.CircuitKeyword },
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.OptionsKeyword)
+                            }
+                        )
+                    });
+                        _contextMap.Add(TokenKind.SkipKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetVariables },
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.SelectKeyword)
+                            }
+                        )
+                    });
+                        _contextMap.Add(TokenKind.SleepKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetExpressionComponents },
+                            emptyBackwardTokenSearchSet
+                        )
+                    });
+                        _contextMap.Add(TokenKind.SqlerrorKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            new TokenKind[] { 
+                                TokenKind.ContinueKeyword, 
+                                TokenKind.StopKeyword, 
+                                TokenKind.CallKeyword, 
+                                TokenKind.RaiseKeyword, 
+                                TokenKind.GotoKeyword
+                            },
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.WheneverKeyword)
+                            }
+                        )
+                    });
+                        _contextMap.Add(TokenKind.Multiply, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            new TokenKind[] { TokenKind.IntoKeyword, TokenKind.FromKeyword },
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.SelectKeyword)
+                            }
+                        ),
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetExpressionComponents },
+                            emptyBackwardTokenSearchSet
+                        )
+                    });
+                        _contextMap.Add(TokenKind.StartKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            new TokenKind[] { TokenKind.WithKeyword },
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.SequenceKeyword)
+                            }
+                        )
+                    });
+                        _contextMap.Add(TokenKind.TableKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            new TokenKind[] { TokenKind.IfKeyword },
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.CreateKeyword)
+                            }
+                        )
+                    });
+                        _contextMap.Add(TokenKind.TempKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            new TokenKind[] { TokenKind.TableKeyword },
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.CreateKeyword)
+                            }
+                        )
+                    });
+                        _contextMap.Add(TokenKind.ThruKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetVariables },
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.InitializeKeyword),
+                                new BackwardTokenSearchItem(TokenKind.ValidateKeyword),
+                                new BackwardTokenSearchItem(TokenKind.LocateKeyword)
+                            }
+                        )
+                    });
+                        _contextMap.Add(TokenKind.ToKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            new TokenKind[] { 
+                                TokenKind.YearKeyword, 
+                                TokenKind.MonthKeyword, 
+                                TokenKind.DayKeyword, 
+                                TokenKind.HourKeyword, 
+                                TokenKind.MinuteKeyword,
+                                TokenKind.SecondKeyword,
+                                TokenKind.FractionKeyword
+                            },
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.DatetimeKeyword),
+                                new BackwardTokenSearchItem(TokenKind.IntervalKeyword),
+                                new BackwardTokenSearchItem(TokenKind.CurrentKeyword)
+                            }
+                        ),
+                        new ContextPossibilities(
+                            new TokenKind[] { 
+                                TokenKind.NullKeyword
+                            },
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.InitializeKeyword)
+                            }
+                        ),
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetExpressionComponents },
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.ForKeyword)
+                            }
+                        )
+                    });
+                        _contextMap.Add(TokenKind.UniqueKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            new TokenKind[] { TokenKind.IntoKeyword, TokenKind.FromKeyword },
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.SelectKeyword)
+                            }
+                        )
+                    });
+                        _contextMap.Add(TokenKind.UnitsKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            new TokenKind[] { 
+                                TokenKind.YearKeyword, 
+                                TokenKind.MonthKeyword, 
+                                TokenKind.DayKeyword, 
+                                TokenKind.HourKeyword, 
+                                TokenKind.MinuteKeyword,
+                                TokenKind.SecondKeyword,
+                                TokenKind.FractionKeyword
+                            },
+                            emptyContextSetProviderSet,
+                            emptyBackwardTokenSearchSet
+                        )
+                    });
+                        _contextMap.Add(TokenKind.UpdateKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetDatabaseTables },
+                            emptyBackwardTokenSearchSet
+                        )
+                    });
+                        _contextMap.Add(TokenKind.UsingKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetExpressionComponents },
+                            emptyBackwardTokenSearchSet
+                        )
+                    });
+                        _contextMap.Add(TokenKind.ValidateKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetVariables },
+                            emptyBackwardTokenSearchSet
+                        )
+                    });
+                        _contextMap.Add(TokenKind.ValuesKeyword, nothing);
+                        _contextMap.Add(TokenKind.VarcharKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            new TokenKind[] { TokenKind.EndKeyword },
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.RecordKeyword)
+                            }
+                        ),
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetStatementStartKeywords },
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.DefineKeyword),
+                                new BackwardTokenSearchItem(TokenKind.TypeKeyword),
+                                new BackwardTokenSearchItem(TokenKind.ConstantKeyword)
+                            }
+                        )
+                    });
+                        _contextMap.Add(TokenKind.WarningKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            new TokenKind[] { 
+                                TokenKind.ContinueKeyword, 
+                                TokenKind.StopKeyword, 
+                                TokenKind.CallKeyword, 
+                                TokenKind.RaiseKeyword, 
+                                TokenKind.GotoKeyword
+                            },
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.WheneverKeyword)
+                            }
+                        )
+                    });
+                        _contextMap.Add(TokenKind.WhenKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetVariables },
+                            emptyBackwardTokenSearchSet
+                        )
+                    });
+                        _contextMap.Add(TokenKind.WheneverKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            new TokenKind[] { 
+                                TokenKind.AnyKeyword, 
+                                TokenKind.ErrorKeyword, 
+                                TokenKind.SqlerrorKeyword, 
+                                TokenKind.NotKeyword, 
+                                TokenKind.WarningKeyword
+                            },
+                            emptyContextSetProviderSet,
+                            emptyBackwardTokenSearchSet
+                        )
+                    });
+                        _contextMap.Add(TokenKind.WhereKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(new OrderedTokenSet(new TokenKind[] { TokenKind.FromKeyword, TokenKind.SelectKeyword}))
+                            }
+                        ),
+                        new ContextPossibilities(
+                            new TokenKind[] { TokenKind.CurrentKeyword },
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(new OrderedTokenSet(new TokenKind[] { TokenKind.FromKeyword, TokenKind.DeleteKeyword}))
+                            }
+                        )
+                    });
+                        _contextMap.Add(TokenKind.WhileKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetExpressionComponents },
+                            emptyBackwardTokenSearchSet
+                        )
+                    });
+                        _contextMap.Add(TokenKind.WithKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            new TokenKind[] { TokenKind.DimensionKeyword },
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.DynamicKeyword)
+                            }
+                        ),
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.StartKeyword),
+                                new BackwardTokenSearchItem(TokenKind.RestartKeyword)
+                            }
+                        ),
+                        new ContextPossibilities(
+                            new TokenKind[] { TokenKind.NoKeyword },
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.TableKeyword)
+                            }
+                        )
+                    });
+                        _contextMap.Add(TokenKind.YearKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            new TokenKind[] { 
+                                TokenKind.ToKeyword
+                            },
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.DatetimeKeyword),
+                                new BackwardTokenSearchItem(TokenKind.IntervalKeyword)
+                            }
+                        )
+                    });
+                    #endregion Context Rules
+                }
+            }
         }
 
-        private static IEnumerable<IAnalysisResult> GetExpressionComponents(int index)
+        #endregion
+
+        #region Context Provider Functions
+
+        private static IEnumerable<MemberResult> GetExpressionComponents(int index)
         {
-            return new IAnalysisResult[0];
+            if(_instance != null)
+            {
+                return _instance.GetInstanceExpressionComponents(index);
+            }
+            return new MemberResult[0];
         }
 
-        private static IEnumerable<IAnalysisResult> GetTypes(int index)
+        private static IEnumerable<MemberResult> GetTypes(int index)
         {
-            return new IAnalysisResult[0];
+            if (_instance != null)
+            {
+                return _instance.GetInstanceTypes(index);
+            }
+            return new MemberResult[0];
         }
 
-        private static IEnumerable<IAnalysisResult> GetFunctions(int index)
+        private static IEnumerable<MemberResult> GetSystemTypes(int index)
         {
-            return new IAnalysisResult[0];
+            return new MemberResult[0];
         }
 
-        private static IEnumerable<IAnalysisResult> GetLabels(int index)
+        private static IEnumerable<MemberResult> GetFunctions(int index)
         {
-            return new IAnalysisResult[0];
+            if (_instance != null)
+            {
+                return _instance.GetInstanceFunctions(index);
+            }
+            return new MemberResult[0];
         }
 
-        private static IEnumerable<IAnalysisResult> GetVariables(int index)
+        private static IEnumerable<MemberResult> GetLabels(int index)
         {
-            return new IAnalysisResult[0];
+            if (_instance != null)
+            {
+                return _instance.GetInstanceLabels(index);
+            }
+            return new MemberResult[0];
         }
 
-        private static IEnumerable<IAnalysisResult> GetOptionsStartKeywords(int index)
+        private static IEnumerable<MemberResult> GetVariables(int index)
         {
-            return new IAnalysisResult[0];
+            if (_instance != null)
+            {
+                return _instance.GetInstanceVariables(index);
+            }
+            return new MemberResult[0];
         }
 
-        private static IEnumerable<IAnalysisResult> GetConstants(int index)
+        private static IEnumerable<MemberResult> GetOptionsStartKeywords(int index)
         {
-            return new IAnalysisResult[0];
+            return OptionsStartTokens
+                .Select(x =>
+                new MemberResult(Tokens.TokenKinds[x], GeneroMemberType.Keyword, _instance));
         }
 
-        private static IEnumerable<IAnalysisResult> GetDatabaseTables(int index)
+        private static IEnumerable<MemberResult> GetConstants(int index)
         {
-            return new IAnalysisResult[0];
+            if (_instance != null)
+            {
+                return _instance.GetInstanceVariables(index);
+            }
+            return new MemberResult[0];
         }
 
-        private static IEnumerable<IAnalysisResult> GetAvailableImportModules(int index)
+        private static IEnumerable<MemberResult> GetDatabaseTables(int index)
         {
-            return new IAnalysisResult[0];
+            if (_instance != null)
+            {
+                return _instance.GetDatabaseTables(index, null);
+            }
+            return new MemberResult[0];
         }
 
-        private static IEnumerable<IAnalysisResult> GetStatementStartKeywords(int index)
+        private static IEnumerable<MemberResult> GetAvailableImportModules(int index)
         {
-            return new IAnalysisResult[0];
+            if (_instance != null)
+            {
+                return _instance.GetInstanceImportModules(index);
+            }
+            return new MemberResult[0];
+        }
+
+        private static IEnumerable<MemberResult> GetStatementStartKeywords(int index)
+        {
+            TokenKind[] accessMods = new TokenKind[] { TokenKind.PublicKeyword, TokenKind.PrivateKeyword };
+            return ValidStatementKeywords
+                .Union(accessMods)
+                .Select(x =>
+                new MemberResult(Tokens.TokenKinds[x], GeneroMemberType.Keyword, _instance));
+        }
+
+        private static IEnumerable<MemberResult> GetCursors(int index)
+        {
+            if (_instance != null)
+            {
+                return _instance.GetInstanceCursors(index);
+            }
+            return new MemberResult[0];
+        }
+
+        private static IEnumerable<MemberResult> GetBinaryOperatorKeywords(int index)
+        {
+            return _binaryOperators.Where(x => x > TokenKind.LastOperator)
+              .Select(x =>
+                new MemberResult(Tokens.TokenKinds[x], GeneroMemberType.Keyword, _instance));
+        }
+
+        #endregion
+
+        public IEnumerable<MemberResult> GetContextMembers(int index, IReverseTokenizer revTokenizer, IFunctionInformationProvider functionProvider,
+                                                           IDatabaseInformationProvider databaseProvider, IProgramFileProvider programFileProvider, GetMemberOptions options = GetMemberOptions.IntersectMultipleResults)
+        {
+            _instance = this;
+            _functionProvider = functionProvider;
+            _databaseProvider = databaseProvider;
+            _programFileProvider = programFileProvider;
+
+            // set up the static providers
+            SetMemberProviders(GetAdditionalUserDefinedTypes, GetDatabaseTables, GetDatabaseTableColumns);
+
+            List<MemberResult> members = new List<MemberResult>();
+            if(!DetermineContext(index, revTokenizer, members) && members.Count == 0)
+            {
+                // TODO: do we want to put in the statement keywords?
+                members.AddRange(GetStatementStartKeywords(index));
+            }
+
+            return members;
+        }
+
+        private bool DetermineContext(int index, IReverseTokenizer revTokenizer, List<MemberResult> memberList)
+        {
+            var enumerator = revTokenizer.GetReversedTokens().Where(x => x.SourceSpan.Start.Index < index).GetEnumerator();
+            while (true)
+            {
+                if (!enumerator.MoveNext())
+                {
+                    return false;
+                }
+
+                var tokInfo = enumerator.Current;
+                if (tokInfo.Equals(default(TokenInfo)) || 
+                    tokInfo.Token.Kind == TokenKind.NewLine || 
+                    tokInfo.Token.Kind == TokenKind.NLToken || 
+                    tokInfo.Token.Kind == TokenKind.Comment)
+                    continue;   // linebreak
+
+                // Look for the token in the context map
+                IEnumerable<ContextPossibilities> possibilities;
+                if (_contextMap.TryGetValue(tokInfo.Token.Kind, out possibilities) ||
+                    _contextMap.TryGetValue(tokInfo.Category, out possibilities))
+                {
+                    foreach(var possibility in possibilities)
+                    {
+                        if(TryMatchContextPossibility(tokInfo.SourceSpan.Start.Index, revTokenizer, possibility.BackwardSearchItems))
+                        {
+                            LoadPossibilitySet(index, possibility, memberList);
+                            break;
+                        }
+                    }
+
+                    return true;
+                }
+                else
+                {
+                    // we don't have the token in our context map, so return
+                    return false;
+                }
+            }
+        }
+
+        private bool TryMatchContextPossibility(int index, IReverseTokenizer revTokenizer, 
+                                                IEnumerable<BackwardTokenSearchItem> searchItems)
+        {
+            bool isMatch = true;
+            foreach(var searchItem in searchItems)
+            {
+                // setup
+                Queue<TokenKind> tokenMatchQueue = null;
+                bool doMatch = searchItem.Match;
+                if(searchItem.TokenSet == null)
+                {
+                    // we're only doing one token
+                    tokenMatchQueue = new Queue<TokenKind>(1);
+                    tokenMatchQueue.Enqueue(searchItem.SingleToken);
+                }
+                else
+                {
+                    tokenMatchQueue = new Queue<TokenKind>(searchItem.TokenSet.Set);
+                }
+
+                
+                var enumerator = revTokenizer.GetReversedTokens().Where(x => x.SourceSpan.Start.Index < index).GetEnumerator();
+                while (true)
+                {
+                    if (!enumerator.MoveNext())
+                    {
+                        isMatch = false;
+                        break;
+                    }
+                    var tokInfo = enumerator.Current;
+                    if (tokInfo.Equals(default(TokenInfo)) || tokInfo.Token.Kind == TokenKind.NewLine || tokInfo.Token.Kind == TokenKind.NLToken || tokInfo.Token.Kind == TokenKind.Comment)
+                        continue;   // linebreak
+
+                    var pendingMatch = tokenMatchQueue.Peek();
+                    if(doMatch)
+                    {
+                        if(tokInfo.Token.Kind == pendingMatch)
+                        {
+                            tokenMatchQueue.Dequeue();
+                            if (tokenMatchQueue.Count == 0)
+                                break;
+                            else
+                                continue;
+                        }
+                        else
+                        {
+                            if(ValidStatementKeywords.Contains(tokInfo.Token.Kind))
+                            {
+                                isMatch = false;
+                                break;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if(tokInfo.Token.Kind != pendingMatch)
+                        {
+                            tokenMatchQueue.Dequeue();
+                            if (tokenMatchQueue.Count == 0)
+                                break;
+                            else
+                                continue;
+                        }
+                        else
+                        {
+                            if (ValidStatementKeywords.Contains(tokInfo.Token.Kind))
+                            {
+                                isMatch = false;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if(isMatch)
+                {
+                    break;
+                }
+            }
+
+            return isMatch;
+        }
+
+        private void LoadPossibilitySet(int index, ContextPossibilities matchedPossibility, List<MemberResult> members)
+        {
+            members.AddRange(matchedPossibility.SingleTokens.Select(x =>
+                new MemberResult(Tokens.TokenKinds[x], GeneroMemberType.Keyword, _instance)));
+            foreach (var provider in matchedPossibility.SetProviders)
+                members.AddRange(provider(index));
         }
     }
 
