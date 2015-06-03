@@ -4153,28 +4153,49 @@ namespace VSGenero.Analysis.Parsing.AST
 
         #endregion
 
+        private AstNode GetContainingNode(int index)
+        {
+            AstNode containingNode = null;
+            if (_body.Children.Count > 0)
+            {
+                List<int> keys = _body.Children.Select(x => x.Key).ToList();
+                int searchIndex = keys.BinarySearch(index);
+                if (searchIndex < 0)
+                {
+                    searchIndex = ~searchIndex;
+                    if (searchIndex > 0)
+                        searchIndex--;
+                }
+
+                int key = keys[searchIndex];
+
+                // TODO: need to handle multiple results of the same name
+                containingNode = _body.Children[key];
+            }
+            return containingNode;
+        }
+
         private IEnumerable<MemberResult> GetInstanceExpressionComponents(int index)
         {
             // TODO: return
             // 1) Variables (system, local, module, global)
-            
             // 2) Constants (system, local, module, global)
             // 3) Functions
             // 4) Function provider
             // 5) Imported modules
             // 6) Available packages
             // maybe more...
-            return new MemberResult[0];
+            return GetDefinedMembers(index, true, true, false, true);
         }
 
         private IEnumerable<MemberResult> GetInstanceTypes(int index)
         {
-            return new MemberResult[0];
+            return GetDefinedMembers(index, false, false, true, false);
         }
 
         private IEnumerable<MemberResult> GetInstanceFunctions(int index)
         {
-            return new MemberResult[0];
+            return GetDefinedMembers(index, false, false, false, true);
         }
 
         private IEnumerable<MemberResult> GetInstanceLabels(int index)
@@ -4184,17 +4205,17 @@ namespace VSGenero.Analysis.Parsing.AST
 
         private IEnumerable<MemberResult> GetInstanceVariables(int index)
         {
-            return new MemberResult[0];
+            return GetDefinedMembers(index, true, false, false, false);
         }
 
         private IEnumerable<MemberResult> GetInstanceConstants(int index)
         {
-            return new MemberResult[0];
+            return GetDefinedMembers(index, false, true, false, false);
         }
 
         private IEnumerable<MemberResult> GetInstanceImportModules(int index)
         {
-            return new MemberResult[0];
+            return _programFileProvider.GetAvailableImportModules().Select(x => new MemberResult(x, GeneroMemberType.Module, this));
         }
 
         private IEnumerable<MemberResult> GetInstanceCursors(int index)
