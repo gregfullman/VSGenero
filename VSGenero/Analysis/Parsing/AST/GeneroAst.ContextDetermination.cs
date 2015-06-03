@@ -652,7 +652,7 @@ namespace VSGenero.Analysis.Parsing.AST
                             }
                         )
                     });
-                    _contextMap.Add(TokenCategory.Identifier, new List<ContextPossibilities>
+                    var identAndKeywordPossibilities = new List<ContextPossibilities>
                     {
                         new ContextPossibilities(
                             emptyTokenKindSet,
@@ -661,7 +661,8 @@ namespace VSGenero.Analysis.Parsing.AST
                             { 
                                 new BackwardTokenSearchItem(TokenKind.WhenKeyword),
                                 new BackwardTokenSearchItem(new OrderedTokenSet(new object[] { TokenCategory.Identifier, TokenKind.DefineKeyword })),
-                                new BackwardTokenSearchItem(new OrderedTokenSet(new object[] { TokenCategory.Identifier, TokenKind.TypeKeyword }))
+                                new BackwardTokenSearchItem(new OrderedTokenSet(new object[] { TokenCategory.Identifier, TokenKind.TypeKeyword })),
+                                new BackwardTokenSearchItem(new OrderedTokenSet(new object[] { TokenCategory.Identifier, TokenKind.Comma, TokenKind.RecordKeyword, TokenKind.EndKeyword }))
                             }
                         ),
                         new ContextPossibilities(
@@ -859,7 +860,9 @@ namespace VSGenero.Analysis.Parsing.AST
                             new ContextSetProvider[] { GetBinaryOperatorKeywords, GetStatementStartKeywords },
                             emptyBackwardTokenSearchSet
                         ),
-                    });
+                    };
+                    _contextMap.Add(TokenCategory.Identifier, identAndKeywordPossibilities);
+                    _contextMap.Add(TokenCategory.Keyword, identAndKeywordPossibilities);
                     _contextMap.Add(TokenKind.IfKeyword, new List<ContextPossibilities>
                     {
                         new ContextPossibilities(
