@@ -659,6 +659,7 @@ namespace VSGenero.Analysis.Parsing.AST
                             new ContextSetProvider[] { GetStatementStartKeywords },
                             new BackwardTokenSearchItem[] 
                             { 
+                                new BackwardTokenSearchItem(TokenKind.WhenKeyword),
                                 new BackwardTokenSearchItem(new OrderedTokenSet(new object[] { TokenCategory.Identifier, TokenKind.DefineKeyword })),
                                 new BackwardTokenSearchItem(new OrderedTokenSet(new object[] { TokenCategory.Identifier, TokenKind.TypeKeyword }))
                             }
@@ -843,6 +844,14 @@ namespace VSGenero.Analysis.Parsing.AST
                             new BackwardTokenSearchItem[] 
                             { 
                                 new BackwardTokenSearchItem(TokenKind.SequenceKeyword)
+                            }
+                        ),
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetBinaryOperatorKeywords, GetStatementStartKeywords },
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(new OrderedTokenSet(new object[] { TokenKind.Equals, TokenKind.LetKeyword }))
                             }
                         ),
                         new ContextPossibilities(
@@ -2345,6 +2354,7 @@ namespace VSGenero.Analysis.Parsing.AST
     public class ContextPossibilityMatchContainer
     {
         private Dictionary<object, List<BackwardTokenSearchItem>> _flatMatchingSet;
+        private HashSet<object> _flatNonMatchingSet;
         private List<ContextPossibilities> _possibilitiesWithNoBackwardSearch;
         private int _matchingRound;
 
@@ -2352,6 +2362,7 @@ namespace VSGenero.Analysis.Parsing.AST
         {
             _matchingRound = 0;
             _flatMatchingSet = new Dictionary<object, List<BackwardTokenSearchItem>>();
+            _flatNonMatchingSet = new HashSet<object>();
             _possibilitiesWithNoBackwardSearch = new List<ContextPossibilities>();
             InitializeQueues(possibilities);
         }
@@ -2383,6 +2394,9 @@ namespace VSGenero.Analysis.Parsing.AST
                         {
                             _flatMatchingSet.Add(key, new List<BackwardTokenSearchItem> { searchItem });
                         }
+
+                        if(!searchItem.Match)
+                            _flatNonMatchingSet.Add(key);
                     }
                 }
                 else
@@ -2444,6 +2458,37 @@ namespace VSGenero.Analysis.Parsing.AST
 
                         // At this point, nothing was matched correctly, so we continue
                     }
+                    else if (_flatNonMatchingSet.Count > 0 &&
+                            (!_flatNonMatchingSet.Contains(tokInfo.Token.Kind) ||
+                            !_flatNonMatchingSet.Contains(tokInfo.Category)))
+                    {
+                        // need to attempt matching the match list
+                        // 1) grab the potential matches with an ordered set and attempt to completely match each set. If one of the sets completely matches, we have a winner
+                        foreach (var potentialMatch in _flatNonMatchingSet.SelectMany(x => _flatMatchingSet[x]).Where(x => x.TokenSet != null))
+                        {
+                            if(AttemptOrderedSetMatch(tokInfo.SourceSpan.Start.Index, revTokenizer, potentialMatch.TokenSet, false))
+                            {
+                                retList.Add(potentialMatch.ParentContext);
+                                isMatch = true;
+                                break;
+                            }
+                        }
+                        if (isMatch)
+                            break;      // if we have a match from the for loop above, we're done.
+
+                        // 2) If we have any single token matches, they win.
+                        var singleMatches = _flatNonMatchingSet.SelectMany(x => _flatMatchingSet[x]).Where(x => 
+                            (x.SingleToken is TokenKind && (TokenKind)x.SingleToken != TokenKind.EndOfFile) ||
+                            (x.SingleToken is TokenCategory && (TokenCategory)x.SingleToken != TokenCategory.None)).ToList();
+                        if(singleMatches.Count > 0)
+                        {
+                            retList.AddRange(singleMatches.Select(x => x.ParentContext));
+                            isMatch = true;
+                            break;
+                        }
+
+                        // At this point, nothing was matched correctly, so we continue
+                    }
                     else
                     {
                         if (GeneroAst.ValidStatementKeywords.Contains(tokInfo.Token.Kind))
@@ -2465,7 +2510,7 @@ namespace VSGenero.Analysis.Parsing.AST
             return isMatch;
         }
 
-        private bool AttemptOrderedSetMatch(int index, IReverseTokenizer revTokenizer, OrderedTokenSet tokenSet)
+        private bool AttemptOrderedSetMatch(int index, IReverseTokenizer revTokenizer, OrderedTokenSet tokenSet, bool doMatch = true)
         {
             bool isMatch = false;
             int tokenIndex = 1;
@@ -2483,8 +2528,20 @@ namespace VSGenero.Analysis.Parsing.AST
                 if (tokInfo.Equals(default(TokenInfo)) || tokInfo.Token.Kind == TokenKind.NewLine || tokInfo.Token.Kind == TokenKind.NLToken || tokInfo.Token.Kind == TokenKind.Comment)
                     continue;   // linebreak
 
-                if ((tokenSet.Set[tokenIndex] is TokenKind && (TokenKind)tokenSet.Set[tokenIndex] == tokInfo.Token.Kind) ||
+                if (doMatch &&
+                    (tokenSet.Set[tokenIndex] is TokenKind && (TokenKind)tokenSet.Set[tokenIndex] == tokInfo.Token.Kind) ||
                     (tokenSet.Set[tokenIndex] is TokenCategory && (TokenCategory)tokenSet.Set[tokenIndex] == tokInfo.Category))
+                {
+                    tokenIndex++;
+                    if(tokenSet.Set.Count == tokenIndex)
+                    {
+                        isMatch = true;
+                        break;
+                    }
+                }
+                else if(!doMatch &&
+                    (tokenSet.Set[tokenIndex] is TokenKind && (TokenKind)tokenSet.Set[tokenIndex] != tokInfo.Token.Kind) ||
+                    (tokenSet.Set[tokenIndex] is TokenCategory && (TokenCategory)tokenSet.Set[tokenIndex] != tokInfo.Category))
                 {
                     tokenIndex++;
                     if(tokenSet.Set.Count == tokenIndex)
