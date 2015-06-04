@@ -21,12 +21,19 @@ namespace VSGenero.EditorExtensions.Intellisense
     internal class QuickInfoSource : IQuickInfoSource
     {
         private readonly ITextBuffer _textBuffer;
+        private readonly IVsTextView _viewAdapter;
         private readonly QuickInfoSourceProvider _provider;
         private IQuickInfoSession _curSession;
 
         public QuickInfoSource(QuickInfoSourceProvider provider, ITextBuffer textBuffer)
         {
+            var adapterFactory = VSGeneroPackage.ComponentModel.GetService<IVsEditorAdaptersFactoryService>();
             _textBuffer = textBuffer;
+            IWpfTextView wpfTextView;
+            if (textBuffer.Properties.TryGetProperty<IWpfTextView>(typeof(IWpfTextView), out wpfTextView))
+            {
+                _viewAdapter = adapterFactory.GetViewAdapter(wpfTextView);
+            }
             _provider = provider;
         }
 
@@ -56,7 +63,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                 _provider._ProgramFileProvider
             );
 
-            AugmentQuickInfoWorker(session, _textBuffer, vars, quickInfoContent, out applicableToSpan);
+            AugmentQuickInfoWorker(session, _textBuffer, _viewAdapter, vars, quickInfoContent, out applicableToSpan);
         }
 
         private void CurSessionDismissed(object sender, EventArgs e)
@@ -64,7 +71,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             _curSession = null;
         }
 
-        internal static void AugmentQuickInfoWorker(IQuickInfoSession session, ITextBuffer subjectBuffer, ExpressionAnalysis exprAnalysis, System.Collections.Generic.IList<object> quickInfoContent, out ITrackingSpan applicableToSpan)
+        internal static void AugmentQuickInfoWorker(IQuickInfoSession session, ITextBuffer subjectBuffer, IVsTextView viewAdapter, ExpressionAnalysis exprAnalysis, System.Collections.Generic.IList<object> quickInfoContent, out ITrackingSpan applicableToSpan)
         {
             applicableToSpan = exprAnalysis.Span;
             if (applicableToSpan == null || String.IsNullOrWhiteSpace(exprAnalysis.Expression))
@@ -87,7 +94,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                 else 
                 {
                     string qiText;
-                    if(TryGetQuickInfoFromDebugger(session, applicableToSpan.GetSpan(subjectBuffer.CurrentSnapshot), out qiText))
+                    if(TryGetQuickInfoFromDebugger(session, applicableToSpan.GetSpan(subjectBuffer.CurrentSnapshot), viewAdapter, out qiText))
                     {
                         quickInfoContent.Add(qiText);
                     }
@@ -110,43 +117,30 @@ namespace VSGenero.EditorExtensions.Intellisense
             return null;
         }
 
-        private static TextSpan GetTextSpan(ITextBuffer subjectBuffer, SnapshotSpan span, out IVsTextView vsTextView)
+        private static TextSpan GetTextSpan(IVsTextView viewAdapter, SnapshotSpan span)
         {
-            IWpfTextView textView;
-            vsTextView = null;
-            if (subjectBuffer.Properties.TryGetProperty<IWpfTextView>(typeof(IWpfTextView), out textView))
+            if (viewAdapter != null)
             {
-                if (subjectBuffer.Properties.TryGetProperty<IVsTextView>(typeof(IVsTextView), out vsTextView))
+                int startLine, startCol;
+                int endLine, endCol;
+
+                viewAdapter.GetLineAndColumn(span.Start.Position, out startLine, out startCol);
+                viewAdapter.GetLineAndColumn(span.End.Position, out endLine, out endCol);
+
+                TextSpan newSpan = new TextSpan()
                 {
-                    var adapterFactory = VSGeneroPackage.ComponentModel.GetService<IVsEditorAdaptersFactoryService>();
-                    if (adapterFactory != null)
-                    {
-                        var viewAdapter = adapterFactory.GetViewAdapter(textView);
-                        if (viewAdapter != null)
-                        {
-                            int startLine, startCol;
-                            int endLine, endCol;
+                    iStartLine = startLine,
+                    iStartIndex = startCol,
+                    iEndLine = endLine,
+                    iEndIndex = endCol
+                };
 
-                            viewAdapter.GetLineAndColumn(span.Start.Position, out startLine, out startCol);
-                            viewAdapter.GetLineAndColumn(span.End.Position, out endLine, out endCol);
-
-                            TextSpan newSpan = new TextSpan()
-                            {
-                                iStartLine = startLine,
-                                iStartIndex = startCol,
-                                iEndLine = endLine,
-                                iEndIndex = endCol
-                            };
-
-                            return newSpan;
-                        }
-                    }
-                }
+                return newSpan;
             }
             return default(TextSpan);
         }
 
-        private static bool TryGetQuickInfoFromDebugger(IQuickInfoSession session, SnapshotSpan span, out string tipText)
+        private static bool TryGetQuickInfoFromDebugger(IQuickInfoSession session, SnapshotSpan span, IVsTextView viewAdapter, out string tipText)
         {
             IVsTextLines lines;
             tipText = null;
@@ -156,8 +150,8 @@ namespace VSGenero.EditorExtensions.Intellisense
                 return false;
             }
 
-            IVsTextView vsTextView;
-            var txtSpan = GetTextSpan(session.TextView.TextBuffer, span, out vsTextView);
+            IVsTextView vsTextView = viewAdapter;
+            var txtSpan = GetTextSpan(viewAdapter, span); //GetTextSpan(session.TextView.TextBuffer, span, out vsTextView);
             TextSpan[] dataBufferTextSpan = new TextSpan[] { txtSpan };
 
             int hr = -2147467259;

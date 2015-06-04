@@ -601,6 +601,14 @@ namespace VSGenero.Analysis.Parsing.AST
                             },
                             emptyContextSetProviderSet,
                             emptyBackwardTokenSearchSet
+                        ),
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetStatementStartKeywords },
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.EndKeyword)
+                            }
                         )
                     });
                     _contextMap.Add(TokenKind.GotoKeyword, new List<ContextPossibilities>
