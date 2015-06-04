@@ -195,7 +195,7 @@ namespace VSGenero.Analysis.Parsing.AST
 
         internal IEnumerable<IAnalysisResult> GetAnalysisResults(GeneroAst ast)
         {
-            if (MemberDictionary.Count == 0 && !string.IsNullOrEmpty(MimicTableName))
+            if (MemberDictionary.Count == 0 && !string.IsNullOrEmpty(MimicTableName) && ast._databaseProvider != null)
             {
                 // get the table's columns
                 return ast._databaseProvider.GetColumns(MimicTableName);

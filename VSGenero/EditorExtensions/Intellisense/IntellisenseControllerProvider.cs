@@ -16,10 +16,11 @@ using System.Threading.Tasks;
 using VSGenero.Analysis;
 using Microsoft.VisualStudio.VSCommon;
 using VSGenero.Snippets;
+using Microsoft.VisualStudio.Shell;
 
 namespace VSGenero.EditorExtensions.Intellisense
 {
-    [Export(typeof(IIntellisenseControllerProvider)), ContentType(VSGeneroConstants.ContentType4GL), ContentType(VSGeneroConstants.ContentTypeINC), ContentType(VSGeneroConstants.ContentTypePER), Order]
+    [Export(typeof(IIntellisenseControllerProvider)), ContentType(VSGeneroConstants.ContentType4GL), ContentType(VSGeneroConstants.ContentTypeINC), Order]
     class IntellisenseControllerProvider : IIntellisenseControllerProvider
     {
         [Import]
@@ -34,7 +35,7 @@ namespace VSGenero.EditorExtensions.Intellisense
         internal IQuickInfoBroker _QuickInfoBroker = null; // Set via MEF
         [Import]
         internal IIncrementalSearchFactoryService _IncrementalSearch = null; // Set via MEF
-        [Import]
+        [Import(AllowDefault = true)]
         internal IPublicFunctionSnippetizer _PublicFunctionSnippetizer = null;  // Set view MEF
 
         [Import(AllowDefault = true)]
@@ -52,7 +53,7 @@ namespace VSGenero.EditorExtensions.Intellisense
         internal static IntellisenseControllerProvider Instance { get; private set; }
 
         readonly Dictionary<ITextView, Tuple<BufferParser, GeneroProjectAnalyzer>> _hookedCloseEvents =
-            new Dictionary<ITextView, Tuple<BufferParser, GeneroProjectAnalyzer>>();
+        new Dictionary<ITextView, Tuple<BufferParser, GeneroProjectAnalyzer>>();
 
         public IIntellisenseController TryCreateIntellisenseController(ITextView textView, IList<ITextBuffer> subjectBuffers)
         {

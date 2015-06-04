@@ -171,7 +171,10 @@ namespace VSGenero
             }
             else
             {
-                var assemblyName = args.Name.Substring(0, args.Name.IndexOf(',')) + ".dll";
+                int index = args.Name.IndexOf(',');
+                if (index < 0)
+                    index = args.Name.Length;
+                var assemblyName = args.Name.Substring(0, index) + ".dll";
                 if (!_manuallyLoadedDlls.Contains(assemblyName))
                 {
                     string asmLocation = Assembly.GetExecutingAssembly().Location;

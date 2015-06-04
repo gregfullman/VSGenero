@@ -90,9 +90,9 @@ namespace VSGenero.Analysis.Parsing.AST
             if (PreprocessorNode.TryParseNode(parser, out preNode))
             {
                 if(preNode.Type == PreprocessorType.Include &&
-                   !string.IsNullOrWhiteSpace(preNode.IncludeFile))
+                   !string.IsNullOrWhiteSpace(preNode.IncludeFile) &&
+                   VSGeneroPackage.Instance.ProgramFileProvider != null)
                 {
-                    //node.IncludeFiles.Add(preNode.IncludeFile);
                     var fullFilename = VSGeneroPackage.Instance.ProgramFileProvider.GetIncludeFile(preNode.IncludeFile);
                     if(!string.IsNullOrWhiteSpace(fullFilename))
                     {

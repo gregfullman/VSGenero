@@ -2237,15 +2237,6 @@ namespace VSGenero.Analysis.Parsing.AST
                             LoadPossibilitySet(index, matchedPossible, memberList);
                     }
 
-                    //foreach (var possibility in possibilities)
-                    //{
-                    //    if (TryMatchContextPossibility(tokInfo.SourceSpan.Start.Index, revTokenizer, possibility.BackwardSearchItems))
-                    //    {
-                    //        LoadPossibilitySet(index, possibility, memberList);
-                    //        break;
-                    //    }
-                    //}
-
                     return true;
                 }
                 else
@@ -2255,95 +2246,6 @@ namespace VSGenero.Analysis.Parsing.AST
                 }
             }
         }
-
-        //private bool TryMatchContextPossibility(int index, IReverseTokenizer revTokenizer,
-        //                                        IEnumerable<BackwardTokenSearchItem> searchItems)
-        //{
-        //    bool isMatch = true;
-        //    foreach (var searchItem in searchItems)
-        //    {
-        //        // setup
-        //        Queue<TokenKind> tokenMatchQueue = null;
-        //        bool doMatch = searchItem.Match;
-        //        if (searchItem.TokenSet == null)
-        //        {
-        //            // we're only doing one token
-        //            tokenMatchQueue = new Queue<TokenKind>(1);
-        //            tokenMatchQueue.Enqueue(searchItem.SingleToken);
-        //        }
-        //        else
-        //        {
-        //            tokenMatchQueue = new Queue<TokenKind>(searchItem.TokenSet.Set);
-        //        }
-
-        //        isMatch = false;
-        //        var enumerator = revTokenizer.GetReversedTokens().Where(x => x.SourceSpan.Start.Index < index).GetEnumerator();
-        //        while (true)
-        //        {
-        //            if (!enumerator.MoveNext())
-        //            {
-        //                isMatch = false;
-        //                break;
-        //            }
-        //            var tokInfo = enumerator.Current;
-        //            if (tokInfo.Equals(default(TokenInfo)) || tokInfo.Token.Kind == TokenKind.NewLine || tokInfo.Token.Kind == TokenKind.NLToken || tokInfo.Token.Kind == TokenKind.Comment)
-        //                continue;   // linebreak
-
-        //            var pendingMatch = tokenMatchQueue.Peek();
-        //            if (doMatch)
-        //            {
-        //                if (tokInfo.Token.Kind == pendingMatch)
-        //                {
-        //                    tokenMatchQueue.Dequeue();
-        //                    if (tokenMatchQueue.Count == 0)
-        //                    {
-        //                        isMatch = true;
-        //                        break;
-        //                    }
-        //                    else
-        //                        continue;
-        //                }
-        //                else
-        //                {
-        //                    if (ValidStatementKeywords.Contains(tokInfo.Token.Kind))
-        //                    {
-        //                        isMatch = false;
-        //                        break;
-        //                    }
-        //                }
-        //            }
-        //            else
-        //            {
-        //                if (tokInfo.Token.Kind != pendingMatch)
-        //                {
-        //                    tokenMatchQueue.Dequeue();
-        //                    if (tokenMatchQueue.Count == 0)
-        //                    {
-        //                        isMatch = true;
-        //                        break;
-        //                    }
-        //                    else
-        //                        continue;
-        //                }
-        //                else
-        //                {
-        //                    if (ValidStatementKeywords.Contains(tokInfo.Token.Kind))
-        //                    {
-        //                        isMatch = false;
-        //                        break;
-        //                    }
-        //                }
-        //            }
-        //        }
-
-        //        if (isMatch)
-        //        {
-        //            break;
-        //        }
-        //    }
-
-        //    return isMatch;
-        //}
 
         private void LoadPossibilitySet(int index, ContextPossibilities matchedPossibility, List<MemberResult> members)
         {
