@@ -9,7 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace VSGenero.VS2013_Specific.ProductivityTools
+namespace VSGenero.VS2013Plus.ProductivityTools
 {
     [TagType(typeof(IBlockTag)), Export(typeof(ITaggerProvider)), ContentType(VSGeneroConstants.LanguageName4GL)]
     public class Genero4glBlockTaggerProvider : ITaggerProvider

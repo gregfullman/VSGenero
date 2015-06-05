@@ -77,7 +77,7 @@ namespace VSGenero.EditorExtensions
 
         [Export]
         [Name(Genero4glPredefinedClassificationTypeNames.Operator)]
-#if VS120
+#if DEV12_OR_LATER
         [BaseDefinition(PredefinedClassificationTypeNames.Operator)]
 #else
         [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]

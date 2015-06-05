@@ -50,8 +50,8 @@ using VSGenero.EditorExtensions;
 using System.IO;
 using VSGenero.Options;
 using VSGenero.Snippets;
-#if VS120
-using VSGenero.VS2013_Specific;
+#if DEV12_OR_LATER
+using VSGenero.VS2013Plus;
 #endif
 using VSGenero.SqlSupport;
 using System.Reflection;
@@ -82,10 +82,10 @@ namespace VSGenero
     [ProvideEditorExtensionAttribute(typeof(EditorFactory), VSGeneroConstants.FileExtensionINC, 32)]
     [ProvideEditorExtensionAttribute(typeof(EditorFactory), VSGeneroConstants.FileExtensionPER, 32)]
     [ProvideEditorLogicalView(typeof(EditorFactory), "{7651a701-06e5-11d1-8ebd-00a0c90f26ea}")]
-    #if VS120
+#if DEV12_OR_LATER
     [PeekSupportedContentType(".4gl")]
     [PeekSupportedContentType(".inc")]
-    #endif  
+#endif  
     [RegisterSnippetsAttribute(VSGenero.Snippets.Constants.guidVSGeneroLanuageServiceString, false, 131, "Genero4GL", @"Snippets\CodeSnippets\SnippetsIndex.xml", @"Snippets\CodeSnippets\Snippets\", @"Snippets\CodeSnippets\Snippets\")]
     [ProvideLanguageService(typeof(VSGenero4GLLanguageInfo), VSGeneroConstants.LanguageName4GL, 106,
                             RequestStockColors = true,

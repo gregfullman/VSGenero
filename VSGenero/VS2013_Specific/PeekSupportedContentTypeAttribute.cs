@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace VSGenero.VS2013_Specific
+namespace VSGenero.VS2013Plus
 {
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = true, Inherited = true)]
     public class PeekSupportedContentTypeAttribute : RegistrationAttribute

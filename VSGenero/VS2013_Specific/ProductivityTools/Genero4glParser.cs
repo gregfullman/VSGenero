@@ -10,7 +10,7 @@ using Microsoft.PowerToolsEx.BlockTagger;
 using Microsoft.VisualStudio.Text;
 using System.Threading;
 
-namespace VSGenero.VS2013_Specific.ProductivityTools
+namespace VSGenero.VS2013Plus.ProductivityTools
 {
     internal class Genero4glParser : IParser
     {

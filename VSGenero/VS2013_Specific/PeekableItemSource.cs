@@ -27,7 +27,7 @@ using VSGenero.EditorExtensions;
 using VSGenero.Navigation;
 using VSGenero.Analysis;
 
-namespace VSGenero.VS2013_Specific
+namespace VSGenero.VS2013Plus
 {
     [SupportsStandaloneFiles(true), Export(typeof(IPeekableItemSourceProvider)), Name("GeneroPeekableItemSourceProvider"), ContentType(VSGeneroConstants.ContentType4GL), ContentType(VSGeneroConstants.ContentTypeINC)]
     public class PeekableItemSourceProvider : IPeekableItemSourceProvider

@@ -49,7 +49,7 @@ namespace VSGenero.Project
         private string _editorName;
         private Guid _linkedEditorGuid;
         private readonly string[] _extensions;
-#if VS120
+#if DEV12_OR_LATER
         private __VSPHYSICALVIEWATTRIBUTES _commonViewAttrs;
 #endif
 
@@ -78,7 +78,7 @@ namespace VSGenero.Project
             _extensions = extensions;
         }
 
-#if VS120
+#if DEV12_OR_LATER
         public ProvideEditorExtension2Attribute(object factoryType, string extension, int priority, __VSPHYSICALVIEWATTRIBUTES commonViewAttributes, params string[] extensions) :
             this(factoryType, extension, priority, extensions) {
             _commonViewAttrs = commonViewAttributes;
@@ -134,7 +134,7 @@ namespace VSGenero.Project
             set { _linkedEditorGuid = new System.Guid(value); }
         }
 
-#if VS120
+#if DEV12_OR_LATER
         public __VSPHYSICALVIEWATTRIBUTES CommonPhysicalViewAttributes {
             get {
                 return _commonViewAttrs;
