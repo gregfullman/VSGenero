@@ -51,7 +51,7 @@ using System.IO;
 using VSGenero.Options;
 using VSGenero.Snippets;
 #if DEV12_OR_LATER
-using VSGenero.VS2013Plus;
+using VSGenero.Peek;
 #endif
 using VSGenero.SqlSupport;
 using System.Reflection;

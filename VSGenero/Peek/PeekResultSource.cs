@@ -23,7 +23,7 @@ using VSGenero.Navigation;
 using Microsoft.VisualStudio.VSCommon;
 using Microsoft.VisualStudio.Text;
 
-namespace VSGenero.VS2013Plus
+namespace VSGenero.Peek
 {
     class PeekResultSource : IPeekResultSource
     {

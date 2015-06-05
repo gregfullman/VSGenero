@@ -29,7 +29,6 @@
     <MicrosoftBuildAssemblyVersion>14.0.0.0</MicrosoftBuildAssemblyVersion>
     <MicrosoftBuildAssemblyVersionSuffix>Core</MicrosoftBuildAssemblyVersionSuffix>
   </PropertyGroup>
-
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '12.0' ">
     <DefineConstants>$(DefineConstants);DEV12;DEV12_OR_LATER;DEV11_OR_LATER</DefineConstants>
     <VSCTDefinitions>DEV12;DEV12_OR_LATER;DEV11_OR_LATER</VSCTDefinitions>
@@ -539,20 +538,26 @@
     <Compile Include="SqlSupport\SqlExtensions.cs" />
     <Compile Include="SqlSupport\SqlStatementExtractor.cs" />
     <Compile Include="SqlSupport\SqlTextViewCreationListener.cs" />
-    <Compile Include="VS2013_Specific\PeekableItem.cs" Condition="'$(VisualStudioVersion)' &gt; '11.0'" />
-    <Compile Include="VS2013_Specific\PeekableItemSource.cs" Condition="'$(VisualStudioVersion)' &gt; '11.0'" />
-    <Compile Include="VS2013_Specific\PeekResultSource.cs" Condition="'$(VisualStudioVersion)' &gt; '11.0'" />
-    <Compile Include="VS2013_Specific\PeekSupportedContentTypeAttribute.cs" Condition="'$(VisualStudioVersion)' &gt; '11.0'" />
-    <Compile Include="VS2013_Specific\ProductivityTools\BaseFilter.cs" Condition="'$(VisualStudioVersion)' == '12.0'" />
-    <Compile Include="VS2013_Specific\ProductivityTools\DisposableTagger.cs" Condition="'$(VisualStudioVersion)' == '12.0'" />
-    <Compile Include="VS2013_Specific\ProductivityTools\Genero4glBlockTaggerProvider.cs" Condition="'$(VisualStudioVersion)' == '12.0'" />
-    <Compile Include="VS2013_Specific\ProductivityTools\Genero4glParser.cs" Condition="'$(VisualStudioVersion)' == '12.0'" />
-    <Compile Include="VS2013_Specific\ProductivityTools\QuoteFilter.cs" Condition="'$(VisualStudioVersion)' == '12.0'" />
+    <Compile Include="Peek\PeekableItem.cs" />
+    <Compile Include="Peek\PeekableItemSource.cs" />
+    <Compile Include="Peek\PeekResultSource.cs" />
+    <Compile Include="Peek\PeekSupportedContentTypeAttribute.cs" />
     <Compile Include="VSCommands.cs" />
     <Compile Include="VSGeneroConstants.cs" />
     <Compile Include="VSGeneroPackage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
+  <Choose>
+    <When Condition=" '$(VisualStudioVersion)'=='12.0'  Or '$(TargetVisualStudioVersion)'=='VS120' ">
+      <ItemGroup>
+        <Compile Include="ProductivityTools\BaseFilter.cs" />
+        <Compile Include="ProductivityTools\DisposableTagger.cs" />
+        <Compile Include="ProductivityTools\Genero4glBlockTaggerProvider.cs" />
+        <Compile Include="ProductivityTools\Genero4glParser.cs" />
+        <Compile Include="ProductivityTools\QuoteFilter.cs" />
+      </ItemGroup>
+    </When>
+  </Choose>
   <ItemDefinitionGroup>
     <ZipProject>
       <Language>Genero</Language>
@@ -580,20 +585,20 @@
     </EmbeddedResource>
   </ItemGroup>
   <Choose>
-    <When Condition="'$(VisualStudioVersion)' &gt; '11.0'">
+    <When Condition=" '$(VisualStudioVersion)'=='14.0'  Or '$(TargetVisualStudioVersion)'=='VS140' ">
       <ItemGroup>
-        <None Include="VS2013_Specific\source.extension.vsixmanifest">
+        <None Include="Dev14\source.extension.vsixmanifest">
           <SubType>Designer</SubType>
         </None>
       </ItemGroup>
     </When>
-    <Otherwise>
+    <When Condition=" '$(VisualStudioVersion)'=='12.0'  Or '$(TargetVisualStudioVersion)'=='VS120' ">
       <ItemGroup>
-        <None Include="source.extension.vsixmanifest">
+        <None Include="Dev12\source.extension.vsixmanifest">
           <SubType>Designer</SubType>
         </None>
       </ItemGroup>
-    </Otherwise>
+    </When>
   </Choose>
   <ItemGroup>
     <ZipItem Include="Templates\ProjectItems\EmptyPERFile\empty.per">
@@ -645,12 +650,6 @@
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
-    <!--<None Include="source.extension.vsixmanifest" Condition="'$(VisualStudioVersion)' &lt;= '11.0'">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="VS2013_Specific\source.extension.vsixmanifest" Condition="'$(VisualStudioVersion)' &gt; '11.0'">
-      <SubType>Designer</SubType>
-    </None>-->
     <Content Include="Templates\NewItem\NewGeneroItems.vsdir">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
@@ -690,7 +689,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Snippets\CodeSnippets\Snippets\" />
-    <Folder Include="Themes\" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\VSCommon\VSCommon.csproj">

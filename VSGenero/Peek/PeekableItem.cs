@@ -20,7 +20,7 @@ using System.Threading.Tasks;
 using VSGenero.Analysis;
 using VSGenero.Navigation;
 
-namespace VSGenero.VS2013Plus
+namespace VSGenero.Peek
 {
     class PeekableItem : IPeekableItem
     {

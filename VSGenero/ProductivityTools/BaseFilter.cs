@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace VSGenero.VS2013Plus.ProductivityTools
+namespace VSGenero.ProductivityTools
 {
     internal class BaseFilter
     {
