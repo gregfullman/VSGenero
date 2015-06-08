@@ -62,7 +62,7 @@ namespace VSGenero.Analysis.Parsing.AST
                             parser.NextToken();
                             if (parser.PeekToken(TokenKind.LeftParenthesis))
                             {
-
+                                parser.NextToken();
                                 DisplayAttribute attrib;
                                 while (DisplayAttribute.TryParseNode(parser, out attrib, node.IsArray))
                                 {
@@ -75,7 +75,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                 if (parser.PeekToken(TokenKind.RightParenthesis))
                                     parser.NextToken();
                                 else
-                                    parser.ReportSyntaxError("Expecting right-paren in input attributes section.");
+                                    parser.ReportSyntaxError("Expecting right-paren in display attributes section.");
                             }
                             else
                                 parser.ReportSyntaxError("Expecting left-paren in display attributes section.");
@@ -137,7 +137,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                 if (parser.PeekToken(TokenKind.RightParenthesis))
                                     parser.NextToken();
                                 else
-                                    parser.ReportSyntaxError("Expecting right-paren in input attributes section.");
+                                    parser.ReportSyntaxError("Expecting right-paren in display attributes section.");
                             }
                             else
                                 parser.ReportSyntaxError("Expecting left-paren in display attributes section.");
