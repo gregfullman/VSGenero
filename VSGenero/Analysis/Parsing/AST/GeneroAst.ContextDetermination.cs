@@ -681,7 +681,8 @@ namespace VSGenero.Analysis.Parsing.AST
                                 new BackwardTokenSearchItem(TokenKind.DefineKeyword),
                                 new BackwardTokenSearchItem(TokenKind.TypeKeyword),
                                 new BackwardTokenSearchItem(new OrderedTokenSet(new object[] { TokenKind.Comma, TokenKind.DefineKeyword })),
-                                new BackwardTokenSearchItem(new OrderedTokenSet(new object[] { TokenKind.Comma, TokenKind.TypeKeyword }))
+                                new BackwardTokenSearchItem(new OrderedTokenSet(new object[] { TokenKind.Comma, TokenKind.TypeKeyword })),
+                                new BackwardTokenSearchItem(new OrderedTokenSet(new object[] { TokenKind.Comma, TokenKind.RecordKeyword, TokenKind.EndKeyword }))
                             }
                         ),
                         new ContextPossibilities(
