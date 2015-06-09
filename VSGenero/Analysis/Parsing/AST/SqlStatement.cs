@@ -578,27 +578,6 @@ namespace VSGenero.Analysis.Parsing.AST
 
     #region Other Statements
 
-    public class CreateStatement : FglStatement
-    {
-        public static bool TryParseNode(Parser parser, out CreateStatement node)
-        {
-            node = null;
-            bool result = false;
-
-            if (parser.PeekToken(TokenKind.CreateKeyword))
-            {
-                result = true;
-                node = new CreateStatement();
-                parser.NextToken();
-                node.StartIndex = parser.Token.Span.Start;
-
-                // TODO: will get back to this when needed...
-            }
-
-            return result;
-        }
-    }
-
     public class AlterStatement : FglStatement
     {
         public static bool TryParseNode(Parser parser, out AlterStatement node)

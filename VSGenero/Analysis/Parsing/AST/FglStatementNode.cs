@@ -367,6 +367,15 @@ namespace VSGenero.Analysis.Parsing.AST
                         }
                         break;
                     }
+                case TokenKind.CreateKeyword:
+                    {
+                        CreateStatement createStmt;
+                        if((result = CreateStatement.TryParseNode(parser, out createStmt)))
+                        {
+                            node = createStmt;
+                        }
+                        break;
+                    }
                 default:
                     {
                         if (SqlStatementFactory.IsValidStatementStart(parser.PeekToken().Kind))

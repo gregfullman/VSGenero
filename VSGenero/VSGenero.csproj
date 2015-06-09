@@ -330,6 +330,7 @@
     <Compile Include="Analysis\Parsing\AST\CloseStatement.cs" />
     <Compile Include="Analysis\Parsing\AST\ConstructBlock.cs" />
     <Compile Include="Analysis\Parsing\AST\ContinueStatement.cs" />
+    <Compile Include="Analysis\Parsing\AST\CreateStatement.cs" />
     <Compile Include="Analysis\Parsing\AST\DeclareStatement.cs" />
     <Compile Include="Analysis\Parsing\AST\DialogBlock.cs" />
     <Compile Include="Analysis\Parsing\AST\DisplayStatement.cs" />
