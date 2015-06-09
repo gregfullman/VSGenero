@@ -90,6 +90,8 @@ namespace VSGenero.Analysis.Parsing.AST
 
         public override string ToString()
         {
+            if (_expression == null)
+                return "[]";
             return string.Format("[{0}]", _expression.ToString());
         }
 
