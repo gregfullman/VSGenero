@@ -378,7 +378,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         break;
                     }
                 default:
-                    //result = false;
+                    result = false;
                     break;
             }
 
@@ -391,6 +391,8 @@ namespace VSGenero.Analysis.Parsing.AST
                     node.Children.Add(inputStmt.StartIndex, inputStmt);
                     node.EndIndex = inputStmt.EndIndex;
                 }
+                if (node.EndIndex <= 0)
+                    node.EndIndex = node.DecoratorEnd;
                 if (node.Type == InputControlBlockType.None && node.Children.Count == 0)
                     result = false;
             }
@@ -459,6 +461,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         if (parser.PeekToken(TokenKind.InputKeyword, 2))
                         {
                             parser.NextToken();
+                            node.StartIndex = parser.Token.Span.Start;
                             parser.NextToken();
                         }
                         else
@@ -468,6 +471,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 case TokenKind.NextKeyword:
                     {
                         parser.NextToken();
+                        node.StartIndex = parser.Token.Span.Start;
                         if (parser.PeekToken(TokenKind.FieldKeyword))
                         {
                             parser.NextToken();
@@ -499,6 +503,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         if (isArray)
                         {
                             parser.NextToken();
+                            node.StartIndex = parser.Token.Span.Start;
                             if (parser.PeekToken(TokenKind.DeleteKeyword) || parser.PeekToken(TokenKind.InsertKeyword))
                                 parser.NextToken();
                             else
@@ -514,6 +519,9 @@ namespace VSGenero.Analysis.Parsing.AST
                         break;
                     }
             }
+
+            if (result && node != null)
+                node.EndIndex = parser.Token.Span.End;
 
             return result;
         }
@@ -708,6 +716,9 @@ namespace VSGenero.Analysis.Parsing.AST
                     result = false;
                     break;
             }
+
+            if (result && node != null)
+                node.EndIndex = parser.Token.Span.End;
 
             return result;
         }
