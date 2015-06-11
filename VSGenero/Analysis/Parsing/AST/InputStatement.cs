@@ -205,7 +205,7 @@ namespace VSGenero.Analysis.Parsing.AST
         Insert
     }
 
-    public class InputControlBlock : AstNode
+    public class InputControlBlock : AstNode, IOutlinableResult
     {
         public ExpressionNode IdleSeconds { get; private set; }
         public NameExpression ActionName { get; private set; }
@@ -223,7 +223,6 @@ namespace VSGenero.Analysis.Parsing.AST
         {
             node = new InputControlBlock();
             bool result = true;
-            node.StartIndex = parser.Token.Span.Start;
             node.FieldSpecList = new List<NameExpression>();
             node.KeyNameList = new List<NameExpression>();
 
@@ -233,6 +232,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 case TokenKind.AfterKeyword:
                     {
                         parser.NextToken();
+                        node.StartIndex = parser.Token.Span.Start;
                         if (parser.PeekToken(TokenKind.FieldKeyword))
                         {
                             parser.NextToken();
@@ -246,27 +246,32 @@ namespace VSGenero.Analysis.Parsing.AST
                                     break;
                                 parser.NextToken();
                             }
+                            node.DecoratorEnd = parser.Token.Span.End;
                         }
                         else if (parser.PeekToken(TokenKind.InputKeyword))
                         {
                             parser.NextToken();
                             node.Type = InputControlBlockType.Input;
+                            node.DecoratorEnd = parser.Token.Span.End;
                         }
                         else if(isArray &&
                                 parser.PeekToken(TokenKind.DeleteKeyword))
                         {
                             parser.NextToken();
                             node.Type = InputControlBlockType.Delete;
+                            node.DecoratorEnd = parser.Token.Span.End;
                         }
                         else if(isArray && parser.PeekToken(TokenKind.RowKeyword))
                         {
                             parser.NextToken();
                             node.Type = InputControlBlockType.Row;
+                            node.DecoratorEnd = parser.Token.Span.End;
                         }
                         else if(isArray && parser.PeekToken(TokenKind.InsertKeyword))
                         {
                             parser.NextToken();
                             node.Type = InputControlBlockType.Insert;
+                            node.DecoratorEnd = parser.Token.Span.End;
                         }
                         else
                         {
@@ -278,6 +283,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 case TokenKind.OnKeyword:
                     {
                         parser.NextToken();
+                        node.StartIndex = parser.Token.Span.Start;
                         switch(parser.PeekToken().Kind)
                         {
                             case TokenKind.ChangeKeyword:
@@ -292,6 +298,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                         break;
                                     parser.NextToken();
                                 }
+                                node.DecoratorEnd = parser.Token.Span.End;
                                 break;
                             case TokenKind.IdleKeyword:
                                 parser.NextToken();
@@ -303,6 +310,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                 else
                                     parser.ReportSyntaxError("Invalid idle-seconds found in input statement.");
                                 break;
+                                node.DecoratorEnd = parser.Token.Span.End;
                             case TokenKind.ActionKeyword:
                                 parser.NextToken();
                                 node.Type = InputControlBlockType.Action;
@@ -312,6 +320,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                     node.ActionName = actionName;
                                 else
                                     parser.ReportSyntaxError("Invalid action-name found in input statement.");
+                                node.DecoratorEnd = parser.Token.Span.End;
                                 if(parser.PeekToken(TokenKind.InfieldKeyword))
                                 {
                                     parser.NextToken();
@@ -341,6 +350,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                         parser.NextToken();
                                     else
                                         parser.ReportSyntaxError("Expected right-paren in input control block.");
+                                    node.DecoratorEnd = parser.Token.Span.End;
                                 }
                                 else
                                     parser.ReportSyntaxError("Expected left-paren in input control block.");
@@ -354,6 +364,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                         parser.NextToken();
                                     else
                                         parser.ReportSyntaxError("Expected \"change\" keyword in input statement.");
+                                    node.DecoratorEnd = parser.Token.Span.End;
                                 }
                                 else
                                     parser.ReportSyntaxError("\"on row\" syntax is only allowed in input array statement.");
@@ -376,14 +387,34 @@ namespace VSGenero.Analysis.Parsing.AST
                 // get the dialog statements
                 FglStatement inputStmt;
                 while (InputDialogStatementFactory.TryGetStatement(parser, out inputStmt, isArray, containingModule, prepStatementBinder, validExitKeywords))
+                {
                     node.Children.Add(inputStmt.StartIndex, inputStmt);
-
+                    node.EndIndex = inputStmt.EndIndex;
+                }
                 if (node.Type == InputControlBlockType.None && node.Children.Count == 0)
                     result = false;
             }
 
             return result;
         }
+
+        public bool CanOutline
+        {
+            get { return true; }
+        }
+
+        public int DecoratorStart
+        {
+            get
+            {
+                return StartIndex;
+            }
+            set
+            {
+            }
+        }
+
+        public int DecoratorEnd { get; set; }
     }
 
     public class InputDialogStatementFactory

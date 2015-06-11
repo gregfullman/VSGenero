@@ -10,7 +10,6 @@ namespace VSGenero.Analysis.Parsing.AST
     {
         public ExpressionNode MenuTitle { get; private set; }
         public List<ExpressionNode> Attributes { get; private set; }
-        public List<FglStatement> BeforeMenuStatements { get; private set; }
 
         public static bool TryParseNode(Parser parser, out MenuBlock node,
                                  IModuleResult containingModule,
@@ -27,7 +26,6 @@ namespace VSGenero.Analysis.Parsing.AST
                 parser.NextToken();
                 node.StartIndex = parser.Token.Span.Start;
                 node.Attributes = new List<ExpressionNode>();
-                node.BeforeMenuStatements = new List<FglStatement>();
 
                 ExpressionNode titleExpr;
                 if (ExpressionNode.TryGetExpressionNode(parser, out titleExpr, new List<TokenKind>
@@ -70,15 +68,25 @@ namespace VSGenero.Analysis.Parsing.AST
                     validExits.AddRange(validExitKeywords);
                 validExits.Add(TokenKind.MenuKeyword);
 
+                int beforeStart = -1, beforeDecEnd = -1, beforeEnd = -1;
                 if(parser.PeekToken(TokenKind.BeforeKeyword))
                 {
                     parser.NextToken();
+                    beforeStart = parser.Token.Span.Start;
                     if(parser.PeekToken(TokenKind.MenuKeyword))
                     {
                         parser.NextToken();
+                        beforeDecEnd = parser.Token.Span.End;
                         FglStatement menuStmt;
+                        List<FglStatement> stmts = new List<FglStatement>();
                         while (MenuStatementFactory.TryGetStatement(parser, out menuStmt, containingModule, prepStatementBinder, validExits))
-                            node.BeforeMenuStatements.Add(menuStmt);
+                        {
+                            stmts.Add(menuStmt);
+                            beforeEnd = menuStmt.EndIndex;
+                        }
+
+                        MenuOption beforeMenu = new MenuOption(beforeStart, beforeDecEnd, beforeEnd, stmts);
+                        node.Children.Add(beforeMenu.StartIndex, beforeMenu);
                     }
                     else
                         parser.ReportSyntaxError("Expecting \"before\" keyword for menu block.");
@@ -229,7 +237,7 @@ namespace VSGenero.Analysis.Parsing.AST
         }
     }
 
-    public class MenuOption : AstNode
+    public class MenuOption : AstNode, IOutlinableResult
     {
         public ExpressionNode OptionName { get; private set; }
         public ExpressionNode OptionComment { get; private set; }
@@ -239,6 +247,29 @@ namespace VSGenero.Analysis.Parsing.AST
         public NameExpression ActionName { get; private set; }
 
         public ExpressionNode IdleSeconds { get; private set; }
+        public bool IsBeforeMenuBlock { get; private set;}
+
+        private MenuOption()
+        {
+        }
+
+        /// <summary>
+        /// Only use this constructor to create a "before menu" block!
+        /// </summary>
+        /// <param name="beforeMenuStartIndex"></param>
+        /// <param name="beforeMenuDecoratorEndIndex"></param>
+        /// <param name="beforeMenuEndIndex"></param>
+        /// <param name="beforeMenuStatements"></param>
+        internal MenuOption(int beforeMenuStartIndex, int beforeMenuDecoratorEndIndex, int beforeMenuEndIndex, IEnumerable<FglStatement> beforeMenuStatements)
+        {
+            IsBeforeMenuBlock = true;
+            StartIndex = beforeMenuStartIndex;
+            DecoratorEnd = beforeMenuDecoratorEndIndex;
+            EndIndex = beforeMenuEndIndex;
+
+            foreach (var stmt in beforeMenuStatements)
+                Children.Add(stmt.StartIndex, stmt);
+        }
 
         public static bool TryParseNode(Parser parser, out MenuOption node,
                                  IModuleResult containingModule,
@@ -246,7 +277,6 @@ namespace VSGenero.Analysis.Parsing.AST
                                  List<TokenKind> validExitKeywords = null)
         {
             node = new MenuOption();
-            node.StartIndex = parser.Token.Span.Start;
             bool result = true;
 
             switch (parser.PeekToken().Kind)
@@ -254,6 +284,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 case TokenKind.CommandKeyword:
                     {
                         parser.NextToken();
+                        node.StartIndex = parser.Token.Span.Start;
                         bool getOptionName = false;
                         if(parser.PeekToken(TokenKind.KeyKeyword))
                         {
@@ -274,11 +305,13 @@ namespace VSGenero.Analysis.Parsing.AST
                             }
                             else
                                 parser.ReportSyntaxError("Expecting left-paren in menu command option.");
+                            node.DecoratorEnd = parser.Token.Span.End;
                         }
                         else
                         {
                             getOptionName = true;
                         }
+                        
                         
                         // at this point we need to try to get a menu-statement. If it doesn't work, we have some other stuff to gather
                         FglStatement menuStmt = null;
@@ -290,10 +323,11 @@ namespace VSGenero.Analysis.Parsing.AST
                             else
                                 parser.ReportSyntaxError("Invalid option-name found in menu command option.");
 
+                            node.DecoratorEnd = parser.Token.Span.End;
                             ExpressionNode optionComment;
                             if(ExpressionNode.TryGetExpressionNode(parser, out optionComment))
                                 node.OptionComment = optionComment;
-                           
+
                             if(parser.PeekToken(TokenKind.HelpKeyword))
                             {
                                 parser.NextToken();
@@ -319,6 +353,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 case TokenKind.OnKeyword:
                     {
                         parser.NextToken();
+                        node.StartIndex = parser.Token.Span.Start;
                         if (parser.PeekToken(TokenKind.ActionKeyword))
                         {
                             parser.NextToken();
@@ -327,7 +362,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                 node.ActionName = action;
                             else
                                 parser.ReportSyntaxError("Invalid action-name found in menu option.");
-
+                            node.DecoratorEnd = parser.Token.Span.End;
                             FglStatement menuStmt = null;
                             while (MenuStatementFactory.TryGetStatement(parser, out menuStmt, containingModule, prepStatementBinder, validExitKeywords))
                                 node.Children.Add(menuStmt.StartIndex, menuStmt);
@@ -340,7 +375,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                 node.IdleSeconds = idleExpr;
                             else
                                 parser.ReportSyntaxError("Invalid idle-seconds found in menu block.");
-
+                            node.DecoratorEnd = parser.Token.Span.End;
                             FglStatement menuStmt = null;
                             while (MenuStatementFactory.TryGetStatement(parser, out menuStmt, containingModule, prepStatementBinder, validExitKeywords))
                                 node.Children.Add(menuStmt.StartIndex, menuStmt);
@@ -358,5 +393,23 @@ namespace VSGenero.Analysis.Parsing.AST
 
             return result;
         }
+
+        public bool CanOutline
+        {
+            get { return true; }
+        }
+
+        public int DecoratorStart
+        {
+            get
+            {
+                return StartIndex;
+            }
+            set
+            {
+            }
+        }
+
+        public int DecoratorEnd { get; set; }
     }
 }
