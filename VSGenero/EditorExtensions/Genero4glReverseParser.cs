@@ -175,7 +175,7 @@ namespace VSGenero.EditorExtensions
             SnapshotSpan? start = null;
             paramIndex = 0;
             sigStart = null;
-            bool nestingChanged = false, lastTokenWasCommaOrOperator = true, lastTokenWasKeywordArgAssignment = false;
+            bool nestingChanged = false, lastTokenWasCommaOrOperator = true, lastTokenWasKeywordArgAssignment = false, lastTokenWasDot = false;
             int otherNesting = 0;
             bool isSigHelp = nesting != 0;
             isParameterName = false;
@@ -207,7 +207,7 @@ namespace VSGenero.EditorExtensions
 
                     if (token == null) {
                         // new line
-                        if (nesting != 0 || otherNesting != 0 || (enumerator.MoveNext() && IsExplicitLineJoin(enumerator.Current))) {
+                        if (nesting != 0 || otherNesting != 0 || lastTokenWasDot || (enumerator.MoveNext() && IsExplicitLineJoin(enumerator.Current))) {
                             // we're in a grouping, or the previous token is an explicit line join, we'll keep going.
                             continue;
                         } else {
@@ -237,6 +237,7 @@ namespace VSGenero.EditorExtensions
                         }
                         lastTokenWasCommaOrOperator = true;
                         lastTokenWasKeywordArgAssignment = false;
+                        lastTokenWasDot = false;
                     } else if (token.IsOpenGrouping()) {
                         if (otherNesting != 0) {
                             otherNesting--;
@@ -252,16 +253,19 @@ namespace VSGenero.EditorExtensions
                         nestingChanged = true;
                         lastTokenWasCommaOrOperator = true;
                         lastTokenWasKeywordArgAssignment = false;
+                        lastTokenWasDot = false;
                     } else if (text == ")") {
                         nesting++;
                         nestingChanged = true;
                         lastTokenWasCommaOrOperator = true;
                         lastTokenWasKeywordArgAssignment = false;
+                        lastTokenWasDot = false;
                     } else if (token.IsCloseGrouping()) {
                         otherNesting++;
                         nestingChanged = true;
                         lastTokenWasCommaOrOperator = true;
                         lastTokenWasKeywordArgAssignment = false;
+                        lastTokenWasDot = false;
                     } else if (/*token.ClassificationType == Classifier.Provider.Keyword ||*/   // We're going to exclude keywords from this logic...messing too many things up
                                token.ClassificationType == Classifier.Provider.Operator) {
                         lastTokenWasKeywordArgAssignment = false;
@@ -325,6 +329,7 @@ namespace VSGenero.EditorExtensions
                             if (isSigHelp && text == "=") {
                                 // keyword argument allowed in signatures
                                 lastTokenWasKeywordArgAssignment = lastTokenWasCommaOrOperator = true;
+                                lastTokenWasDot = false;
                             } else if (start == null || (nestingChanged && nesting != 0)) {
                                 return null;
                             } else {
@@ -341,12 +346,15 @@ namespace VSGenero.EditorExtensions
                             }
                         }
                         lastTokenWasCommaOrOperator = true;
+                        lastTokenWasDot = false;
                     } else if (token.ClassificationType == Classifier.Provider.DotClassification) {
                         lastTokenWasCommaOrOperator = true;
+                        lastTokenWasDot = true;
                         lastTokenWasKeywordArgAssignment = false;
                     } else if (token.ClassificationType == Classifier.Provider.CommaClassification) {
                         lastTokenWasCommaOrOperator = true;
                         lastTokenWasKeywordArgAssignment = false;
+                        lastTokenWasDot = false;
                         if (nesting == 0 && otherNesting == 0) {
                             if (start == null && !forCompletion) {
                                 return null;
@@ -371,6 +379,7 @@ namespace VSGenero.EditorExtensions
                             }
                         }
                         lastTokenWasCommaOrOperator = false;
+                        lastTokenWasDot = false;
                     }
 
                     start = token.Span;

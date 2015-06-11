@@ -398,6 +398,12 @@ namespace VSGenero.EditorExtensions.Intellisense
             }
 
             string text = exprRange.Value.GetText();
+            // remove any newlines in the text
+            string[] lines = text.Split(new[] { '\n' });
+            StringBuilder sb = new StringBuilder();
+            foreach (var line in lines)
+                sb.Append(line.Trim());
+            text = sb.ToString();
 
             var applicableSpan = parser.Snapshot.CreateTrackingSpan(
                 exprRange.Value.Span,

@@ -768,7 +768,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         ),
                         new ContextPossibilities(
                             new TokenKind [] { TokenKind.StepKeyword },
-                            emptyContextSetProviderSet,
+                            new ContextSetProvider[] { GetStatementStartKeywords },
                             new BackwardTokenSearchItem[] 
                             { 
                                 new BackwardTokenSearchItem(new OrderedTokenSet(new object[] { TokenKind.ToKeyword, TokenKind.Equals, TokenKind.ForKeyword }))
@@ -1416,7 +1416,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         ),
                         new ContextPossibilities(
                             new TokenKind[] { TokenKind.StepKeyword },
-                            emptyContextSetProviderSet,
+                            new ContextSetProvider[] { GetStatementStartKeywords },
                             new BackwardTokenSearchItem[] 
                             { 
                                 new BackwardTokenSearchItem(new OrderedTokenSet(new object[] { TokenKind.ToKeyword, TokenKind.Equals, TokenKind.ForKeyword }))
@@ -1621,7 +1621,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     {
                         new ContextPossibilities(
                             new TokenKind[] { TokenKind.StepKeyword },
-                            emptyContextSetProviderSet,
+                            new ContextSetProvider[] { GetStatementStartKeywords },
                             new BackwardTokenSearchItem[] 
                             { 
                                 new BackwardTokenSearchItem(new OrderedTokenSet(new object[] { TokenKind.ToKeyword, TokenKind.Equals, TokenKind.ForKeyword }))
@@ -1698,7 +1698,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         ),
                         new ContextPossibilities(
                             new TokenKind[] { TokenKind.StepKeyword },
-                            emptyContextSetProviderSet,
+                            new ContextSetProvider[] { GetStatementStartKeywords },
                             new BackwardTokenSearchItem[] 
                             { 
                                 new BackwardTokenSearchItem(new OrderedTokenSet(new object[] { TokenKind.ToKeyword, TokenKind.Equals, TokenKind.ForKeyword }))
