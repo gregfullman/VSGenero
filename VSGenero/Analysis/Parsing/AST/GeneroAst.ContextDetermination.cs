@@ -1881,6 +1881,14 @@ namespace VSGenero.Analysis.Parsing.AST
                         ),
                         new ContextPossibilities(
                             emptyTokenKindSet,
+                            new ContextSetProvider[] { GetStatementStartKeywords },
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(new OrderedTokenSet(new object[] { TokenKind.Dot, TokenKind.LikeKeyword, TokenKind.DefineKeyword }))
+                            }
+                        ),
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
                             new ContextSetProvider[] { GetExpressionComponents },
                             emptyBackwardTokenSearchSet
                         )
