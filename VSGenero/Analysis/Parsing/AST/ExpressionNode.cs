@@ -246,6 +246,11 @@ namespace VSGenero.Analysis.Parsing.AST
                 }
             }
 
+            if(result && node != null)
+            {
+                node.EndIndex = parser.Token.Span.End;
+            }
+
             return result;
         }
     }

@@ -85,6 +85,8 @@ namespace VSGenero.Analysis.Parsing.AST
                             beforeEnd = menuStmt.EndIndex;
                         }
 
+                        if (beforeEnd < 0)
+                            beforeEnd = beforeDecEnd;
                         MenuOption beforeMenu = new MenuOption(beforeStart, beforeDecEnd, beforeEnd, stmts);
                         node.Children.Add(beforeMenu.StartIndex, beforeMenu);
                     }
