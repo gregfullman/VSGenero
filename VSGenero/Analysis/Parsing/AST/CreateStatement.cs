@@ -217,6 +217,7 @@ namespace VSGenero.Analysis.Parsing.AST
         public static bool TryParseNode(Parser parser, out CreatedTableColumn node)
         {
             node = new CreatedTableColumn();
+            node.StartIndex = parser.Token.Span.Start;
             bool result = true;
 
             switch (parser.PeekToken().Kind)

@@ -159,6 +159,7 @@ namespace VSGenero.Analysis.Parsing.AST
         public static bool TryParseNode(Parser parser, out MenuStatement node)
         {
             node = new MenuStatement();
+            node.StartIndex = parser.Token.Span.Start;
             node.OptionNames = new List<NameExpression>();
             bool result = true;
 
@@ -310,7 +311,8 @@ namespace VSGenero.Analysis.Parsing.AST
                         }
 
                         while (MenuStatementFactory.TryGetStatement(parser, out menuStmt, containingModule, prepStatementBinder, validExitKeywords))
-                            node.Children.Add(menuStmt.StartIndex, menuStmt);
+                            if(menuStmt != null && !node.Children.ContainsKey(menuStmt.StartIndex))
+                                node.Children.Add(menuStmt.StartIndex, menuStmt);
 
                         break;
                     }

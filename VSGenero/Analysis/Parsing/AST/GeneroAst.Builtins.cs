@@ -76,6 +76,27 @@ namespace VSGenero.Analysis.Parsing.AST
             }
         }
 
+        private static void InitializeSystemMacros()
+        {
+            lock(_systemMacrosLock)
+            {
+                _systemMacros = new Dictionary<string, IAnalysisResult>(StringComparer.OrdinalIgnoreCase);
+                _systemMacros.Add("__LINE__", new SystemMacro("__LINE__", null));
+                _systemMacros.Add("__FILE__", new SystemMacro("__FILE__", null));
+            }
+        }
+        private static object _systemMacrosLock = new object();
+        private static Dictionary<string, IAnalysisResult> _systemMacros;
+        public static IDictionary<string, IAnalysisResult> SystemMacros
+        {
+            get
+            {
+                if (_systemMacros == null)
+                    InitializeSystemMacros();
+                return _systemMacros;
+            }
+        }
+
         private static Dictionary<string, IFunctionResult> _systemFunctions;
         public static IDictionary<string, IFunctionResult> SystemFunctions
         {
@@ -578,6 +599,87 @@ new ParameterResult("width", "", "integer"),
         public bool HasChildFunctions(GeneroAst ast)
         {
             return false;
+        }
+    }
+
+    public class SystemMacro : IAnalysisResult
+    {
+        private readonly string _name;
+        private readonly Func<string> _macroExpansion;
+        const string _scope = "system macro";
+
+        public SystemMacro(string name, Func<string> macroExpansion)
+        {
+            _name = name;
+            _macroExpansion = macroExpansion;
+        }
+
+        public string Scope
+        {
+            get
+            {
+                return _scope;
+            }
+            set
+            {
+            }
+        }
+
+        public string Name
+        {
+            get { return _name; }
+        }
+
+        public string Documentation
+        {
+            get
+            {
+                StringBuilder sb = new StringBuilder();
+                if (!string.IsNullOrWhiteSpace(Scope))
+                {
+                    sb.AppendFormat("({0}) ", Scope);
+                }
+                sb.Append(Name);
+                if (_macroExpansion != null)
+                    sb.AppendFormat(" = {0}", _macroExpansion());
+                return sb.ToString();
+            }
+        }
+
+        public int LocationIndex
+        {
+            get { return -1; }
+        }
+
+        public LocationInfo Location
+        {
+            get { return null; }
+        }
+
+        public bool HasChildFunctions(GeneroAst ast)
+        {
+            return false;
+        }
+
+        public bool CanGetValueFromDebugger
+        {
+            get { return false; }
+        }
+
+        public bool IsPublic
+        {
+            get { return true; }
+        }
+
+        public IAnalysisResult GetMember(string name, GeneroAst ast, out IGeneroProject definingProject)
+        {
+            definingProject = null;
+            return null;
+        }
+
+        public IEnumerable<MemberResult> GetMembers(GeneroAst ast, MemberType memberType)
+        {
+            return null;
         }
     }
 

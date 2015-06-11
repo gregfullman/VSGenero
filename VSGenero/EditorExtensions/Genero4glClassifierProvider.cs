@@ -15,6 +15,7 @@ namespace VSGenero.EditorExtensions
 {
     [ContentType(VSGeneroConstants.ContentType4GL)]
     [ContentType(VSGeneroConstants.ContentTypeINC)]
+    [ContentType(VSGeneroConstants.ContentTypePER)]
     [Export(typeof(IClassifierProvider))]
     public class Genero4glClassifierProvider : IClassifierProvider
     {
@@ -40,6 +41,7 @@ namespace VSGenero.EditorExtensions
             _types = new List<IContentType>();
             _types.Add(contentTypeRegistryService.GetContentType(VSGeneroConstants.ContentType4GL));
             _types.Add(contentTypeRegistryService.GetContentType(VSGeneroConstants.ContentTypeINC));
+            _types.Add(contentTypeRegistryService.GetContentType(VSGeneroConstants.ContentTypePER));
         }
 
         /// <summary>

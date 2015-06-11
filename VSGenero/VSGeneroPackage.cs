@@ -407,6 +407,7 @@ namespace VSGenero
                     _programCodeContentTypes = new List<IContentType>(); 
                     _programCodeContentTypes.Add(regSvc.GetContentType(VSGeneroConstants.ContentType4GL));
                     _programCodeContentTypes.Add(regSvc.GetContentType(VSGeneroConstants.ContentTypeINC));
+                    _programCodeContentTypes.Add(regSvc.GetContentType(VSGeneroConstants.ContentTypePER));
                 }
                 return _programCodeContentTypes;
             }

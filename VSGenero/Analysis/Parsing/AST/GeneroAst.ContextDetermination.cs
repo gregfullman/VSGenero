@@ -127,6 +127,14 @@ namespace VSGenero.Analysis.Parsing.AST
                             emptyBackwardTokenSearchSet
                         )
                     });
+                    _contextMap.Add(TokenKind.BetweenKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetExpressionComponents },
+                            emptyBackwardTokenSearchSet
+                        )
+                    });
                     _contextMap.Add(TokenKind.ByKeyword, new List<ContextPossibilities>
                     {
                         new ContextPossibilities(
@@ -1916,6 +1924,14 @@ namespace VSGenero.Analysis.Parsing.AST
                             { 
                                 new BackwardTokenSearchItem(TokenKind.CreateKeyword)
                             }
+                        )
+                    });
+                    _contextMap.Add(TokenKind.ThenKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetStatementStartKeywords },
+                            emptyBackwardTokenSearchSet
                         )
                     });
                     _contextMap.Add(TokenKind.ThruKeyword, new List<ContextPossibilities>

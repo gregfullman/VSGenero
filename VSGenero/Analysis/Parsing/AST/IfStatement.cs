@@ -10,7 +10,7 @@ namespace VSGenero.Analysis.Parsing.AST
     {
         public ExpressionNode ConditionExpression { get; private set; }
 
-        public static bool TryParseNode(Parser parser, out IfStatement node, 
+        public static bool TryParseNode(Parser parser, out IfStatement node,
                                  IModuleResult containingModule,
                                  Action<PrepareStatement> prepStatementBinder = null,
                                  List<TokenKind> validExitKeywords = null)
@@ -18,7 +18,7 @@ namespace VSGenero.Analysis.Parsing.AST
             node = null;
             bool result = false;
 
-            if(parser.PeekToken(TokenKind.IfKeyword))
+            if (parser.PeekToken(TokenKind.IfKeyword))
             {
                 result = true;
                 node = new IfStatement();
@@ -35,40 +35,41 @@ namespace VSGenero.Analysis.Parsing.AST
                     node.ConditionExpression = conditionExpr;
                 }
 
-                if (!parser.PeekToken(TokenKind.ThenKeyword))
-                    parser.ReportSyntaxError("An if statement must have a \"then\" keyword prior to containing code.");
-                else
-                    parser.NextToken();
-
-                node.DecoratorEnd = parser.Token.Span.End;
-
-                IfBlockContentsNode ifBlock;
-                if(IfBlockContentsNode.TryParseNode(parser, out ifBlock, containingModule, prepStatementBinder, validExitKeywords))
-                {
-                    node.Children.Add(ifBlock.StartIndex, ifBlock);
-                }
-
-                if(parser.PeekToken(TokenKind.ElseKeyword))
+                if (parser.PeekToken(TokenKind.ThenKeyword))
                 {
                     parser.NextToken();
-                    ElseBlockContentsNode elseBlock;
-                    if (ElseBlockContentsNode.TryParseNode(parser, out elseBlock, containingModule, prepStatementBinder, validExitKeywords))
+
+                    node.DecoratorEnd = parser.Token.Span.End;
+
+                    IfBlockContentsNode ifBlock;
+                    if (IfBlockContentsNode.TryParseNode(parser, out ifBlock, containingModule, prepStatementBinder, validExitKeywords))
                     {
-                        node.Children.Add(elseBlock.StartIndex, elseBlock);
+                        node.Children.Add(ifBlock.StartIndex, ifBlock);
+                    }
+
+                    if (parser.PeekToken(TokenKind.ElseKeyword))
+                    {
+                        parser.NextToken();
+                        ElseBlockContentsNode elseBlock;
+                        if (ElseBlockContentsNode.TryParseNode(parser, out elseBlock, containingModule, prepStatementBinder, validExitKeywords))
+                        {
+                            node.Children.Add(elseBlock.StartIndex, elseBlock);
+                        }
+                    }
+
+                    if (!(parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.IfKeyword, 2)))
+                    {
+                        parser.ReportSyntaxError("An if statement must be terminated with \"end if\".");
+                    }
+                    else
+                    {
+                        parser.NextToken(); // advance to the 'end' token
+                        parser.NextToken(); // advance to the 'if' token
+                        node.EndIndex = parser.Token.Span.End;
                     }
                 }
-
-                if (!(parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.IfKeyword, 2)))
-                {
-                    parser.ReportSyntaxError("An if statement must be terminated with \"end if\".");
-                }
                 else
-                {
-                    parser.NextToken(); // advance to the 'end' token
-                    parser.NextToken(); // advance to the 'if' token
-                    node.EndIndex = parser.Token.Span.End;
-                }
-
+                    parser.ReportSyntaxError("An if statement must have a \"then\" keyword prior to containing code.");
             }
 
             return result;
@@ -102,7 +103,7 @@ namespace VSGenero.Analysis.Parsing.AST
         {
             node = new IfBlockContentsNode();
             node.StartIndex = parser.Token.Span.Start;
-            while(!parser.PeekToken(TokenKind.EndOfFile) &&
+            while (!parser.PeekToken(TokenKind.EndOfFile) &&
                   !parser.PeekToken(TokenKind.ElseKeyword) &&
                   !(parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.IfKeyword, 2)))
             {
@@ -110,7 +111,8 @@ namespace VSGenero.Analysis.Parsing.AST
                 if (parser.StatementFactory.TryParseNode(parser, out statement, containingModule, prepStatementBinder, false, validExitKeywords))
                 {
                     AstNode stmtNode = statement as AstNode;
-                    node.Children.Add(stmtNode.StartIndex, stmtNode);
+                    if (stmtNode != null && !node.Children.ContainsKey(stmtNode.StartIndex))
+                        node.Children.Add(stmtNode.StartIndex, stmtNode);
                 }
                 else
                 {
@@ -132,14 +134,15 @@ namespace VSGenero.Analysis.Parsing.AST
         {
             node = new ElseBlockContentsNode();
             node.StartIndex = parser.Token.Span.Start;
-            while (!parser.PeekToken(TokenKind.EndOfFile) && 
+            while (!parser.PeekToken(TokenKind.EndOfFile) &&
                    !(parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.IfKeyword, 2)))
             {
                 FglStatement statement;
                 if (parser.StatementFactory.TryParseNode(parser, out statement, containingModule, prepStatementBinder, false, validExitKeywords))
                 {
                     AstNode stmtNode = statement as AstNode;
-                    node.Children.Add(stmtNode.StartIndex, stmtNode);
+                    if(stmtNode != null && !node.Children.ContainsKey(stmtNode.StartIndex))
+                        node.Children.Add(stmtNode.StartIndex, stmtNode);
                 }
                 else
                 {
@@ -147,7 +150,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 }
             }
             node.EndIndex = parser.Token.Span.End;
-            
+
             return true;
         }
     }
