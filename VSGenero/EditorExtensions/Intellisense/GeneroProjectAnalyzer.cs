@@ -155,6 +155,7 @@ namespace VSGenero.EditorExtensions.Intellisense
 
         private IGeneroProjectEntry CreateProjectEntry(string filename, IAnalysisCookie analysisCookie)
         {
+            bool shouldAnalyzePath = false;
             IGeneroProjectEntry entry = null;
             if (filename != null)
             {
@@ -167,9 +168,10 @@ namespace VSGenero.EditorExtensions.Intellisense
                         extension.Equals(VSGeneroConstants.FileExtensionINC, StringComparison.OrdinalIgnoreCase) ||
                         extension.Equals(VSGeneroConstants.FileExtensionPER, StringComparison.OrdinalIgnoreCase))
                     {
+                        shouldAnalyzePath = ShouldAnalyzePath(filename);
                         string moduleName = null;   // TODO: get module name from provider (if provider is null, take the file's directory name)
                         IAnalysisCookie cookie = null;
-                        entry = new GeneroProjectEntry(moduleName, filename, cookie);
+                        entry = new GeneroProjectEntry(moduleName, filename, cookie, shouldAnalyzePath);
                     }
 
                     if (entry != null)
@@ -179,7 +181,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                         entry.SetProject(proj);
                         _projects.AddOrUpdate(dirPath, proj, (x, y) => y);
 
-                        if (ImplicitProject && ShouldAnalyzePath(filename))
+                        if (ImplicitProject && shouldAnalyzePath)
                         { // don't analyze std lib
                             QueueDirectoryAnalysis(dirPath, filename);
                         }
@@ -193,9 +195,10 @@ namespace VSGenero.EditorExtensions.Intellisense
                             extension.Equals(VSGeneroConstants.FileExtensionINC, StringComparison.OrdinalIgnoreCase) ||
                             extension.Equals(VSGeneroConstants.FileExtensionPER, StringComparison.OrdinalIgnoreCase))
                         {
+                            shouldAnalyzePath = ShouldAnalyzePath(filename);
                             string moduleName = null;   // TODO: get module name from provider (if provider is null, take the file's directory name)
                             IAnalysisCookie cookie = null;
-                            entry = new GeneroProjectEntry(moduleName, filename, cookie);
+                            entry = new GeneroProjectEntry(moduleName, filename, cookie, shouldAnalyzePath);
                         }
                     }
                     if (entry != null)
@@ -204,7 +207,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                         entry.SetProject(projEntry);
                         _projects.AddOrUpdate(dirPath, projEntry, (x, y) => y);
 
-                        if (ImplicitProject && ShouldAnalyzePath(filename))
+                        if (ImplicitProject && shouldAnalyzePath)
                         { // don't analyze std lib
                             QueueDirectoryAnalysis(dirPath, filename);
                         }
@@ -246,6 +249,14 @@ namespace VSGenero.EditorExtensions.Intellisense
 
         private bool ShouldAnalyzePath(string path)
         {
+            // Devart Code Compare is very resource hungry within VS, so we don't want to do a complete
+            // directory analysis if the file is being opened for a compare.
+            System.Diagnostics.StackTrace trace = new System.Diagnostics.StackTrace(true);
+            if (trace.GetFrames().Any(x => x.GetMethod().Name.IndexOf("compare", StringComparison.OrdinalIgnoreCase) >= 0))
+            {
+                return false;
+            }
+
             // For now, we're going to assume that the scope of the program
             // is the directory in which the specified file resides.
             return true;
@@ -344,7 +355,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                     {
                         string moduleName = null;   // TODO: get module name from provider (if provider is null, take the file's directory name)
                         IAnalysisCookie cookie = null;
-                        entry = new GeneroProjectEntry(moduleName, path, cookie);
+                        entry = new GeneroProjectEntry(moduleName, path, cookie, true);
                     }
 
                     if (entry != null)
@@ -363,7 +374,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                         {
                             string moduleName = null;   // TODO: get module name from provider (if provider is null, take the file's directory name)
                             IAnalysisCookie cookie = null;
-                            entry = new GeneroProjectEntry(moduleName, path, cookie);
+                            entry = new GeneroProjectEntry(moduleName, path, cookie, true);
                         }
                     }
                     if (entry != null)

@@ -20,6 +20,7 @@ namespace VSGenero.Analysis
     {
         private readonly string _moduleName;
         private readonly string _filePath;
+        private readonly bool _shouldAnalyzeDir;
         //private readonly ModuleInfo _myScope;
         private IAnalysisCookie _cookie;
         private GeneroAst _tree;
@@ -32,11 +33,12 @@ namespace VSGenero.Analysis
         // we expect to have at most 1 waiter on updated project entries, so we attempt to share the event.
         private static ManualResetEventSlim _sharedWaitEvent = new ManualResetEventSlim(false);
 
-        internal GeneroProjectEntry(string moduleName, string filePath, IAnalysisCookie cookie)
+        internal GeneroProjectEntry(string moduleName, string filePath, IAnalysisCookie cookie, bool shouldAnalyzeDir)
         {
             _moduleName = moduleName ?? "";
             _filePath = filePath;
             _cookie = cookie;
+            _shouldAnalyzeDir = shouldAnalyzeDir;
             //_myScope = new ModuleInfo(_moduleName, this, state.Interpreter.CreateModuleContext());
             //_unit = new AnalysisUnit(_tree, _myScope.Scope);
             //AnalysisLog.NewUnit(_unit);
@@ -264,7 +266,7 @@ namespace VSGenero.Analysis
 
         public void UpdateIncludesAndImports(string filename, GeneroAst ast)
         {
-            if (VSGeneroPackage.Instance.ProgramFileProvider != null)
+            if (_shouldAnalyzeDir && VSGeneroPackage.Instance.ProgramFileProvider != null)
             {
                 // first do imports
                 if (_lastImportedModules == null)
