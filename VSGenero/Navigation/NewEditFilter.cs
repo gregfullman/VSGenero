@@ -81,31 +81,34 @@ namespace VSGenero.Navigation
             }
 
             var analysis = textView.GetExpressionAnalysis(funcProvider, dbProvider, progfileProvider);
-
-            Dictionary<LocationInfo, SimpleLocationInfo> references, definitions, values;
-            GetDefsRefsAndValues(analysis, out definitions, out references, out values);
-
-            if (options.HasFlag(GetLocationOptions.Values))
+            if (analysis != null)
             {
-                foreach (var location in values.Keys)
+
+                Dictionary<LocationInfo, SimpleLocationInfo> references, definitions, values;
+                GetDefsRefsAndValues(analysis, out definitions, out references, out values);
+
+                if (options.HasFlag(GetLocationOptions.Values))
                 {
-                    locations.Add(location);
+                    foreach (var location in values.Keys)
+                    {
+                        locations.Add(location);
+                    }
                 }
-            }
 
-            if (options.HasFlag(GetLocationOptions.Definitions))
-            {
-                foreach (var location in definitions.Keys)
+                if (options.HasFlag(GetLocationOptions.Definitions))
                 {
-                    locations.Add(location);
+                    foreach (var location in definitions.Keys)
+                    {
+                        locations.Add(location);
+                    }
                 }
-            }
 
-            if (options.HasFlag(GetLocationOptions.References))
-            {
-                foreach (var location in references.Keys)
+                if (options.HasFlag(GetLocationOptions.References))
                 {
-                    locations.Add(location);
+                    foreach (var location in references.Keys)
+                    {
+                        locations.Add(location);
+                    }
                 }
             }
 
@@ -137,56 +140,63 @@ namespace VSGenero.Navigation
             UpdateStatusForIncompleteAnalysis();
 
             var analysis = _textView.GetExpressionAnalysis(_functionProvider, _databaseProvider, _programFileProvider);
-
-            Dictionary<LocationInfo, SimpleLocationInfo> references, definitions, values;
-            GetDefsRefsAndValues(analysis, out definitions, out references, out values);
-
-            if ((values.Count + definitions.Count) == 1)
+            if (analysis == null)
             {
-                if (values.Count != 0)
-                {
-                    foreach (var location in values.Keys)
-                    {
-                        GotoLocation(location);
-                        break;
-                    }
-                }
-                else
-                {
-                    foreach (var location in definitions.Keys)
-                    {
-                        GotoLocation(location);
-                        break;
-                    }
-                }
-            }
-            else if (values.Count + definitions.Count == 0)
-            {
-                if (String.IsNullOrWhiteSpace(analysis.Expression))
-                {
-                    MessageBox.Show(String.Format("Cannot go to definition.  The cursor is not on a symbol."), "Python Tools for Visual Studio");
-                }
-                else
-                {
-                    MessageBox.Show(String.Format("Cannot go to definition \"{0}\"", analysis.Expression), "Python Tools for Visual Studio");
-                }
-            }
-            else if (definitions.Count == 0)
-            {
-                ShowFindSymbolsDialog(analysis, new SymbolList("Values", StandardGlyphGroup.GlyphForwardType, values.Values));
-            }
-            else if (values.Count == 0)
-            {
-                ShowFindSymbolsDialog(analysis, new SymbolList("Definitions", StandardGlyphGroup.GlyphLibrary, definitions.Values));
+                MessageBox.Show(String.Format("Cannot go to definition.  The cursor is not on a symbol."), "VSGenero");
+                return VSConstants.S_OK;
             }
             else
             {
-                ShowFindSymbolsDialog(analysis,
-                    new LocationCategory("Goto Definition",
-                        new SymbolList("Definitions", StandardGlyphGroup.GlyphLibrary, definitions.Values),
-                        new SymbolList("Values", StandardGlyphGroup.GlyphForwardType, values.Values)
-                    )
-                );
+                Dictionary<LocationInfo, SimpleLocationInfo> references, definitions, values;
+                GetDefsRefsAndValues(analysis, out definitions, out references, out values);
+
+                if ((values.Count + definitions.Count) == 1)
+                {
+                    if (values.Count != 0)
+                    {
+                        foreach (var location in values.Keys)
+                        {
+                            GotoLocation(location);
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        foreach (var location in definitions.Keys)
+                        {
+                            GotoLocation(location);
+                            break;
+                        }
+                    }
+                }
+                else if (values.Count + definitions.Count == 0)
+                {
+                    if (String.IsNullOrWhiteSpace(analysis.Expression))
+                    {
+                        MessageBox.Show(String.Format("Cannot go to definition.  The cursor is not on a symbol."), "VSGenero");
+                    }
+                    else
+                    {
+                        MessageBox.Show(String.Format("Cannot go to definition \"{0}\"", analysis.Expression), "VSGenero");
+                    }
+                }
+                else if (definitions.Count == 0)
+                {
+                    ShowFindSymbolsDialog(analysis, new SymbolList("Values", StandardGlyphGroup.GlyphForwardType, values.Values));
+                }
+                else if (values.Count == 0)
+                {
+                    ShowFindSymbolsDialog(analysis, new SymbolList("Definitions", StandardGlyphGroup.GlyphLibrary, definitions.Values));
+                }
+                else
+                {
+                    ShowFindSymbolsDialog(analysis,
+                        new LocationCategory("Goto Definition",
+                            new SymbolList("Definitions", StandardGlyphGroup.GlyphLibrary, definitions.Values),
+                            new SymbolList("Values", StandardGlyphGroup.GlyphForwardType, values.Values)
+                        )
+                    );
+                }
             }
 
             return VSConstants.S_OK;
@@ -224,9 +234,11 @@ namespace VSGenero.Navigation
             UpdateStatusForIncompleteAnalysis();
 
             var analysis = _textView.GetExpressionAnalysis(_functionProvider, _databaseProvider, _programFileProvider);
-
-            var locations = GetFindRefLocations(analysis);
-
+            LocationCategory locations = null;
+            if (analysis != null)
+            {
+                locations = GetFindRefLocations(analysis);
+            }
             ShowFindSymbolsDialog(analysis, locations);
 
             return VSConstants.S_OK;
@@ -292,7 +304,7 @@ namespace VSGenero.Navigation
             // We want to keep the call to within this package.
             VSGeneroPackage.Instance.LoadLibraryManager();
 
-            if (provider.Expression != "")
+            if (provider != null && provider.Expression != "")
             {
                 var findSym = (IVsFindSymbol)VSGeneroPackage.GetGlobalService(typeof(SVsObjectSearch));
                 VSOBSEARCHCRITERIA2 searchCriteria = new VSOBSEARCHCRITERIA2();

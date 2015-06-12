@@ -91,10 +91,10 @@ namespace VSGenero.EditorExtensions.Intellisense
                 {
                     quickInfoContent.Add(val.Documentation);
                 }
-                else 
+                else
                 {
                     string qiText;
-                    if(TryGetQuickInfoFromDebugger(session, applicableToSpan.GetSpan(subjectBuffer.CurrentSnapshot), viewAdapter, out qiText))
+                    if (TryGetQuickInfoFromDebugger(session, applicableToSpan.GetSpan(subjectBuffer.CurrentSnapshot), viewAdapter, out qiText))
                     {
                         quickInfoContent.Add(qiText);
                     }

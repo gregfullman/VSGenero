@@ -53,6 +53,8 @@ namespace VSGenero.EditorExtensions
                                                                  IProgramFileProvider programFileProvider)
         {
             ITrackingSpan span = GetCaretSpan(view);
+            if (span == null)
+                return null;
             // TODO: get the function provider and database provider from EditFilter class.
             return span.TextBuffer.CurrentSnapshot.AnalyzeExpression(span, false, functionProvider, databaseProvider, programFileProvider);
         }
@@ -60,7 +62,8 @@ namespace VSGenero.EditorExtensions
         internal static ITrackingSpan GetCaretSpan(this ITextView view)
         {
             var caretPoint = view.GetCaretPosition();
-            Debug.Assert(caretPoint != null);
+            if (caretPoint == null)
+                return null;
             var snapshot = caretPoint.Value.Snapshot;
             var caretPos = caretPoint.Value.Position;
 

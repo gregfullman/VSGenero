@@ -33,11 +33,13 @@ using System.IO;
 using VSGenero.EditorExtensions.Intellisense;
 using Microsoft.VisualStudio.Text.Tagging;
 using VSGenero.Analysis;
+using IServiceProvider = System.IServiceProvider;
 
 namespace VSGenero.Navigation
 {
     internal class VSGeneroCodeWindowManager : IVsCodeWindowManager, IVsCodeWindowEvents
     {
+        private readonly IServiceProvider _serviceProvider;
         private readonly IVsCodeWindow _window;
         private readonly ITextBuffer _textBuffer;
         private static readonly HashSet<VSGeneroCodeWindowManager> _windows = new HashSet<VSGeneroCodeWindowManager>();
@@ -45,8 +47,9 @@ namespace VSGenero.Navigation
         private DropDownBarClient _client;
         private static IVsEditorAdaptersFactoryService _vsEditorAdaptersFactoryService = null;
 
-        public VSGeneroCodeWindowManager(IVsCodeWindow codeWindow, IWpfTextView textView)
+        public VSGeneroCodeWindowManager(IServiceProvider serviceProvider, IVsCodeWindow codeWindow, IWpfTextView textView)
         {
+            _serviceProvider = serviceProvider;
             _window = codeWindow;
             _textBuffer = textView.TextBuffer;
 
@@ -198,9 +201,7 @@ namespace VSGenero.Navigation
                 var factory = VSGeneroPackage.ComponentModel.GetService<IEditorOperationsFactoryService>();
                 var editFilter = new EditFilter(wpfTextView, factory.GetEditorOperations(wpfTextView));
                 editFilter.AttachKeyboardFilter(vsTextView);
-                //#if DEV11_OR_LATER
-                //                new TextViewFilter(vsTextView);
-                //#endif
+                //new TextViewFilter(_serviceProvider, vsTextView);
                 wpfTextView.GotAggregateFocus += OnTextViewGotAggregateFocus;
             }
             return VSConstants.S_OK;
