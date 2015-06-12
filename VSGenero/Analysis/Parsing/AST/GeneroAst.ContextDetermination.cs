@@ -2303,9 +2303,6 @@ namespace VSGenero.Analysis.Parsing.AST
             _databaseProvider = databaseProvider;
             _programFileProvider = programFileProvider;
 
-            // set up the static providers
-            SetMemberProviders(GetAdditionalUserDefinedTypes, GetDatabaseTables, GetDatabaseTableColumns);
-
             List<MemberResult> members = new List<MemberResult>();
             // First see if we have a member completion
             if (TryMemberAccess(index, revTokenizer, out members))

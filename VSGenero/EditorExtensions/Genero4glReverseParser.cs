@@ -487,5 +487,21 @@ namespace VSGenero.EditorExtensions
             }
             return false;
         }
+
+
+        public string GetExpressionText()
+        {
+            var span = GetExpressionRange();
+            if(span.HasValue)
+            {
+                var str = span.Value.GetText();
+                var strLines = str.Split(new[] { '\n' });
+                StringBuilder sb = new StringBuilder();
+                foreach (var line in strLines)
+                    sb.Append(line.Trim());
+                return sb.ToString();
+            }
+            return null;
+        }
     }
 }

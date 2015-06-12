@@ -10,5 +10,6 @@ namespace VSGenero.Analysis
     public interface IReverseTokenizer
     {
         IEnumerable<TokenInfo> GetReversedTokens();
+        string GetExpressionText();
     }
 }
