@@ -400,7 +400,7 @@ namespace VSGenero.Analysis.Parsing.AST
         Key
     }
 
-    public class DisplayControlBlock : AstNode
+    public class DisplayControlBlock : AstNode, IOutlinableResult
     {
         public ExpressionNode IdleSeconds { get; private set; }
         public NameExpression ActionName { get; private set; }
@@ -418,7 +418,6 @@ namespace VSGenero.Analysis.Parsing.AST
         {
             node = new DisplayControlBlock();
             bool result = true;
-            node.StartIndex = parser.Token.Span.Start;
             node.KeyNameList = new List<NameExpression>();
 
             bool isDragAndDrop = false;
@@ -428,6 +427,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 case TokenKind.AfterKeyword:
                     {
                         parser.NextToken();
+                        node.StartIndex = parser.Token.Span.Start;
                         if (parser.PeekToken(TokenKind.DisplayKeyword))
                         {
                             parser.NextToken();
@@ -438,11 +438,17 @@ namespace VSGenero.Analysis.Parsing.AST
                             parser.NextToken();
                             node.Type = DisplayControlBlockType.Row;
                         }
+                        else
+                        {
+                            parser.ReportSyntaxError("Unexpected keyword found in display control block.");
+                            result = false;
+                        }
                         break;
                     }
                 case TokenKind.OnKeyword:
                     {
                         parser.NextToken();
+                        node.StartIndex = parser.Token.Span.Start;
                         switch (parser.PeekToken().Kind)
                         {
                             case TokenKind.IdleKeyword:
@@ -549,18 +555,19 @@ namespace VSGenero.Analysis.Parsing.AST
                                 break;
                             default:
                                 parser.ReportSyntaxError("Unexpected token found in input control block.");
-                                //result = false;
+                                result = false;
                                 break;
                         }
                         break;
                     }
                 default:
-                    //result = false;
+                    result = false;
                     break;
             }
 
             if (result)
             {
+                node.DecoratorEnd = parser.Token.Span.End;
                 if(isDragAndDrop)
                 {
                     if (parser.PeekToken(TokenKind.LeftParenthesis))
@@ -584,7 +591,10 @@ namespace VSGenero.Analysis.Parsing.AST
                 // get the dialog statements
                 FglStatement dispStmt;
                 while (DisplayStatementFactory.TryGetStatement(parser, out dispStmt, isArray, containingModule, prepStatementBinder, validExitKeywords))
+                {
                     node.Children.Add(dispStmt.StartIndex, dispStmt);
+                    node.EndIndex = dispStmt.EndIndex;
+                }
 
                 if (node.Type == DisplayControlBlockType.None && node.Children.Count == 0)
                     result = false;
@@ -592,6 +602,24 @@ namespace VSGenero.Analysis.Parsing.AST
 
             return result;
         }
+
+        public bool CanOutline
+        {
+            get { return true; }
+        }
+
+        public int DecoratorStart
+        {
+            get
+            {
+                return StartIndex;
+            }
+            set
+            {
+            }
+        }
+
+        public int DecoratorEnd { get; set; }
     }
 
     public class DisplayStatementFactory
@@ -634,6 +662,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         if (parser.PeekToken(TokenKind.DisplayKeyword, 2))
                         {
                             parser.NextToken();
+                            node.StartIndex = parser.Token.Span.Start;
                             parser.NextToken();
                         }
                         else
