@@ -341,24 +341,85 @@ namespace VSGenero.Analysis.Parsing.AST
 
             AstNode containingNode = GetContainingNode(_body, index);
 
-            string[] dottedPieces = exprText.Split(new[] { '.' });
             IAnalysisResult res = null;
-            bool dotPieceNotFound = false;
+            int tmpIndex = 0;
+            int bracketDepth = 0;
+            bool doSearch = false;
+            bool resetStartIndex = false;
+            int startIndex = 0, endIndex = 0;
 
-            for (int i = 0; i < dottedPieces.Length; i++)
+            while (tmpIndex < exprText.Length)
             {
-                string dotPiece = dottedPieces[i];
-                int leftBrackIndex = dotPiece.IndexOf('[');
-                if (leftBrackIndex > 0)
+                if (resetStartIndex)
                 {
-                    dotPiece = dotPiece.Substring(0, leftBrackIndex);
+                    startIndex = tmpIndex;
+                    resetStartIndex = false;
+                    if (startIndex + 1 == exprText.Length)
+                        break;
                 }
+
+                doSearch = false;
+                switch(exprText[tmpIndex])
+                {
+                    case '.':
+                        {
+                            if (bracketDepth == 0)
+                            {
+                                endIndex = tmpIndex - 1;
+                                if (endIndex > startIndex)
+                                {
+                                    // we have our 'piece'
+                                    doSearch = true;
+                                }
+                                if (exprText[startIndex] == '.')
+                                    startIndex++;
+                            }
+                            tmpIndex++;
+                        }
+                        break;
+                    case '[':
+                        if (bracketDepth == 0)
+                            endIndex = tmpIndex - 1;
+                        bracketDepth++;
+                        tmpIndex++;
+                        break;
+                    case ']':
+                        {
+                            bracketDepth--;
+                            if (bracketDepth == 0)
+                            {
+                                // we have our first 'piece'
+                                doSearch = true;
+                            }
+                            tmpIndex++;
+                        }
+                        break;
+                    default:
+                        {
+                            if (bracketDepth == 0 && (tmpIndex + 1 == exprText.Length))
+                            {
+                                endIndex = tmpIndex;
+                                doSearch = true;
+                            }
+                            tmpIndex++;
+                        }
+                        break;
+                }
+
+                if(!doSearch)
+                {
+                    continue;
+                }
+
+                // we can do our search
+                var dotPiece = exprText.Substring(startIndex, (endIndex - startIndex) + 1);
+                resetStartIndex = true;
 
                 if (res != null)
                 {
                     IGeneroProject tempProj;
                     IAnalysisResult tempRes = res.GetMember(dotPiece, this, out tempProj);
-                    if(tempProj != null)
+                    if (tempProj != null)
                     {
                         if (definingProject != tempProj)
                             definingProject = tempProj;
@@ -366,10 +427,11 @@ namespace VSGenero.Analysis.Parsing.AST
                     res = tempRes;
                     if (tempRes == null)
                     {
-                        dotPieceNotFound = true;
+                        res = null;
+                        break;
                     }
                 }
-                else if (!dotPieceNotFound)
+                else
                 {
                     if (SystemVariables.TryGetValue(dotPiece, out res) ||
                        SystemConstants.TryGetValue(dotPiece, out res))
@@ -564,7 +626,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         {
                             // check for the function name in the function provider
                             var funcs = _functionProvider.GetFunction(dotPiece);
-                            if(funcs != null)
+                            if (funcs != null)
                             {
                                 res = funcs.FirstOrDefault();
                                 if (res != null)
@@ -576,14 +638,14 @@ namespace VSGenero.Analysis.Parsing.AST
                     }
 
                     // try an imported module
-                    if(_body is IModuleResult &&
+                    if (_body is IModuleResult &&
                        _projEntry is IGeneroProjectEntry)
                     {
-                        if((_body as IModuleResult).FglImports.Contains(dotPiece))
+                        if ((_body as IModuleResult).FglImports.Contains(dotPiece))
                         {
                             // need to get the ast for the other project entry
                             var refProjKVP = (_projEntry as IGeneroProjectEntry).ParentProject.ReferencedProjects.Values.FirstOrDefault(x => Path.GetFileName(x.Directory).Equals(dotPiece, StringComparison.OrdinalIgnoreCase));
-                            if(refProjKVP != null && refProjKVP is IAnalysisResult)
+                            if (refProjKVP != null && refProjKVP is IAnalysisResult)
                             {
                                 definingProject = refProjKVP;
                                 res = refProjKVP as IAnalysisResult;
