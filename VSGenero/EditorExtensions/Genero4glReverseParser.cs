@@ -21,7 +21,7 @@ namespace VSGenero.EditorExtensions
         private ITextSnapshotLine _curLine;
         private Genero4glClassifier _classifier;
         private static readonly string[] _assignOperators = new[] {
-            "=" ,  "+=" ,  "-=" ,  "/=" ,  "%=" ,  "^=" ,  "*=" ,  "//=" ,  "&=" ,  "|=" ,  ">>=" ,  "<<=" ,  "**="
+            "=" ,  ":=" //,  "-=" ,  "/=" ,  "%=" ,  "^=" ,  "*=" ,  "//=" ,  "&=" ,  "|=" ,  ">>=" ,  "<<=" ,  "**="
         };
 
 
@@ -489,11 +489,14 @@ namespace VSGenero.EditorExtensions
         }
 
 
-        public string GetExpressionText()
+        public string GetExpressionText(out int startIndex, out int endIndex)
         {
+            startIndex = -1; endIndex = -1;
             var span = GetExpressionRange();
             if(span.HasValue)
             {
+                startIndex = span.Value.Start.Position;
+                endIndex = span.Value.End.Position;
                 var str = span.Value.GetText();
                 var strLines = str.Split(new[] { '\n' });
                 StringBuilder sb = new StringBuilder();

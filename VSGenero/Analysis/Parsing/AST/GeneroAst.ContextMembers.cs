@@ -403,27 +403,34 @@ namespace VSGenero.Analysis.Parsing.AST
                 if (tokInfo.Token.Kind == TokenKind.Dot)
                 {
                     // now we need to analyze the variable reference to get its members
-                    string var = revTokenizer.GetExpressionText();
-                    if (var != null && var.EndsWith("."))
+                    int startIndex, endIndex;
+                    string var = revTokenizer.GetExpressionText(out startIndex, out endIndex);
+                    if (var != null)
                     {
-                        var = var.Substring(0, var.Length - 1);
-                        IGeneroProject dummyProj;
-                        var analysisRes = GetValueByIndex(var, index, _functionProvider, _databaseProvider, _programFileProvider, out dummyProj);
-                        if (analysisRes != null)
+                        int dotDiff = endIndex - tokInfo.SourceSpan.End.Index;
+                        var = var.Substring(0, (var.Length - dotDiff));
+                        if (var.EndsWith("."))
                         {
-                            var members = analysisRes.GetMembers(this, memberType);
-                            if (members != null)
+                            var = var.Substring(0, var.Length - 1);
+                            IGeneroProject dummyProj;
+                            var analysisRes = GetValueByIndex(var, index, _functionProvider, _databaseProvider, _programFileProvider, out dummyProj);
+                            if (analysisRes != null)
                             {
-                                // TODO: this is a bit of a hack...
-                                // TODO: need to determine whether the analysisRes is an array type variable. If so, apply the logic below.
-                                //bool varsOnly = var[var.Length - 1].Equals(']');
-                                //if (varsOnly)
-                                //    results.AddRange(members.Where(x => !(x.Var is IFunctionResult)));
-                                //else
-                                    results.AddRange(members);
+                                var members = analysisRes.GetMembers(this, memberType);
+                                if (members != null)
+                                {
+                                    if ((analysisRes as VariableDef).Type.Children.Any(x => x.Value is ArrayTypeReference))
+                                    {
+                                        bool varsOnly = var[var.Length - 1].Equals(']');
+                                        if (varsOnly)
+                                            results.AddRange(members.Where(x => !(x.Var is IFunctionResult)));
+                                        else
+                                            results.AddRange(members.Where(x => x.Var is IFunctionResult));
+                                    }
+                                }
                             }
+                            return true;
                         }
-                        return true;
                     }
                 }
 
