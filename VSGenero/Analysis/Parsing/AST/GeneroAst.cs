@@ -339,27 +339,7 @@ namespace VSGenero.Analysis.Parsing.AST
             _databaseProvider = databaseProvider;
             _programFileProvider = programFileProvider;
 
-            AstNode containingNode = null;
-            List<int> keys = null;
-            int searchIndex = -1;
-            int key = -1;
-            if (_body.Children.Count > 0)
-            {
-                // do a binary search to determine what node we're in
-                keys = _body.Children.Select(x => x.Key).ToList();
-                searchIndex = keys.BinarySearch(index);
-                if (searchIndex < 0)
-                {
-                    searchIndex = ~searchIndex;
-                    if (searchIndex > 0)
-                        searchIndex--;
-                }
-
-                key = keys[searchIndex];
-
-                // TODO: need to handle multiple results of the same name
-                containingNode = _body.Children[key];
-            }
+            AstNode containingNode = GetContainingNode(_body, index);
 
             string[] dottedPieces = exprText.Split(new[] { '.' });
             IAnalysisResult res = null;
@@ -522,35 +502,14 @@ namespace VSGenero.Analysis.Parsing.AST
                          containingNode is FunctionBlockNode ||
                          containingNode is ReportBlockNode))
                     {
-                        keys = containingNode.Children.Select(x => x.Key).ToList();
-                        searchIndex = keys.BinarySearch(index);
-                        if (searchIndex < 0)
-                        {
-                            searchIndex = ~searchIndex;
-                            if (searchIndex > 0)
-                                searchIndex--;
-                        }
-                        if (keys.Count > 0)
-                        {
-                            key = keys[searchIndex];
-                            containingNode = containingNode.Children[key];
-                        }
+                        containingNode = GetContainingNode(containingNode, index);
                     }
                     // check for record field
                     if (containingNode != null &&
                         (containingNode is DefineNode ||
                          containingNode is TypeDefNode))
                     {
-                        keys = containingNode.Children.Select(x => x.Key).ToList();
-                        searchIndex = keys.BinarySearch(index);
-                        if (searchIndex < 0)
-                        {
-                            searchIndex = ~searchIndex;
-                            if (searchIndex > 0)
-                                searchIndex--;
-                        }
-                        key = keys[searchIndex];
-                        containingNode = containingNode.Children[key];
+                        containingNode = GetContainingNode(containingNode, index);
 
                         if (containingNode != null &&
                             (containingNode is VariableDefinitionNode ||

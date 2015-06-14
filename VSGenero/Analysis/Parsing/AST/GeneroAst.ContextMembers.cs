@@ -416,10 +416,10 @@ namespace VSGenero.Analysis.Parsing.AST
                             {
                                 // TODO: this is a bit of a hack...
                                 // TODO: need to determine whether the analysisRes is an array type variable. If so, apply the logic below.
-                                bool varsOnly = var[var.Length - 1].Equals(']');
-                                if (varsOnly)
-                                    results.AddRange(members.Where(x => !(x.Var is IFunctionResult)));
-                                else
+                                //bool varsOnly = var[var.Length - 1].Equals(']');
+                                //if (varsOnly)
+                                //    results.AddRange(members.Where(x => !(x.Var is IFunctionResult)));
+                                //else
                                     results.AddRange(members);
                             }
                         }
@@ -716,12 +716,12 @@ namespace VSGenero.Analysis.Parsing.AST
 
         #endregion
 
-        private AstNode GetContainingNode(int index)
+        private AstNode GetContainingNode(AstNode currentNode, int index)
         {
             AstNode containingNode = null;
-            if (_body.Children.Count > 0)
+            if (currentNode.Children.Count > 0)
             {
-                List<int> keys = _body.Children.Select(x => x.Key).ToList();
+                List<int> keys = currentNode.Children.Select(x => x.Key).ToList();
                 int searchIndex = keys.BinarySearch(index);
                 if (searchIndex < 0)
                 {
@@ -733,7 +733,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 int key = keys[searchIndex];
 
                 // TODO: need to handle multiple results of the same name
-                containingNode = _body.Children[key];
+                containingNode = currentNode.Children[key];
             }
             return containingNode;
         }
