@@ -79,9 +79,10 @@ namespace VSGenero.EditorExtensions.Intellisense
             return _collections.Count > 0;
         }
 
-        public IAnalysisResult GetMember(string name, GeneroAst ast, out IGeneroProject definingProject)
+        public IAnalysisResult GetMember(string name, GeneroAst ast, out IGeneroProject definingProject, out IProjectEntry projEntry)
         {
             definingProject = null;
+            projEntry = null;
             TestFunctionCollection collection = null;
             _collections.TryGetValue(name, out collection);
             return collection;
@@ -167,9 +168,10 @@ namespace VSGenero.EditorExtensions.Intellisense
             return _functions.Count > 0;
         }
 
-        public IAnalysisResult GetMember(string name, GeneroAst ast, out IGeneroProject definingProject)
+        public IAnalysisResult GetMember(string name, GeneroAst ast, out IGeneroProject definingProject, out IProjectEntry projEntry)
         {
             definingProject = null;
+            projEntry = null;
             return GetFunction(name);
         }
 
@@ -273,9 +275,10 @@ namespace VSGenero.EditorExtensions.Intellisense
             return false;
         }
 
-        public IAnalysisResult GetMember(string name, GeneroAst ast, out IGeneroProject definingProject)
+        public IAnalysisResult GetMember(string name, GeneroAst ast, out IGeneroProject definingProject, out IProjectEntry projEntry)
         {
             definingProject = null;
+            projEntry = null;
             return null;
         }
 

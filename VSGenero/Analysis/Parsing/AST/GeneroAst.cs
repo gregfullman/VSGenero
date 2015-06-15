@@ -157,23 +157,27 @@ namespace VSGenero.Analysis.Parsing.AST
             return null;
         }
 
-        private LocationInfo ResolveLocationInternal(IGeneroProject project, object location)
+        private LocationInfo ResolveLocationInternal(IGeneroProject project, IProjectEntry projectEntry, object location)
         {
             IAnalysisResult result = location as IAnalysisResult;
             if (result != null)
             {
-                IProjectEntry projEntry;
+                IProjectEntry projEntry = projectEntry;
                 IAnalysisResult trueRes = result;
-                if(project is GeneroProject)
+                if (projEntry == null)
                 {
-                    trueRes = (project as GeneroProject).GetMemberOfType(result.Name, this, true, true, true, true, out projEntry);
-                    if(projEntry is IGeneroProjectEntry)
+                    if (project is GeneroProject)
                     {
-                        var ast = (projEntry as IGeneroProjectEntry).Analysis;
-                        var locIndex = trueRes.LocationIndex;
-                        var loc = ast.IndexToLocation(locIndex);
-                        return new LocationInfo(projEntry, loc.Line, loc.Column);
+                        trueRes = (project as GeneroProject).GetMemberOfType(result.Name, this, true, true, true, true, out projEntry);
                     }
+                }
+
+                if (projEntry != null && projEntry is IGeneroProjectEntry)
+                {
+                    var ast = (projEntry as IGeneroProjectEntry).Analysis;
+                    var locIndex = trueRes.LocationIndex;
+                    var loc = ast.IndexToLocation(locIndex);
+                    return new LocationInfo(projEntry, loc.Line, loc.Column);
                 }
             }
             return null;
@@ -307,7 +311,8 @@ namespace VSGenero.Analysis.Parsing.AST
 
             // Check for class methods
             IGeneroProject dummyProj;
-            IAnalysisResult member = GetValueByIndex(exprText, index, _functionProvider, _databaseProvider, _programFileProvider, out dummyProj);
+            IProjectEntry dummyProjEntry;
+            IAnalysisResult member = GetValueByIndex(exprText, index, _functionProvider, _databaseProvider, _programFileProvider, out dummyProj, out dummyProjEntry);
             if (member is IFunctionResult)
             {
                 return new IFunctionResult[1] { member as IFunctionResult };
@@ -332,9 +337,12 @@ namespace VSGenero.Analysis.Parsing.AST
         /// </summary>
         /// <param name="exprText">The expression to determine the result of.</param>
         /// <param name="index">The 0-based absolute index into the file where the expression should be evaluated within the module.</param>
-        public IAnalysisResult GetValueByIndex(string exprText, int index, IFunctionInformationProvider functionProvider, IDatabaseInformationProvider databaseProvider, IProgramFileProvider programFileProvider, out IGeneroProject definingProject, bool searchInFunctionProvider = false)
+        public IAnalysisResult GetValueByIndex(string exprText, int index, IFunctionInformationProvider functionProvider, 
+                                               IDatabaseInformationProvider databaseProvider, IProgramFileProvider programFileProvider, 
+                                               out IGeneroProject definingProject, out IProjectEntry projectEntry, bool searchInFunctionProvider = false)
         {
             definingProject = null;
+            projectEntry = null;
             _functionProvider = functionProvider;
             _databaseProvider = databaseProvider;
             _programFileProvider = programFileProvider;
@@ -418,11 +426,15 @@ namespace VSGenero.Analysis.Parsing.AST
                 if (res != null)
                 {
                     IGeneroProject tempProj;
-                    IAnalysisResult tempRes = res.GetMember(dotPiece, this, out tempProj);
+                    IProjectEntry tempProjEntry;
+                    IAnalysisResult tempRes = res.GetMember(dotPiece, this, out tempProj, out tempProjEntry);
                     if (tempProj != null)
                     {
                         if (definingProject != tempProj)
+                        {
                             definingProject = tempProj;
+                            projectEntry = tempProjEntry;
+                        }
                     }
                     res = tempRes;
                     if (tempRes == null)
@@ -677,7 +689,8 @@ namespace VSGenero.Analysis.Parsing.AST
         /// 
         /// index is a 0-based absolute index into the file.
         /// </summary>
-        public IEnumerable<IAnalysisVariable> GetVariablesByIndex(string exprText, int index, IFunctionInformationProvider functionProvider, IDatabaseInformationProvider databaseProvider, IProgramFileProvider programFileProvider)
+        public IEnumerable<IAnalysisVariable> GetVariablesByIndex(string exprText, int index, IFunctionInformationProvider functionProvider, 
+                                                                  IDatabaseInformationProvider databaseProvider, IProgramFileProvider programFileProvider)
         {
             _functionProvider = functionProvider;
             _databaseProvider = databaseProvider;
@@ -843,13 +856,14 @@ namespace VSGenero.Analysis.Parsing.AST
             if(exprText.Contains('.') && vars.Count == 0)
             {
                 IGeneroProject definingProj;
-                IAnalysisResult res = GetValueByIndex(exprText, index, functionProvider, databaseProvider, _programFileProvider, out definingProj);
+                IProjectEntry projEntry;
+                IAnalysisResult res = GetValueByIndex(exprText, index, functionProvider, databaseProvider, _programFileProvider, out definingProj, out projEntry);
                 if(res != null)
                 {
                     LocationInfo locInfo = null;
-                    if (definingProj != null)
+                    if (definingProj != null || projEntry != null)
                     {
-                        locInfo = ResolveLocationInternal(definingProj, res);
+                        locInfo = ResolveLocationInternal(definingProj, projEntry, res);
                     }
                     else
                         locInfo = this.ResolveLocation(res);
@@ -871,13 +885,14 @@ namespace VSGenero.Analysis.Parsing.AST
                     var refProjKVP = (_projEntry as IGeneroProjectEntry).ParentProject.ReferencedProjects.Values.FirstOrDefault(x => Path.GetFileName(x.Directory).Equals(dotPiece, StringComparison.OrdinalIgnoreCase));
                     if (refProjKVP != null && refProjKVP is IAnalysisResult)
                     {
-                        IAnalysisResult res = GetValueByIndex(exprText, index, functionProvider, databaseProvider, _programFileProvider, out refProjKVP);
+                        IProjectEntry dummyEntry;
+                        IAnalysisResult res = GetValueByIndex(exprText, index, functionProvider, databaseProvider, _programFileProvider, out refProjKVP, out dummyEntry);
                         if (res != null)
                         {
                             LocationInfo locInfo = null;
                             if (refProjKVP != null)
                             {
-                                locInfo = ResolveLocationInternal(refProjKVP, res);
+                                locInfo = ResolveLocationInternal(refProjKVP, dummyEntry, res);
                             }
                             else
                                 locInfo = this.ResolveLocation(res);

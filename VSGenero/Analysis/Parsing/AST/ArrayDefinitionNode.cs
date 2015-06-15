@@ -329,9 +329,10 @@ namespace VSGenero.Analysis.Parsing.AST
             return result;
         }
 
-        internal IEnumerable<IAnalysisResult> GetAnalysisResults(GeneroAst ast, MemberType memberType, out IGeneroProject definingProject)
+        internal IEnumerable<IAnalysisResult> GetAnalysisResults(GeneroAst ast, MemberType memberType, out IGeneroProject definingProject, out IProjectEntry projEntry)
         {
             definingProject = null;
+            projEntry = null;
             List<IAnalysisResult> results = new List<IAnalysisResult>();
             if (Children.Count == 1)
             {
@@ -339,7 +340,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 var node = Children[Children.Keys[0]];
                 if(node is TypeReference)
                 {
-                    results.AddRange((node as TypeReference).GetAnalysisMembers(ast, memberType, out definingProject));
+                    results.AddRange((node as TypeReference).GetAnalysisMembers(ast, memberType, out definingProject, out projEntry));
                 }
             }
             results.AddRange(GeneroAst.ArrayFunctions.Values);

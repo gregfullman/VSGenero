@@ -29,7 +29,7 @@ namespace VSGenero.Analysis
         bool CanGetValueFromDebugger { get; }
         bool IsPublic { get; }
 
-        IAnalysisResult GetMember(string name, GeneroAst ast, out IGeneroProject definingProject);
+        IAnalysisResult GetMember(string name, GeneroAst ast, out IGeneroProject definingProject, out IProjectEntry projectEntry);
         IEnumerable<MemberResult> GetMembers(GeneroAst ast, MemberType memberType);
     }
 

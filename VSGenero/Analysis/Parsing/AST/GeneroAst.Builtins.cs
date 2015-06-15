@@ -576,9 +576,10 @@ new ParameterResult("width", "", "integer"),
 
         public LocationInfo Location { get { return null; } }
 
-        public IAnalysisResult GetMember(string name, GeneroAst ast, out IGeneroProject definingProject)
+        public IAnalysisResult GetMember(string name, GeneroAst ast, out IGeneroProject definingProject, out IProjectEntry projEntry)
         {
             definingProject = null;
+            projEntry = null;
             ProgramRegister progReg = null;
             if (_childRegisters != null)
             {
@@ -671,9 +672,10 @@ new ParameterResult("width", "", "integer"),
             get { return true; }
         }
 
-        public IAnalysisResult GetMember(string name, GeneroAst ast, out IGeneroProject definingProject)
+        public IAnalysisResult GetMember(string name, GeneroAst ast, out IGeneroProject definingProject, out IProjectEntry projEntry)
         {
             definingProject = null;
+            projEntry = null;
             return null;
         }
 
@@ -747,9 +749,10 @@ new ParameterResult("width", "", "integer"),
 
         public LocationInfo Location { get { return null; } }
 
-        public IAnalysisResult GetMember(string name, GeneroAst ast, out IGeneroProject definingProject)
+        public IAnalysisResult GetMember(string name, GeneroAst ast, out IGeneroProject definingProject, out IProjectEntry projEntry)
         {
             definingProject = null;
+            projEntry = null;
             return null;
         }
 
@@ -888,9 +891,10 @@ new ParameterResult("width", "", "integer"),
 
         public LocationInfo Location { get { return null; } }
 
-        public IAnalysisResult GetMember(string name, GeneroAst ast, out IGeneroProject definingProject)
+        public IAnalysisResult GetMember(string name, GeneroAst ast, out IGeneroProject definingProject, out IProjectEntry projEntry)
         {
             definingProject = null;
+            projEntry = null;
             return null;
         }
 
@@ -1018,9 +1022,10 @@ new ParameterResult("width", "", "integer"),
 
         public LocationInfo Location { get { return null; } }
 
-        public IAnalysisResult GetMember(string name, GeneroAst ast, out IGeneroProject definingProject)
+        public IAnalysisResult GetMember(string name, GeneroAst ast, out IGeneroProject definingProject, out IProjectEntry projEntry)
         {
             definingProject = null;
+            projEntry = null;
             IFunctionResult funcRes = null;
             _memberFunctions.TryGetValue(name, out funcRes);
             return funcRes;

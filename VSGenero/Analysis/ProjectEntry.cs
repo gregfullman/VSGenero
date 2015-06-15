@@ -453,6 +453,10 @@ namespace VSGenero.Analysis
 
         internal IAnalysisResult GetMemberOfType(string name, GeneroAst ast, bool vars, bool types, bool consts, bool funcs, out IProjectEntry definingProjEntry)
         {
+            string projNamespace = string.Format("{0}.", this.Name);
+            if (name.StartsWith(projNamespace, StringComparison.OrdinalIgnoreCase))
+                name = name.Substring(projNamespace.Length);
+
             definingProjEntry = null;
             IAnalysisResult res = null;
             foreach (var projEntry in ProjectEntries)
@@ -499,13 +503,12 @@ namespace VSGenero.Analysis
             return res;
         }
 
-        public IAnalysisResult GetMember(string name, GeneroAst ast, out IGeneroProject definingProject)
+        public IAnalysisResult GetMember(string name, GeneroAst ast, out IGeneroProject definingProject, out IProjectEntry projEntry)
         {
             definingProject = null;
-            IProjectEntry dummyProj;
-            var res = GetMemberOfType(name, ast, true, true, true, true, out dummyProj);
-            if (dummyProj != null && dummyProj is IGeneroProjectEntry)
-                definingProject = (dummyProj as IGeneroProjectEntry).ParentProject;
+            var res = GetMemberOfType(name, ast, true, true, true, true, out projEntry);
+            if (projEntry != null && projEntry is IGeneroProjectEntry)
+                definingProject = (projEntry as IGeneroProjectEntry).ParentProject;
             return res;
         }
 

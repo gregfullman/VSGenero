@@ -413,7 +413,8 @@ namespace VSGenero.Analysis.Parsing.AST
                         {
                             var = var.Substring(0, var.Length - 1);
                             IGeneroProject dummyProj;
-                            var analysisRes = GetValueByIndex(var, index, _functionProvider, _databaseProvider, _programFileProvider, out dummyProj);
+                            IProjectEntry projEntry;
+                            var analysisRes = GetValueByIndex(var, index, _functionProvider, _databaseProvider, _programFileProvider, out dummyProj, out projEntry);
                             if (analysisRes != null)
                             {
                                 var members = analysisRes.GetMembers(this, memberType);
