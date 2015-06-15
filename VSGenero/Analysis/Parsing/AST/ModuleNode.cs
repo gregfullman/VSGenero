@@ -137,15 +137,18 @@ namespace VSGenero.Analysis.Parsing.AST
                 {
                     if (processed == NodesProcessed.CompilerOption)
                     {
-                        defNode.Children.Add(importNode.StartIndex, importNode);
-                        if (!string.IsNullOrWhiteSpace(importNode.ImportName))
+                        if (!defNode.Children.ContainsKey(importNode.StartIndex))
                         {
-                            if (importNode.ImportType == ImportModuleType.C)
-                                defNode.CExtensionImports.Add(importNode.ImportName);
-                            else if (importNode.ImportType == ImportModuleType.Java)
-                                defNode.JavaImports.Add(importNode.ImportName);
-                            else
-                                defNode.FglImports.Add(importNode.ImportName);
+                            defNode.Children.Add(importNode.StartIndex, importNode);
+                            if (!string.IsNullOrWhiteSpace(importNode.ImportName))
+                            {
+                                if (importNode.ImportType == ImportModuleType.C)
+                                    defNode.CExtensionImports.Add(importNode.ImportName);
+                                else if (importNode.ImportType == ImportModuleType.Java)
+                                    defNode.JavaImports.Add(importNode.ImportName);
+                                else
+                                    defNode.FglImports.Add(importNode.ImportName);
+                            }
                         }
                         continue;
                     }
@@ -165,7 +168,8 @@ namespace VSGenero.Analysis.Parsing.AST
                 {
                     if (processed == NodesProcessed.Imports)
                     {
-                        defNode.Children.Add(schemaNode.StartIndex, schemaNode);
+                        if(!defNode.Children.ContainsKey(schemaNode.StartIndex))
+                            defNode.Children.Add(schemaNode.StartIndex, schemaNode);
                     }
                     else
                     {
@@ -263,7 +267,8 @@ namespace VSGenero.Analysis.Parsing.AST
                 {
                     if (processed == NodesProcessed.SchemaSpec || processed == NodesProcessed.MemberDefinitions)
                     {
-                        defNode.Children.Add(typeNode.StartIndex, typeNode);
+                        if(!defNode.Children.ContainsKey(typeNode.StartIndex))
+                            defNode.Children.Add(typeNode.StartIndex, typeNode);
                         foreach (var def in typeNode.GetDefinitions())
                         {
                             def.Scope = "module type";
