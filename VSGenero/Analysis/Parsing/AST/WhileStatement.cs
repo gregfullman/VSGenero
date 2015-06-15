@@ -10,7 +10,7 @@ namespace VSGenero.Analysis.Parsing.AST
     {
         public ExpressionNode ConditionExpression { get; private set; }
 
-        public static bool TryParseNode(Parser parser, out WhileStatement node, 
+        public static bool TryParseNode(Parser parser, out WhileStatement node,
                                         IModuleResult containingModule,
                                         Action<PrepareStatement> prepStatementBinder = null,
                                         List<TokenKind> validExitKeywords = null)
@@ -18,7 +18,7 @@ namespace VSGenero.Analysis.Parsing.AST
             node = null;
             bool result = false;
 
-            if(parser.PeekToken(TokenKind.WhileKeyword))
+            if (parser.PeekToken(TokenKind.WhileKeyword))
             {
                 result = true;
                 node = new WhileStatement();
@@ -42,23 +42,23 @@ namespace VSGenero.Analysis.Parsing.AST
                     validExits.AddRange(validExitKeywords);
                 validExits.Add(TokenKind.WhileKeyword);
 
-                while(!parser.PeekToken(TokenKind.EndOfFile) &&
+                while (!parser.PeekToken(TokenKind.EndOfFile) &&
                       !(parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.WhileKeyword, 2)))
                 {
                     FglStatement statement;
-                    if (parser.StatementFactory.TryParseNode(parser, out statement, containingModule, prepStatementBinder, false, validExits))
+                    if (parser.StatementFactory.TryParseNode(parser, out statement, containingModule, prepStatementBinder, false, validExits) && statement != null)
                     {
                         AstNode stmtNode = statement as AstNode;
                         node.Children.Add(stmtNode.StartIndex, stmtNode);
 
-                        if(statement is ExitStatement &&
+                        if (statement is ExitStatement &&
                            (statement as ExitStatement).ExitType != TokenKind.WhileKeyword)
                         {
                             if (validExitKeywords == null || !validExitKeywords.Contains((statement as ExitStatement).ExitType))
                                 parser.ReportSyntaxError("Invalid exit statement for while loop detected.");
                         }
-                        
-                        if(statement is ContinueStatement &&
+
+                        if (statement is ContinueStatement &&
                            (statement as ContinueStatement).ContinueType != TokenKind.WhileKeyword)
                         {
                             if (validExitKeywords == null || !validExitKeywords.Contains((statement as ContinueStatement).ContinueType))

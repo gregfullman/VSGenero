@@ -416,7 +416,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         node.UsesSelectStmt = true;
                         SelectStatement selStmt;
                         bool dummy = false;
-                        if (SelectStatement.TryParseNode(parser, out selStmt, out dummy))
+                        if (SelectStatement.TryParseNode(parser, out selStmt, out dummy) && selStmt != null)
                             node.Children.Add(selStmt.StartIndex, selStmt);
                         else
                             parser.ReportSyntaxError("Expecting select statement in insert statement.");

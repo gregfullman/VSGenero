@@ -255,7 +255,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     {
                         case TokenKind.TypeKeyword:
                             {
-                                if (TypeDefNode.TryParseNode(parser, out typeNode, out matchedBreakSequence, breakSequences))
+                                if (TypeDefNode.TryParseNode(parser, out typeNode, out matchedBreakSequence, breakSequences) && typeNode != null)
                                 {
                                     defNode.Children.Add(typeNode.StartIndex, typeNode);
                                     foreach (var def in typeNode.GetDefinitions())
@@ -271,7 +271,7 @@ namespace VSGenero.Analysis.Parsing.AST
                             }
                         case TokenKind.ConstantKeyword:
                             {
-                                if (ConstantDefNode.TryParseNode(parser, out constNode, out matchedBreakSequence, breakSequences))
+                                if (ConstantDefNode.TryParseNode(parser, out constNode, out matchedBreakSequence, breakSequences) && constNode != null)
                                 {
                                     defNode.Children.Add(constNode.StartIndex, constNode);
                                     foreach (var def in constNode.GetDefinitions())
@@ -287,7 +287,7 @@ namespace VSGenero.Analysis.Parsing.AST
                             }
                         case TokenKind.DefineKeyword:
                             {
-                                if (DefineNode.TryParseDefine(parser, out defineNode, out matchedBreakSequence, breakSequences, defNode.BindArgument))
+                                if (DefineNode.TryParseDefine(parser, out defineNode, out matchedBreakSequence, breakSequences, defNode.BindArgument) && defineNode != null)
                                 {
                                     defNode.Children.Add(defineNode.StartIndex, defineNode);
                                     foreach (var def in defineNode.GetDefinitions())

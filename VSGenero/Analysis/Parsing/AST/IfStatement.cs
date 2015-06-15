@@ -44,7 +44,8 @@ namespace VSGenero.Analysis.Parsing.AST
                     IfBlockContentsNode ifBlock;
                     if (IfBlockContentsNode.TryParseNode(parser, out ifBlock, containingModule, prepStatementBinder, validExitKeywords))
                     {
-                        node.Children.Add(ifBlock.StartIndex, ifBlock);
+                        if(ifBlock != null)
+                            node.Children.Add(ifBlock.StartIndex, ifBlock);
                     }
 
                     if (parser.PeekToken(TokenKind.ElseKeyword))
@@ -53,7 +54,8 @@ namespace VSGenero.Analysis.Parsing.AST
                         ElseBlockContentsNode elseBlock;
                         if (ElseBlockContentsNode.TryParseNode(parser, out elseBlock, containingModule, prepStatementBinder, validExitKeywords))
                         {
-                            node.Children.Add(elseBlock.StartIndex, elseBlock);
+                            if(elseBlock != null)
+                                node.Children.Add(elseBlock.StartIndex, elseBlock);
                         }
                     }
 

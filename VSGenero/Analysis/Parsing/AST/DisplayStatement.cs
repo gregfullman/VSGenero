@@ -153,7 +153,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                !(parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.DisplayKeyword, 2)))
                         {
                             DisplayControlBlock icb;
-                            if (DisplayControlBlock.TryParseNode(parser, out icb, containingModule, node.IsArray, prepStatementBinder, validExits))
+                            if (DisplayControlBlock.TryParseNode(parser, out icb, containingModule, node.IsArray, prepStatementBinder, validExits) && icb != null)
                                 node.Children.Add(icb.StartIndex, icb);
                             else
                                 parser.NextToken();
@@ -590,7 +590,7 @@ namespace VSGenero.Analysis.Parsing.AST
 
                 // get the dialog statements
                 FglStatement dispStmt;
-                while (DisplayStatementFactory.TryGetStatement(parser, out dispStmt, isArray, containingModule, prepStatementBinder, validExitKeywords))
+                while (DisplayStatementFactory.TryGetStatement(parser, out dispStmt, isArray, containingModule, prepStatementBinder, validExitKeywords) && dispStmt != null)
                 {
                     node.Children.Add(dispStmt.StartIndex, dispStmt);
                     node.EndIndex = dispStmt.EndIndex;

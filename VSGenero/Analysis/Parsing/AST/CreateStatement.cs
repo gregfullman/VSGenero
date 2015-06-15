@@ -103,7 +103,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 {
                     parser.NextToken();
                     CreatedTableColumn tableCol;
-                    while(CreatedTableColumn.TryParseNode(parser, out tableCol))
+                    while(CreatedTableColumn.TryParseNode(parser, out tableCol) && tableCol != null)
                     {
                         node.Children.Add(tableCol.StartIndex, tableCol);
                         if (parser.PeekToken(TokenKind.Comma))

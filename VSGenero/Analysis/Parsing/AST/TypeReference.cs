@@ -77,7 +77,7 @@ namespace VSGenero.Analysis.Parsing.AST
 
             ArrayTypeReference arrayType;
             RecordDefinitionNode recordDef;
-            if (ArrayTypeReference.TryParseNode(parser, out arrayType))
+            if (ArrayTypeReference.TryParseNode(parser, out arrayType) && arrayType != null)
             {
                 result = true;
                 defNode = new TypeReference();
@@ -87,7 +87,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 defNode.Children.Add(arrayType.StartIndex, arrayType);
                 defNode.IsComplete = true;
             }
-            else if (RecordDefinitionNode.TryParseNode(parser, out recordDef, isPublic))
+            else if (RecordDefinitionNode.TryParseNode(parser, out recordDef, isPublic) && recordDef != null)
             {
                 result = true;
                 defNode = new TypeReference();

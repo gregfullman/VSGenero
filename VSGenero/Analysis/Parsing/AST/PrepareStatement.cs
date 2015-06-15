@@ -40,7 +40,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         parser.NextToken();
 
                         ExpressionNode exprNode;
-                        if (ExpressionNode.TryGetExpressionNode(parser, out exprNode))
+                        if (ExpressionNode.TryGetExpressionNode(parser, out exprNode) && exprNode != null)
                         {
                             defNode.Children.Add(exprNode.StartIndex, exprNode);
                             defNode.EndIndex = exprNode.EndIndex;

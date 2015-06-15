@@ -64,7 +64,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         case TokenKind.InputKeyword:
                             {
                                 InputBlock inputBlock;
-                                if (InputBlock.TryParseNode(parser, out inputBlock, containingModule, prepStatementBinder, validExitKeywords))
+                                if (InputBlock.TryParseNode(parser, out inputBlock, containingModule, prepStatementBinder, validExitKeywords) && inputBlock != null)
                                     node.Children.Add(inputBlock.StartIndex, inputBlock);
                                 else
                                     parser.ReportSyntaxError("Invalid input block found in dialog statement.");
@@ -73,7 +73,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         case TokenKind.ConstructKeyword:
                             {
                                 ConstructBlock constructBlock;
-                                if (ConstructBlock.TryParseNode(parser, out constructBlock, containingModule, prepStatementBinder, validExitKeywords))
+                                if (ConstructBlock.TryParseNode(parser, out constructBlock, containingModule, prepStatementBinder, validExitKeywords) && constructBlock != null)
                                     node.Children.Add(constructBlock.StartIndex, constructBlock);
                                 else
                                     parser.ReportSyntaxError("Invalid construct block found in dialog statement.");
@@ -82,7 +82,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         case TokenKind.DisplayKeyword:
                             {
                                 DisplayBlock dispBlock;
-                                if (DisplayBlock.TryParseNode(parser, out dispBlock, containingModule, prepStatementBinder, validExitKeywords))
+                                if (DisplayBlock.TryParseNode(parser, out dispBlock, containingModule, prepStatementBinder, validExitKeywords) && dispBlock != null)
                                     node.Children.Add(dispBlock.StartIndex, dispBlock);
                                 else
                                     parser.ReportSyntaxError("Invalid display block found in dialog statement.");
@@ -114,7 +114,7 @@ namespace VSGenero.Analysis.Parsing.AST
                        !(parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.DialogKeyword, 2)))
                 {
                     DialogControlBlock icb;
-                    if (DialogControlBlock.TryParseNode(parser, out icb, containingModule, prepStatementBinder, validExits))
+                    if (DialogControlBlock.TryParseNode(parser, out icb, containingModule, prepStatementBinder, validExits) && icb != null)
                         node.Children.Add(icb.StartIndex, icb);
                     else
                         parser.NextToken();
@@ -346,7 +346,7 @@ namespace VSGenero.Analysis.Parsing.AST
             {
                 // get the dialog statements
                 FglStatement inputStmt;
-                while (DialogStatementFactory.TryGetStatement(parser, out inputStmt, containingModule, prepStatementBinder, validExitKeywords))
+                while (DialogStatementFactory.TryGetStatement(parser, out inputStmt, containingModule, prepStatementBinder, validExitKeywords) && inputStmt != null)
                     node.Children.Add(inputStmt.StartIndex, inputStmt);
 
                 if (node.Type == DialogControlBlockType.None && node.Children.Count == 0)

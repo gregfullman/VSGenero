@@ -70,7 +70,7 @@ namespace VSGenero.Analysis.Parsing.AST
                             parser.NextToken();
                             // We have a string expression declare
                             ExpressionNode exprNode;
-                            if(ExpressionNode.TryGetExpressionNode(parser, out exprNode)/* && exprNode is StringExpressionNode*/)
+                            if(ExpressionNode.TryGetExpressionNode(parser, out exprNode)/* && exprNode is StringExpressionNode*/ && exprNode != null)
                             {
                                 defNode.Children.Add(exprNode.StartIndex, exprNode);
                                 defNode.EndIndex = exprNode.EndIndex;
@@ -89,7 +89,7 @@ namespace VSGenero.Analysis.Parsing.AST
                             {
                                 // we have a sql block declare
                                 SqlBlockNode sqlBlock;
-                                if(SqlBlockNode.TryParseSqlNode(parser, out sqlBlock))
+                                if(SqlBlockNode.TryParseSqlNode(parser, out sqlBlock) && sqlBlock != null)
                                 {
                                     defNode.Children.Add(sqlBlock.StartIndex, sqlBlock);
                                     defNode.EndIndex = sqlBlock.EndIndex;
@@ -102,7 +102,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                 // we have a static sql select statement
                                 FglStatement sqlStmt;
                                 bool dummy;
-                                if (SqlStatementFactory.TryParseSqlStatement(parser, out sqlStmt, out dummy, TokenKind.SelectKeyword))
+                                if (SqlStatementFactory.TryParseSqlStatement(parser, out sqlStmt, out dummy, TokenKind.SelectKeyword) && sqlStmt != null)
                                 {
                                     defNode.Children.Add(sqlStmt.StartIndex, sqlStmt);
                                     defNode.EndIndex = sqlStmt.EndIndex;

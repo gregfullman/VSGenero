@@ -51,7 +51,7 @@ namespace VSGenero.Analysis.Parsing.AST
                       !(parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.CaseKeyword, 2)))
                 {
                     WhenStatement whenStmt;
-                    if (WhenStatement.TryParseNode(parser, out whenStmt, containingModule, prepStatementBinder, validExits))
+                    if (WhenStatement.TryParseNode(parser, out whenStmt, containingModule, prepStatementBinder, validExits) && whenStmt != null)
                     {
                         if (whenCases)
                         {
@@ -66,7 +66,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     else
                     {
                         OtherwiseStatement otherStmt;
-                        if (OtherwiseStatement.TryParseNode(parser, out otherStmt, containingModule, prepStatementBinder, validExits))
+                        if (OtherwiseStatement.TryParseNode(parser, out otherStmt, containingModule, prepStatementBinder, validExits) && otherStmt != null)
                         {
                             whenCases = false;
                             node.Children.Add(otherStmt.StartIndex, otherStmt);
@@ -144,7 +144,7 @@ namespace VSGenero.Analysis.Parsing.AST
                       !(parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.CaseKeyword, 2)))
                 {
                     FglStatement statement;
-                    if (parser.StatementFactory.TryParseNode(parser, out statement, containingModule, prepStatementBinder, false, validExitKeywords))
+                    if (parser.StatementFactory.TryParseNode(parser, out statement, containingModule, prepStatementBinder, false, validExitKeywords) && statement != null)
                     {
                         AstNode stmtNode = statement as AstNode;
                         node.Children.Add(stmtNode.StartIndex, stmtNode);
@@ -192,7 +192,7 @@ namespace VSGenero.Analysis.Parsing.AST
                       !(parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.CaseKeyword, 2)))
                 {
                     FglStatement statement;
-                    if (parser.StatementFactory.TryParseNode(parser, out statement, containingModule, prepStatementBinder, false, validExitKeywords))
+                    if (parser.StatementFactory.TryParseNode(parser, out statement, containingModule, prepStatementBinder, false, validExitKeywords) && statement != null)
                     {
                         AstNode stmtNode = statement as AstNode;
                         node.Children.Add(stmtNode.StartIndex, stmtNode);

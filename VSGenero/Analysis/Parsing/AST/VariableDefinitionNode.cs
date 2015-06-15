@@ -171,7 +171,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 }
 
                 TypeReference typeRef;
-                if(TypeReference.TryParseNode(parser, out typeRef))
+                if(TypeReference.TryParseNode(parser, out typeRef) && typeRef != null)
                 {
                     defNode.EndIndex = typeRef.EndIndex;
                     defNode.Children.Add(typeRef.StartIndex, typeRef);

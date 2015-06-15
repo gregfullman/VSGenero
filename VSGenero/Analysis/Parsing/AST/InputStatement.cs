@@ -151,7 +151,7 @@ namespace VSGenero.Analysis.Parsing.AST
                        !(parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.InputKeyword, 2)))
                 {
                     InputControlBlock icb;
-                    if (InputControlBlock.TryParseNode(parser, out icb, containingModule, node.IsArray, prepStatementBinder, validExits))
+                    if (InputControlBlock.TryParseNode(parser, out icb, containingModule, node.IsArray, prepStatementBinder, validExits) && icb != null)
                         node.Children.Add(icb.StartIndex, icb);
                     else
                         parser.NextToken();
@@ -388,8 +388,11 @@ namespace VSGenero.Analysis.Parsing.AST
                 FglStatement inputStmt;
                 while (InputDialogStatementFactory.TryGetStatement(parser, out inputStmt, isArray, containingModule, prepStatementBinder, validExitKeywords))
                 {
-                    node.Children.Add(inputStmt.StartIndex, inputStmt);
-                    node.EndIndex = inputStmt.EndIndex;
+                    if (inputStmt != null)
+                    {
+                        node.Children.Add(inputStmt.StartIndex, inputStmt);
+                        node.EndIndex = inputStmt.EndIndex;
+                    }
                 }
                 if (node.EndIndex <= 0)
                     node.EndIndex = node.DecoratorEnd;

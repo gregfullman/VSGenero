@@ -115,7 +115,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     continue;
 
                 CompilerOptionsNode compOptionsNode;
-                if (CompilerOptionsNode.TryParseNode(parser, out compOptionsNode))
+                if (CompilerOptionsNode.TryParseNode(parser, out compOptionsNode) && compOptionsNode != null)
                 {
                     if (processed == NodesProcessed.None)
                     {
@@ -133,7 +133,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     continue;
 
                 ImportModuleNode importNode;
-                if (ImportModuleNode.TryParseNode(parser, out importNode))
+                if (ImportModuleNode.TryParseNode(parser, out importNode) && importNode != null)
                 {
                     if (processed == NodesProcessed.CompilerOption)
                     {
@@ -161,7 +161,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     continue;
 
                 SchemaSpecificationNode schemaNode;
-                if (SchemaSpecificationNode.TryParseDefine(parser, out schemaNode))
+                if (SchemaSpecificationNode.TryParseDefine(parser, out schemaNode) && schemaNode != null)
                 {
                     if (processed == NodesProcessed.Imports)
                     {
@@ -179,7 +179,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     continue;
 
                 GlobalsNode globalNode;
-                if (GlobalsNode.TryParseNode(parser, out globalNode))
+                if (GlobalsNode.TryParseNode(parser, out globalNode) && globalNode != null)
                 {
                     if (processed == NodesProcessed.SchemaSpec || processed == NodesProcessed.MemberDefinitions)
                     {
@@ -232,7 +232,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         new List<TokenKind> { TokenKind.MainKeyword },
                         new List<TokenKind> { TokenKind.ReportKeyword }
                     };
-                if (ConstantDefNode.TryParseNode(parser, out constNode, out matchedBreakSequence, breakSequences))
+                if (ConstantDefNode.TryParseNode(parser, out constNode, out matchedBreakSequence, breakSequences) && constNode != null)
                 {
                     if (processed == NodesProcessed.SchemaSpec || processed == NodesProcessed.MemberDefinitions)
                     {
@@ -259,7 +259,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     continue;
 
                 TypeDefNode typeNode;
-                if (TypeDefNode.TryParseNode(parser, out typeNode, out matchedBreakSequence, breakSequences))
+                if (TypeDefNode.TryParseNode(parser, out typeNode, out matchedBreakSequence, breakSequences) && typeNode != null)
                 {
                     if (processed == NodesProcessed.SchemaSpec || processed == NodesProcessed.MemberDefinitions)
                     {
@@ -286,7 +286,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     continue;
 
                 DefineNode defineNode;
-                if (DefineNode.TryParseDefine(parser, out defineNode, out matchedBreakSequence, breakSequences))
+                if (DefineNode.TryParseDefine(parser, out defineNode, out matchedBreakSequence, breakSequences) && defineNode != null)
                 {
                     if (processed == NodesProcessed.SchemaSpec || processed == NodesProcessed.MemberDefinitions)
                     {
@@ -315,7 +315,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     continue;
 
                 MainBlockNode mainBlock;
-                if (MainBlockNode.TryParseNode(parser, out mainBlock, defNode))
+                if (MainBlockNode.TryParseNode(parser, out mainBlock, defNode) && mainBlock != null)
                 {
                     if (processed == NodesProcessed.MemberDefinitions)
                     {
@@ -346,7 +346,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 FunctionBlockNode funcNode;
                 ReportBlockNode repNode;
                 int dummy;
-                if (FunctionBlockNode.TryParseNode(parser, out funcNode, out dummy, defNode))
+                if (FunctionBlockNode.TryParseNode(parser, out funcNode, out dummy, defNode) && funcNode != null)
                 {
                     defNode.Children.Add(funcNode.StartIndex, funcNode);
                     funcNode.Scope = "function";
@@ -364,7 +364,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         parser.ReportSyntaxError(funcNode.LocationIndex, funcNode.LocationIndex + funcNode.Name.Length, string.Format("Function {0} defined more than once.", funcNode.Name));
                     }
                 }
-                else if (ReportBlockNode.TryParseNode(parser, out repNode, defNode))
+                else if (ReportBlockNode.TryParseNode(parser, out repNode, defNode) && repNode != null)
                 {
                     defNode.Children.Add(repNode.StartIndex, repNode);
                     repNode.Scope = "report";

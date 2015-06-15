@@ -138,7 +138,7 @@ namespace VSGenero.Analysis.Parsing.AST
                        !(parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.ConstructKeyword, 2)))
                 {
                     ConstructControlBlock icb;
-                    if (ConstructControlBlock.TryParseNode(parser, out icb, containingModule, prepStatementBinder, validExits))
+                    if (ConstructControlBlock.TryParseNode(parser, out icb, containingModule, prepStatementBinder, validExits) && icb != null)
                         node.Children.Add(icb.StartIndex, icb);
                     else
                         parser.NextToken();
@@ -315,7 +315,7 @@ namespace VSGenero.Analysis.Parsing.AST
             {
                 // get the dialog statements
                 FglStatement inputStmt;
-                while (ConstructDialogStatementFactory.TryGetStatement(parser, out inputStmt, containingModule, prepStatementBinder, validExitKeywords))
+                while (ConstructDialogStatementFactory.TryGetStatement(parser, out inputStmt, containingModule, prepStatementBinder, validExitKeywords) && inputStmt != null)
                     node.Children.Add(inputStmt.StartIndex, inputStmt);
 
                 if (node.Type == ConstructControlBlockType.None && node.Children.Count == 0)

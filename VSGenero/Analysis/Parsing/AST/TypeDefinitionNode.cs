@@ -42,7 +42,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 defNode._isPublic = isPublic;
 
                 TypeReference typeRef;
-                if (TypeReference.TryParseNode(parser, out typeRef, false, isPublic))
+                if (TypeReference.TryParseNode(parser, out typeRef, false, isPublic) && typeRef != null)
                 {
                     defNode.Children.Add(typeRef.StartIndex, typeRef);
                     if (defNode.Children.All(x => x.Value.IsComplete))

@@ -72,7 +72,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     do
                     {
                         VariableDefinitionNode varDef;
-                        if (VariableDefinitionNode.TryParseNode(parser, out varDef, binder))
+                        if (VariableDefinitionNode.TryParseNode(parser, out varDef, binder) && varDef != null)
                         {
                             defNode.Children.Add(varDef.StartIndex, varDef);
                         }

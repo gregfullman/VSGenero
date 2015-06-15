@@ -212,7 +212,7 @@ namespace VSGenero.Analysis.Parsing.AST
 
                 // now try to get the datatype
                 TypeReference typeRef;
-                if ((TypeReference.TryParseNode(parser, out typeRef)))
+                if ((TypeReference.TryParseNode(parser, out typeRef) && typeRef != null))
                 {
                     defNode.Children.Add(typeRef.StartIndex, typeRef);
                     defNode.EndIndex = typeRef.EndIndex;
@@ -248,7 +248,7 @@ namespace VSGenero.Analysis.Parsing.AST
 
                     // now try to get the datatype
                     TypeReference typeRef;
-                    if ((TypeReference.TryParseNode(parser, out typeRef)))
+                    if ((TypeReference.TryParseNode(parser, out typeRef) && typeRef != null))
                     {
                         defNode.Children.Add(typeRef.StartIndex, typeRef);
                         defNode.EndIndex = typeRef.EndIndex;
@@ -310,7 +310,7 @@ namespace VSGenero.Analysis.Parsing.AST
 
                     // now try to get the datatype
                     TypeReference typeRef;
-                    if ((TypeReference.TryParseNode(parser, out typeRef)))
+                    if ((TypeReference.TryParseNode(parser, out typeRef) && typeRef != null))
                     {
                         defNode.Children.Add(typeRef.StartIndex, typeRef);
                         defNode.EndIndex = typeRef.EndIndex;

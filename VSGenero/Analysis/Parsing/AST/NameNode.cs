@@ -34,14 +34,14 @@ namespace VSGenero.Analysis.Parsing.AST
 
                     MemberAccessNameExpressionPiece memberAccess;
                     ArrayIndexNameExpressionPiece arrayIndex;
-                    if(MemberAccessNameExpressionPiece.TryParse(parser, out memberAccess))
+                    if(MemberAccessNameExpressionPiece.TryParse(parser, out memberAccess) && memberAccess != null)
                     {
                         node.Children.Add(memberAccess.StartIndex, memberAccess);
                         node.EndIndex = memberAccess.EndIndex;
                         node.IsComplete = true;
                         sb.Append(memberAccess.ToString());
                     }
-                    else if(ArrayIndexNameExpressionPiece.TryParse(parser, out arrayIndex, breakToken))
+                    else if(ArrayIndexNameExpressionPiece.TryParse(parser, out arrayIndex, breakToken) && arrayIndex != null)
                     {
                         node.Children.Add(arrayIndex.StartIndex, arrayIndex);
                         node.EndIndex = arrayIndex.EndIndex;

@@ -100,7 +100,7 @@ namespace VSGenero.Analysis.Parsing.AST
                       !(parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.ForKeyword, 2)))
                 {
                     FglStatement statement;
-                    if (parser.StatementFactory.TryParseNode(parser, out statement, containingModule, prepStatementBinder, false, validExits))
+                    if (parser.StatementFactory.TryParseNode(parser, out statement, containingModule, prepStatementBinder, false, validExits) && statement != null)
                     {
                         AstNode stmtNode = statement as AstNode;
                         node.Children.Add(stmtNode.StartIndex, stmtNode);

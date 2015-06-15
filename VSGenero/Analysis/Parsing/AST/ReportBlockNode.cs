@@ -103,7 +103,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 // only defines are allowed in reports
                 DefineNode defineNode;
                 bool matchedBreakSequence = false;
-                while (DefineNode.TryParseDefine(parser, out defineNode, out matchedBreakSequence, breakSequences))
+                while (DefineNode.TryParseDefine(parser, out defineNode, out matchedBreakSequence, breakSequences) && defineNode != null)
                 {
                     defNode.Children.Add(defineNode.StartIndex, defineNode);
                     foreach (var def in defineNode.GetDefinitions())
@@ -135,7 +135,7 @@ namespace VSGenero.Analysis.Parsing.AST
                        !(parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.ReportKeyword, 2)))
                 {
                     FglStatement statement;
-                    if (parser.StatementFactory.TryParseNode(parser, out statement, containingModule, defNode.BindPrepareCursorFromIdentifier))
+                    if (parser.StatementFactory.TryParseNode(parser, out statement, containingModule, defNode.BindPrepareCursorFromIdentifier) && statement != null)
                     {
                         AstNode stmtNode = statement as AstNode;
                         defNode.Children.Add(stmtNode.StartIndex, stmtNode);

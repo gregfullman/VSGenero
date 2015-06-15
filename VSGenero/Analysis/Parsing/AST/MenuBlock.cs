@@ -88,7 +88,8 @@ namespace VSGenero.Analysis.Parsing.AST
                         if (beforeEnd < 0)
                             beforeEnd = beforeDecEnd;
                         MenuOption beforeMenu = new MenuOption(beforeStart, beforeDecEnd, beforeEnd, stmts);
-                        node.Children.Add(beforeMenu.StartIndex, beforeMenu);
+                        if(beforeMenu != null)
+                            node.Children.Add(beforeMenu.StartIndex, beforeMenu);
                     }
                     else
                         parser.ReportSyntaxError("Expecting \"before\" keyword for menu block.");
@@ -98,7 +99,7 @@ namespace VSGenero.Analysis.Parsing.AST
                        !(parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.MenuKeyword, 2)))
                 {
                     MenuOption menuOpt;
-                    if (MenuOption.TryParseNode(parser, out menuOpt, containingModule, prepStatementBinder, validExits))
+                    if (MenuOption.TryParseNode(parser, out menuOpt, containingModule, prepStatementBinder, validExits) && menuOpt != null)
                         node.Children.Add(menuOpt.StartIndex, menuOpt);
                     else
                         parser.NextToken();
@@ -366,7 +367,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                 parser.ReportSyntaxError("Invalid action-name found in menu option.");
                             node.DecoratorEnd = parser.Token.Span.End;
                             FglStatement menuStmt = null;
-                            while (MenuStatementFactory.TryGetStatement(parser, out menuStmt, containingModule, prepStatementBinder, validExitKeywords))
+                            while (MenuStatementFactory.TryGetStatement(parser, out menuStmt, containingModule, prepStatementBinder, validExitKeywords) && menuStmt != null)
                                 node.Children.Add(menuStmt.StartIndex, menuStmt);
                         }
                         else if (parser.PeekToken(TokenKind.IdleKeyword))
@@ -379,7 +380,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                 parser.ReportSyntaxError("Invalid idle-seconds found in menu block.");
                             node.DecoratorEnd = parser.Token.Span.End;
                             FglStatement menuStmt = null;
-                            while (MenuStatementFactory.TryGetStatement(parser, out menuStmt, containingModule, prepStatementBinder, validExitKeywords))
+                            while (MenuStatementFactory.TryGetStatement(parser, out menuStmt, containingModule, prepStatementBinder, validExitKeywords) && menuStmt != null)
                                 node.Children.Add(menuStmt.StartIndex, menuStmt);
                         }
                         else
