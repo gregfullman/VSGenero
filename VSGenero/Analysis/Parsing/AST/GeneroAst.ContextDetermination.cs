@@ -350,6 +350,15 @@ namespace VSGenero.Analysis.Parsing.AST
                                 new BackwardTokenSearchItem(TokenKind.DatetimeKeyword),
                                 new BackwardTokenSearchItem(TokenKind.IntervalKeyword)
                             }
+                        ),
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetStatementStartKeywords },
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(new OrderedTokenSet(new object[] { TokenKind.ToKeyword, TokenKind.DatetimeKeyword })),
+                                new BackwardTokenSearchItem(new OrderedTokenSet(new object[] { TokenKind.ToKeyword, TokenKind.IntervalKeyword }))
+                            }
                         )
                     });
                     _contextMap.Add(TokenKind.DefineKeyword, nothing);
@@ -409,6 +418,14 @@ namespace VSGenero.Analysis.Parsing.AST
                                 TokenKind.ArrayKeyword
                             },
                             emptyContextSetProviderSet,
+                            emptyBackwardTokenSearchSet
+                        )
+                    });
+                    _contextMap.Add(TokenKind.ElseKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetStatementStartKeywords },
                             emptyBackwardTokenSearchSet
                         )
                     });
@@ -557,6 +574,15 @@ namespace VSGenero.Analysis.Parsing.AST
                                 new BackwardTokenSearchItem(TokenKind.DatetimeKeyword),
                                 new BackwardTokenSearchItem(TokenKind.IntervalKeyword)
                             }
+                        ),
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetStatementStartKeywords },
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(new OrderedTokenSet(new object[] { TokenKind.ToKeyword, TokenKind.DatetimeKeyword })),
+                                new BackwardTokenSearchItem(new OrderedTokenSet(new object[] { TokenKind.ToKeyword, TokenKind.IntervalKeyword }))
+                            }
                         )
                     });
                     _contextMap.Add(TokenKind.FreeKeyword, new List<ContextPossibilities>
@@ -678,6 +704,15 @@ namespace VSGenero.Analysis.Parsing.AST
                             { 
                                 new BackwardTokenSearchItem(TokenKind.DatetimeKeyword),
                                 new BackwardTokenSearchItem(TokenKind.IntervalKeyword)
+                            }
+                        ),
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetStatementStartKeywords },
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(new OrderedTokenSet(new object[] { TokenKind.ToKeyword, TokenKind.DatetimeKeyword })),
+                                new BackwardTokenSearchItem(new OrderedTokenSet(new object[] { TokenKind.ToKeyword, TokenKind.IntervalKeyword }))
                             }
                         )
                     });
@@ -1277,6 +1312,15 @@ namespace VSGenero.Analysis.Parsing.AST
                                 new BackwardTokenSearchItem(TokenKind.DatetimeKeyword),
                                 new BackwardTokenSearchItem(TokenKind.IntervalKeyword)
                             }
+                        ),
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetStatementStartKeywords },
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(new OrderedTokenSet(new object[] { TokenKind.ToKeyword, TokenKind.DatetimeKeyword })),
+                                new BackwardTokenSearchItem(new OrderedTokenSet(new object[] { TokenKind.ToKeyword, TokenKind.IntervalKeyword }))
+                            }
                         )
                     });
                     _contextMap.Add(TokenKind.MinvalueKeyword, new List<ContextPossibilities>
@@ -1309,6 +1353,15 @@ namespace VSGenero.Analysis.Parsing.AST
                             { 
                                 new BackwardTokenSearchItem(TokenKind.DatetimeKeyword),
                                 new BackwardTokenSearchItem(TokenKind.IntervalKeyword)
+                            }
+                        ),
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetStatementStartKeywords },
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(new OrderedTokenSet(new object[] { TokenKind.ToKeyword, TokenKind.DatetimeKeyword })),
+                                new BackwardTokenSearchItem(new OrderedTokenSet(new object[] { TokenKind.ToKeyword, TokenKind.IntervalKeyword }))
                             }
                         )
                     });
@@ -1773,6 +1826,15 @@ namespace VSGenero.Analysis.Parsing.AST
                                 new BackwardTokenSearchItem(TokenKind.DatetimeKeyword),
                                 new BackwardTokenSearchItem(TokenKind.IntervalKeyword)
                             }
+                        ),
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetStatementStartKeywords },
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(new OrderedTokenSet(new object[] { TokenKind.ToKeyword, TokenKind.DatetimeKeyword })),
+                                new BackwardTokenSearchItem(new OrderedTokenSet(new object[] { TokenKind.ToKeyword, TokenKind.IntervalKeyword }))
+                            }
                         )
                     });
                     _contextMap.Add(TokenKind.SelectKeyword, new List<ContextPossibilities>
@@ -2172,6 +2234,15 @@ namespace VSGenero.Analysis.Parsing.AST
                             { 
                                 new BackwardTokenSearchItem(TokenKind.DatetimeKeyword),
                                 new BackwardTokenSearchItem(TokenKind.IntervalKeyword)
+                            }
+                        ),
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetStatementStartKeywords },
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(new OrderedTokenSet(new object[] { TokenKind.ToKeyword, TokenKind.DatetimeKeyword })),
+                                new BackwardTokenSearchItem(new OrderedTokenSet(new object[] { TokenKind.ToKeyword, TokenKind.IntervalKeyword }))
                             }
                         )
                     });

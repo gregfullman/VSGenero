@@ -454,6 +454,16 @@ namespace VSGenero.Analysis.Parsing.AST
             TokenKind.UsingKeyword, TokenKind.AsKeyword, TokenKind.UnitsKeyword
         };
 
+        private static HashSet<TokenKind> _preUnaryOperators = new HashSet<TokenKind>
+        {
+            TokenKind.NotKeyword, TokenKind.AsciiKeyword
+        };
+
+        private static HashSet<TokenKind> _postUnaryOperators = new HashSet<TokenKind>
+        {
+            TokenKind.ClippedKeyword
+        };
+
         #endregion
 
         #region Enums
@@ -760,7 +770,8 @@ namespace VSGenero.Analysis.Parsing.AST
             // 5) Imported modules
             // 6) Available packages
             // maybe more...
-            return GetDefinedMembers(index, true, true, false, true);
+            return GetDefinedMembers(index, true, true, false, true)
+                .Union(_preUnaryOperators.Select(x => new MemberResult(Tokens.TokenKinds[x], GeneroMemberType.Keyword, this)));
         }
 
         private IEnumerable<MemberResult> GetInstanceTypes(int index)
