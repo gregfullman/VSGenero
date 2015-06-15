@@ -321,6 +321,13 @@ namespace VSGenero.Analysis.Parsing.AST
                     }
                 }
 
+                if(parser.PeekToken(TokenKind.ForKeyword) &&
+                   parser.PeekToken(TokenKind.UpdateKeyword, 2))
+                {
+                    parser.NextToken();
+                    parser.NextToken();
+                }
+
                 node.EndIndex = parser.Token.Span.End;
             }
 
