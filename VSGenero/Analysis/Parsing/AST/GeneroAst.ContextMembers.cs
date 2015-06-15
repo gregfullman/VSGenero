@@ -420,13 +420,17 @@ namespace VSGenero.Analysis.Parsing.AST
                                 var members = analysisRes.GetMembers(this, memberType);
                                 if (members != null)
                                 {
-                                    if ((analysisRes as VariableDef).Type.Children.Any(x => x.Value is ArrayTypeReference))
+                                    if (analysisRes is VariableDef && (analysisRes as VariableDef).Type.Children.Any(x => x.Value is ArrayTypeReference))
                                     {
                                         bool varsOnly = var[var.Length - 1].Equals(']');
                                         if (varsOnly)
                                             results.AddRange(members.Where(x => !(x.Var is IFunctionResult)));
                                         else
                                             results.AddRange(members.Where(x => x.Var is IFunctionResult));
+                                    }
+                                    else
+                                    {
+                                        results.AddRange(members);
                                     }
                                 }
                             }
