@@ -790,7 +790,10 @@ namespace VSGenero.Analysis.Parsing.AST
 
         private IEnumerable<MemberResult> GetInstanceImportModules(int index)
         {
-            return _programFileProvider.GetAvailableImportModules().Select(x => new MemberResult(x, GeneroMemberType.Module, this));
+            if (_programFileProvider != null)
+                return _programFileProvider.GetAvailableImportModules().Select(x => new MemberResult(x, GeneroMemberType.Module, this));
+            else
+                return new MemberResult[0];
         }
 
         private IEnumerable<MemberResult> GetInstanceCursors(int index)
