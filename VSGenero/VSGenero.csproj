@@ -470,6 +470,7 @@
     <Compile Include="EditorExtensions\Intellisense\IntellisenseExtensions.cs" />
     <Compile Include="EditorExtensions\Intellisense\MarginGlyphs.cs" />
     <Compile Include="EditorExtensions\Intellisense\MemberCompletionSet.cs" />
+    <Compile Include="EditorExtensions\Intellisense\TaskProvider.cs" />
     <Compile Include="EditorExtensions\Intellisense\TestFunctionProvider.cs" />
     <Compile Include="EditorExtensions\ISnapshotTextReader.cs" />
     <Compile Include="EditorExtensions\GeneroPredefinedClassificationTypeNames.cs" />
@@ -510,6 +511,7 @@
     <Compile Include="Project\GeneroProjectNode.cs" />
     <Compile Include="Project\GeneroProjectNodeProperties.cs" />
     <Compile Include="Project\GeneroProjectPackage.cs" />
+    <Compile Include="Project\ProjectResources.cs" />
     <Compile Include="Project\ProvideEditorExtension2Attribute.cs" />
     <Compile Include="Project\ProvideFileFilterAttribute.cs" />
     <Compile Include="EditorFactory.cs" />
@@ -544,6 +546,7 @@
     <Compile Include="Peek\PeekResultSource.cs" />
     <Compile Include="Peek\PeekSupportedContentTypeAttribute.cs" />
     <Compile Include="VSCommands.cs" />
+    <Compile Include="VsExtensions.cs" />
     <Compile Include="VSGeneroConstants.cs" />
     <Compile Include="VSGeneroPackage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

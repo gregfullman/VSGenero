@@ -48,6 +48,7 @@ namespace Microsoft.VisualStudioTools.Project
         IVsUIHierarchy,
         IVsPersistHierarchyItem2,
         IVsHierarchyDeleteHandler,
+        IVsHierarchyDeleteHandler2,
         IVsHierarchyDropDataTarget,
         IVsHierarchyDropDataSource,
         IVsHierarchyDropDataSource2,
@@ -67,6 +68,9 @@ namespace Microsoft.VisualStudioTools.Project
     {
         #region nested types
 
+#if DEV14_OR_LATER
+        [Obsolete("Use ImageMonikers instead")]
+#endif
         public enum ImageName
         {
             OfflineWebApp = 0,
@@ -74,9 +78,7 @@ namespace Microsoft.VisualStudioTools.Project
             OpenReferenceFolder = 2,
             ReferenceFolder = 3,
             Reference = 4,
-            [SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "SDL")]
             SDLWebReference = 5,
-            [SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "DISCO")]
             DISCOWebReference = 6,
             Folder = 7,
             OpenFolder = 8,
@@ -88,19 +90,15 @@ namespace Microsoft.VisualStudioTools.Project
             WindowsForm = 14,
             WindowsUserControl = 15,
             WindowsComponent = 16,
-            [SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "XML")]
             XMLSchema = 17,
-            [SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "XML")]
             XMLFile = 18,
             WebForm = 19,
             WebService = 20,
             WebUserControl = 21,
             WebCustomUserControl = 22,
-            [SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "ASP")]
             ASPPage = 23,
             GlobalApplicationClass = 24,
             WebConfig = 25,
-            [SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "HTML")]
             HTMLPage = 26,
             StyleSheet = 27,
             ScriptFile = 28,
@@ -114,23 +112,18 @@ namespace Microsoft.VisualStudioTools.Project
             XWorld = 36,
             Audio = 37,
             Video = 38,
-            [SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "CAB")]
             CAB = 39,
-            [SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "JAR")]
             JAR = 40,
             DataEnvironment = 41,
             PreviewFile = 42,
             DanglingReference = 43,
-            [SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "XSLT")]
             XSLTFile = 44,
             Cursor = 45,
             AppDesignerFolder = 46,
             Data = 47,
             Application = 48,
             DataSet = 49,
-            [SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "PFX")]
             PFX = 50,
-            [SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "SNK")]
             SNK = 51,
 
             ImageLast = 51
@@ -177,10 +170,10 @@ namespace Microsoft.VisualStudioTools.Project
         private volatile static object BuildLock = new object();
 
         /// <summary>Maps integer ids to project item instances</summary>
-        private EventSinkCollection itemIdMap = new EventSinkCollection();
+        private HierarchyIdMap itemIdMap = new HierarchyIdMap();
 
         /// <summary>A service provider call back object provided by the IDE hosting the project manager</summary>
-        private ServiceProvider site;
+        private IServiceProvider site;
 
         private TrackDocumentsHelper tracker;
 
@@ -284,17 +277,12 @@ namespace Microsoft.VisualStudioTools.Project
         /// for which it wants to support extensibility. This also enables us to have multiple
         /// type mapping to the same CATID if we choose to.
         /// </summary>
-        private Dictionary<Type, Guid> catidMapping = new Dictionary<Type, Guid>();
-
-        /// <summary>
-        /// The internal package implementation.
-        /// </summary>
-        private ProjectPackage package;
+        private Dictionary<Type, Guid> catidMapping;
 
         /// <summary>
         /// Mapping from item names to their hierarchy nodes for all disk-based nodes.
         /// </summary>
-        protected readonly Dictionary<string, HierarchyNode> _diskNodes = new Dictionary<string, HierarchyNode>(StringComparer.OrdinalIgnoreCase);
+        internal readonly Dictionary<string, HierarchyNode> _diskNodes = new Dictionary<string, HierarchyNode>(StringComparer.OrdinalIgnoreCase);
 
         // Has the object been disposed.
         private bool isDisposed;
@@ -334,6 +322,12 @@ namespace Microsoft.VisualStudioTools.Project
         {
             get;
         }
+
+        public abstract string IssueTrackerUrl
+        {
+            get;
+        }
+
         #endregion
 
         #region virtual properties
@@ -343,9 +337,9 @@ namespace Microsoft.VisualStudioTools.Project
         /// 
         /// Subclasses will need to return true here, and will need to handle calls 
         /// </summary>
-        public virtual bool CanShowAllFiles 
+        public virtual bool CanShowAllFiles
         {
-            get 
+            get
             {
                 return false;
             }
@@ -354,9 +348,9 @@ namespace Microsoft.VisualStudioTools.Project
         /// <summary>
         /// Indicates whether or not the project is currently in the mode where its showing all files.
         /// </summary>
-        public virtual bool IsShowingAllFiles 
+        public virtual bool IsShowingAllFiles
         {
-            get 
+            get
             {
                 return false;
             }
@@ -369,8 +363,10 @@ namespace Microsoft.VisualStudioTools.Project
         /// By default these commands are disabled if this isn't overridden
         /// with the packages command guid.
         /// </summary>
-        public virtual Guid SharedCommandGuid {
-            get {
+        public virtual Guid SharedCommandGuid
+        {
+            get
+            {
                 return CommonConstants.NoSharedCommandsGuid;
             }
         }
@@ -379,7 +375,6 @@ namespace Microsoft.VisualStudioTools.Project
         /// This is the project instance guid that is peristed in the project file
         /// </summary>
         [System.ComponentModel.BrowsableAttribute(false)]
-        [SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "ID")]
         public virtual Guid ProjectIDGuid
         {
             get
@@ -411,15 +406,19 @@ namespace Microsoft.VisualStudioTools.Project
 
         #region properties
 
-        internal bool IsProjectOpened {
-            get {
+        internal bool IsProjectOpened
+        {
+            get
+            {
                 return projectOpened;
             }
         }
 
-        internal ExtensibilityEventsDispatcher ExtensibilityEventsDispatcher {
-            get {
-                return extensibilityEventsDispatcher; 
+        internal ExtensibilityEventsDispatcher ExtensibilityEventsDispatcher
+        {
+            get
+            {
+                return extensibilityEventsDispatcher;
             }
         }
 
@@ -427,17 +426,22 @@ namespace Microsoft.VisualStudioTools.Project
         /// Gets the folder node which is currently being added to the project via
         /// Solution Explorer.
         /// </summary>
-        internal FolderNode FolderBeingCreated {
-            get {
+        internal FolderNode FolderBeingCreated
+        {
+            get
+            {
                 return _folderBeingCreated;
             }
-            set {
+            set
+            {
                 _folderBeingCreated = value;
             }
         }
 
-        internal IList<HierarchyNode> ItemsDraggedOrCutOrCopied {
-            get {
+        internal IList<HierarchyNode> ItemsDraggedOrCutOrCopied
+        {
+            get
+            {
                 return this.itemsDraggedOrCutOrCopied;
             }
         }
@@ -452,14 +456,18 @@ namespace Microsoft.VisualStudioTools.Project
 
         #region overridden properties
 
-        public override bool CanOpenCommandPrompt {
-            get {
+        public override bool CanOpenCommandPrompt
+        {
+            get
+            {
                 return true;
             }
         }
 
-        internal override string FullPathToChildren {
-            get {
+        internal override string FullPathToChildren
+        {
+            get
+            {
                 return ProjectHome;
             }
         }
@@ -484,13 +492,20 @@ namespace Microsoft.VisualStudioTools.Project
         {
             get
             {
-                // Default to file name
-                string caption = this.buildProject.FullPath;
+                var project = this.buildProject;
+                if (project == null)
+                {
+                    // Project is not available, which probably means we are
+                    // in the process of closing
+                    return string.Empty;
+                }
+                // Use file name
+                string caption = project.FullPath;
                 if (String.IsNullOrEmpty(caption))
                 {
-                    if (this.buildProject.GetProperty(ProjectFileConstants.Name) != null)
+                    if (project.GetProperty(ProjectFileConstants.Name) != null)
                     {
-                        caption = this.buildProject.GetProperty(ProjectFileConstants.Name).EvaluatedValue;
+                        caption = project.GetProperty(ProjectFileConstants.Name).EvaluatedValue;
                         if (caption == null || caption.Length == 0)
                         {
                             caption = this.ItemNode.GetMetadata(ProjectFileConstants.Include);
@@ -514,6 +529,10 @@ namespace Microsoft.VisualStudioTools.Project
             }
         }
 
+#pragma warning disable 0618, 0672
+        // Project subclasses decide whether or not to support using image
+        // monikers, and so we need to keep the ImageIndex overrides in case
+        // they choose not to.
         public override int ImageIndex
         {
             get
@@ -521,6 +540,7 @@ namespace Microsoft.VisualStudioTools.Project
                 return (int)ProjectNode.ImageName.Application;
             }
         }
+#pragma warning restore 0618, 0672
 
 
         #endregion
@@ -533,7 +553,7 @@ namespace Microsoft.VisualStudioTools.Project
             {
                 if (this.errorString == null)
                 {
-                    this.errorString = SR.GetString(SR.Error, CultureInfo.CurrentUICulture);
+                    this.errorString = SR.GetString(SR.Error);
                 }
 
                 return this.errorString;
@@ -546,7 +566,7 @@ namespace Microsoft.VisualStudioTools.Project
             {
                 if (this.warningString == null)
                 {
-                    this.warningString = SR.GetString(SR.Warning, CultureInfo.CurrentUICulture);
+                    this.warningString = SR.GetString(SR.Warning);
                 }
 
                 return this.warningString;
@@ -574,7 +594,7 @@ namespace Microsoft.VisualStudioTools.Project
         /// <summary>
         /// True if the project uses the Project Designer Editor instead of the property page frame to edit project properties.
         /// </summary>
-        protected virtual bool SupportsProjectDesigner
+        protected bool SupportsProjectDesigner
         {
             get
             {
@@ -607,6 +627,22 @@ namespace Microsoft.VisualStudioTools.Project
             set
             {
                 this.showProjectInSolutionPage = value;
+            }
+        }
+
+        /// <summary>
+        /// A space separated list of the project's capabilities.
+        /// </summary>
+        /// <remarks>
+        /// These may be used by extensions to check whether they support this
+        /// project type. In general, this should only contain fundamental
+        /// properties of the project, such as the language name.
+        /// </remarks>
+        protected virtual string ProjectCapabilities
+        {
+            get
+            {
+                return null;
             }
         }
 
@@ -643,6 +679,9 @@ namespace Microsoft.VisualStudioTools.Project
         /// <summary>
         /// Gets an ImageHandler for the project node.
         /// </summary>
+#if DEV14_OR_LATER
+        [Obsolete("Use ImageMonikers instead")]
+#endif
         public ImageHandler ImageHandler
         {
             get
@@ -655,11 +694,9 @@ namespace Microsoft.VisualStudioTools.Project
             }
         }
 
-        protected virtual Stream ProjectIconsImageStripStream {
-            get {
-                Type t = typeof(ProjectNode);
-                return t.Assembly.GetManifestResourceStream("Microsoft.VisualStudio.VSCommon.SharedProject.Resources.imagelis.bmp");
-            }
+        protected abstract Stream ProjectIconsImageStripStream
+        {
+            get;
         }
 
         /// <summary>
@@ -673,7 +710,7 @@ namespace Microsoft.VisualStudioTools.Project
                 {
                     projectHome = CommonUtils.GetAbsoluteDirectoryPath(
                         this.ProjectFolder,
-                        this.GetProjectProperty(CommonConstants.ProjectHome, true));
+                        this.GetProjectProperty(CommonConstants.ProjectHome, resetCache: false));
                 }
 
                 Debug.Assert(projectHome != null, "ProjectHome should not be null");
@@ -710,7 +747,6 @@ namespace Microsoft.VisualStudioTools.Project
         /// <summary>
         /// Gets the Base Uniform Resource Identifier (URI).
         /// </summary>
-        [SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "URI")]
         public Microsoft.VisualStudio.Shell.Url BaseURI
         {
             get
@@ -748,7 +784,7 @@ namespace Microsoft.VisualStudioTools.Project
         /// </summary>
         public bool IsClosing
         {
-            get 
+            get
             {
                 return this.isClosing;
             }
@@ -757,8 +793,10 @@ namespace Microsoft.VisualStudioTools.Project
         /// <summary>
         /// Gets whether or not the project is being built.
         /// </summary>
-        public bool BuildInProgress {
-            get {
+        public bool BuildInProgress
+        {
+            get
+            {
                 return buildInProcess;
             }
         }
@@ -788,7 +826,7 @@ namespace Microsoft.VisualStudioTools.Project
         /// <summary>
         /// Gets a collection of integer ids that maps to project item instances
         /// </summary>
-        internal EventSinkCollection ItemIdMap
+        internal HierarchyIdMap ItemIdMap
         {
             get
             {
@@ -819,7 +857,7 @@ namespace Microsoft.VisualStudioTools.Project
             set
             {
                 this.buildLogger = value;
-                this.useProvidedLogger = true;
+                this.useProvidedLogger = value != null;
             }
         }
 
@@ -923,37 +961,26 @@ namespace Microsoft.VisualStudioTools.Project
             }
         }
 
-        /// <summary>
-        /// The internal package implementation.
-        /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
-        internal ProjectPackage Package
-        {
-            get
-            {
-                return this.package;
-            }
-            set
-            {
-                this.package = value;
-            }
-        }
         #endregion
 
         #region ctor
 
-        protected ProjectNode()
+        protected ProjectNode(IServiceProvider serviceProvider)
         {
             this.extensibilityEventsDispatcher = new ExtensibilityEventsDispatcher(this);
             this.Initialize();
+            this.site = serviceProvider;
+            taskProvider = new TaskProvider(this.site);
         }
 
         #endregion
 
         #region overridden methods
 
-        protected internal override void DeleteFromStorage(string path) {
-            if (File.Exists(path)) {
+        protected internal override void DeleteFromStorage(string path)
+        {
+            if (File.Exists(path))
+            {
                 File.Delete(path);
             }
             base.DeleteFromStorage(path);
@@ -997,11 +1024,11 @@ namespace Microsoft.VisualStudioTools.Project
             // Validate the filename. 
             if (Utilities.IsFileNameInvalid(label))
             {
-                throw new InvalidOperationException(String.Format(SR.GetString(SR.ErrorInvalidFileName, CultureInfo.CurrentUICulture), label));
+                throw new InvalidOperationException(SR.GetString(SR.ErrorInvalidFileName, label));
             }
             else if (this.ProjectFolder.Length + label.Length + 1 > NativeMethods.MAX_PATH)
             {
-                throw new InvalidOperationException(String.Format(CultureInfo.CurrentCulture, SR.GetString(SR.PathTooLong, CultureInfo.CurrentUICulture), label));
+                throw new InvalidOperationException(SR.GetString(SR.PathTooLong, label));
             }
 
 
@@ -1018,7 +1045,7 @@ namespace Microsoft.VisualStudioTools.Project
             // Now check whether the original file is still there. It could have been renamed.
             if (!File.Exists(this.Url))
             {
-                throw new InvalidOperationException(String.Format(CultureInfo.CurrentCulture, SR.GetString(SR.FileOrFolderCannotBeFound, CultureInfo.CurrentUICulture), this.ProjectFile));
+                throw new InvalidOperationException(SR.GetString(SR.FileOrFolderCannotBeFound, ProjectFile));
             }
 
             // Get the full file name and then rename the project file.
@@ -1075,14 +1102,21 @@ namespace Microsoft.VisualStudioTools.Project
                 case __VSHPROPID.VSHPROPID_ExpandByDefault:
                     return true;
 
+                case __VSHPROPID.VSHPROPID_DefaultEnableDeployProjectCfg:
+                    return true;
+
+                case __VSHPROPID.VSHPROPID_DefaultEnableBuildProjectCfg:
+                    return true;
+
                 // Use the same icon as if the folder was closed
                 case __VSHPROPID.VSHPROPID_OpenFolderIconIndex:
                     return GetProperty((int)__VSHPROPID.VSHPROPID_IconIndex);
 
                 case __VSHPROPID.VSHPROPID_ParentHierarchyItemid:
-                    if (parentHierarchy != null) {
+                    if (parentHierarchy != null)
+                    {
                         return (IntPtr)parentHierarchyItemId; // VS requires VT_I4 | VT_INT_PTR
-            }
+                    }
                     break;
 
                 case __VSHPROPID.VSHPROPID_ParentHierarchy:
@@ -1108,6 +1142,19 @@ namespace Microsoft.VisualStudioTools.Project
                 default:
                     break;
             }
+
+#if DEV11_OR_LATER
+            switch ((__VSHPROPID5)propId)
+            {
+                case __VSHPROPID5.VSHPROPID_ProjectCapabilities:
+                    var caps = ProjectCapabilities;
+                    if (!string.IsNullOrEmpty(caps))
+                    {
+                        return caps;
+                    }
+                    break;
+            }
+#endif
 
             return base.GetProperty(propId);
         }
@@ -1217,17 +1264,7 @@ namespace Microsoft.VisualStudioTools.Project
                     }
                     finally
                     {
-                        try
-                        {
-                            if (site != null)
-                            {
-                                site.Dispose();
-                            }
-                        }
-                        finally
-                        {
-                            buildEngine = null;
-                        }
+                        buildEngine = null;
                     }
                 }
 
@@ -1236,6 +1273,20 @@ namespace Microsoft.VisualStudioTools.Project
                     buildProject.ProjectCollection.UnloadProject(buildProject);
                     buildProject.ProjectCollection.UnloadProject(buildProject.Xml);
                     SetBuildProject(null);
+                }
+
+                var logger = BuildLogger as IDisposable;
+                BuildLogger = null;
+                if (logger != null)
+                {
+                    logger.Dispose();
+                }
+
+                var tasks = taskProvider;
+                taskProvider = null;
+                if (tasks != null)
+                {
+                    tasks.Dispose();
                 }
 
                 isClosing = true;
@@ -1287,7 +1338,7 @@ namespace Microsoft.VisualStudioTools.Project
                         if (this.buildInProcess)
                             result |= QueryStatusResult.ENABLED;
                         else
-                        result |= QueryStatusResult.INVISIBLE;
+                            result |= QueryStatusResult.INVISIBLE;
                         return VSConstants.S_OK;
 
                     case VsCommands.NewFolder:
@@ -1305,9 +1356,12 @@ namespace Microsoft.VisualStudioTools.Project
                 switch ((VsCommands2K)cmd)
                 {
                     case VsCommands2K.ADDREFERENCE:
-                        if (GetReferenceContainer() != null) {
-                        result |= QueryStatusResult.SUPPORTED | QueryStatusResult.ENABLED;
-                        } else {
+                        if (GetReferenceContainer() != null)
+                        {
+                            result |= QueryStatusResult.SUPPORTED | QueryStatusResult.ENABLED;
+                        }
+                        else
+                        {
                             result |= QueryStatusResult.SUPPORTED | QueryStatusResult.INVISIBLE;
                         }
                         return VSConstants.S_OK;
@@ -1317,10 +1371,6 @@ namespace Microsoft.VisualStudioTools.Project
                         return VSConstants.S_OK;
 
                 }
-            }
-            else if(cmdGroup != SharedCommandGuid)
-            {
-                return (int)OleConstants.OLECMDERR_E_UNKNOWNGROUP;
             }
 
             return base.QueryStatusOnNode(cmdGroup, cmd, pCmdText, ref result);
@@ -1384,6 +1434,20 @@ namespace Microsoft.VisualStudioTools.Project
 
         #region virtual methods
 
+        public virtual IEnumerable<string> GetAvailableItemNames()
+        {
+            IEnumerable<string> itemTypes = new[] {
+                ProjectFileConstants.None,
+                ProjectFileConstants.Compile,
+                ProjectFileConstants.Content
+            };
+
+            var items = this.buildProject.GetItems("AvailableItemName");
+            itemTypes = itemTypes.Union(items.Select(x => x.EvaluatedInclude));
+
+            return itemTypes;
+        }
+
         /// <summary>
         /// Creates a reference node for the given file returning the node, or returns null
         /// if the file doesn't represent a valid file which can be referenced.
@@ -1404,7 +1468,6 @@ namespace Microsoft.VisualStudioTools.Project
         /// <param name="wizardToRun">The name of the wizard to run.</param>
         /// <param name="dlgOwner">The owner of the dialog box.</param>
         /// <returns>A VSADDRESULT enum value describing success or failure.</returns>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1800:DoNotCastUnnecessarily"), SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "dlg")]
         public virtual VSADDRESULT RunWizard(HierarchyNode parentNode, string itemName, string wizardToRun, IntPtr dlgOwner)
         {
             Debug.Assert(!String.IsNullOrEmpty(itemName), "The Add item dialog was passing in a null or empty item to be added to the hierrachy.");
@@ -1416,14 +1479,14 @@ namespace Microsoft.VisualStudioTools.Project
             // We just validate for length, since we assume other validation has been performed by the dlgOwner.
             if (CommonUtils.GetAbsoluteFilePath(this.ProjectHome, itemName).Length >= NativeMethods.MAX_PATH)
             {
-                string errorMessage = String.Format(CultureInfo.CurrentCulture, SR.GetString(SR.PathTooLong, CultureInfo.CurrentUICulture), itemName);
+                string errorMessage = SR.GetString(SR.PathTooLong, itemName);
                 if (!Utilities.IsInAutomationFunction(this.Site))
                 {
                     string title = null;
                     OLEMSGICON icon = OLEMSGICON.OLEMSGICON_CRITICAL;
                     OLEMSGBUTTON buttons = OLEMSGBUTTON.OLEMSGBUTTON_OK;
                     OLEMSGDEFBUTTON defaultButton = OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST;
-                    VsShellUtilities.ShowMessageBox(this.Site, title, errorMessage, icon, buttons, defaultButton);
+                    Utilities.ShowMessageBox(this.Site, title, errorMessage, icon, buttons, defaultButton);
                     return VSADDRESULT.ADDRESULT_Failure;
                 }
                 else
@@ -1570,14 +1633,14 @@ namespace Microsoft.VisualStudioTools.Project
                         (IVsComponentUser)this,
                         0,
                         null,
-                DynamicProjectSR.GetString(Microsoft.VisualStudioTools.Project.SR.AddReferenceDialogTitle),   // Title
-                        "VS.AddReference",						  // Help topic
+                        SR.GetString(SR.AddReferenceDialogTitle), // Title
+                        "VS.AddReference", // Help topic
                         ref pX,
                         ref pY,
                         (uint)tabInit.Length,
                         tabInit,
                         ref guidEmpty,
-                        AddReferenceExtensions,
+                        AddReferenceExtensions.Replace('|', '\0') + "\0",
                         ref strBrowseLocations));
                 }
             }
@@ -1598,7 +1661,7 @@ namespace Microsoft.VisualStudioTools.Project
         {
             get
             {
-                return "Dynamic Link Libraries (*.dll)\0*.dll\0All Files (*.*)\0*.*\0";
+                return SR.GetString(SR.AddReferenceExtensions);
             }
         }
 
@@ -1631,7 +1694,6 @@ namespace Microsoft.VisualStudioTools.Project
         /// <param name="flags">Set of flag values taken from the VSCREATEPROJFLAGS enumeration.</param>
         /// <param name="iidProject">Identifier of the interface that the caller wants returned. </param>
         /// <param name="canceled">An out parameter specifying if the project creation was canceled</param>
-        [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "iid")]
         public virtual void Load(string fileName, string location, string name, uint flags, ref Guid iidProject, out int canceled)
         {
             using (new DebugTimer("ProjectLoad"))
@@ -1662,7 +1724,7 @@ namespace Microsoft.VisualStudioTools.Project
 
                     // based on the passed in flags, this either reloads/loads a project, or tries to create a new one
                     // now we create a new project... we do that by loading the template and then saving under a new name
-                    // we also need to copy all the associated files with it.					
+                    // we also need to copy all the associated files with it.
                     if ((flags & (uint)__VSCREATEPROJFLAGS.CPF_CLONEFILE) == (uint)__VSCREATEPROJFLAGS.CPF_CLONEFILE)
                     {
                         Debug.Assert(File.Exists(fileName), "Invalid filename passed to load the project. A valid filename is expected");
@@ -1772,21 +1834,26 @@ namespace Microsoft.VisualStudioTools.Project
             }
         }
 
-        public override void Close() {
+        public override void Close()
+        {
             projectOpened = false;
             isClosing = true;
 
-            if (taskProvider != null) {
+            if (taskProvider != null)
+            {
                 taskProvider.Tasks.Clear();
             }
 
-            try {
+            try
+            {
                 // Walk the tree and close all nodes.
                 // This has to be done before the project closes, since we want
                 // state still available for the ProjectMgr on the nodes 
                 // when nodes are closing.
                 CloseAllNodes(this);
-            } finally {
+            }
+            finally
+            {
                 // HierarchyNode.Close() will also call Dispose on us
                 base.Close();
             }
@@ -1796,7 +1863,8 @@ namespace Microsoft.VisualStudioTools.Project
         /// Performs any new project initialization after the MSBuild project
         /// has been constructed and template files copied to the project directory.
         /// </summary>
-        protected virtual void FinishProjectCreation(string sourceFolder, string destFolder) {
+        protected virtual void FinishProjectCreation(string sourceFolder, string destFolder)
+        {
         }
 
         /// <summary>
@@ -1818,10 +1886,10 @@ namespace Microsoft.VisualStudioTools.Project
                     Directory.CreateDirectory(directory);
                 }
 
-                FileInfo fiOrg = new FileInfo(source);
-                FileInfo fiNew = fiOrg.CopyTo(target, true);
+                File.Copy(source, target, true);
 
-                fiNew.Attributes = FileAttributes.Normal; // remove any read only attributes.
+                // best effort to reset the ReadOnly attribute
+                File.SetAttributes(target, File.GetAttributes(target) & ~FileAttributes.ReadOnly);
             }
             catch (IOException e)
             {
@@ -1897,7 +1965,6 @@ namespace Microsoft.VisualStudioTools.Project
         /// <summary>
         /// Do the build by invoking msbuild
         /// </summary>
-        [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "vsopts")]
         internal virtual void BuildAsync(uint vsopts, string config, IVsOutputWindowPane output, string target, Action<MSBuildResult, string> uiThreadCallback)
         {
             BuildPrelude(output);
@@ -1913,7 +1980,7 @@ namespace Microsoft.VisualStudioTools.Project
         /// <returns>null if property does not exist, otherwise value of the property</returns>
         public virtual string GetProjectProperty(string propertyName, bool resetCache)
         {
-            UIThread.Instance.MustBeCalledFromUIThread();
+            Site.GetUIThread().MustBeCalledFromUIThread();
 
             MSBuildExecution.ProjectPropertyInstance property = GetMsBuildProperty(propertyName, resetCache);
             if (property == null)
@@ -1930,7 +1997,7 @@ namespace Microsoft.VisualStudioTools.Project
         /// <param name="propertyName">Name of the property to get</param>
         public virtual string GetUnevaluatedProperty(string propertyName)
         {
-            UIThread.Instance.MustBeCalledFromUIThread();
+            Site.GetUIThread().MustBeCalledFromUIThread();
 
             var res = this.buildProject.GetProperty(propertyName);
 
@@ -1949,42 +2016,32 @@ namespace Microsoft.VisualStudioTools.Project
         public virtual void SetProjectProperty(string propertyName, string propertyValue)
         {
             Utilities.ArgumentNotNull("propertyName", propertyName);
-            UIThread.Instance.MustBeCalledFromUIThread();
+            Site.GetUIThread().MustBeCalledFromUIThread();
 
-            string oldValue = null;
-            ProjectPropertyInstance oldProp = GetMsBuildProperty(propertyName, true);
-            if (oldProp != null)
-                oldValue = oldProp.EvaluatedValue;
-            if (propertyValue == null)
+            var oldValue = GetUnevaluatedProperty(propertyName) ?? string.Empty;
+            propertyValue = propertyValue ?? string.Empty;
+
+            if (oldValue.Equals(propertyValue, StringComparison.Ordinal))
             {
-                // if property already null, do nothing
-                if (oldValue == null)
-                    return;
-                // otherwise, set it to empty
-                propertyValue = String.Empty;
+                // Property is unchanged or unspecified, so don't set it.
+                return;
             }
 
-            // Only do the work if this is different to what we had before
-            if (String.Compare(oldValue, propertyValue, StringComparison.Ordinal) != 0)
+            // Check out the project file.
+            if (!this.QueryEditProjectFile(false))
             {
-                // Check out the project file.
-                if (!this.QueryEditProjectFile(false))
-                {
-                    throw Marshal.GetExceptionForHR(VSConstants.OLE_E_PROMPTSAVECANCELLED);
-                }
-
-                var newProp = this.buildProject.SetProperty(propertyName, propertyValue);
-                RaiseProjectPropertyChanged(propertyName, oldValue, propertyValue);
-
-                // property cache will need to be updated
-                this.currentConfig = null;
+                throw Marshal.GetExceptionForHR(VSConstants.OLE_E_PROMPTSAVECANCELLED);
             }
-            return;
+
+            var newProp = this.buildProject.SetProperty(propertyName, propertyValue);
+            RaiseProjectPropertyChanged(propertyName, oldValue, propertyValue);
+
+            // property cache will need to be updated
+            this.currentConfig = null;
         }
 
 
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity"), System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Globalization", "CA1308:NormalizeStringsToUppercase")]
         public virtual CompilerParameters GetProjectOptions(string config)
         {
             // This needs to be commented out because if you build for Debug the properties from the Debug 
@@ -2052,11 +2109,12 @@ namespace Microsoft.VisualStudioTools.Project
                 options.TreatWarningsAsErrors = true;
             }
 
-            if (GetProjectProperty("WarningLevel", false) != null)
+            var warningLevel = GetProjectProperty("WarningLevel", resetCache: false);
+            if (warningLevel != null)
             {
                 try
                 {
-                    options.WarningLevel = Int32.Parse(GetProjectProperty("WarningLevel", false), CultureInfo.InvariantCulture);
+                    options.WarningLevel = Int32.Parse(warningLevel, CultureInfo.InvariantCulture);
                 }
                 catch (ArgumentNullException e)
                 {
@@ -2090,8 +2148,6 @@ namespace Microsoft.VisualStudioTools.Project
             return (s != null && s.ToUpperInvariant().Trim() == "TRUE");
         }
 
-        [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Attr")]
-        [SuppressMessage("Microsoft.Naming", "CA1720:IdentifiersShouldNotContainTypeNames", MessageId = "bool")]
         public virtual bool GetBoolAttr(string config, string name)
         {
             SetConfiguration(config);
@@ -2145,8 +2201,10 @@ namespace Microsoft.VisualStudioTools.Project
             return false;
         }
 
-        public virtual string[] CodeFileExtensions {
-            get {
+        public virtual string[] CodeFileExtensions
+        {
+            get
+            {
                 return new string[0];
             }
         }
@@ -2202,13 +2260,15 @@ namespace Microsoft.VisualStudioTools.Project
         /// <param name="strPath">Path of the folder, can be relative to project or absolute</param>
         public virtual HierarchyNode CreateFolderNodes(string path, bool createOnDisk = true)
         {
-            Utilities.ArgumentNotNullOrEmpty("path", path);
+            Utilities.ArgumentNotNull("path", path);
 
             if (Path.IsPathRooted(path))
             {
                 // Ensure we are using a path deeper than ProjectHome
                 if (!CommonUtils.IsSubpathOf(ProjectHome, path))
+                {
                     throw new ArgumentException("The path is not within the project", "path");
+                }
 
                 path = CommonUtils.GetRelativeDirectoryPath(ProjectHome, path);
             }
@@ -2216,7 +2276,7 @@ namespace Microsoft.VisualStudioTools.Project
             // If the folder already exists, return early
             string strFullPath = CommonUtils.GetAbsoluteDirectoryPath(ProjectHome, path);
             uint uiItemId;
-            if (ErrorHandler.Succeeded(ParseCanonicalName(strFullPath, out uiItemId)) && 
+            if (ErrorHandler.Succeeded(ParseCanonicalName(strFullPath, out uiItemId)) &&
                 uiItemId != 0)
             {
                 var folder = this.NodeFromItemId(uiItemId) as FolderNode;
@@ -2227,8 +2287,8 @@ namespace Microsoft.VisualStudioTools.Project
                 }
             }
 
-            
-            string[] parts = strFullPath.Substring(ProjectHome.Length).Split(new [] { Path.DirectorySeparatorChar }, StringSplitOptions.RemoveEmptyEntries);
+
+            string[] parts = strFullPath.Substring(ProjectHome.Length).Split(new[] { Path.DirectorySeparatorChar }, StringSplitOptions.RemoveEmptyEntries);
             if (parts.Length == 0)
             {
                 // pointing at the project home, it already exists
@@ -2269,7 +2329,7 @@ namespace Microsoft.VisualStudioTools.Project
         /// <returns></returns>
         protected virtual Guid[] GetConfigurationIndependentPropertyPages()
         {
-            return new Guid[] { Guid.Empty };
+            return new Guid[] { };
         }
 
         /// <summary>
@@ -2278,7 +2338,7 @@ namespace Microsoft.VisualStudioTools.Project
         /// <returns></returns>
         protected virtual Guid[] GetConfigurationDependentPropertyPages()
         {
-            return new Guid[0];
+            return new Guid[] { };
         }
 
         /// <summary>
@@ -2299,7 +2359,6 @@ namespace Microsoft.VisualStudioTools.Project
         /// <param name="fullPath">the full path to the subfolder we want to verify.</param>
         /// <param name="parent">the parent node where to add the subfolder if it does not exist.</param>
         /// <returns>the foldernode correcsponding to the path.</returns>
-        [SuppressMessage("Microsoft.Naming", "CA1702:CompoundWordsShouldBeCasedCorrectly", MessageId = "SubFolder")]
         protected virtual FolderNode VerifySubFolderExists(string relativePath, string fullPath, HierarchyNode parent, bool createOnDisk = true)
         {
             Debug.Assert(!CommonUtils.HasEndSeparator(relativePath));
@@ -2319,15 +2378,20 @@ namespace Microsoft.VisualStudioTools.Project
                 // We could be in the process of loading so see if msbuild knows about it
                 ProjectElement item = null;
                 var items = buildProject.GetItemsByEvaluatedInclude(relativePath);
-                if (items.Count == 0) {
+                if (items.Count == 0)
+                {
                     items = buildProject.GetItemsByEvaluatedInclude(relativePath + "\\");
                 }
-                if (items.Count != 0) {
+                if (items.Count != 0)
+                {
                     item = new MsBuildProjectElement(this, items.First());
-                } else {
+                }
+                else
+                {
                     item = AddFolderToMsBuild(fullPath);
                 }
-                if (createOnDisk) {
+                if (createOnDisk)
+                {
                     Directory.CreateDirectory(fullPath);
                 }
                 folderNode = CreateFolderNode(item);
@@ -2619,7 +2683,12 @@ namespace Microsoft.VisualStudioTools.Project
                 var logger = new IDEBuildLogger(output, this.TaskProvider, GetOuterInterface<IVsHierarchy>());
                 logger.ErrorString = ErrorString;
                 logger.WarningString = WarningString;
+                var oldLogger = this.BuildLogger as IDisposable;
                 this.BuildLogger = logger;
+                if (oldLogger != null)
+                {
+                    oldLogger.Dispose();
+                }
             }
             else
             {
@@ -2658,10 +2727,9 @@ namespace Microsoft.VisualStudioTools.Project
         /// you should be aware that any call to BuildTarget on any project
         /// will reset the list of generated items/properties
         /// </remarks>
-        [SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "Ms")]
         protected virtual MSBuildResult InvokeMsBuild(string target)
         {
-            UIThread.Instance.MustBeCalledFromUIThread();
+            Site.GetUIThread().MustBeCalledFromUIThread();
 
             MSBuildResult result = MSBuildResult.Failed;
             const bool designTime = true;
@@ -2714,14 +2782,17 @@ namespace Microsoft.VisualStudioTools.Project
         /// <param name="projectInstance">project instance to build; if null, this.BuildProject.CreateProjectInstance() is used to populate</param>
         /// <param name="uiThreadCallback">callback to be run UI thread </param>
         /// <returns>A Build submission instance.</returns>
-        protected virtual BuildSubmission DoAsyncMSBuildSubmission(string target, Action<MSBuildResult, string> uiThreadCallback) {
+        protected virtual BuildSubmission DoAsyncMSBuildSubmission(string target, Action<MSBuildResult, string> uiThreadCallback)
+        {
             const bool designTime = false;
 
             IVsBuildManagerAccessor accessor = (IVsBuildManagerAccessor)this.Site.GetService(typeof(SVsBuildManagerAccessor));
             Utilities.CheckNotNull(accessor);
 
-            if (!TryBeginBuild(designTime, false)) {
-                if (uiThreadCallback != null) {
+            if (!TryBeginBuild(designTime, false))
+            {
+                if (uiThreadCallback != null)
+                {
                     uiThreadCallback(MSBuildResult.Failed, target);
                 }
 
@@ -2729,7 +2800,8 @@ namespace Microsoft.VisualStudioTools.Project
             }
 
             string[] targetsToBuild = new string[target != null ? 1 : 0];
-            if (target != null) {
+            if (target != null)
+            {
                 targetsToBuild[0] = target;
             }
 
@@ -2742,25 +2814,31 @@ namespace Microsoft.VisualStudioTools.Project
             BuildProject.ProjectCollection.HostServices.SetNodeAffinity(projectInstance.FullPath, NodeAffinity.InProc);
             BuildRequestData requestData = new BuildRequestData(projectInstance, targetsToBuild, this.BuildProject.ProjectCollection.HostServices, BuildRequestDataFlags.ReplaceExistingProjectInstance);
             BuildSubmission submission = BuildManager.DefaultBuildManager.PendBuildRequest(requestData);
-            try {
-                if (useProvidedLogger && buildLogger != null) {
+            try
+            {
+                if (useProvidedLogger && buildLogger != null)
+                {
                     ErrorHandler.ThrowOnFailure(accessor.RegisterLogger(submission.SubmissionId, buildLogger));
                 }
 
                 submission.ExecuteAsync(sub => {
-                    UIThread.Instance.Run(() => {
+                    Site.GetUIThread().Invoke(() => {
                         IDEBuildLogger ideLogger = this.buildLogger as IDEBuildLogger;
-                        if (ideLogger != null) {
+                        if (ideLogger != null)
+                        {
                             ideLogger.FlushBuildOutput();
                         }
                         EndBuild(sub, designTime, false);
                         uiThreadCallback((sub.BuildResult.OverallResult == BuildResultCode.Success) ? MSBuildResult.Successful : MSBuildResult.Failed, target);
                     });
                 }, null);
-            } catch (Exception e) {
+            }
+            catch (Exception e)
+            {
                 Debug.Fail(e.ToString());
                 EndBuild(submission, designTime, false);
-                if (uiThreadCallback != null) {
+                if (uiThreadCallback != null)
+                {
                     uiThreadCallback(MSBuildResult.Failed, target);
                 }
 
@@ -2830,7 +2908,7 @@ namespace Microsoft.VisualStudioTools.Project
 
             if (newFileName.Length > NativeMethods.MAX_PATH)
             {
-                errorMessage = String.Format(CultureInfo.CurrentCulture, SR.GetString(SR.PathTooLong, CultureInfo.CurrentUICulture), newFileName);
+                errorMessage = SR.GetString(SR.PathTooLong, newFileName);
             }
             else
             {
@@ -2843,7 +2921,7 @@ namespace Microsoft.VisualStudioTools.Project
                 // We want to be consistent in the error message and exception we throw. fileName could be for example #¤&%"¤&"%  and that would trigger an ArgumentException on Path.IsRooted.
                 catch (ArgumentException)
                 {
-                    errorMessage = String.Format(SR.GetString(SR.ErrorInvalidFileName, CultureInfo.CurrentUICulture), newFileName);
+                    errorMessage = SR.GetString(SR.ErrorInvalidFileName, newFileName);
                 }
 
                 if (errorMessage.Length == 0)
@@ -2852,11 +2930,11 @@ namespace Microsoft.VisualStudioTools.Project
                     // For some reason the save as dialog box allows to save files like "......ext"
                     if (String.IsNullOrEmpty(fileName) || fileName[0] == '.')
                     {
-                        errorMessage = SR.GetString(SR.FileNameCannotContainALeadingPeriod, CultureInfo.CurrentUICulture);
+                        errorMessage = SR.GetString(SR.FileNameCannotContainALeadingPeriod);
                     }
                     else if (Utilities.ContainsInvalidFileNameChars(newFileName))
                     {
-                        errorMessage = String.Format(SR.GetString(SR.ErrorInvalidFileName, CultureInfo.CurrentUICulture), newFileName);
+                        errorMessage = SR.GetString(SR.ErrorInvalidFileName, newFileName);
                     }
                 }
             }
@@ -2869,7 +2947,7 @@ namespace Microsoft.VisualStudioTools.Project
                     OLEMSGICON icon = OLEMSGICON.OLEMSGICON_CRITICAL;
                     OLEMSGBUTTON buttons = OLEMSGBUTTON.OLEMSGBUTTON_OK;
                     OLEMSGDEFBUTTON defaultButton = OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST;
-                    VsShellUtilities.ShowMessageBox(this.Site, title, errorMessage, icon, buttons, defaultButton);
+                    Utilities.ShowMessageBox(this.Site, title, errorMessage, icon, buttons, defaultButton);
                     return VSConstants.OLE_E_PROMPTSAVECANCELLED;
                 }
 
@@ -2950,8 +3028,6 @@ namespace Microsoft.VisualStudioTools.Project
         /// </summary>
         /// <param name="file">The file to be added.</param>
         /// <returns>A Projectelement describing the newly added file.</returns>
-        [SuppressMessage("Microsoft.Naming", "CA1702:CompoundWordsShouldBeCasedCorrectly", MessageId = "ToMs")]
-        [SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "Ms")]
         internal virtual MsBuildProjectElement AddFileToMsBuild(string file)
         {
             MsBuildProjectElement newItem;
@@ -2982,8 +3058,6 @@ namespace Microsoft.VisualStudioTools.Project
         /// </summary>
         /// <param name="folder">The folder to be added.</param>
         /// <returns>A ProjectElement describing the newly added folder.</returns>
-        [SuppressMessage("Microsoft.Naming", "CA1702:CompoundWordsShouldBeCasedCorrectly", MessageId = "ToMs")]
-        [SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "Ms")]
         protected virtual ProjectElement AddFolderToMsBuild(string folder)
         {
             ProjectElement newItem;
@@ -3028,10 +3102,10 @@ namespace Microsoft.VisualStudioTools.Project
             OLEMSGDEFBUTTON defaultButton = OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST;
 
             // File already exists in project... message box
-            message = String.Format(SR.GetString(inProject ? SR.FileAlreadyInProject : SR.FileAlreadyExists, CultureInfo.CurrentUICulture), Path.GetFileName(originalFileName));
+            message = SR.GetString(inProject ? SR.FileAlreadyInProject : SR.FileAlreadyExists, Path.GetFileName(originalFileName));
             icon = OLEMSGICON.OLEMSGICON_QUERY;
             buttons = OLEMSGBUTTON.OLEMSGBUTTON_YESNO;
-            int msgboxResult = VsShellUtilities.ShowMessageBox(this.Site, title, message, icon, buttons, defaultButton);
+            int msgboxResult = Utilities.ShowMessageBox(this.Site, title, message, icon, buttons, defaultButton);
             if (msgboxResult == NativeMethods.IDCANCEL)
             {
                 return (int)E_CANCEL_FILE_ADD;
@@ -3127,7 +3201,7 @@ namespace Microsoft.VisualStudioTools.Project
         /// <returns>Display name</returns>
         protected internal virtual string GetOutputGroupDisplayName(string canonicalName)
         {
-            string result = SR.GetString(String.Format(CultureInfo.InvariantCulture, "Output{0}", canonicalName), CultureInfo.CurrentUICulture);
+            string result = SR.GetString("Output" + canonicalName);
             if (String.IsNullOrEmpty(result))
                 result = canonicalName;
             return result;
@@ -3140,7 +3214,7 @@ namespace Microsoft.VisualStudioTools.Project
         /// <returns>Description</returns>
         protected internal virtual string GetOutputGroupDescription(string canonicalName)
         {
-            string result = SR.GetString(String.Format(CultureInfo.InvariantCulture, "Output{0}Description", canonicalName), CultureInfo.CurrentUICulture);
+            string result = SR.GetString("Output" + canonicalName + "Description");
             if (String.IsNullOrEmpty(result))
                 result = canonicalName;
             return result;
@@ -3246,7 +3320,8 @@ namespace Microsoft.VisualStudioTools.Project
                 // Check if the item is imported.  If it is we'll only show it in the
                 // project if it is a Visible item meta data.  Visible can also be used
                 // to hide non-imported items.
-                if (!IsVisibleItem(item)) {
+                if (!IsVisibleItem(item))
+                {
                     continue;
                 }
 
@@ -3327,11 +3402,13 @@ namespace Microsoft.VisualStudioTools.Project
 
         }
 
-        private static bool IsVisibleItem(MSBuild.ProjectItem item) {
+        private static bool IsVisibleItem(MSBuild.ProjectItem item)
+        {
             bool isVisibleItem = true;
             string visible = item.GetMetadataValue(CommonConstants.Visible);
             if ((item.IsImported && !String.Equals(visible, "true", StringComparison.OrdinalIgnoreCase)) ||
-                String.Equals(visible, "false", StringComparison.OrdinalIgnoreCase)) {
+                String.Equals(visible, "false", StringComparison.OrdinalIgnoreCase))
+            {
                 isVisibleItem = false;
             }
             return isVisibleItem;
@@ -3367,17 +3444,17 @@ namespace Microsoft.VisualStudioTools.Project
             IPersistXMLFragment outerHierarchy = GetOuterInterface<IPersistXMLFragment>();
             if (outerHierarchy != null)
             {
-                this.LoadXmlFragment(outerHierarchy, null);
+                this.LoadXmlFragment(outerHierarchy, null, null);
             }
         }
 
         /// <summary>
         /// Used to sort nodes in the hierarchy.
         /// </summary>
-        protected internal virtual int CompareNodes(HierarchyNode node1, HierarchyNode node2)
+        internal int CompareNodes(HierarchyNode node1, HierarchyNode node2)
         {
-            Utilities.ArgumentNotNull("node1", node1);
-            Utilities.ArgumentNotNull("node2", node2);
+            Debug.Assert(node1 != null);
+            Debug.Assert(node2 != null);
 
             if (node1.SortPriority == node2.SortPriority)
             {
@@ -3389,11 +3466,14 @@ namespace Microsoft.VisualStudioTools.Project
             }
         }
 
+        protected abstract void InitializeCATIDs();
+
         #endregion
 
         #region non-virtual methods
 
-        internal void InstantiateItemsDraggedOrCutOrCopiedList() {
+        internal void InstantiateItemsDraggedOrCutOrCopiedList()
+        {
             itemsDraggedOrCutOrCopied = new List<HierarchyNode>();
         }
 
@@ -3402,7 +3482,7 @@ namespace Microsoft.VisualStudioTools.Project
         /// </summary>
         public MSBuildResult Build(string target)
         {
-            UIThread.Instance.MustBeCalledFromUIThread();
+            Site.GetUIThread().MustBeCalledFromUIThread();
 
             return this.Build(String.Empty, target);
         }
@@ -3412,16 +3492,20 @@ namespace Microsoft.VisualStudioTools.Project
         ///  cleanBuild is not part of the vsopts, but passed down as the callpath is differently
         ///  PrepareBuild mainly creates directories and cleans house if cleanBuild is true
         /// </summary>
-        public virtual void PrepareBuild(string config, bool cleanBuild) {
-            UIThread.Instance.MustBeCalledFromUIThread();
+        public virtual void PrepareBuild(string config, bool cleanBuild)
+        {
+            Site.GetUIThread().MustBeCalledFromUIThread();
 
-            try {
+            try
+            {
                 SetConfiguration(config);
 
                 string outputPath = Path.GetDirectoryName(GetProjectProperty("OutputPath"));
 
                 PackageUtilities.EnsureOutputPath(outputPath);
-            } finally {
+            }
+            finally
+            {
                 SetCurrentConfiguration();
             }
         }
@@ -3429,17 +3513,17 @@ namespace Microsoft.VisualStudioTools.Project
         /// <summary>
         /// Do the build by invoking msbuild
         /// </summary>
-        [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "vsopts")]
         public virtual MSBuildResult Build(string config, string target)
         {
-            UIThread.Instance.MustBeCalledFromUIThread();
+            Site.GetUIThread().MustBeCalledFromUIThread();
 
             lock (ProjectNode.BuildLock)
             {
                 IVsOutputWindowPane output = null;
                 var outputWindow = (IVsOutputWindow)GetService(typeof(SVsOutputWindow));
-                if (outputWindow != null && 
-                    ErrorHandler.Failed(outputWindow.GetPane(VSConstants.GUID_BuildOutputWindowPane, out output))) {
+                if (outputWindow != null &&
+                    ErrorHandler.Failed(outputWindow.GetPane(VSConstants.GUID_BuildOutputWindowPane, out output)))
+                {
                     outputWindow.CreatePane(VSConstants.GUID_BuildOutputWindowPane, "Build", 1, 1);
                     outputWindow.GetPane(VSConstants.GUID_BuildOutputWindowPane, out output);
                 }
@@ -3507,7 +3591,6 @@ namespace Microsoft.VisualStudioTools.Project
         /// <param name="file">file name</param>
         /// <param name="itemType">MSBuild item type</param>
         /// <returns>new project element</returns>
-        [SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "Ms")]
         public MsBuildProjectElement CreateMsBuildFileItem(string file, string itemType)
         {
             return new MsBuildProjectElement(this, file, itemType);
@@ -3535,22 +3618,10 @@ namespace Microsoft.VisualStudioTools.Project
             return folderNode;
         }
 
-        /// <summary>
-        /// Verify if the file can be written to.
-        /// Return false if the file is read only and/or not checked out
-        /// and the user did not give permission to change it.
-        /// Note that exact behavior can also be affected based on the SCC
-        /// settings under Tools->Options.
-        /// </summary>
-        internal bool QueryEditProjectFile(bool suppressUI)
+        internal bool QueryEditFiles(bool suppressUI, params string[] files)
         {
             bool result = true;
-            if (this.site == null)
-            {
-                // We're already zombied. Better return FALSE.
-                result = false;
-            }
-            else if (this.disableQueryEdit)
+            if (this.disableQueryEdit)
             {
                 return true;
             }
@@ -3558,9 +3629,7 @@ namespace Microsoft.VisualStudioTools.Project
             {
                 IVsQueryEditQuerySave2 queryEditQuerySave = this.GetService(typeof(SVsQueryEditQuerySave)) as IVsQueryEditQuerySave2;
                 if (queryEditQuerySave != null)
-                {   // Project path dependends on server/client project
-                    string path = this.filename;
-
+                {
                     tagVSQueryEditFlags qef = tagVSQueryEditFlags.QEF_AllowInMemoryEdits;
                     if (suppressUI)
                         qef |= tagVSQueryEditFlags.QEF_SilentMode;
@@ -3572,25 +3641,26 @@ namespace Microsoft.VisualStudioTools.Project
 
                     uint verdict;
                     uint moreInfo;
-                    string[] files = new string[1];
-                    files[0] = path;
-                    uint[] flags = new uint[1];
-                    VSQEQS_FILE_ATTRIBUTE_DATA[] attributes = new VSQEQS_FILE_ATTRIBUTE_DATA[1];
+                    uint[] flags = new uint[files.Length];
+                    VSQEQS_FILE_ATTRIBUTE_DATA[] attributes = new VSQEQS_FILE_ATTRIBUTE_DATA[files.Length];
                     int hr = queryEditQuerySave.QueryEditFiles(
-                                    (uint)qef,
-                                    1, // 1 file
-                                    files, // array of files
-                                    flags, // no per file flags
-                                    attributes, // no per file file attributes
-                                    out verdict,
-                                    out moreInfo /* ignore additional results */);
+                        (uint)qef,
+                        files.Length, // 1 file
+                        files, // array of files
+                        flags, // no per file flags
+                        attributes, // no per file file attributes
+                        out verdict,
+                        out moreInfo // ignore additional results
+                    );
 
                     tagVSQueryEditResult qer = (tagVSQueryEditResult)verdict;
                     if (ErrorHandler.Failed(hr) || (qer != tagVSQueryEditResult.QER_EditOK))
                     {
                         if (!suppressUI && !Utilities.IsInAutomationFunction(this.Site))
                         {
-                            string message = SR.GetString(SR.CancelQueryEdit, path);
+                            string message = files.Length == 1 ?
+                                SR.GetString(SR.CancelQueryEdit, files[0]) :
+                                SR.GetString(SR.CancelQueryEditMultiple);
                             string title = string.Empty;
                             OLEMSGICON icon = OLEMSGICON.OLEMSGICON_CRITICAL;
                             OLEMSGBUTTON buttons = OLEMSGBUTTON.OLEMSGBUTTON_OK;
@@ -3602,6 +3672,18 @@ namespace Microsoft.VisualStudioTools.Project
                 }
             }
             return result;
+        }
+
+        /// <summary>
+        /// Verify if the file can be written to.
+        /// Return false if the file is read only and/or not checked out
+        /// and the user did not give permission to change it.
+        /// Note that exact behavior can also be affected based on the SCC
+        /// settings under Tools->Options.
+        /// </summary>
+        internal bool QueryEditProjectFile(bool suppressUI)
+        {
+            return QueryEditFiles(suppressUI, filename);
         }
 
         internal bool QueryFolderAdd(HierarchyNode targetFolder, string path)
@@ -3632,11 +3714,12 @@ namespace Microsoft.VisualStudioTools.Project
             return true;
         }
 
-        internal bool QueryFolderRemove(HierarchyNode targetFolder, string path) {
-            if (!disableQueryEdit) 
+        internal bool QueryFolderRemove(HierarchyNode targetFolder, string path)
+        {
+            if (!disableQueryEdit)
             {
                 var queryTrack = this.GetService(typeof(SVsTrackProjectDocuments)) as IVsTrackProjectDocuments2;
-                if (queryTrack != null) 
+                if (queryTrack != null)
                 {
                     VSQUERYREMOVEDIRECTORYRESULTS[] res = new VSQUERYREMOVEDIRECTORYRESULTS[1];
                     ErrorHandler.ThrowOnFailure(
@@ -3650,7 +3733,7 @@ namespace Microsoft.VisualStudioTools.Project
                         )
                     );
 
-                    if (res[0] == VSQUERYREMOVEDIRECTORYRESULTS.VSQUERYREMOVEDIRECTORYRESULTS_RemoveNotOK) 
+                    if (res[0] == VSQUERYREMOVEDIRECTORYRESULTS.VSQUERYREMOVEDIRECTORYRESULTS_RemoveNotOK)
                     {
                         return false;
                     }
@@ -3758,7 +3841,6 @@ namespace Microsoft.VisualStudioTools.Project
         /// <summary>
         /// Register the project with the Scc manager.
         /// </summary>
-        [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Scc")]
         protected void RegisterSccProject()
         {
 
@@ -3780,8 +3862,6 @@ namespace Microsoft.VisualStudioTools.Project
         /// <summary>
         ///  Unregisters us from the SCC manager
         /// </summary>
-        [SuppressMessage("Microsoft.Naming", "CA1702:CompoundWordsShouldBeCasedCorrectly", MessageId = "UnRegister")]
-        [SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "Un")]
         protected void UnRegisterProject()
         {
             if (!this.isRegisteredWithScc)
@@ -3803,13 +3883,21 @@ namespace Microsoft.VisualStudioTools.Project
         /// </summary>
         /// <param name="type">Type of the object for which you want the CATID</param>
         /// <returns>CATID</returns>
-        [SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "CATID")]
         protected internal Guid GetCATIDForType(Type type)
         {
             Utilities.ArgumentNotNull("type", type);
 
-            if (catidMapping.ContainsKey(type))
-                return catidMapping[type];
+            if (catidMapping == null)
+            {
+                catidMapping = new Dictionary<Type, Guid>();
+                InitializeCATIDs();
+            }
+
+            Guid result;
+            if (catidMapping.TryGetValue(type, out result))
+            {
+                return result;
+            }
             // If you get here and you want your object to be extensible, then add a call to AddCATIDMapping() in your project constructor
             return Guid.Empty;
         }
@@ -3822,10 +3910,14 @@ namespace Microsoft.VisualStudioTools.Project
         /// </summary>
         /// <param name="type">Type of the extensible object</param>
         /// <param name="catid">GUID that extender can use to uniquely identify your object type</param>
-        [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "catid")]
-        [SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "CATID")]
         protected void AddCATIDMapping(Type type, Guid catid)
         {
+            if (catidMapping == null)
+            {
+                catidMapping = new Dictionary<Type, Guid>();
+                InitializeCATIDs();
+            }
+
             catidMapping.Add(type, catid);
         }
 
@@ -3834,7 +3926,8 @@ namespace Microsoft.VisualStudioTools.Project
         /// </summary>
         /// <param name="iPersistXMLFragment">Object that support being initialized with an XML fragment</param>
         /// <param name="configName">Name of the configuration being initialized, null if it is the project</param>
-        protected internal void LoadXmlFragment(IPersistXMLFragment persistXmlFragment, string configName)
+        /// <param name="platformName">Name of the platform being initialized, null is ok</param>
+        protected internal void LoadXmlFragment(IPersistXMLFragment persistXmlFragment, string configName, string platformName)
         {
             Utilities.ArgumentNotNull("persistXmlFragment", persistXmlFragment);
 
@@ -3863,15 +3956,20 @@ namespace Microsoft.VisualStudioTools.Project
                     {
                         string guid = String.Empty;
                         string configuration = String.Empty;
+                        string platform = String.Empty;
                         if (child.Attributes[ProjectFileConstants.Guid] != null)
                             guid = child.Attributes[ProjectFileConstants.Guid].Value;
                         if (child.Attributes[ProjectFileConstants.Configuration] != null)
                             configuration = child.Attributes[ProjectFileConstants.Configuration].Value;
+                        if (child.Attributes[ProjectFileConstants.Platform] != null)
+                            platform = child.Attributes[ProjectFileConstants.Platform].Value;
 
                         if (String.Compare(child.Name, ProjectFileConstants.FlavorProperties, StringComparison.OrdinalIgnoreCase) == 0
                                 && String.Compare(guid, flavorGuidString, StringComparison.OrdinalIgnoreCase) == 0
                                 && ((String.IsNullOrEmpty(configName) && String.IsNullOrEmpty(configuration))
-                                    || (String.Compare(configuration, configName, StringComparison.OrdinalIgnoreCase) == 0)))
+                                    || (String.Compare(configuration, configName, StringComparison.OrdinalIgnoreCase) == 0))
+                                && ((String.IsNullOrEmpty(platformName) && String.IsNullOrEmpty(platform))
+                                    || (String.Compare(platform, platformName, StringComparison.OrdinalIgnoreCase) == 0)))
                         {
                             // we found the matching fragment
                             fragment = child.InnerXml;
@@ -3904,7 +4002,6 @@ namespace Microsoft.VisualStudioTools.Project
         /// <summary>
         /// Retrieve all XML fragments that need to be saved from the flavors and store the information in msbuild.
         /// </summary>
-        [SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "XML")]
         protected void PersistXMLFragments()
         {
             if (IsFlavorDirty())
@@ -3942,7 +4039,7 @@ namespace Microsoft.VisualStudioTools.Project
                         if (!String.IsNullOrEmpty(fragment))
                         {
                             // Add the fragment to our XML
-                            WrapXmlFragment(doc, root, flavor, null, fragment);
+                            WrapXmlFragment(doc, root, flavor, null, null, fragment);
                         }
                         // While we don't yet support user files, our flavors might, so we will store that in the project file until then
                         // TODO: Refactor this code when we support user files
@@ -3951,7 +4048,7 @@ namespace Microsoft.VisualStudioTools.Project
                         if (!String.IsNullOrEmpty(fragment))
                         {
                             // Add the fragment to our XML
-                            XmlElement node = WrapXmlFragment(doc, root, flavor, null, fragment);
+                            XmlElement node = WrapXmlFragment(doc, root, flavor, null, null, fragment);
                             node.Attributes.Append(doc.CreateAttribute(ProjectFileConstants.User));
                         }
                     }
@@ -3964,7 +4061,7 @@ namespace Microsoft.VisualStudioTools.Project
                         ErrorHandler.ThrowOnFailure(((ProjectConfig)config).GetXmlFragment(flavor, _PersistStorageType.PST_PROJECT_FILE, out fragment));
                         if (!String.IsNullOrEmpty(fragment))
                         {
-                            WrapXmlFragment(doc, root, flavor, ((ProjectConfig)config).ConfigName, fragment);
+                            WrapXmlFragment(doc, root, flavor, ((ProjectConfig)config).ConfigName, ((ProjectConfig)config).PlatformName, fragment);
                         }
                     }
                 }
@@ -3976,12 +4073,88 @@ namespace Microsoft.VisualStudioTools.Project
             }
         }
 
-        internal int GetIconIndex(ImageName name) {
+#if DEV14_OR_LATER
+        [Obsolete("Use ImageMonikers instead")]
+#endif
+        internal int GetIconIndex(ImageName name)
+        {
             return (int)name;
         }
 
-        internal IntPtr GetIconHandleByName(ImageName name) {
+#if DEV14_OR_LATER
+        [Obsolete("Use ImageMonikers instead")]
+#endif
+        internal IntPtr GetIconHandleByName(ImageName name)
+        {
             return ImageHandler.GetIconHandle(GetIconIndex(name));
+        }
+
+        internal Dictionary<string, string> ParseCommandArgs(IntPtr vaIn, Guid cmdGroup, uint cmdId)
+        {
+            var switches = QueryCommandArguments(cmdGroup, cmdId, CommandOrigin.UiHierarchy);
+            if (string.IsNullOrEmpty(switches))
+            {
+                return null;
+            }
+
+            return ParseCommandArgs(vaIn, switches);
+        }
+
+        internal Dictionary<string, string> ParseCommandArgs(IntPtr vaIn, string switches)
+        {
+            string args;
+            if (vaIn == IntPtr.Zero || string.IsNullOrEmpty(args = Marshal.GetObjectForNativeVariant(vaIn) as string))
+            {
+                return null;
+            }
+
+            var parse = Site.GetService(typeof(SVsParseCommandLine)) as IVsParseCommandLine;
+            if (ErrorHandler.Failed(parse.ParseCommandTail(args, -1)))
+            {
+                return null;
+            }
+
+            parse.EvaluateSwitches(switches);
+
+            var res = new Dictionary<string, string>();
+            int i = -1;
+            foreach (var sw in switches.Split(' '))
+            {
+                i += 1;
+                var key = sw;
+                int comma = key.IndexOf(',');
+                if (comma > 0)
+                {
+                    key = key.Remove(comma);
+                }
+
+                string value;
+                int hr;
+                switch (hr = parse.IsSwitchPresent(i))
+                {
+                    case VSConstants.S_OK:
+                        ErrorHandler.ThrowOnFailure(parse.GetSwitchValue(i, out value));
+                        res[key] = value;
+                        break;
+                    case VSConstants.S_FALSE:
+                        break;
+                    default:
+                        ErrorHandler.ThrowOnFailure(hr);
+                        break;
+                }
+            }
+
+            i = 0;
+            int count;
+            ErrorHandler.ThrowOnFailure(parse.GetParamCount(out count));
+            for (i = 0; i < count; ++i)
+            {
+                string key = i.ToString(), value;
+                ErrorHandler.ThrowOnFailure(parse.GetParam(i, out value));
+                res[key] = value;
+            }
+
+            return res;
         }
 
         #endregion
@@ -4034,9 +4207,12 @@ namespace Microsoft.VisualStudioTools.Project
 
         public virtual int IsDirty(out int isDirty)
         {
-            if (BuildProject.Xml.HasUnsavedChanges || IsProjectFileDirty || IsFlavorDirty()) {
+            if (BuildProject.Xml.HasUnsavedChanges || IsProjectFileDirty || IsFlavorDirty())
+            {
                 isDirty = 1;
-            } else {
+            }
+            else
+            {
                 isDirty = 0;
             }
 
@@ -4047,21 +4223,27 @@ namespace Microsoft.VisualStudioTools.Project
         /// Get the outer IVsHierarchy implementation.
         /// This is used for scenario where a flavor may be modifying the behavior
         /// </summary>
-        internal IVsHierarchy GetOuterHierarchy() {
+        internal IVsHierarchy GetOuterHierarchy()
+        {
             IVsHierarchy hierarchy = null;
             // The hierarchy of a node is its project node hierarchy
             IntPtr projectUnknown = Marshal.GetIUnknownForObject(this);
-            try {
+            try
+            {
                 hierarchy = (IVsHierarchy)Marshal.GetTypedObjectForIUnknown(projectUnknown, typeof(IVsHierarchy));
-            } finally {
-                if (projectUnknown != IntPtr.Zero) {
+            }
+            finally
+            {
+                if (projectUnknown != IntPtr.Zero)
+                {
                     Marshal.Release(projectUnknown);
                 }
             }
             return hierarchy;
         }
 
-        internal T GetOuterInterface<T>() where T : class {
+        internal T GetOuterInterface<T>() where T : class
+        {
             return GetOuterHierarchy() as T;
         }
 
@@ -4118,7 +4300,7 @@ namespace Microsoft.VisualStudioTools.Project
 
             if (String.IsNullOrEmpty(tempFileToBeSaved))
             {
-                throw new ArgumentException(SR.GetString(SR.InvalidParameter, CultureInfo.CurrentUICulture), "fileToBeSaved");
+                throw new ArgumentException(SR.GetString(SR.InvalidParameter), "fileToBeSaved");
             }
 
             int setProjectFileDirtyAfterSave = 0;
@@ -4172,7 +4354,7 @@ namespace Microsoft.VisualStudioTools.Project
             return result;
         }
 
-        protected virtual void SaveMSBuildProjectFile(string filename) 
+        protected virtual void SaveMSBuildProjectFile(string filename)
         {
             buildProject.Save(filename);
             isDirty = false;
@@ -4220,16 +4402,16 @@ namespace Microsoft.VisualStudioTools.Project
             Guid empty = Guid.Empty;
 
             return AddItemWithSpecific(
-                itemIdLoc, 
-                op, 
-                itemName, 
-                filesToOpen, 
-                files, 
-                dlgOwner, 
-                op == VSADDITEMOPERATION.VSADDITEMOP_CLONEFILE ? (uint)__VSSPECIFICEDITORFLAGS.VSSPECIFICEDITOR_DoOpen : 0, 
-                ref empty, 
-                null, 
-                ref empty, 
+                itemIdLoc,
+                op,
+                itemName,
+                filesToOpen,
+                files,
+                dlgOwner,
+                op == VSADDITEMOPERATION.VSADDITEMOP_CLONEFILE ? (uint)__VSSPECIFICEDITORFLAGS.VSSPECIFICEDITOR_DoOpen : 0,
+                ref empty,
+                null,
+                ref empty,
                 result);
         }
 
@@ -4253,7 +4435,6 @@ namespace Microsoft.VisualStudioTools.Project
         /// <param name="result"></param>
         /// <returns>S_OK if it succeeds </returns>
         /// <remarks>The result array is initalized to failure.</remarks>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling"), System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
         public virtual int AddItemWithSpecific(uint itemIdLoc, VSADDITEMOPERATION op, string itemName, uint filesToOpen, string[] files, IntPtr dlgOwner, uint editorFlags, ref Guid editorType, string physicalView, ref Guid logicalView, VSADDRESULT[] result)
         {
             return AddItemWithSpecificInternal(itemIdLoc, op, itemName, filesToOpen, files, dlgOwner, editorFlags, ref editorType, physicalView, ref logicalView, result);
@@ -4310,32 +4491,37 @@ namespace Microsoft.VisualStudioTools.Project
 
             // Pre-calculates some paths that we can use when calling CanAddItems
             List<string> filesToAdd = new List<string>();
-            for (int index = 0; index < files.Length; index++)
+            foreach (var file in files)
             {
+                string fileName;
                 string newFileName = String.Empty;
-
-                string file = files[index];
 
                 switch (op)
                 {
                     case VSADDITEMOPERATION.VSADDITEMOP_CLONEFILE:
-                        {
-                            string fileName = Path.GetFileName(itemName ?? file);
-                            newFileName = CommonUtils.GetAbsoluteFilePath(baseDir, fileName);
-                        }
+                        fileName = Path.GetFileName(itemName ?? file);
+                        newFileName = CommonUtils.GetAbsoluteFilePath(baseDir, fileName);
                         break;
                     case VSADDITEMOPERATION.VSADDITEMOP_LINKTOFILE:
                     case VSADDITEMOPERATION.VSADDITEMOP_OPENFILE:
+                        fileName = Path.GetFileName(file);
+                        newFileName = CommonUtils.GetAbsoluteFilePath(baseDir, fileName);
+
+                        if (isLink && CommonUtils.IsSubpathOf(ProjectHome, file))
                         {
-                            string fileName = Path.GetFileName(file);
-                            newFileName = CommonUtils.GetAbsoluteFilePath(baseDir, fileName);
+                            // creating a link to a file that's actually in the project, it's not really a link.
+                            isLink = false;
 
-                            var friendlyPath = CommonUtils.CreateFriendlyFilePath(ProjectHome, file);
-
-                            if (isLink && CommonUtils.IsSubpathOf(ProjectHome, file))
+                            // If the file is not going to be added in its
+                            // current path (GetDirectoryName(file) != baseDir),
+                            // we need to update the filename and also update
+                            // the destination node (n). Otherwise, we don't
+                            // want to change the destination node (previous
+                            // behavior) - just trust that our caller knows
+                            // what they are doing. (Web Essentials relies on
+                            // this.)
+                            if (!CommonUtils.IsSameDirectory(baseDir, Path.GetDirectoryName(file)))
                             {
-                                // creating a link to a file that's actually in the project, it's not really a link.
-                                isLink = false;
                                 newFileName = file;
                                 n = this.CreateFolderNodes(Path.GetDirectoryName(file));
                             }
@@ -4376,14 +4562,15 @@ namespace Microsoft.VisualStudioTools.Project
                     // If the file to be added is an existing file part of the hierarchy then continue.
                     if (CommonUtils.IsSamePath(file, newFileName))
                     {
-                        if (child.IsNonMemberItem) 
+                        if (child.IsNonMemberItem)
                         {
                             for (var node = child; node != null; node = node.Parent)
                             {
                                 itemsToInvalidate.Add(node);
                                 // We want to include the first member item, so
                                 // this test is not part of the loop condition.
-                                if (!node.IsNonMemberItem) {
+                                if (!node.IsNonMemberItem)
+                                {
                                     break;
                                 }
                             }
@@ -4449,7 +4636,8 @@ namespace Microsoft.VisualStudioTools.Project
                         }
                     }
 
-                    if (newFileName.Length >= NativeMethods.MAX_PATH) {
+                    if (newFileName.Length >= NativeMethods.MAX_PATH)
+                    {
                         OLEMSGICON icon = OLEMSGICON.OLEMSGICON_CRITICAL;
                         OLEMSGBUTTON buttons = OLEMSGBUTTON.OLEMSGBUTTON_OK;
                         OLEMSGDEFBUTTON defaultButton = OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST;
@@ -4466,20 +4654,21 @@ namespace Microsoft.VisualStudioTools.Project
                     var folder = this.FindNodeByFullPath(Path.GetDirectoryName(newFileName));
                     if (folder != null)
                     {
-                        if (folder.FindImmediateChildByName(filename) != null) {
-                                string message = "There is already a file of the same name in this folder.";
-                                string title = string.Empty;
-                                OLEMSGICON icon = OLEMSGICON.OLEMSGICON_QUERY;
-                                OLEMSGBUTTON buttons = OLEMSGBUTTON.OLEMSGBUTTON_OK;
-                                OLEMSGDEFBUTTON defaultButton = OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST;
+                        if (folder.FindImmediateChildByName(filename) != null)
+                        {
+                            string message = "There is already a file of the same name in this folder.";
+                            string title = string.Empty;
+                            OLEMSGICON icon = OLEMSGICON.OLEMSGICON_QUERY;
+                            OLEMSGBUTTON buttons = OLEMSGBUTTON.OLEMSGBUTTON_OK;
+                            OLEMSGDEFBUTTON defaultButton = OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST;
 
-                                VsShellUtilities.ShowMessageBox(this.Site, title, message, icon, buttons, defaultButton);
+                            VsShellUtilities.ShowMessageBox(this.Site, title, message, icon, buttons, defaultButton);
 
-                                result[0] = VSADDRESULT.ADDRESULT_Cancel;
-                                return (int)OleConstants.OLECMDERR_E_CANCELED;
-                            }
+                            result[0] = VSADDRESULT.ADDRESULT_Cancel;
+                            return (int)OleConstants.OLECMDERR_E_CANCELED;
                         }
                     }
+                }
 
                 // If the file to be added is not in the same path copy it.
                 if (!CommonUtils.IsSamePath(file, newFileName) || Directory.Exists(newFileName))
@@ -4489,7 +4678,7 @@ namespace Microsoft.VisualStudioTools.Project
                         var existingChild = this.FindNodeByFullPath(file);
                         if (existingChild == null || !existingChild.IsLinkFile)
                         {
-                            string message = String.Format(CultureInfo.CurrentCulture, SR.GetString(SR.FileAlreadyExists, CultureInfo.CurrentUICulture), newFileName);
+                            string message = SR.GetString(SR.FileAlreadyExists, newFileName);
                             string title = string.Empty;
                             OLEMSGICON icon = OLEMSGICON.OLEMSGICON_QUERY;
                             OLEMSGBUTTON buttons = OLEMSGBUTTON.OLEMSGBUTTON_YESNO;
@@ -4520,7 +4709,8 @@ namespace Microsoft.VisualStudioTools.Project
                         // http://pytools.codeplex.com/workitem/546
 
                         int hr = AddDirectory(result, n, file, promptOverwrite);
-                        if (ErrorHandler.Failed(hr)) {
+                        if (ErrorHandler.Failed(hr))
+                        {
                             return hr;
                         }
                         result[0] = VSADDRESULT.ADDRESULT_Success;
@@ -4546,13 +4736,21 @@ namespace Microsoft.VisualStudioTools.Project
                                 PackageUtilities.CopyUrlToLocal(new Uri(file), newFileName);
 
                                 // Reset RO attribute on file if present - for example, if source file was under TFS control and not checked out.
-                                try {
+                                try
+                                {
                                     var fileInfo = new FileInfo(newFileName);
-                                    if (fileInfo.Attributes.HasFlag(FileAttributes.ReadOnly)) {
+                                    if (fileInfo.Attributes.HasFlag(FileAttributes.ReadOnly))
+                                    {
                                         fileInfo.Attributes &= ~FileAttributes.ReadOnly;
                                     }
-                                } catch (Exception) {
+                                }
+                                catch (Exception ex)
+                                {
                                     // Best-effort, but no big deal if this fails.
+                                    if (ex.IsCriticalException())
+                                    {
+                                        throw;
+                                    }
                                 }
                             }
                         }
@@ -4565,7 +4763,7 @@ namespace Microsoft.VisualStudioTools.Project
 
                 if (overwrite)
                 {
-                    if (child.IsNonMemberItem) 
+                    if (child.IsNonMemberItem)
                     {
                         ErrorHandler.ThrowOnFailure(child.IncludeInProject(false));
                     }
@@ -4586,7 +4784,7 @@ namespace Microsoft.VisualStudioTools.Project
                     }
 
                     newChild.SetIsLinkFile(true);
-                    newChild.ItemNode.SetMetadata(ProjectFileConstants.Link, CommonUtils.CreateFriendlyFilePath(ProjectFolder, newFileName));
+                    newChild.ItemNode.SetMetadata(ProjectFileConstants.Link, CommonUtils.CreateFriendlyFilePath(ProjectHome, newFileName));
                     n.AddChild(newChild);
 
                     DocumentManager.RenameDocument(site, file, file, n.ID);
@@ -4669,8 +4867,8 @@ namespace Microsoft.VisualStudioTools.Project
                 var newChild = CreateFolderNode(fullPath);
                 n.AddChild(newChild);
                 targetFolder = newChild;
-            } 
-            else if (targetFolder.IsNonMemberItem) 
+            }
+            else if (targetFolder.IsNonMemberItem)
             {
                 int hr = targetFolder.IncludeInProject(true);
                 if (ErrorHandler.Succeeded(hr))
@@ -4678,8 +4876,8 @@ namespace Microsoft.VisualStudioTools.Project
                     OnInvalidateItems(targetFolder.Parent);
                 }
                 return hr;
-            } 
-            else if (promptOverwrite == null) 
+            }
+            else if (promptOverwrite == null)
             {
                 var res = MessageBox.Show(
                     String.Format(
@@ -4694,7 +4892,8 @@ If the files in the existing folder have the same names as files in the folder y
                 // no means don't prompt for any of the files
                 // cancel means forget what I'm doing
 
-                switch (res) {
+                switch (res)
+                {
                     case DialogResult.Cancel:
                         result[0] = VSADDRESULT.ADDRESULT_Cancel;
                         return (int)OleConstants.OLECMDERR_E_CANCELED;
@@ -4711,46 +4910,49 @@ If the files in the existing folder have the same names as files in the folder y
 
             // add the files...
             var dirFiles = Directory.GetFiles(file);
-            if (dirFiles.Length > 0) {
-            var subRes = AddItemWithSpecificInternal(
-                targetFolder.ID,
-                VSADDITEMOPERATION.VSADDITEMOP_CLONEFILE,
-                null,
-                (uint)dirFiles.Length,
-                dirFiles,
-                IntPtr.Zero,
-                0,
-                ref empty,
-                null,
-                ref empty,
-                result,
-                promptOverwrite: promptOverwrite
-            );
+            if (dirFiles.Length > 0)
+            {
+                var subRes = AddItemWithSpecificInternal(
+                    targetFolder.ID,
+                    VSADDITEMOPERATION.VSADDITEMOP_CLONEFILE,
+                    null,
+                    (uint)dirFiles.Length,
+                    dirFiles,
+                    IntPtr.Zero,
+                    0,
+                    ref empty,
+                    null,
+                    ref empty,
+                    result,
+                    promptOverwrite: promptOverwrite
+                );
 
-                if (ErrorHandler.Failed(subRes)) {
-                return subRes;
-            }
+                if (ErrorHandler.Failed(subRes))
+                {
+                    return subRes;
+                }
             }
 
             // add any subdirectories...
 
             var subDirs = Directory.GetDirectories(file);
-            if (subDirs.Length > 0) {
-            return AddItemWithSpecificInternal(
-                targetFolder.ID,
-                VSADDITEMOPERATION.VSADDITEMOP_CLONEFILE,
-                null,
-                (uint)subDirs.Length,
-                subDirs,
-                IntPtr.Zero,
-                0,
-                ref empty,
-                null,
-                ref empty,
-                result,
-                promptOverwrite: promptOverwrite
-            );
-        }
+            if (subDirs.Length > 0)
+            {
+                return AddItemWithSpecificInternal(
+                    targetFolder.ID,
+                    VSADDITEMOPERATION.VSADDITEMOP_CLONEFILE,
+                    null,
+                    (uint)subDirs.Length,
+                    subDirs,
+                    IntPtr.Zero,
+                    0,
+                    ref empty,
+                    null,
+                    ref empty,
+                    result,
+                    promptOverwrite: promptOverwrite
+                );
+            }
             return VSConstants.S_OK;
         }
 
@@ -4824,12 +5026,8 @@ If the files in the existing folder have the same names as files in the folder y
 
         public virtual int GetItemContext(uint itemId, out Microsoft.VisualStudio.OLE.Interop.IServiceProvider psp)
         {
-            psp = null;
-            HierarchyNode child = this.NodeFromItemId(itemId);
-            if (child != null)
-            {
-                psp = child.OleServiceProvider as IOleServiceProvider;
-            }
+            // the as cast isn't necessary, but makes it obvious via Find all refs how this is being used
+            psp = this.NodeFromItemId(itemId) as Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
             return VSConstants.S_OK;
         }
 
@@ -4843,6 +5041,10 @@ If the files in the existing folder have the same names as files in the folder y
             found = 0;
             itemId = 0;
 
+            // Debugger will pass in non-normalized paths for remote Linux debugging (produced by concatenating a local Windows-style path
+            // with a portion of the remote Unix-style path) - need to normalize to look it up.
+            mkDoc = CommonUtils.NormalizePath(mkDoc);
+
             // If it is the project file just return.
             if (CommonUtils.IsSamePath(mkDoc, this.GetMkDocument()))
             {
@@ -4852,7 +5054,7 @@ If the files in the existing folder have the same names as files in the folder y
             else
             {
                 HierarchyNode child = this.FindNodeByFullPath(EnsureRootedPath(mkDoc));
-                if (child != null && !child.IsNonMemberItem)
+                if (child != null && (!child.IsNonMemberItem || IncludeNonMemberItemInProject(child)))
                 {
                     found = 1;
                     itemId = child.ID;
@@ -4871,6 +5073,10 @@ If the files in the existing folder have the same names as files in the folder y
 
         }
 
+        protected virtual bool IncludeNonMemberItemInProject(HierarchyNode node)
+        {
+            return false;
+        }
 
         public virtual int OpenItem(uint itemId, ref Guid logicalView, IntPtr punkDocDataExisting, out IVsWindowFrame frame)
         {
@@ -4880,7 +5086,7 @@ If the files in the existing folder have the same names as files in the folder y
             HierarchyNode n = this.NodeFromItemId(itemId);
             if (n == null)
             {
-                throw new ArgumentException(SR.GetString(SR.ParameterMustBeAValidItemId, CultureInfo.CurrentUICulture), "itemId");
+                throw new ArgumentException(SR.GetString(SR.ParameterMustBeAValidItemId), "itemId");
             }
 
             // Delegate to the document manager object that knows how to open the item
@@ -4903,7 +5109,7 @@ If the files in the existing folder have the same names as files in the folder y
             HierarchyNode n = this.NodeFromItemId(itemId);
             if (n == null)
             {
-                throw new ArgumentException(SR.GetString(SR.ParameterMustBeAValidItemId, CultureInfo.CurrentUICulture), "itemId");
+                throw new ArgumentException(SR.GetString(SR.ParameterMustBeAValidItemId), "itemId");
             }
 
             // Delegate to the document manager object that knows how to open the item
@@ -4923,7 +5129,7 @@ If the files in the existing folder have the same names as files in the folder y
             HierarchyNode n = this.NodeFromItemId(itemId);
             if (n == null)
             {
-                throw new ArgumentException(SR.GetString(SR.ParameterMustBeAValidItemId, CultureInfo.CurrentUICulture), "itemId");
+                throw new ArgumentException(SR.GetString(SR.ParameterMustBeAValidItemId), "itemId");
             }
             n.Remove(true);
             result = 1;
@@ -4939,7 +5145,7 @@ If the files in the existing folder have the same names as files in the folder y
             HierarchyNode n = this.NodeFromItemId(itemId);
             if (n == null)
             {
-                throw new ArgumentException(SR.GetString(SR.ParameterMustBeAValidItemId, CultureInfo.CurrentUICulture), "itemId");
+                throw new ArgumentException(SR.GetString(SR.ParameterMustBeAValidItemId), "itemId");
             }
 
             // Delegate to the document manager object that knows how to open the item
@@ -5035,7 +5241,8 @@ If the files in the existing folder have the same names as files in the folder y
             {
                 var newNode = FindNodeByFullPath(newMkDoc);
 
-                if (newNode != null) {
+                if (newNode != null)
+                {
                     string caption = newNode.Caption;
                     hr = frame.SetProperty((int)(__VSFPROPID.VSFPROPID_OwnerCaption), caption);
                 }
@@ -5074,7 +5281,7 @@ If the files in the existing folder have the same names as files in the folder y
         /// <param name="pResult">Result to be returned to the caller</param>
         public virtual int AddComponent(VSADDCOMPOPERATION dwAddCompOperation, uint cComponents, System.IntPtr[] rgpcsdComponents, System.IntPtr hwndDialog, VSADDCOMPRESULT[] pResult)
         {
-            UIThread.Instance.MustBeCalledFromUIThread();
+            Site.GetUIThread().MustBeCalledFromUIThread();
 
             if (rgpcsdComponents == null || pResult == null)
             {
@@ -5120,7 +5327,7 @@ If the files in the existing folder have the same names as files in the folder y
         {
             if (itemid == VSConstants.VSITEMID_SELECTION)
             {
-                throw new ArgumentException(SR.GetString(SR.InvalidParameter, CultureInfo.CurrentUICulture), "itemid");
+                throw new ArgumentException(SR.GetString(SR.InvalidParameter), "itemid");
             }
             else if (itemid == VSConstants.VSITEMID_ROOT)
             {
@@ -5141,7 +5348,7 @@ If the files in the existing folder have the same names as files in the folder y
             HierarchyNode n = this.NodeFromItemId(itemid);
             if (n == null)
             {
-                throw new ArgumentException(SR.GetString(SR.InvalidParameter, CultureInfo.CurrentUICulture), "itemid");
+                throw new ArgumentException(SR.GetString(SR.InvalidParameter), "itemid");
             }
 
             List<string> files = new List<string>();
@@ -5191,13 +5398,13 @@ If the files in the existing folder have the same names as files in the folder y
         {
             if (itemid == VSConstants.VSITEMID_SELECTION)
             {
-                throw new ArgumentException(SR.GetString(SR.InvalidParameter, CultureInfo.CurrentUICulture), "itemid");
+                throw new ArgumentException(SR.GetString(SR.InvalidParameter), "itemid");
             }
 
             HierarchyNode n = this.NodeFromItemId(itemid);
             if (n == null)
             {
-                throw new ArgumentException(SR.GetString(SR.InvalidParameter, CultureInfo.CurrentUICulture), "itemid");
+                throw new ArgumentException(SR.GetString(SR.InvalidParameter), "itemid");
             }
 
             List<string> files = new List<string>();
@@ -5243,7 +5450,7 @@ If the files in the existing folder have the same names as files in the folder y
                     HierarchyNode n = this.NodeFromItemId(itemidAffectedNodes[i]);
                     if (n == null)
                     {
-                        throw new ArgumentException(SR.GetString(SR.InvalidParameter, CultureInfo.CurrentUICulture), "itemidAffectedNodes");
+                        throw new ArgumentException(SR.GetString(SR.InvalidParameter), "itemidAffectedNodes");
                     }
 
                     ReDrawNode(n, UIHierarchyElement.SccState);
@@ -5388,7 +5595,7 @@ If the files in the existing folder have the same names as files in the folder y
         /// <returns>HResult</returns>
         public int GetAggregateProjectTypeGuids(out string projectTypeGuids)
         {
-            projectTypeGuids = this.GetProjectProperty(ProjectFileConstants.ProjectTypeGuids);
+            projectTypeGuids = this.GetProjectProperty(ProjectFileConstants.ProjectTypeGuids, false);
             // In case someone manually removed this from our project file, default to our project without flavors
             if (String.IsNullOrEmpty(projectTypeGuids))
                 projectTypeGuids = this.ProjectGuid.ToString("B");
@@ -5475,9 +5682,12 @@ If the files in the existing folder have the same names as files in the folder y
             if (node == null)
                 throw new ArgumentException("Invalid item id", "item");
 
-            if (node.ItemNode != null) {
+            if (node.ItemNode != null)
+            {
                 attributeValue = node.ItemNode.GetMetadata(attributeName);
-            } else if(node == node.ProjectMgr) {
+            }
+            else if (node == node.ProjectMgr)
+            {
                 attributeName = node.ProjectMgr.GetProjectProperty(attributeName);
             }
             return VSConstants.S_OK;
@@ -5497,13 +5707,14 @@ If the files in the existing folder have the same names as files in the folder y
             propertyValue = null;
             if (string.IsNullOrEmpty(configName))
             {
-                propertyValue = this.GetProjectProperty(propertyName);
+                propertyValue = this.GetProjectProperty(propertyName, false);
             }
             else
             {
                 IVsCfg configurationInterface;
                 int platformStart;
-                if ((platformStart = configName.IndexOf('|')) != -1) {
+                if ((platformStart = configName.IndexOf('|')) != -1)
+                {
                     // matches C# project system, GetPropertyValue handles display name, not just config name
                     configName = configName.Substring(0, platformStart);
                 }
@@ -5633,7 +5844,7 @@ If the files in the existing folder have the same names as files in the folder y
         /// <returns>parent node</returns>
         internal HierarchyNode GetItemParentNode(MSBuild.ProjectItem item)
         {
-            UIThread.Instance.MustBeCalledFromUIThread();
+            Site.GetUIThread().MustBeCalledFromUIThread();
 
             var link = item.GetMetadataValue(ProjectFileConstants.Link);
             HierarchyNode currentParent = this;
@@ -5646,7 +5857,8 @@ If the files in the existing folder have the same names as files in the folder y
             else
             {
                 HierarchyNode parent;
-                if (_diskNodes.TryGetValue(Path.GetDirectoryName(Path.Combine(ProjectHome, strPath)) + "\\", out parent)) {
+                if (_diskNodes.TryGetValue(Path.GetDirectoryName(Path.Combine(ProjectHome, strPath)) + "\\", out parent))
+                {
                     // fast path, filename is normalized, and the folder already exists
                     return parent;
                 }
@@ -5687,7 +5899,7 @@ If the files in the existing folder have the same names as files in the folder y
 
             if (this.currentConfig == null)
             {
-                throw new Exception(String.Format(CultureInfo.CurrentCulture, SR.GetString(SR.FailedToRetrieveProperties, CultureInfo.CurrentUICulture), propertyName));
+                throw new Exception(SR.GetString(SR.FailedToRetrieveProperties, propertyName));
             }
 
             // return property asked for
@@ -5727,10 +5939,10 @@ If the files in the existing folder have the same names as files in the folder y
         /// </summary>
         private void InitSccInfo()
         {
-            this.sccProjectName = this.GetProjectProperty(ProjectFileConstants.SccProjectName);
-            this.sccLocalPath = this.GetProjectProperty(ProjectFileConstants.SccLocalPath);
-            this.sccProvider = this.GetProjectProperty(ProjectFileConstants.SccProvider);
-            this.sccAuxPath = this.GetProjectProperty(ProjectFileConstants.SccAuxPath);
+            this.sccProjectName = this.GetProjectProperty(ProjectFileConstants.SccProjectName, false);
+            this.sccLocalPath = this.GetProjectProperty(ProjectFileConstants.SccLocalPath, false);
+            this.sccProvider = this.GetProjectProperty(ProjectFileConstants.SccProvider, false);
+            this.sccAuxPath = this.GetProjectProperty(ProjectFileConstants.SccAuxPath, false);
         }
 
         internal void OnAfterProjectOpen()
@@ -5738,7 +5950,7 @@ If the files in the existing folder have the same names as files in the folder y
             this.projectOpened = true;
         }
 
-        private static XmlElement WrapXmlFragment(XmlDocument document, XmlElement root, Guid flavor, string configuration, string fragment)
+        private static XmlElement WrapXmlFragment(XmlDocument document, XmlElement root, Guid flavor, string configuration, string platform, string fragment)
         {
             XmlElement node = document.CreateElement(ProjectFileConstants.FlavorProperties);
             XmlAttribute attribute = document.CreateAttribute(ProjectFileConstants.Guid);
@@ -5748,6 +5960,9 @@ If the files in the existing folder have the same names as files in the folder y
             {
                 attribute = document.CreateAttribute(ProjectFileConstants.Configuration);
                 attribute.Value = configuration;
+                node.Attributes.Append(attribute);
+                attribute = document.CreateAttribute(ProjectFileConstants.Platform);
+                attribute.Value = platform;
                 node.Attributes.Append(attribute);
             }
             node.InnerXml = fragment;
@@ -5760,7 +5975,7 @@ If the files in the existing folder have the same names as files in the folder y
         /// </summary>
         private void SetProjectGuidFromProjectFile()
         {
-            string projectGuid = this.GetProjectProperty(ProjectFileConstants.ProjectGuid);
+            string projectGuid = this.GetProjectProperty(ProjectFileConstants.ProjectGuid, false);
             if (String.IsNullOrEmpty(projectGuid))
             {
                 this.projectIdGuid = Guid.NewGuid();
@@ -6004,7 +6219,7 @@ If the files in the existing folder have the same names as files in the folder y
                 }
                 catch (Exception ex)
                 {
-                    if (ErrorHandler.IsCriticalException(ex))
+                    if (ex.IsCriticalException())
                     {
                         throw;
                     }
@@ -6021,7 +6236,7 @@ If the files in the existing folder have the same names as files in the folder y
                 }
                 catch (Exception ex)
                 {
-                    if (ErrorHandler.IsCriticalException(ex))
+                    if (ex.IsCriticalException())
                     {
                         throw;
                     }
@@ -6039,7 +6254,7 @@ If the files in the existing folder have the same names as files in the folder y
                 }
                 catch (Exception ex)
                 {
-                    if (ErrorHandler.IsCriticalException(ex))
+                    if (ex.IsCriticalException())
                     {
                         throw;
                     }
@@ -6067,10 +6282,12 @@ If the files in the existing folder have the same names as files in the folder y
 
         #region IVsProjectBuildSystem Members
 
-        public virtual int SetHostObject(string targetName, string taskName, object hostObject) {
+        public virtual int SetHostObject(string targetName, string taskName, object hostObject)
+        {
             Debug.Assert(targetName != null && taskName != null && this.buildProject != null && this.buildProject.Targets != null);
 
-            if (targetName == null || taskName == null || this.buildProject == null || this.buildProject.Targets == null) {
+            if (targetName == null || taskName == null || this.buildProject == null || this.buildProject.Targets == null)
+            {
                 return VSConstants.E_INVALIDARG;
             }
 
@@ -6079,27 +6296,32 @@ If the files in the existing folder have the same names as files in the folder y
             return VSConstants.S_OK;
         }
 
-        public int BuildTarget(string targetName, out bool success) {
+        public int BuildTarget(string targetName, out bool success)
+        {
             success = false;
 
             MSBuildResult result = this.Build(targetName);
 
-            if (result == MSBuildResult.Successful) {
+            if (result == MSBuildResult.Successful)
+            {
                 success = true;
             }
 
             return VSConstants.S_OK;
         }
 
-        public virtual int CancelBatchEdit() {
+        public virtual int CancelBatchEdit()
+        {
             return VSConstants.E_NOTIMPL;
         }
 
-        public virtual int EndBatchEdit() {
+        public virtual int EndBatchEdit()
+        {
             return VSConstants.E_NOTIMPL;
         }
 
-        public virtual int StartBatchEdit() {
+        public virtual int StartBatchEdit()
+        {
             return VSConstants.E_NOTIMPL;
         }
 
@@ -6108,7 +6330,8 @@ If the files in the existing folder have the same names as files in the folder y
         /// </summary>
         /// <param name="kind"></param>
         /// <returns></returns>
-        public virtual int GetBuildSystemKind(out uint kind) {
+        public virtual int GetBuildSystemKind(out uint kind)
+        {
             kind = (uint)_BuildSystemKindFlags2.BSK_MSBUILD_VS10;
             return VSConstants.S_OK;
         }
@@ -6118,11 +6341,12 @@ If the files in the existing folder have the same names as files in the folder y
         /// <summary>
         /// Finds a node by it's full path on disk.
         /// </summary>
-        internal HierarchyNode FindNodeByFullPath(string name) {
-            UIThread.Instance.MustBeCalledFromUIThread();
+        internal HierarchyNode FindNodeByFullPath(string name)
+        {
+            Site.GetUIThread().MustBeCalledFromUIThread();
 
             Debug.Assert(Path.IsPathRooted(name));
-            
+
             HierarchyNode res;
             _diskNodes.TryGetValue(name, out res);
             return res;
@@ -6134,12 +6358,16 @@ If the files in the existing folder have the same names as files in the folder y
         /// of parent folders to the item don't exist yet.
         /// </summary>
         /// <param name="path">The full path on disk to the item which is being queried about..</param>
-        internal HierarchyNode GetParentFolderForPath(string path) {
-            string parentDir = Path.GetDirectoryName(CommonUtils.TrimEndSeparator(path)) + Path.DirectorySeparatorChar;
+        internal HierarchyNode GetParentFolderForPath(string path)
+        {
+            var parentDir = CommonUtils.GetParent(path);
             HierarchyNode parent;
-            if (CommonUtils.IsSamePath(parentDir, ProjectHome)) {
+            if (CommonUtils.IsSamePath(parentDir, ProjectHome))
+            {
                 parent = this;
-            } else {
+            }
+            else
+            {
                 parent = FindNodeByFullPath(parentDir);
             }
             return parent;
@@ -6147,15 +6375,18 @@ If the files in the existing folder have the same names as files in the folder y
 
         #region IVsUIHierarchy methods
 
-        public virtual int ExecCommand(uint itemId, ref Guid guidCmdGroup, uint nCmdId, uint nCmdExecOpt, IntPtr pvain, IntPtr p) {
+        public virtual int ExecCommand(uint itemId, ref Guid guidCmdGroup, uint nCmdId, uint nCmdExecOpt, IntPtr pvain, IntPtr p)
+        {
             return this.InternalExecCommand(guidCmdGroup, nCmdId, nCmdExecOpt, pvain, p, CommandOrigin.UiHierarchy);
         }
 
-        public virtual int QueryStatusCommand(uint itemId, ref Guid guidCmdGroup, uint cCmds, OLECMD[] cmds, IntPtr pCmdText) {
+        public virtual int QueryStatusCommand(uint itemId, ref Guid guidCmdGroup, uint cCmds, OLECMD[] cmds, IntPtr pCmdText)
+        {
             return this.QueryStatusSelection(guidCmdGroup, cCmds, cmds, pCmdText, CommandOrigin.UiHierarchy);
         }
 
-        int IVsUIHierarchy.Close() {
+        int IVsUIHierarchy.Close()
+        {
             return ((IVsHierarchy)this).Close();
         }
 
@@ -6163,7 +6394,8 @@ If the files in the existing folder have the same names as files in the folder y
 
         #region IVsHierarchy methods
 
-        public virtual int AdviseHierarchyEvents(IVsHierarchyEvents sink, out uint cookie) {
+        public virtual int AdviseHierarchyEvents(IVsHierarchyEvents sink, out uint cookie)
+        {
             cookie = this._hierarchyEventSinks.Add(sink) + 1;
             return VSConstants.S_OK;
         }
@@ -6172,11 +6404,15 @@ If the files in the existing folder have the same names as files in the folder y
         /// Closes the project node.
         /// </summary>
         /// <returns>A success or failure value.</returns>
-        int IVsHierarchy.Close() {
+        int IVsHierarchy.Close()
+        {
             int hr = VSConstants.S_OK;
-            try {
+            try
+            {
                 Close();
-            } catch (COMException e) {
+            }
+            catch (COMException e)
+            {
                 hr = e.ErrorCode;
             }
             return hr;
@@ -6187,62 +6423,66 @@ If the files in the existing folder have the same names as files in the folder y
         /// </summary>
         /// <param name="site">An instance to an Microsoft.VisualStudio.OLE.Interop object</param>
         /// <returns>A success or failure value.</returns>
-        public virtual int SetSite(Microsoft.VisualStudio.OLE.Interop.IServiceProvider site) {
-            this.site = new ServiceProvider(site);
-
-            if (taskProvider != null) {
-                taskProvider.Dispose();
-            }
-            taskProvider = new TaskProvider(this.site);
-
+        public int SetSite(Microsoft.VisualStudio.OLE.Interop.IServiceProvider site)
+        {
             return VSConstants.S_OK;
         }
 
-        public virtual int GetCanonicalName(uint itemId, out string name) {
+        public virtual int GetCanonicalName(uint itemId, out string name)
+        {
             HierarchyNode n = NodeFromItemId(itemId);
             name = (n != null) ? n.GetCanonicalName() : null;
             return VSConstants.S_OK;
         }
 
-        public virtual int GetGuidProperty(uint itemId, int propid, out Guid guid) {
+        public virtual int GetGuidProperty(uint itemId, int propid, out Guid guid)
+        {
             guid = Guid.Empty;
             HierarchyNode n = NodeFromItemId(itemId);
-            if (n != null) {
+            if (n != null)
+            {
                 int hr = n.GetGuidProperty(propid, out guid);
                 __VSHPROPID vspropId = (__VSHPROPID)propid;
                 return hr;
             }
-            if (guid == Guid.Empty) {
+            if (guid == Guid.Empty)
+            {
                 return VSConstants.DISP_E_MEMBERNOTFOUND;
             }
             return VSConstants.S_OK;
         }
 
 
-        public virtual int GetProperty(uint itemId, int propId, out object propVal) {
+        public virtual int GetProperty(uint itemId, int propId, out object propVal)
+        {
             propVal = null;
-            if (itemId != VSConstants.VSITEMID_ROOT && propId == (int)__VSHPROPID.VSHPROPID_IconImgList) {
+            if (itemId != VSConstants.VSITEMID_ROOT && propId == (int)__VSHPROPID.VSHPROPID_IconImgList)
+            {
                 return VSConstants.DISP_E_MEMBERNOTFOUND;
             }
 
             HierarchyNode n = NodeFromItemId(itemId);
-            if (n != null) {
+            if (n != null)
+            {
                 propVal = n.GetProperty(propId);
             }
-            if (propVal == null) {
+            if (propVal == null)
+            {
                 return VSConstants.DISP_E_MEMBERNOTFOUND;
             }
             return VSConstants.S_OK;
         }
 
-        public virtual int GetNestedHierarchy(uint itemId, ref Guid iidHierarchyNested, out IntPtr ppHierarchyNested, out uint pItemId) {
+        public virtual int GetNestedHierarchy(uint itemId, ref Guid iidHierarchyNested, out IntPtr ppHierarchyNested, out uint pItemId)
+        {
             ppHierarchyNested = IntPtr.Zero;
             pItemId = 0;
             // If itemid is not a nested hierarchy we must return E_FAIL.
             return VSConstants.E_FAIL;
         }
 
-        public virtual int GetSite(out Microsoft.VisualStudio.OLE.Interop.IServiceProvider site) {
+        public virtual int GetSite(out Microsoft.VisualStudio.OLE.Interop.IServiceProvider site)
+        {
             site = Site.GetService(typeof(Microsoft.VisualStudio.OLE.Interop.IServiceProvider)) as Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
             return VSConstants.S_OK;
         }
@@ -6255,14 +6495,16 @@ If the files in the existing folder have the same names as files in the folder y
         /// </summary>
         /// <param name="name"></param>
         /// <param name="itemId"></param>
-        public virtual int ParseCanonicalName(string name, out uint itemId) {
+        public virtual int ParseCanonicalName(string name, out uint itemId)
+        {
             // we always start at the current node and go it's children down, so 
             //  if you want to scan the whole tree, better call 
             // the root
             name = EnsureRootedPath(name);
             itemId = 0;
             var child = FindNodeByFullPath(name);
-            if (child != null) {
+            if (child != null)
+            {
                 itemId = child.HierarchyId;
                 return VSConstants.S_OK;
             }
@@ -6270,9 +6512,11 @@ If the files in the existing folder have the same names as files in the folder y
             return VSConstants.E_FAIL;
         }
 
-        private string EnsureRootedPath(string name) {
-            if (!Path.IsPathRooted(name)) {
-                name = CommonUtils.GetAbsoluteDirectoryPath(
+        private string EnsureRootedPath(string name)
+        {
+            if (!Path.IsPathRooted(name))
+            {
+                name = CommonUtils.GetAbsoluteFilePath(
                     ProjectHome,
                     name
                 );
@@ -6280,52 +6524,64 @@ If the files in the existing folder have the same names as files in the folder y
             return name;
         }
 
-        public virtual int QueryClose(out int fCanClose) {
+        public virtual int QueryClose(out int fCanClose)
+        {
             fCanClose = 1;
             return VSConstants.S_OK;
         }
 
-        public virtual int SetGuidProperty(uint itemId, int propid, ref Guid guid) {
+        public virtual int SetGuidProperty(uint itemId, int propid, ref Guid guid)
+        {
             HierarchyNode n = NodeFromItemId(itemId);
             int rc = VSConstants.E_INVALIDARG;
-            if (n != null) {
+            if (n != null)
+            {
                 rc = n.SetGuidProperty(propid, ref guid);
             }
             return rc;
         }
 
-        public virtual int SetProperty(uint itemId, int propid, object value) {
+        public virtual int SetProperty(uint itemId, int propid, object value)
+        {
             HierarchyNode n = NodeFromItemId(itemId);
-            if (n != null) {
+            if (n != null)
+            {
                 return n.SetProperty(propid, value);
-            } else {
+            }
+            else
+            {
                 return VSConstants.DISP_E_MEMBERNOTFOUND;
             }
         }
-        
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2233:OperationsShouldNotOverflow", MessageId = "cookie-1")]
-        public virtual int UnadviseHierarchyEvents(uint cookie) {
+
+        public virtual int UnadviseHierarchyEvents(uint cookie)
+        {
             this._hierarchyEventSinks.RemoveAt(cookie - 1);
             return VSConstants.S_OK;
         }
 
-        public int Unused0() {
+        public int Unused0()
+        {
             return VSConstants.E_NOTIMPL;
         }
 
-        public int Unused1() {
+        public int Unused1()
+        {
             return VSConstants.E_NOTIMPL;
         }
 
-        public int Unused2() {
+        public int Unused2()
+        {
             return VSConstants.E_NOTIMPL;
         }
 
-        public int Unused3() {
+        public int Unused3()
+        {
             return VSConstants.E_NOTIMPL;
         }
 
-        public int Unused4() {
+        public int Unused4()
+        {
             return VSConstants.E_NOTIMPL;
         }
 
@@ -6333,116 +6589,147 @@ If the files in the existing folder have the same names as files in the folder y
 
         #region Hierarchy change notification
 
-        internal void OnItemAdded(HierarchyNode parent, HierarchyNode child) {
+        internal void OnItemAdded(HierarchyNode parent, HierarchyNode child, HierarchyNode previousVisible = null)
+        {
             Utilities.ArgumentNotNull("parent", parent);
             Utilities.ArgumentNotNull("child", child);
 
-            UIThread.Instance.MustBeCalledFromUIThread();
+            Site.GetUIThread().MustBeCalledFromUIThread();
 
             IDiskBasedNode diskNode = child as IDiskBasedNode;
-            if (diskNode != null) {
+            if (diskNode != null)
+            {
                 _diskNodes[diskNode.Url] = child;
             }
 
-            if ((EventTriggeringFlag & ProjectNode.EventTriggering.DoNotTriggerHierarchyEvents) != 0) {
+            if ((EventTriggeringFlag & ProjectNode.EventTriggering.DoNotTriggerHierarchyEvents) != 0)
+            {
                 return;
             }
 
             ExtensibilityEventsDispatcher.FireItemAdded(child);
 
-            HierarchyNode prev = child.PreviousVisibleSibling;
+            HierarchyNode prev = previousVisible ?? child.PreviousVisibleSibling;
             uint prevId = (prev != null) ? prev.HierarchyId : VSConstants.VSITEMID_NIL;
-            foreach (IVsHierarchyEvents sink in _hierarchyEventSinks) {
+            foreach (IVsHierarchyEvents sink in _hierarchyEventSinks)
+            {
                 int result = sink.OnItemAdded(parent.HierarchyId, prevId, child.HierarchyId);
-                if (ErrorHandler.Failed(result) && result != VSConstants.E_NOTIMPL) {
+                if (ErrorHandler.Failed(result) && result != VSConstants.E_NOTIMPL)
+                {
                     ErrorHandler.ThrowOnFailure(result);
                 }
             }
         }
 
-        internal void OnItemDeleted(HierarchyNode deletedItem) {
-            UIThread.Instance.MustBeCalledFromUIThread();
+        internal void OnItemDeleted(HierarchyNode deletedItem)
+        {
+            Site.GetUIThread().MustBeCalledFromUIThread();
 
             IDiskBasedNode diskNode = deletedItem as IDiskBasedNode;
-            if (diskNode != null) {
+            if (diskNode != null)
+            {
                 _diskNodes.Remove(diskNode.Url);
             }
 
             RaiseItemDeleted(deletedItem);
         }
 
-        internal void RaiseItemDeleted(HierarchyNode deletedItem) {
-            if ((EventTriggeringFlag & ProjectNode.EventTriggering.DoNotTriggerHierarchyEvents) != 0) {
+        internal void RaiseItemDeleted(HierarchyNode deletedItem)
+        {
+            if ((EventTriggeringFlag & ProjectNode.EventTriggering.DoNotTriggerHierarchyEvents) != 0)
+            {
                 return;
             }
 
             ExtensibilityEventsDispatcher.FireItemRemoved(deletedItem);
 
-            if (_hierarchyEventSinks.Count > 0) {
+            if (_hierarchyEventSinks.Count > 0)
+            {
                 // Note that in some cases (deletion of project node for example), an Advise
                 // may be removed while we are iterating over it. To get around this problem we
                 // take a snapshot of the advise list and walk that.
                 List<IVsHierarchyEvents> clonedSink = new List<IVsHierarchyEvents>();
 
-                foreach (IVsHierarchyEvents anEvent in _hierarchyEventSinks) {
+                foreach (IVsHierarchyEvents anEvent in _hierarchyEventSinks)
+                {
                     clonedSink.Add(anEvent);
                 }
 
-                foreach (IVsHierarchyEvents clonedEvent in clonedSink) {
+                foreach (IVsHierarchyEvents clonedEvent in clonedSink)
+                {
                     int result = clonedEvent.OnItemDeleted(deletedItem.HierarchyId);
-                    if (ErrorHandler.Failed(result) && result != VSConstants.E_NOTIMPL) {
+                    if (ErrorHandler.Failed(result) && result != VSConstants.E_NOTIMPL)
+                    {
                         ErrorHandler.ThrowOnFailure(result);
                     }
                 }
             }
         }
 
-        internal void OnItemsAppended(HierarchyNode parent) {
+        internal void OnItemsAppended(HierarchyNode parent)
+        {
             Utilities.ArgumentNotNull("parent", parent);
 
-            if ((EventTriggeringFlag & ProjectNode.EventTriggering.DoNotTriggerHierarchyEvents) != 0) {
+            if ((EventTriggeringFlag & ProjectNode.EventTriggering.DoNotTriggerHierarchyEvents) != 0)
+            {
                 return;
             }
 
-            foreach (IVsHierarchyEvents sink in _hierarchyEventSinks) {
+            foreach (IVsHierarchyEvents sink in _hierarchyEventSinks)
+            {
                 int result = sink.OnItemsAppended(parent.HierarchyId);
 
-                if (ErrorHandler.Failed(result) && result != VSConstants.E_NOTIMPL) {
+                if (ErrorHandler.Failed(result) && result != VSConstants.E_NOTIMPL)
+                {
                     ErrorHandler.ThrowOnFailure(result);
                 }
             }
         }
 
-        [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "propid")]
-        internal void OnPropertyChanged(HierarchyNode node, int propid, uint flags) {
+        internal void OnPropertyChanged(HierarchyNode node, int propid, uint flags)
+        {
             Utilities.ArgumentNotNull("node", node);
 
-            if ((EventTriggeringFlag & ProjectNode.EventTriggering.DoNotTriggerHierarchyEvents) != 0) {
+            if ((EventTriggeringFlag & ProjectNode.EventTriggering.DoNotTriggerHierarchyEvents) != 0)
+            {
                 return;
             }
 
-            foreach (IVsHierarchyEvents sink in _hierarchyEventSinks) {
+            foreach (IVsHierarchyEvents sink in _hierarchyEventSinks)
+            {
                 int result = sink.OnPropertyChanged(node.HierarchyId, propid, flags);
 
-                if (ErrorHandler.Failed(result) && result != VSConstants.E_NOTIMPL) {
+                if (ErrorHandler.Failed(result) && result != VSConstants.E_NOTIMPL)
+                {
                     ErrorHandler.ThrowOnFailure(result);
                 }
             }
         }
 
-        internal void OnInvalidateItems(HierarchyNode parent) {
+        internal void OnInvalidateItems(HierarchyNode parent)
+        {
             Utilities.ArgumentNotNull("parent", parent);
 
-            if ((EventTriggeringFlag & ProjectNode.EventTriggering.DoNotTriggerHierarchyEvents) != 0) {
+            if ((EventTriggeringFlag & ProjectNode.EventTriggering.DoNotTriggerHierarchyEvents) != 0)
+            {
                 return;
             }
 
-            foreach (IVsHierarchyEvents sink in _hierarchyEventSinks) {
+            bool wasExpanded = ParentHierarchy != null && parent.GetIsExpanded();
+
+            foreach (IVsHierarchyEvents sink in _hierarchyEventSinks)
+            {
                 int result = sink.OnInvalidateItems(parent.HierarchyId);
 
-                if (ErrorHandler.Failed(result) && result != VSConstants.E_NOTIMPL) {
+                if (ErrorHandler.Failed(result) && result != VSConstants.E_NOTIMPL)
+                {
                     ErrorHandler.ThrowOnFailure(result);
                 }
+            }
+
+            if (wasExpanded)
+            {
+                parent.ExpandItem(EXPANDFLAGS.EXPF_ExpandFolder);
             }
         }
 
@@ -6450,22 +6737,25 @@ If the files in the existing folder have the same names as files in the folder y
         /// Causes the hierarchy to be redrawn.
         /// </summary>
         /// <param name="element">Used by the hierarchy to decide which element to redraw</param>
-        [SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "Re")]
-        [SuppressMessage("Microsoft.Naming", "CA1702:CompoundWordsShouldBeCasedCorrectly", MessageId = "ReDraw")]
-        internal void ReDrawNode(HierarchyNode node, UIHierarchyElement element) {
-            foreach (IVsHierarchyEvents sink in _hierarchyEventSinks) {
+        internal void ReDrawNode(HierarchyNode node, UIHierarchyElement element)
+        {
+            foreach (IVsHierarchyEvents sink in _hierarchyEventSinks)
+            {
                 int result;
-                if ((element & UIHierarchyElement.Icon) != 0) {
+                if ((element & UIHierarchyElement.Icon) != 0)
+                {
                     result = sink.OnPropertyChanged(node.ID, (int)__VSHPROPID.VSHPROPID_IconIndex, 0);
                     Debug.Assert(ErrorHandler.Succeeded(result), "Redraw failed for node " + this.GetMkDocument());
                 }
 
-                if ((element & UIHierarchyElement.Caption) != 0) {
+                if ((element & UIHierarchyElement.Caption) != 0)
+                {
                     result = sink.OnPropertyChanged(node.ID, (int)__VSHPROPID.VSHPROPID_Caption, 0);
                     Debug.Assert(ErrorHandler.Succeeded(result), "Redraw failed for node " + this.GetMkDocument());
                 }
 
-                if ((element & UIHierarchyElement.SccState) != 0) {
+                if ((element & UIHierarchyElement.SccState) != 0)
+                {
                     result = sink.OnPropertyChanged(node.ID, (int)__VSHPROPID.VSHPROPID_StateIconIndex, 0);
                     Debug.Assert(ErrorHandler.Succeeded(result), "Redraw failed for node " + this.GetMkDocument());
                 }
@@ -6476,13 +6766,16 @@ If the files in the existing folder have the same names as files in the folder y
 
         #region IVsHierarchyDeleteHandler methods
 
-        public virtual int DeleteItem(uint delItemOp, uint itemId) {
-            if (itemId == VSConstants.VSITEMID_SELECTION) {
+        public virtual int DeleteItem(uint delItemOp, uint itemId)
+        {
+            if (itemId == VSConstants.VSITEMID_SELECTION)
+            {
                 return VSConstants.E_INVALIDARG;
             }
 
             HierarchyNode node = NodeFromItemId(itemId);
-            if (node != null) {
+            if (node != null)
+            {
                 node.Remove((delItemOp & (uint)__VSDELETEITEMOPERATION.DELITEMOP_DeleteFromStorage) != 0);
                 return VSConstants.S_OK;
             }
@@ -6490,29 +6783,71 @@ If the files in the existing folder have the same names as files in the folder y
             return VSConstants.E_FAIL;
         }
 
-        public virtual int QueryDeleteItem(uint delItemOp, uint itemId, out int candelete) {
+        public virtual int QueryDeleteItem(uint delItemOp, uint itemId, out int candelete)
+        {
             candelete = 0;
-            if (itemId == VSConstants.VSITEMID_SELECTION) {
+            if (itemId == VSConstants.VSITEMID_SELECTION)
+            {
                 return VSConstants.E_INVALIDARG;
             }
 
             // We ask the project what state it is. If he is a state that should not allow delete then we return.
-            if (IsCurrentStateASuppressCommandsMode()) {
+            if (IsCurrentStateASuppressCommandsMode())
+            {
                 return VSConstants.S_OK;
             }
 
             HierarchyNode node = NodeFromItemId(itemId);
 
-            if (node == null) {
+            if (node == null)
+            {
                 return VSConstants.E_FAIL;
             }
 
             // Ask the nodes if they can remove the item.
             bool canDeleteItem = node.CanDeleteItem((__VSDELETEITEMOPERATION)delItemOp);
-            if (canDeleteItem) {
+            if (canDeleteItem)
+            {
                 candelete = 1;
             }
 
+            return VSConstants.S_OK;
+        }
+
+        #endregion
+
+        #region IVsHierarchyDeleteHandler2 methods
+
+        public int ShowMultiSelDeleteOrRemoveMessage(uint dwDelItemOp, uint cDelItems, uint[] rgDelItems, out int pfCancelOperation)
+        {
+            pfCancelOperation = 0;
+            return VSConstants.S_OK;
+        }
+
+        public int ShowSpecificDeleteRemoveMessage(uint dwDelItemOps, uint cDelItems, uint[] rgDelItems, out int pfShowStandardMessage, out uint pdwDelItemOp)
+        {
+            pfShowStandardMessage = 1;
+            pdwDelItemOp = dwDelItemOps;
+
+            var items = rgDelItems.Select(id => NodeFromItemId(id)).Where(n => n != null).ToArray();
+            if (items.Length == 0)
+            {
+                return VSConstants.S_OK;
+            }
+            else
+            {
+                bool cancel, showStandardDialog;
+                items[0].ShowDeleteMessage(items, (__VSDELETEITEMOPERATION)dwDelItemOps, out cancel, out showStandardDialog);
+
+                if (showStandardDialog || cancel)
+                {
+                    pdwDelItemOp = 0;
+                }
+                if (!showStandardDialog)
+                {
+                    pfShowStandardMessage = 0;
+                }
+            }
             return VSConstants.S_OK;
         }
 
@@ -6529,26 +6864,28 @@ If the files in the existing folder have the same names as files in the folder y
         /// <param name="docData">Item identifier of the hierarchy item saved from VSITEMID.</param>
         /// <param name="cancelled">[out] true if the save action was canceled.</param>
         /// <returns>[out] true if the save action was canceled.</returns>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
-        public virtual int SaveItem(VSSAVEFLAGS saveFlag, string silentSaveAsName, uint itemid, IntPtr docData, out int cancelled) {
+        public virtual int SaveItem(VSSAVEFLAGS saveFlag, string silentSaveAsName, uint itemid, IntPtr docData, out int cancelled)
+        {
             cancelled = 0;
 
             // Validate itemid 
-            if (itemid == VSConstants.VSITEMID_ROOT || itemid == VSConstants.VSITEMID_SELECTION) {
+            if (itemid == VSConstants.VSITEMID_ROOT || itemid == VSConstants.VSITEMID_SELECTION)
+            {
                 return VSConstants.E_INVALIDARG;
             }
 
             HierarchyNode node = this.NodeFromItemId(itemid);
-            if (node == null) {
+            if (node == null)
+            {
                 return VSConstants.E_FAIL;
             }
 
             string existingFileMoniker = node.GetMkDocument();
 
             // We can only perform save if the document is open
-            if (docData == IntPtr.Zero) {
-                string errorMessage = string.Format(CultureInfo.CurrentCulture, SR.GetString(SR.CanNotSaveFileNotOpeneInEditor, CultureInfo.CurrentUICulture), node.Url);
-                throw new InvalidOperationException(errorMessage);
+            if (docData == IntPtr.Zero)
+            {
+                throw new InvalidOperationException(SR.GetString(SR.CanNotSaveFileNotOpeneInEditor, node.Url));
             }
 
             string docNew = String.Empty;
@@ -6558,7 +6895,8 @@ If the files in the existing folder have the same names as files in the folder y
             IVsUIShell shell = Site.GetService(typeof(SVsUIShell)) as IVsUIShell;
             Utilities.CheckNotNull(shell);
 
-            try {
+            try
+            {
                 //Save docdata object. 
                 //For the saveas action a dialog is show in order to enter new location of file.
                 //In case of a save action and the file is readonly a dialog is also shown
@@ -6566,9 +6904,12 @@ If the files in the existing folder have the same names as files in the folder y
                 ff = Marshal.GetObjectForIUnknown(docData) as IPersistFileFormat;
                 Utilities.CheckNotNull(ff);
 
-                if (VSSAVEFLAGS.VSSAVE_SilentSave == saveFlag) {
+                if (VSSAVEFLAGS.VSSAVE_SilentSave == saveFlag)
+                {
                     ErrorHandler.ThrowOnFailure(shell.SaveDocDataToFile(saveFlag, ff, silentSaveAsName, out docNew, out cancelled));
-                } else {
+                }
+                else
+                {
                     dd = Marshal.GetObjectForIUnknown(docData) as IVsPersistDocData;
                     Utilities.CheckNotNull(dd);
 
@@ -6578,17 +6919,20 @@ If the files in the existing folder have the same names as files in the folder y
                 // We can be unloaded after the SaveDocData() call if the save caused a designer to add a file and this caused
                 // the project file to be reloaded (QEQS caused a newer version of the project file to be downloaded). So we check
                 // here.
-                if (IsClosed) {
+                if (IsClosed)
+                {
                     cancelled = 1;
                     return (int)OleConstants.OLECMDERR_E_CANCELED;
-                } else {
+                }
+                else
+                {
                     // if a SaveAs occurred we need to update to the fact our item's name has changed.
                     // this includes the following:
-                    // 	  1. call RenameDocument on the RunningDocumentTable
-                    // 	  2. update the full path name for the item in our hierarchy
-                    // 	  3. a directory-based project may need to transfer the open editor to the
-                    // 	 	 MiscFiles project if the new file is saved outside of the project directory.
-                    // 	 	 This is accomplished by calling IVsExternalFilesManager::TransferDocument                    
+                    //    1. call RenameDocument on the RunningDocumentTable
+                    //    2. update the full path name for the item in our hierarchy
+                    //    3. a directory-based project may need to transfer the open editor to the
+                    //       MiscFiles project if the new file is saved outside of the project directory.
+                    //       This is accomplished by calling IVsExternalFilesManager::TransferDocument                    
 
                     // we have three options for a saveas action to be performed
                     // 1. the flag was set (the save as command was triggered)
@@ -6600,30 +6944,38 @@ If the files in the existing folder have the same names as files in the folder y
                         ((saveFlag == VSSAVEFLAGS.VSSAVE_SilentSave) && !emptyOrSamePath) ||
                         ((saveFlag == VSSAVEFLAGS.VSSAVE_Save) && !emptyOrSamePath);
 
-                    if (saveAs) {
+                    if (saveAs)
+                    {
                         returnCode = node.AfterSaveItemAs(docData, docNew);
 
                         // If it has been cancelled recover the old name.
-                        if ((returnCode == (int)OleConstants.OLECMDERR_E_CANCELED || returnCode == VSConstants.E_ABORT)) {
+                        if ((returnCode == (int)OleConstants.OLECMDERR_E_CANCELED || returnCode == VSConstants.E_ABORT))
+                        {
                             // Cleanup.
                             this.DeleteFromStorage(docNew);
 
-                            if (ff != null) {
+                            if (ff != null)
+                            {
                                 returnCode = shell.SaveDocDataToFile(VSSAVEFLAGS.VSSAVE_SilentSave, ff, existingFileMoniker, out docNew, out cancelled);
                             }
-                        } else if (returnCode != VSConstants.S_OK) {
+                        }
+                        else if (returnCode != VSConstants.S_OK)
+                        {
                             ErrorHandler.ThrowOnFailure(returnCode);
                         }
                     }
                 }
-            } catch (COMException e) {
+            }
+            catch (COMException e)
+            {
                 Trace.WriteLine("Exception :" + e.Message);
                 returnCode = e.ErrorCode;
 
                 // Try to recover
                 // changed from MPFProj:
                 // http://mpfproj10.codeplex.com/WorkItem/View.aspx?WorkItemId=6982
-                if (ff != null && cancelled == 0) {
+                if (ff != null && cancelled == 0)
+                {
                     ErrorHandler.ThrowOnFailure(shell.SaveDocDataToFile(VSSAVEFLAGS.VSSAVE_SilentSave, ff, existingFileMoniker, out docNew, out cancelled));
                 }
             }
@@ -6638,7 +6990,8 @@ If the files in the existing folder have the same names as files in the folder y
         /// <param name="docData">Pointer to the IUnknown interface of the hierarchy item.</param>
         /// <param name="isDirty">true if the hierarchy item changed.</param>
         /// <returns>If the method succeeds, it returns S_OK. If it fails, it returns an error code. </returns>
-        public virtual int IsItemDirty(uint itemId, IntPtr docData, out int isDirty) {
+        public virtual int IsItemDirty(uint itemId, IntPtr docData, out int isDirty)
+        {
             IVsPersistDocData pd = (IVsPersistDocData)Marshal.GetObjectForIUnknown(docData);
             return ErrorHandler.ThrowOnFailure(pd.IsDocDataDirty(out isDirty));
         }
@@ -6649,9 +7002,11 @@ If the files in the existing folder have the same names as files in the folder y
         /// <param name="itemId">Specifies the item id from VSITEMID.</param>
         /// <param name="ignoreFlag">Flag indicating whether or not to ignore changes (1 to ignore, 0 to stop ignoring).</param>
         /// <returns>If the method succeeds, it returns S_OK. If it fails, it returns an error code.</returns>
-        public virtual int IgnoreItemFileChanges(uint itemId, int ignoreFlag) {
+        public virtual int IgnoreItemFileChanges(uint itemId, int ignoreFlag)
+        {
             HierarchyNode n = this.NodeFromItemId(itemId);
-            if (n != null) {
+            if (n != null)
+            {
                 n.IgnoreItemFileChanges(ignoreFlag == 0 ? false : true);
             }
 
@@ -6664,12 +7019,13 @@ If the files in the existing folder have the same names as files in the folder y
         /// <param name="itemId">Item identifier of an item in the hierarchy. Valid values are VSITEMID_NIL, VSITEMID_ROOT and VSITEMID_SELECTION.</param>
         /// <param name="isReloadable">A flag indicating that the project item is reloadable (1 for reloadable, 0 for non-reloadable).</param>
         /// <returns>If the method succeeds, it returns S_OK. If it fails, it returns an error code. </returns>
-        [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Reloadable")]
-        public virtual int IsItemReloadable(uint itemId, out int isReloadable) {
+        public virtual int IsItemReloadable(uint itemId, out int isReloadable)
+        {
             isReloadable = 0;
 
             HierarchyNode n = this.NodeFromItemId(itemId);
-            if (n != null) {
+            if (n != null)
+            {
                 isReloadable = (n.IsItemReloadable()) ? 1 : 0;
             }
 
@@ -6682,9 +7038,11 @@ If the files in the existing folder have the same names as files in the folder y
         /// <param name="itemId">Specifies itemid from VSITEMID.</param>
         /// <param name="reserved">Reserved.</param>
         /// <returns>If the method succeeds, it returns S_OK. If it fails, it returns an error code. </returns>
-        public virtual int ReloadItem(uint itemId, uint reserved) {
+        public virtual int ReloadItem(uint itemId, uint reserved)
+        {
             HierarchyNode n = this.NodeFromItemId(itemId);
-            if (n != null) {
+            if (n != null)
+            {
                 n.ReloadItem(reserved);
             }
 
@@ -6693,22 +7051,26 @@ If the files in the existing folder have the same names as files in the folder y
 
         #endregion
 
-        public void UpdatePathForDeferredSave(string oldPath, string newPath) {
-            UIThread.Instance.MustBeCalledFromUIThread();
+        public void UpdatePathForDeferredSave(string oldPath, string newPath)
+        {
+            Site.GetUIThread().MustBeCalledFromUIThread();
 
             var existing = _diskNodes[oldPath];
             _diskNodes.Remove(oldPath);
             _diskNodes.Add(newPath, existing);
         }
 
-        public IVsHierarchy ParentHierarchy {
-            get {
+        public IVsHierarchy ParentHierarchy
+        {
+            get
+            {
                 return parentHierarchy;
             }
         }
 
         [Conditional("DEBUG")]
-        internal void AssertHasParentHierarchy() {
+        internal void AssertHasParentHierarchy()
+        {
             // Calling into solution explorer before a parent hierarchy is assigned can
             // cause us to corrupt solution explorer if we're using flavored projects.  We
             // will call in with our inner project node and later we get wrapped in an

@@ -13,8 +13,10 @@
  * ***************************************************************************/
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security.Permissions;
 using System.Text;
@@ -22,6 +24,10 @@ using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
 using OleConstants = Microsoft.VisualStudio.OLE.Interop.Constants;
 using VsCommands2K = Microsoft.VisualStudio.VSConstants.VSStd2KCmdID;
+#if DEV14_OR_LATER
+using Microsoft.VisualStudio.Imaging;
+using Microsoft.VisualStudio.Imaging.Interop;
+#endif
 
 namespace Microsoft.VisualStudioTools.Project
 {
@@ -108,13 +114,26 @@ namespace Microsoft.VisualStudioTools.Project
         }
 
 
-        public override object GetIconHandle(bool open)
+#if DEV14_OR_LATER
+        protected override bool SupportsIconMonikers
         {
-            return ProjectMgr.GetIconHandleByName(CanShowDefaultIcon() ?
-                ProjectNode.ImageName.Reference :
-                ProjectNode.ImageName.DanglingReference
-            );
+            get { return true; }
         }
+
+        protected override ImageMoniker GetIconMoniker(bool open)
+        {
+            return CanShowDefaultIcon() ? KnownMonikers.Reference : KnownMonikers.ReferenceWarning;
+        }
+#else
+        public override int ImageIndex {
+            get {
+                return ProjectMgr.GetIconIndex(CanShowDefaultIcon() ?
+                    ProjectNode.ImageName.Reference :
+                    ProjectNode.ImageName.DanglingReference
+                );
+            }
+        }
+#endif
 
         /// <summary>
         /// Not supported.
@@ -124,10 +143,12 @@ namespace Microsoft.VisualStudioTools.Project
             return (int)OleConstants.OLECMDERR_E_NOTSUPPORTED;
         }
 
-        public override void Remove(bool removeFromStorage) {
+        public override void Remove(bool removeFromStorage)
+        {
             ReferenceContainerNode parent = Parent as ReferenceContainerNode;
             base.Remove(removeFromStorage);
-            if (parent != null) {
+            if (parent != null)
+            {
                 parent.FireChildRemoved(this);
             }
         }
@@ -171,6 +192,13 @@ namespace Microsoft.VisualStudioTools.Project
             return base.ExecCommandOnNode(cmdGroup, cmd, nCmdexecopt, pvaIn, pvaOut);
         }
 
+        protected internal override void ShowDeleteMessage(IList<HierarchyNode> nodes, __VSDELETEITEMOPERATION action, out bool cancel, out bool useStandardDialog)
+        {
+            // Don't prompt if all the nodes are references
+            useStandardDialog = !nodes.All(n => n is ReferenceNode);
+            cancel = false;
+        }
+
         #endregion
 
         #region  methods
@@ -181,7 +209,7 @@ namespace Microsoft.VisualStudioTools.Project
         /// </summary>
         public virtual void AddReference()
         {
-            UIThread.Instance.MustBeCalledFromUIThread();
+            ProjectMgr.Site.GetUIThread().MustBeCalledFromUIThread();
 
             ReferenceContainerNode referencesFolder = this.ProjectMgr.GetReferenceContainer() as ReferenceContainerNode;
             Utilities.CheckNotNull(referencesFolder, "Could not find the References node");
@@ -280,7 +308,7 @@ namespace Microsoft.VisualStudioTools.Project
                 return (int)OleConstants.OLECMDERR_E_NOTSUPPORTED;
             }
 
-            // Request unmanaged code permission in order to be able to creaet the unmanaged memory representing the guid.
+            // Request unmanaged code permission in order to be able to create the unmanaged memory representing the guid.
             new SecurityPermission(SecurityPermissionFlag.UnmanagedCode).Demand();
 
             Guid guid = VSConstants.guidCOMPLUSLibrary;

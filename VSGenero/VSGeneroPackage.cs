@@ -159,6 +159,7 @@ namespace VSGenero
         public VSGeneroPackage()
             : base()
         {
+            Instance = this;
             AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
         }
 
@@ -191,19 +192,6 @@ namespace VSGenero
             return null;
         }
 
-        //private IProgram4GLFileProvider _currentProgram4GLFileProvider;
-        //internal IProgram4GLFileProvider CurrentProgram4GLFileProvider
-        //{
-        //    get { return _currentProgram4GLFileProvider; }
-        //    set { _currentProgram4GLFileProvider = value; }
-        //}
-
-        //private GeneroProgramContentsManager _programContentsManager;
-        //internal GeneroProgramContentsManager ProgramContentsManager
-        //{
-        //    get { return _programContentsManager; }
-        //}
-
         /////////////////////////////////////////////////////////////////////////////
         // Overriden Package Implementation
         #region Package Members
@@ -215,12 +203,32 @@ namespace VSGenero
         protected override void Initialize()
         {
             base.Initialize();
-            Instance = this;
+            var services = (IServiceContainer)this;
 
             var langService4GL = new VSGenero4GLLanguageInfo(this);
-            ((IServiceContainer)this).AddService(langService4GL.GetType(), langService4GL, true);
+            services.AddService(langService4GL.GetType(), langService4GL, true);
             var langServicePER = new VSGeneroPERLanguageInfo(this);
-            ((IServiceContainer)this).AddService(langServicePER.GetType(), langServicePER, true);
+            services.AddService(langServicePER.GetType(), langServicePER, true);
+
+            services.AddService(
+                typeof(ErrorTaskProvider),
+                (container, serviceType) => {
+                    var errorList = GetService(typeof(SVsErrorList)) as IVsTaskList;
+                    var model = ComponentModel;
+                    var errorProvider = model != null ? model.GetService<IErrorProviderFactory>() : null;
+                    return new ErrorTaskProvider(this, errorList, errorProvider);
+                },
+                promote: true);
+
+            services.AddService(
+                typeof(CommentTaskProvider),
+                (container, serviceType) => {
+                    var taskList = GetService(typeof(SVsTaskList)) as IVsTaskList;
+                    var model = ComponentModel;
+                    var errorProvider = model != null ? model.GetService<IErrorProviderFactory>() : null;
+                    return new CommentTaskProvider(this, taskList, errorProvider);
+                },
+                promote: true);
 
             IVsTextManager textMgr = (IVsTextManager)Instance.GetService(typeof(SVsTextManager));
             var langPrefs = new LANGPREFERENCES[1];
@@ -242,8 +250,6 @@ namespace VSGenero
                 this.RegisterEditorFactory(GeneroEditorFactory);
             }
             
-            //_programContentsManager = new GeneroProgramContentsManager();
-
             RegisterCommands(new CommonCommand[]
                 {
                     new ExtractSqlStatementsCommand()
@@ -251,67 +257,6 @@ namespace VSGenero
         }
 
         #endregion
-
-        //private Dictionary<string, GeneroFileParserManager> _bufferFileParserManagers;
-        //public Dictionary<string, GeneroFileParserManager> BufferFileParserManagers
-        //{
-        //    get
-        //    {
-        //        if (_bufferFileParserManagers == null)
-        //            _bufferFileParserManagers = new Dictionary<string, GeneroFileParserManager>();
-        //        return _bufferFileParserManagers;
-        //    }
-        //}
-
-        //private object bufferFileParserManagerLock = new object();
-
-        //public GeneroFileParserManager UpdateBufferFileParserManager(ITextBuffer buffer, string primarySibling = null)
-        //{
-        //    GeneroFileParserManager fpm;
-        //    lock (bufferFileParserManagerLock)
-        //    {
-        //        if (!buffer.Properties.TryGetProperty(typeof(GeneroFileParserManager), out fpm))
-        //        {
-        //            string filename = buffer.GetFilePath();
-        //            // see if a file parser manager has been created for this file
-        //            if (VSGeneroPackage.Instance.BufferFileParserManagers.TryGetValue(filename.ToLower(), out fpm))
-        //            {
-        //                // use this file parser manager instead of a new one
-        //                fpm.UseNewBuffer(buffer);
-        //            }
-        //            else
-        //            {
-        //                fpm = new GeneroFileParserManager(buffer, primarySibling);
-        //                VSGeneroPackage.Instance.BufferFileParserManagers.Add(filename.ToLower(), fpm);
-        //            }
-        //            if (!buffer.Properties.ContainsProperty(typeof(GeneroFileParserManager)))
-        //            {
-        //                buffer.Properties.AddProperty(typeof(GeneroFileParserManager), fpm);
-        //            }
-        //        }
-        //    }
-        //    return fpm;
-        //}
-
-        //public GeneroFileParserManager RemoveBufferFileParserManager(ITextBuffer buffer)
-        //{
-        //    GeneroFileParserManager fpm;
-        //    if (buffer.Properties.TryGetProperty(typeof(GeneroFileParserManager), out fpm))
-        //    {
-        //        if(fpm.PrimarySibling != null)
-        //        {
-        //            if (VSGeneroPackage.Instance.BufferFileParserManagers.ContainsKey(fpm.PrimarySibling.ToLower()))
-        //                return fpm;
-        //        }
-
-        //        fpm.CancelParsing();
-        //        string filename = buffer.GetFilePath();
-        //        if (VSGeneroPackage.Instance.BufferFileParserManagers.ContainsKey(filename.ToLower()))
-        //            VSGeneroPackage.Instance.BufferFileParserManagers.Remove(filename.ToLower());
-        //        buffer.Properties.RemoveProperty(typeof(GeneroFileParserManager));
-        //    }
-        //    return fpm;
-        //}
 
         public override Type GetLibraryManagerType()
         {
@@ -379,7 +324,7 @@ namespace VSGenero
 
         private GeneroProjectAnalyzer CreateAnalyzer()
         {
-            return new GeneroProjectAnalyzer(ComponentModel.GetService<IErrorProviderFactory>());
+            return new GeneroProjectAnalyzer(this);
         }
 
         private IFunctionInformationProvider _functionProvider;

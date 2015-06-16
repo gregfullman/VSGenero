@@ -15,8 +15,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -37,15 +35,20 @@ namespace Microsoft.VisualStudioTools.Project
         private static readonly string[] _defaultOpensWithDesignViewExtensions = new[] { ".aspx", ".ascx", ".asax", ".asmx", ".xsd", ".resource", ".xaml" };
         private static readonly string[] _supportsDesignViewExtensions = new[] { ".aspx", ".ascx", ".asax", ".asmx" };
         private static readonly string[] _supportsDesignViewSubTypes = new[] { ProjectFileAttributeValue.Code, ProjectFileAttributeValue.Form, ProjectFileAttributeValue.UserControl, ProjectFileAttributeValue.Component, ProjectFileAttributeValue.Designer };
+        private string _caption;
 
         #region static fields
+#if !DEV14_OR_LATER
         private static Dictionary<string, int> extensionIcons;
+#endif
         #endregion
 
         #region overriden Properties
 
-        public override bool DefaultOpensWithDesignView {
-            get {
+        public override bool DefaultOpensWithDesignView
+        {
+            get
+            {
                 // ASPX\ASCX files support design view but should be opened by default with
                 // LOGVIEWID_Primary - this is because they support design and html view which
                 // is a tools option setting for them. If we force designview this option
@@ -59,16 +62,23 @@ namespace Microsoft.VisualStudioTools.Project
             }
         }
 
-        public override bool SupportsDesignView {
-            get {
-                if (ItemNode != null && !ItemNode.IsExcluded) {
+        public override bool SupportsDesignView
+        {
+            get
+            {
+                if (ItemNode != null && !ItemNode.IsExcluded)
+                {
                     string extension = Path.GetExtension(Url);
                     if (_supportsDesignViewExtensions.Contains(extension, StringComparer.OrdinalIgnoreCase) ||
-                        IsCodeBehindFile) {
+                        IsCodeBehindFile)
+                    {
                         return true;
-                    } else {
+                    }
+                    else
+                    {
                         var subType = ItemNode.GetMetadata("SubType");
-                        if (subType != null && _supportsDesignViewExtensions.Contains(subType, StringComparer.OrdinalIgnoreCase)) {
+                        if (subType != null && _supportsDesignViewExtensions.Contains(subType, StringComparer.OrdinalIgnoreCase))
+                        {
                             return true;
                         }
                     }
@@ -77,8 +87,10 @@ namespace Microsoft.VisualStudioTools.Project
             }
         }
 
-        public override bool IsNonMemberItem {
-            get {
+        public override bool IsNonMemberItem
+        {
+            get
+            {
                 return ItemNode is AllFilesProjectElement;
             }
         }
@@ -91,16 +103,21 @@ namespace Microsoft.VisualStudioTools.Project
         {
             get
             {
-                // Use LinkedIntoProjectAt property if available
-                string caption = this.ItemNode.GetMetadata(ProjectFileConstants.LinkedIntoProjectAt);
-                if (caption == null || caption.Length == 0)
-                {
-                    // Otherwise use filename
-                    caption = this.ItemNode.GetMetadata(ProjectFileConstants.Include);
-                    caption = Path.GetFileName(caption);
-                }
-                return caption;
+                return _caption;
             }
+        }
+
+        private void UpdateCaption()
+        {
+            // Use LinkedIntoProjectAt property if available
+            string caption = this.ItemNode.GetMetadata(ProjectFileConstants.LinkedIntoProjectAt);
+            if (caption == null || caption.Length == 0)
+            {
+                // Otherwise use filename
+                caption = this.ItemNode.GetMetadata(ProjectFileConstants.Include);
+                caption = Path.GetFileName(caption);
+            }
+            _caption = caption;
         }
 
         public override string GetEditLabel()
@@ -113,21 +130,18 @@ namespace Microsoft.VisualStudioTools.Project
             return Caption;
         }
 
-        public override int ImageIndex
-        {
-            get
-            {
+#if !DEV14_OR_LATER
+        public override int ImageIndex {
+            get {
                 // Check if the file is there.
-                if (!this.CanShowDefaultIcon())
-                {
+                if (!this.CanShowDefaultIcon()) {
                     return (int)ProjectNode.ImageName.MissingFile;
                 }
 
                 //Check for known extensions
                 int imageIndex;
                 string extension = Path.GetExtension(this.FileName);
-                if ((string.IsNullOrEmpty(extension)) || (!extensionIcons.TryGetValue(extension, out imageIndex)))
-                {
+                if ((string.IsNullOrEmpty(extension)) || (!extensionIcons.TryGetValue(extension, out imageIndex))) {
                     // Missing or unknown extension; let the base class handle this case.
                     return base.ImageIndex;
                 }
@@ -136,12 +150,16 @@ namespace Microsoft.VisualStudioTools.Project
                 return imageIndex;
             }
         }
+#endif
 
-        public uint DocCookie {
-            get {
+        public uint DocCookie
+        {
+            get
+            {
                 return this._docCookie;
             }
-            set {
+            set
+            {
                 this._docCookie = value;
             }
         }
@@ -185,15 +203,16 @@ namespace Microsoft.VisualStudioTools.Project
         {
             get
             {
-                return GetAbsoluteUrlFromMsbuild();
+                return ItemNode.Url;
             }
         }
+
         #endregion
 
         #region ctor
+#if !DEV14_OR_LATER
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1810:InitializeReferenceTypeStaticFieldsInline")]
-        static FileNode()
-        {
+        static FileNode() {
             // Build the dictionary with the mapping between some well known extensions
             // and the index of the icons inside the standard image list.
             extensionIcons = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
@@ -234,7 +253,7 @@ namespace Microsoft.VisualStudioTools.Project
             extensionIcons.Add(".pfx", (int)ProjectNode.ImageName.PFX);
             extensionIcons.Add(".snk", (int)ProjectNode.ImageName.SNK);
         }
-
+#endif
         /// <summary>
         /// Constructor for the FileNode
         /// </summary>
@@ -243,6 +262,7 @@ namespace Microsoft.VisualStudioTools.Project
         public FileNode(ProjectNode root, ProjectElement element)
             : base(root, element)
         {
+            UpdateCaption();
         }
         #endregion
 
@@ -252,23 +272,13 @@ namespace Microsoft.VisualStudioTools.Project
             if (IsLinkFile)
             {
                 return new LinkFileNodeProperties(this);
-            } else if (IsNonMemberItem) {
+            }
+            else if (IsNonMemberItem)
+            {
                 return new ExcludedFileNodeProperties(this);
             }
 
             return new IncludedFileNodeProperties(this);
-        }
-
-        public override object GetIconHandle(bool open)
-        {
-            int index = this.ImageIndex;
-            if (NoImage == index)
-            {
-                // There is no image for this file; let the base class handle this case.
-                return base.GetIconHandle(open);
-            }
-            // Return the handle for the image.
-            return this.ProjectMgr.ImageHandler.GetIconHandle(index);
         }
 
         /// <summary>
@@ -310,15 +320,15 @@ namespace Microsoft.VisualStudioTools.Project
             // Validate the filename. 
             if (String.IsNullOrEmpty(label))
             {
-                throw new InvalidOperationException(String.Format(CultureInfo.CurrentCulture, SR.GetString(SR.ErrorInvalidFileName, CultureInfo.CurrentUICulture), label));
+                throw new InvalidOperationException(SR.GetString(SR.ErrorInvalidFileName, label));
             }
             else if (label.Length > NativeMethods.MAX_PATH)
             {
-                throw new InvalidOperationException(String.Format(CultureInfo.CurrentCulture, SR.GetString(SR.PathTooLong, CultureInfo.CurrentUICulture), label));
+                throw new InvalidOperationException(SR.GetString(SR.PathTooLong, label));
             }
             else if (Utilities.IsFileNameInvalid(label))
             {
-                throw new InvalidOperationException(String.Format(CultureInfo.CurrentCulture, SR.GetString(SR.ErrorInvalidFileName, CultureInfo.CurrentUICulture), label));
+                throw new InvalidOperationException(SR.GetString(SR.ErrorInvalidFileName, label));
             }
 
             for (HierarchyNode n = this.Parent.FirstChild; n != null; n = n.NextSibling)
@@ -328,7 +338,7 @@ namespace Microsoft.VisualStudioTools.Project
                 {
                     //A file or folder with the name '{0}' already exists on disk at this location. Please choose another name.
                     //If this file or folder does not appear in the Solution Explorer, then it is not currently part of your project. To view files which exist on disk, but are not in the project, select Show All Files from the Project menu.
-                    throw new InvalidOperationException(String.Format(CultureInfo.CurrentCulture, SR.GetString(SR.FileOrFolderAlreadyExists, CultureInfo.CurrentUICulture), label));
+                    throw new InvalidOperationException(SR.GetString(SR.FileOrFolderAlreadyExists, label));
                 }
             }
 
@@ -340,7 +350,7 @@ namespace Microsoft.VisualStudioTools.Project
                 !String.Equals(Path.GetExtension(strRelPath), Path.GetExtension(label), StringComparison.OrdinalIgnoreCase))
             {
                 // Prompt to confirm that they really want to change the extension of the file
-                string message = String.Format(CultureInfo.CurrentCulture, SR.GetString(SR.ConfirmExtensionChange, CultureInfo.CurrentUICulture), label);
+                string message = SR.GetString(SR.ConfirmExtensionChange, label);
                 IVsUIShell shell = this.ProjectMgr.Site.GetService(typeof(SVsUIShell)) as IVsUIShell;
 
                 Utilities.CheckNotNull(shell, "Could not get the UI shell from the project");
@@ -415,11 +425,11 @@ namespace Microsoft.VisualStudioTools.Project
                     && (IsFileOnDisk(this.Url)
                     || !String.Equals(Path.GetFileName(newName), Path.GetFileName(this.Url), StringComparison.OrdinalIgnoreCase)))
                 {
-                    throw new InvalidOperationException(String.Format(CultureInfo.CurrentCulture, SR.GetString(SR.FileCannotBeRenamedToAnExistingFile, CultureInfo.CurrentUICulture), label));
+                    throw new InvalidOperationException(SR.GetString(SR.FileCannotBeRenamedToAnExistingFile, label));
                 }
                 else if (newName.Length > NativeMethods.MAX_PATH)
                 {
-                    throw new InvalidOperationException(String.Format(CultureInfo.CurrentCulture, SR.GetString(SR.PathTooLong, CultureInfo.CurrentUICulture), label));
+                    throw new InvalidOperationException(SR.GetString(SR.PathTooLong, label));
                 }
             }
 
@@ -439,7 +449,6 @@ namespace Microsoft.VisualStudioTools.Project
                 {
                     ProjectMgr.OnInvalidateItems(this.Parent);
                 }
-
             }
             catch (Exception e)
             {
@@ -466,6 +475,22 @@ namespace Microsoft.VisualStudioTools.Project
         protected internal override DocumentManager GetDocumentManager()
         {
             return new FileDocumentManager(this);
+        }
+
+        public override int QueryService(ref Guid guidService, out object result)
+        {
+            if (guidService == typeof(EnvDTE.Project).GUID)
+            {
+                result = ProjectMgr.GetAutomationObject();
+                return VSConstants.S_OK;
+            }
+            else if (guidService == typeof(EnvDTE.ProjectItem).GUID)
+            {
+                result = GetAutomationObject();
+                return VSConstants.S_OK;
+            }
+
+            return base.QueryService(ref guidService, out result);
         }
 
         /// <summary>
@@ -549,10 +574,6 @@ namespace Microsoft.VisualStudioTools.Project
                     return VSConstants.S_OK;
                 }
             }
-            else
-            {
-                return (int)OleConstants.OLECMDERR_E_UNKNOWNGROUP;
-            }
             return base.QueryStatusOnNode(cmdGroup, cmd, pCmdText, ref result);
         }
 
@@ -580,7 +601,6 @@ namespace Microsoft.VisualStudioTools.Project
             //Identify if Path or FileName are the same for old and new file
             string newDirectoryName = CommonUtils.NormalizeDirectoryPath(Path.GetDirectoryName(newFilePath));
             string oldDirectoryName = CommonUtils.NormalizeDirectoryPath(Path.GetDirectoryName(this.GetMkDocument()));
-            string errorMessage = String.Empty;
             bool isSamePath = CommonUtils.IsSameDirectory(newDirectoryName, oldDirectoryName);
             bool isSameFile = CommonUtils.IsSamePath(newFilePath, this.Url);
 
@@ -608,8 +628,7 @@ namespace Microsoft.VisualStudioTools.Project
                 if (targetContainer != null && (targetContainer is FileNode))
                 {
                     // We already have a file node with this name in the hierarchy.
-                    errorMessage = String.Format(CultureInfo.CurrentCulture, SR.GetString(SR.FileAlreadyExistsAndCannotBeRenamed, CultureInfo.CurrentUICulture), Path.GetFileName(newFilePath));
-                    throw new InvalidOperationException(errorMessage);
+                    throw new InvalidOperationException(SR.GetString(SR.FileAlreadyExistsAndCannotBeRenamed, Path.GetFileName(newFilePath)));
                 }
             }
 
@@ -629,7 +648,7 @@ namespace Microsoft.VisualStudioTools.Project
 
             try
             {
-                // Rename the node.	
+                // Rename the node.
                 DocumentManager.UpdateCaption(this.ProjectMgr.Site, Path.GetFileName(newFilePath), docData);
                 // Check if the file name was actually changed.
                 // In same cases (e.g. if the item is a file and the user has changed its encoding) this function
@@ -688,19 +707,24 @@ namespace Microsoft.VisualStudioTools.Project
         #endregion
 
         #region virtual methods
-        
-        public override object GetProperty(int propId) {
-            switch ((__VSHPROPID)propId) {
+
+        public override object GetProperty(int propId)
+        {
+            switch ((__VSHPROPID)propId)
+            {
                 case __VSHPROPID.VSHPROPID_ItemDocCookie:
-                    if (this.DocCookie != 0) return (IntPtr)this.DocCookie; //cast to IntPtr as some callers expect VT_INT
+                    if (this.DocCookie != 0)
+                        return (IntPtr)this.DocCookie; //cast to IntPtr as some callers expect VT_INT
                     break;
 
             }
             return base.GetProperty(propId);
         }
 
-        public virtual string FileName {
-            get {
+        public virtual string FileName
+        {
+            get
+            {
                 return this.Caption;
             }
             set
@@ -720,12 +744,12 @@ namespace Microsoft.VisualStudioTools.Project
 
             if (!fileExist && showMessage && !Utilities.IsInAutomationFunction(this.ProjectMgr.Site))
             {
-                string message = String.Format(CultureInfo.CurrentCulture, SR.GetString(SR.ItemDoesNotExistInProjectDirectory, CultureInfo.CurrentUICulture), this.Caption);
+                string message = SR.GetString(SR.ItemDoesNotExistInProjectDirectory, Caption);
                 string title = string.Empty;
                 OLEMSGICON icon = OLEMSGICON.OLEMSGICON_CRITICAL;
                 OLEMSGBUTTON buttons = OLEMSGBUTTON.OLEMSGBUTTON_OK;
                 OLEMSGDEFBUTTON defaultButton = OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST;
-                VsShellUtilities.ShowMessageBox(this.ProjectMgr.Site, title, message, icon, buttons, defaultButton);
+                Utilities.ShowMessageBox(this.ProjectMgr.Site, title, message, icon, buttons, defaultButton);
             }
 
             return fileExist;
@@ -750,7 +774,7 @@ namespace Microsoft.VisualStudioTools.Project
         /// <param name="newParentId">The new parent id of the item.</param>
         /// <returns>The newly added FileNode.</returns>
         /// <remarks>While a new node will be used to represent the item, the underlying MSBuild item will be the same and as a result file properties saved in the project file will not be lost.</remarks>
-        private FileNode RenameFileNode(string oldFileName, string newFileName, HierarchyNode newParent)
+        internal FileNode RenameFileNode(string oldFileName, string newFileName, HierarchyNode newParent)
         {
             if (CommonUtils.IsSamePath(oldFileName, newFileName))
             {
@@ -760,32 +784,52 @@ namespace Microsoft.VisualStudioTools.Project
 
             //If we are included in the project and our parent isn't then
             //we need to bring our parent into the project
-            if (!this.IsNonMemberItem && newParent.IsNonMemberItem) {
+            if (!this.IsNonMemberItem && newParent.IsNonMemberItem)
+            {
                 ErrorHandler.ThrowOnFailure(newParent.IncludeInProject(false));
             }
-            using (this.ProjectMgr.ExtensibilityEventsDispatcher.Suspend()) {
+
+            // Retrieve child nodes to add later.
+            List<HierarchyNode> childNodes = this.GetChildNodes();
+
+            FileNode renamedNode;
+            using (this.ProjectMgr.ExtensibilityEventsDispatcher.Suspend())
+            {
+
+                // Remove this from its parent.
                 ProjectMgr.OnItemDeleted(this);
                 this.Parent.RemoveChild(this);
-                this.ID = this.ProjectMgr.ItemIdMap.Add(this);
+
+                // Update name in MSBuild
                 this.ItemNode.Rename(CommonUtils.GetRelativeFilePath(ProjectMgr.ProjectHome, newFileName));
-                this.ItemNode.RefreshProperties();
-                newParent.AddChild(this);
-                this.Parent = newParent;
+
+                // Request a new file node be made.  This is used to replace the old file node.  This way custom
+                // derived FileNode types will be used and correctly associated on rename.  This is useful for things 
+                // like .txt -> .js where the file would now be able to be a startup project/file.
+                renamedNode = this.ProjectMgr.CreateFileNode(this.ItemNode);
+
+                renamedNode.ItemNode.RefreshProperties();
+                renamedNode.UpdateCaption();
+                newParent.AddChild(renamedNode);
+                renamedNode.Parent = newParent;
             }
 
-            ProjectMgr.ReDrawNode(this, UIHierarchyElement.Caption);
+            UpdateCaption();
+            ProjectMgr.ReDrawNode(renamedNode, UIHierarchyElement.Caption);
 
-            this.ProjectMgr.ExtensibilityEventsDispatcher.FireItemRenamed(this, Path.GetFileName(newFileName));
+            renamedNode.ProjectMgr.ExtensibilityEventsDispatcher.FireItemRenamed(this, oldFileName);
 
             //Update the new document in the RDT.
-            DocumentManager.RenameDocument(this.ProjectMgr.Site, oldFileName, newFileName, ID);
+            DocumentManager.RenameDocument(renamedNode.ProjectMgr.Site, oldFileName, newFileName, renamedNode.ID);
 
             //Select the new node in the hierarchy
-            ExpandItem(EXPANDFLAGS.EXPF_SelectItem);
+            renamedNode.ExpandItem(EXPANDFLAGS.EXPF_SelectItem);
 
-            RenameChildNodes(this);
+            // Add children to new node and rename them appropriately.
+            childNodes.ForEach(x => renamedNode.AddChild(x));
+            RenameChildNodes(renamedNode);
 
-            return this;
+            return renamedNode;
         }
 
         /// <summary>
@@ -794,13 +838,8 @@ namespace Microsoft.VisualStudioTools.Project
         /// <param name="newFileNode">The newly added Parent node.</param>
         protected virtual void RenameChildNodes(FileNode parentNode)
         {
-            foreach (HierarchyNode child in GetChildNodes())
+            foreach (var childNode in GetChildNodes().OfType<FileNode>())
             {
-                FileNode childNode = child as FileNode;
-                if (null == childNode)
-                {
-                    continue;
-                }
                 string newfilename;
                 if (childNode.HasParentNodeNameRelation)
                 {
@@ -856,6 +895,21 @@ namespace Microsoft.VisualStudioTools.Project
         /// <param name="newName">New name in storage</param>
         internal virtual void RenameInStorage(string oldName, string newName)
         {
+            // Make a few attempts over a short time period
+            for (int retries = 4; retries > 0; --retries)
+            {
+                try
+                {
+                    File.Move(oldName, newName);
+                    return;
+                }
+                catch (IOException)
+                {
+                    System.Threading.Thread.Sleep(50);
+                }
+            }
+
+            // Final attempt has no handling so exception propagates
             File.Move(oldName, newName);
         }
 
@@ -865,8 +919,6 @@ namespace Microsoft.VisualStudioTools.Project
         /// <param name="sccFile">One of the file associated to the node.</param>
         /// <param name="files">The list of files to be placed under source control.</param>
         /// <param name="flags">The flags that are associated to the files.</param>
-        [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Scc")]
-        [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "scc")]
         protected internal override void GetSccSpecialFiles(string sccFile, IList<string> files, IList<tagVsSccFilesFlags> flags)
         {
             if (this.ExcludeNodeFromScc)
@@ -893,7 +945,8 @@ namespace Microsoft.VisualStudioTools.Project
         internal bool RenameDocument(string oldName, string newName)
         {
             IVsRunningDocumentTable pRDT = this.GetService(typeof(IVsRunningDocumentTable)) as IVsRunningDocumentTable;
-            if (pRDT == null) return false;
+            if (pRDT == null)
+                return false;
             IntPtr docData = IntPtr.Zero;
             IVsHierarchy pIVsHierarchy;
             uint itemId;
@@ -937,6 +990,18 @@ namespace Microsoft.VisualStudioTools.Project
                     RenameInStorage(oldName, newName);
                 }
 
+                // For some reason when ignoreFileChanges is called in Resume, we get an ArgumentException because
+                // Somewhere a required fileWatcher is null.  This issue only occurs when you copy and rename a typescript file,
+                // Calling Resume here prevents said fileWatcher from being null. Don't know why it works, but it does.
+                // Also fun! This is the only location it can go (between RenameInStorage and RenameFileNode)
+                // So presumably there is some condition that is no longer met once both of these methods are called with a ts file.
+                // https://nodejstools.codeplex.com/workitem/1510
+                if (sfc != null)
+                {
+                    sfc.Resume();
+                    sfc.Suspend();
+                }
+
                 if (!CommonUtils.IsSamePath(oldName, newName))
                 {
                     // Check out the project file if necessary.
@@ -977,7 +1042,8 @@ namespace Microsoft.VisualStudioTools.Project
         {
             string newFolder = Path.GetDirectoryName(newFileName) + Path.DirectorySeparatorChar;
             var parentFolder = ProjectMgr.FindNodeByFullPath(newFolder);
-            if (parentFolder == null) {
+            if (parentFolder == null)
+            {
                 Debug.Assert(newFolder == ProjectMgr.ProjectHome);
                 parentFolder = ProjectMgr;
             }
@@ -999,6 +1065,7 @@ namespace Microsoft.VisualStudioTools.Project
             this.ItemNode.Rename(relName);
             this.ItemNode.RefreshProperties();
 
+            UpdateCaption();
             ProjectMgr.ReDrawNode(this, UIHierarchyElement.Caption);
             this.RenameChildNodes(this);
 
@@ -1042,14 +1109,16 @@ namespace Microsoft.VisualStudioTools.Project
         }
         #endregion
 
-        void IDiskBasedNode.RenameForDeferredSave(string basePath, string baseNewPath) {
+        void IDiskBasedNode.RenameForDeferredSave(string basePath, string baseNewPath)
+        {
             string oldLoc = CommonUtils.GetAbsoluteFilePath(basePath, ItemNode.GetMetadata(ProjectFileConstants.Include));
             string newLoc = CommonUtils.GetAbsoluteFilePath(baseNewPath, ItemNode.GetMetadata(ProjectFileConstants.Include));
 
             ProjectMgr.UpdatePathForDeferredSave(oldLoc, newLoc);
             // make sure the directory is there
             Directory.CreateDirectory(Path.GetDirectoryName(newLoc));
-            if (File.Exists(oldLoc)) {
+            if (File.Exists(oldLoc))
+            {
                 File.Move(oldLoc, newLoc);
             }
         }

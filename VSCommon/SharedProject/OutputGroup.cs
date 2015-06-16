@@ -14,6 +14,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio;
@@ -59,7 +60,6 @@ namespace Microsoft.VisualStudioTools.Project
         /// <summary>
         /// Get the project configuration object associated with this output group
         /// </summary>
-        [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Cfg")]
         protected ProjectConfig ProjectCfg
         {
             get { return _projectCfg; }
@@ -103,16 +103,20 @@ namespace Microsoft.VisualStudioTools.Project
             _project.SetConfiguration(_projectCfg.ConfigName);
 
             // Generate dependencies if such a task exist
-            const string generateDependencyList = "AllProjectOutputGroups";
-            if (_project.BuildProject.Targets.ContainsKey(generateDependencyList))
+            if (_project.BuildProject.Targets.ContainsKey(_targetName))
             {
                 bool succeeded = false;
-                _project.BuildTarget(generateDependencyList, out succeeded);
-                System.Diagnostics.Debug.Assert(succeeded, "Failed to build target: " + generateDependencyList);
+                _project.BuildTarget(_targetName, out succeeded);
+                if (!succeeded)
+                {
+                    Debug.WriteLine("Failed to build target {0}", _targetName);
+                    this._outputs.Clear();
+                    return;
+                }
             }
 
             // Rebuild the content of our list of output
-            string outputType = this._targetName + "Output";
+            string outputType = _targetName + "Output";
             this._outputs.Clear();
 
             if (_project.CurrentConfig != null)
@@ -138,8 +142,9 @@ namespace Microsoft.VisualStudioTools.Project
             _project.OnProjectPropertyChanged += new EventHandler<ProjectPropertyChangedArgs>(OnProjectPropertyChanged);
         }
 
-        public virtual IList<Output> EnumerateOutputs() {
-            UIThread.Instance.RunSync(Refresh);
+        public virtual IList<Output> EnumerateOutputs()
+        {
+            _project.Site.GetUIThread().Invoke(Refresh);
             return _outputs;
         }
 

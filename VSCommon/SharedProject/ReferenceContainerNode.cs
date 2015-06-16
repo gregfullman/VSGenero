@@ -26,6 +26,10 @@ using MSBuild = Microsoft.Build.Evaluation;
 using OleConstants = Microsoft.VisualStudio.OLE.Interop.Constants;
 using VsCommands = Microsoft.VisualStudio.VSConstants.VSStd97CmdID;
 using VsCommands2K = Microsoft.VisualStudio.VSConstants.VSStd2KCmdID;
+#if DEV14_OR_LATER
+using Microsoft.VisualStudio.Imaging;
+using Microsoft.VisualStudio.Imaging.Interop;
+#endif
 
 namespace Microsoft.VisualStudioTools.Project
 {
@@ -88,7 +92,7 @@ namespace Microsoft.VisualStudioTools.Project
         {
             get
             {
-                return SR.GetString(SR.ReferencesNodeName, CultureInfo.CurrentUICulture);
+                return SR.GetString(SR.ReferencesNodeName);
             }
         }
 
@@ -133,14 +137,23 @@ namespace Microsoft.VisualStudioTools.Project
         }
 
 
-        public override object GetIconHandle(bool open)
+#if DEV14_OR_LATER
+        protected override bool SupportsIconMonikers
         {
-            return this.ProjectMgr.GetIconHandleByName(open ? 
-                ProjectNode.ImageName.OpenReferenceFolder : 
-                ProjectNode.ImageName.ReferenceFolder
-            );
+            get { return true; }
         }
 
+        protected override ImageMoniker GetIconMoniker(bool open)
+        {
+            return KnownMonikers.Reference;
+        }
+#else
+        public override int ImageIndex {
+            get {
+                return ProjectMgr.GetIconIndex(ProjectNode.ImageName.ReferenceFolder);
+            }
+        }
+#endif
 
         /// <summary>
         /// References node cannot be dragged.
@@ -240,7 +253,7 @@ namespace Microsoft.VisualStudioTools.Project
         /// </summary>
         public void LoadReferencesFromBuildProject(MSBuild.Project buildProject)
         {
-            UIThread.Instance.MustBeCalledFromUIThread();
+            ProjectMgr.Site.GetUIThread().MustBeCalledFromUIThread();
 
             foreach (string referenceType in SupportedReferenceTypes)
             {
@@ -322,7 +335,8 @@ namespace Microsoft.VisualStudioTools.Project
                     return null;
                 }
                 var added = onChildAdded;
-                if (added != null) {
+                if (added != null)
+                {
                     onChildAdded(this, new HierarchyNodeEventArgs(node));
                 }
             }
@@ -349,7 +363,7 @@ namespace Microsoft.VisualStudioTools.Project
             else if (referenceType == ProjectFileConstants.ProjectReference)
             {
                 node = this.CreateProjectReferenceNode(element);
-            } 
+            }
 
             return node;
         }
@@ -528,18 +542,22 @@ namespace Microsoft.VisualStudioTools.Project
 
         #endregion
 
-        internal event EventHandler<HierarchyNodeEventArgs> OnChildAdded {
+        internal event EventHandler<HierarchyNodeEventArgs> OnChildAdded
+        {
             add { onChildAdded += value; }
             remove { onChildAdded -= value; }
         }
-        internal event EventHandler<HierarchyNodeEventArgs> OnChildRemoved {
+        internal event EventHandler<HierarchyNodeEventArgs> OnChildRemoved
+        {
             add { onChildRemoved += value; }
             remove { onChildRemoved -= value; }
         }
 
-        internal void FireChildRemoved(ReferenceNode referenceNode) {
+        internal void FireChildRemoved(ReferenceNode referenceNode)
+        {
             var removed = onChildRemoved;
-            if (removed != null) {
+            if (removed != null)
+            {
                 removed(this, new HierarchyNodeEventArgs(referenceNode));
             }
         }

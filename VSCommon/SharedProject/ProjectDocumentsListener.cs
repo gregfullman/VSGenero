@@ -11,6 +11,7 @@
  * You must not remove this notice, or any other, from this software.
  *
  * ***************************************************************************/
+
 using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -28,7 +29,7 @@ namespace Microsoft.VisualStudioTools.Project
         #region fields
         private uint eventsCookie;
         private IVsTrackProjectDocuments2 projectDocTracker;
-        private ServiceProvider serviceProvider;
+        private IServiceProvider serviceProvider;
         private bool isDisposed;
         /// <summary>
         /// Defines an object that will be a mutex for this object for synchronizing thread calls.
@@ -37,7 +38,7 @@ namespace Microsoft.VisualStudioTools.Project
         #endregion
 
         #region ctors
-        protected ProjectDocumentsListener(ServiceProvider serviceProviderParameter)
+        protected ProjectDocumentsListener(System.IServiceProvider serviceProviderParameter)
         {
             Utilities.ArgumentNotNull("serviceProviderParameter", serviceProviderParameter);
 
@@ -65,7 +66,7 @@ namespace Microsoft.VisualStudioTools.Project
             }
         }
 
-        protected ServiceProvider ServiceProvider
+        protected IServiceProvider ServiceProvider
         {
             get
             {
@@ -167,7 +168,6 @@ namespace Microsoft.VisualStudioTools.Project
         /// The method that does the cleanup.
         /// </summary>
         /// <param name="disposing"></param>
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", MessageId = "Microsoft.VisualStudio.Shell.Interop.IVsTrackProjectDocuments2.UnadviseTrackProjectDocumentsEvents(System.UInt32)")]
         protected virtual void Dispose(bool disposing)
         {
             // Everybody can go here.

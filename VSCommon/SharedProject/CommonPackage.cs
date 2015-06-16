@@ -47,11 +47,6 @@ namespace Microsoft.VisualStudioTools {
 
         #endregion
 
-        static CommonPackage() {
-            // ensure the UI thread is initialized
-            UIThread.Instance.Run(() => { });
-        }
-
         internal CommonPackage() {
             IServiceContainer container = this as IServiceContainer;
             ServiceCreatorCallback callback = new ServiceCreatorCallback(CreateService);
@@ -176,6 +171,7 @@ namespace Microsoft.VisualStudioTools {
         }
 
         protected override void Initialize() {
+            UIThread.EnsureService(this);
             var componentManager = _compMgr = (IOleComponentManager)GetService(typeof(SOleComponentManager));
             OLECRINFO[] crinfo = new OLECRINFO[1];
             crinfo[0].cbSize = (uint)Marshal.SizeOf(typeof(OLECRINFO));

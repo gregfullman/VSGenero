@@ -27,7 +27,7 @@ namespace VSGenero.Project
     [Guid(VSGeneroConstants.ProjectFactoryGuid)]
     class GeneroProjectFactory : ProjectFactory
     {
-        public GeneroProjectFactory(GeneroProjectPackage package)
+        public GeneroProjectFactory(IServiceProvider package)
             : base(package) 
         {
         }

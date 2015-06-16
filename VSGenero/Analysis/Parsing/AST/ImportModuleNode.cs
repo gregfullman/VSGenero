@@ -39,10 +39,10 @@ namespace VSGenero.Analysis.Parsing.AST
                 {
                     defNode.ImportType = ImportModuleType.FGL;
                     parser.NextToken();
-                    var tok = parser.NextToken();
-                    if(Tokenizer.GetTokenInfo(tok).Category == TokenCategory.Identifier)
+                    if(parser.PeekToken(TokenCategory.Identifier))
                     {
-                        defNode.ImportName = tok.Value.ToString();
+                        parser.NextToken();
+                        defNode.ImportName = parser.Token.Token.Value.ToString();
                         defNode.EndIndex = parser.Token.Span.End;
                         defNode.IsComplete = true;
                     }

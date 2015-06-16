@@ -109,6 +109,22 @@ namespace VSGenero.Project
             }
         }
 
+        public override string IssueTrackerUrl
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        protected override Stream ProjectIconsImageStripStream
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
+
         public override bool IsCodeFile(string fileName)
         {
             return IsGeneroFile(fileName);

@@ -27,6 +27,10 @@ using Microsoft.VisualStudio.Shell.Interop;
 using OleConstants = Microsoft.VisualStudio.OLE.Interop.Constants;
 using VsCommands = Microsoft.VisualStudio.VSConstants.VSStd97CmdID;
 using VsCommands2K = Microsoft.VisualStudio.VSConstants.VSStd2KCmdID;
+using IOleServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
+#if DEV14_OR_LATER
+using Microsoft.VisualStudio.Imaging.Interop;
+#endif
 
 namespace Microsoft.VisualStudioTools.Project
 {
@@ -34,9 +38,9 @@ namespace Microsoft.VisualStudioTools.Project
     /// An object that deals with user interaction via a GUI in the form a hierarchy: a parent node with zero or more child nodes, each of which
     /// can itself be a hierarchy.  
     /// </summary>
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
     public abstract class HierarchyNode :
-        IDisposable
+        IDisposable,
+        IOleServiceProvider
     {
         public static readonly Guid SolutionExplorer = new Guid(EnvDTE.Constants.vsWindowKindSolutionExplorer);
         public const int NoImage = -1;
@@ -60,21 +64,12 @@ namespace Microsoft.VisualStudioTools.Project
         private HierarchyNodeFlags flags;
 
         private NodeProperties nodeProperties;
-        private OleServiceProvider oleServiceProvider = new OleServiceProvider();
-
-        /// <summary>
-        /// Has the object been disposed.
-        /// </summary>
-        /// <devremark>We will not specify a property for isDisposed, rather it is expected that the a private flag is defined
-        /// on all subclasses. We do not want get in a situation where the base class's dipose is not called because a child sets the flag through the property.</devremark>
-        private bool isDisposed;
 
         #region abstract properties
         /// <summary>
         /// The URL of the node.
         /// </summary>
         /// <value></value>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1056:UriPropertiesShouldNotBeStrings")]
         public abstract string Url
         {
             get;
@@ -101,15 +96,17 @@ namespace Microsoft.VisualStudioTools.Project
 
         #region virtual properties
 
-        public virtual bool CanOpenCommandPrompt {
-            get {
+        public virtual bool CanOpenCommandPrompt
+        {
+            get
+            {
                 return false;
             }
         }
 
-        public virtual bool IsNonMemberItem 
+        public virtual bool IsNonMemberItem
         {
-            get 
+            get
             {
                 return false;
             }
@@ -120,8 +117,10 @@ namespace Microsoft.VisualStudioTools.Project
         /// 
         /// By default all items in the project are searchable.
         /// </summary>
-        public virtual bool IsSearchable {
-            get {
+        public virtual bool IsSearchable
+        {
+            get
+            {
                 return !IsNonMemberItem;
             }
         }
@@ -136,8 +135,10 @@ namespace Microsoft.VisualStudioTools.Project
         /// For a project node, this returns the project home folder.  For folder
         /// nodes this returns the folder's path.  
         /// </summary>
-        internal virtual string FullPathToChildren {
-            get {
+        internal virtual string FullPathToChildren
+        {
+            get
+            {
                 Debug.Fail("This node cannot have children");
                 throw new InvalidOperationException();
             }
@@ -160,11 +161,19 @@ namespace Microsoft.VisualStudioTools.Project
             get { return VsMenus.IDM_VS_CTXT_NOCOMMANDS; }
         }
 
+        public virtual Guid MenuGroupId
+        {
+            get { return VsMenus.guidSHLMainMenu; }
+        }
+
 
         /// <summary>
         /// Return an imageindex
         /// </summary>
         /// <returns></returns>
+#if DEV14_OR_LATER
+        [Obsolete("Use GetIconMoniker() to specify the icon")]
+#endif
         public virtual int ImageIndex
         {
             get { return NoImage; }
@@ -184,16 +193,19 @@ namespace Microsoft.VisualStudioTools.Project
                 if (!this.ExcludeNodeFromScc)
                 {
                     IVsSccManager2 sccManager = this.ProjectMgr.Site.GetService(typeof(SVsSccManager)) as IVsSccManager2;
-
                     if (sccManager != null)
                     {
-                        VsStateIcon[] statIcons = new VsStateIcon[1] { VsStateIcon.STATEICON_NOSTATEICON };
-                        uint[] sccStatus = new uint[1] { 0 };
-                        // Get the glyph from the scc manager. Note that it will fail in command line
-                        // scenarios.
-                        if (ErrorHandler.Succeeded(sccManager.GetSccGlyph(1, new string[] { this.GetMkDocument() }, statIcons, sccStatus)))
+                        string mkDocument = this.GetMkDocument();
+                        if (!string.IsNullOrEmpty(mkDocument))
                         {
-                            return statIcons[0];
+                            VsStateIcon[] statIcons = new VsStateIcon[1] { VsStateIcon.STATEICON_NOSTATEICON };
+                            uint[] sccStatus = new uint[1] { 0 };
+                            // Get the glyph from the scc manager. Note that it will fail in command line
+                            // scenarios.
+                            if (ErrorHandler.Succeeded(sccManager.GetSccGlyph(1, new string[] { mkDocument }, statIcons, sccStatus)))
+                            {
+                                return statIcons[0];
+                            }
                         }
                     }
                 }
@@ -254,23 +266,15 @@ namespace Microsoft.VisualStudioTools.Project
         /// <summary>
         /// Defines the properties attached to this node.
         /// </summary>
-        public NodeProperties NodeProperties 
+        public NodeProperties NodeProperties
         {
-            get 
+            get
             {
-                if (null == nodeProperties) 
+                if (null == nodeProperties)
                 {
                     nodeProperties = CreatePropertiesObject();
                 }
                 return this.nodeProperties;
-            }
-        }
-
-        public OleServiceProvider OleServiceProvider
-        {
-            get
-            {
-                return this.oleServiceProvider;
             }
         }
 
@@ -327,33 +331,79 @@ namespace Microsoft.VisualStudioTools.Project
             }
         }
 
+        public IEnumerable<HierarchyNode> AllDescendants
+        {
+            get
+            {
+                var queue = new Queue<HierarchyNode>();
+                queue.Enqueue(this);
+                while (queue.Count > 0)
+                {
+                    var node = queue.Dequeue();
+                    for (var child = node.firstChild; child != null; child = child.nextSibling)
+                    {
+                        yield return child;
+                        if (child.firstChild != null)
+                        {
+                            queue.Enqueue(child);
+                        }
+                    }
+                }
+            }
+        }
+
+        public IEnumerable<HierarchyNode> AllVisibleDescendants
+        {
+            get
+            {
+                var queue = new Queue<HierarchyNode>();
+                queue.Enqueue(this);
+                while (queue.Count > 0)
+                {
+                    var node = queue.Dequeue();
+                    for (var child = node.firstChild; child != null; child = child.nextSibling)
+                    {
+                        if (child.IsNonMemberItem)
+                        {
+                            continue;
+                        }
+                        yield return child;
+                        if (child.firstChild != null)
+                        {
+                            queue.Enqueue(child);
+                        }
+                    }
+                }
+            }
+        }
+
         /// <summary>
         /// Gets or sets whether the node is currently visible in the hierarchy.
         /// 
         /// Enables subsetting or supersetting the hierarchy view.
         /// </summary>
-        public bool IsVisible 
+        public bool IsVisible
         {
-            get 
+            get
             {
                 return flags.HasFlag(HierarchyNodeFlags.IsVisible);
             }
-            set 
+            set
             {
-                if (value) 
+                if (value)
                 {
                     flags |= HierarchyNodeFlags.IsVisible;
-                } 
-                else 
+                }
+                else
                 {
                     flags &= ~HierarchyNodeFlags.IsVisible;
                 }
             }
         }
 
-        public HierarchyNode PreviousVisibleSibling 
+        public HierarchyNode PreviousVisibleSibling
         {
-            get 
+            get
             {
                 HierarchyNode prev = null;
 
@@ -361,12 +411,12 @@ namespace Microsoft.VisualStudioTools.Project
                 {
                     for (HierarchyNode child = parentNode.firstChild; child != null; child = child.nextSibling)
                     {
-                        if (child == this) 
+                        if (child == this)
                         {
                             break;
                         }
 
-                        if (child.IsVisible) 
+                        if (child.IsVisible)
                         {
                             prev = child;
                         }
@@ -377,12 +427,12 @@ namespace Microsoft.VisualStudioTools.Project
             }
         }
 
-        public HierarchyNode NextVisibleSibling 
+        public HierarchyNode NextVisibleSibling
         {
-            get 
+            get
             {
                 var next = nextSibling;
-                while (next != null && !next.IsVisible) 
+                while (next != null && !next.IsVisible)
                 {
                     next = next.NextSibling;
                 }
@@ -390,12 +440,12 @@ namespace Microsoft.VisualStudioTools.Project
             }
         }
 
-        public HierarchyNode FirstVisibleChild 
+        public HierarchyNode FirstVisibleChild
         {
-            get 
+            get
             {
                 var next = FirstChild;
-                while (next != null && !next.IsVisible) 
+                while (next != null && !next.IsVisible)
                 {
                     next = next.NextSibling;
                 }
@@ -418,7 +468,6 @@ namespace Microsoft.VisualStudioTools.Project
 
 
         [System.ComponentModel.BrowsableAttribute(false)]
-        [SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "ID")]
         public uint ID
         {
             get
@@ -430,7 +479,6 @@ namespace Microsoft.VisualStudioTools.Project
                 this.hierarchyId = value;
             }
         }
-
 
         [System.ComponentModel.BrowsableAttribute(false)]
         public ProjectElement ItemNode
@@ -445,41 +493,20 @@ namespace Microsoft.VisualStudioTools.Project
             }
         }
 
-        protected string GetAbsoluteUrlFromMsbuild()
-        {
-            string path = this.ItemNode.GetMetadata(ProjectFileConstants.Include);
-            if (String.IsNullOrEmpty(path))
-            {
-                return String.Empty;
-            }
-
-            // we use Path.GetFileName and reverse it because it's much faster 
-            // than Path.GetDirectoryName
-            string filename = Path.GetFileName(path);
-            if (path.Substring(0, path.Length - filename.Length).IndexOf('.') != -1) {
-                // possibly non-canonical form...
-                return CommonUtils.GetAbsoluteFilePath(this.ProjectMgr.ProjectHome, path);
-            }
-
-            // fast path, we know ProjectHome is canonical, and with no dots
-            // in the directory name, so is path.
-            return Path.Combine(ProjectMgr.ProjectHome, path);
-        }
-
         [System.ComponentModel.BrowsableAttribute(false)]
         public bool IsExpanded
         {
-            get 
+            get
             {
                 return flags.HasFlag(HierarchyNodeFlags.IsExpanded);
             }
-            set 
+            set
             {
-                if (value) 
+                if (value)
                 {
                     flags |= HierarchyNodeFlags.IsExpanded;
-                } 
-                else 
+                }
+                else
                 {
                     flags &= ~HierarchyNodeFlags.IsExpanded;
                 }
@@ -490,7 +517,8 @@ namespace Microsoft.VisualStudioTools.Project
         {
             get
             {
-                if (this.parentNode == null) return null;
+                if (this.parentNode == null)
+                    return null;
                 HierarchyNode prev = null;
                 for (HierarchyNode child = this.parentNode.firstChild; child != null; child = child.nextSibling)
                 {
@@ -505,7 +533,6 @@ namespace Microsoft.VisualStudioTools.Project
         /// <summary>
         /// Specifies if a Node is under source control.
         /// </summary>
-        [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Scc")]
         public bool ExcludeNodeFromScc
         {
             get
@@ -514,11 +541,11 @@ namespace Microsoft.VisualStudioTools.Project
             }
             set
             {
-                if (value) 
+                if (value)
                 {
                     flags |= HierarchyNodeFlags.ExcludeFromScc;
-                } 
-                else 
+                }
+                else
                 {
                     flags &= ~HierarchyNodeFlags.ExcludeFromScc;
                 }
@@ -537,13 +564,13 @@ namespace Microsoft.VisualStudioTools.Project
             }
             set
             {
-                if (value) 
+                if (value)
                 {
                     flags |= HierarchyNodeFlags.HasParentNodeNameRelation;
-                } 
-                else 
+                }
+                else
                 {
-                    flags &= HierarchyNodeFlags.HasParentNodeNameRelation;
+                    flags &= ~HierarchyNodeFlags.HasParentNodeNameRelation;
                 }
             }
         }
@@ -561,11 +588,11 @@ namespace Microsoft.VisualStudioTools.Project
         protected HierarchyNode(ProjectNode root, ProjectElement element)
         {
             Utilities.ArgumentNotNull("root", root);
+            root.Site.GetUIThread().MustBeCalledFromUIThread();
 
             this.projectMgr = root;
             this.itemNode = element;
             this.hierarchyId = this.projectMgr.ItemIdMap.Add(this);
-            this.OleServiceProvider.AddService(typeof(IVsHierarchy), root, false);
             IsVisible = true;
         }
 
@@ -576,11 +603,11 @@ namespace Microsoft.VisualStudioTools.Project
         protected HierarchyNode(ProjectNode root)
         {
             Utilities.ArgumentNotNull("root", root);
+            root.Site.GetUIThread().MustBeCalledFromUIThread();
 
             this.projectMgr = root;
             this.itemNode = new VirtualProjectElement(this.projectMgr);
             this.hierarchyId = this.projectMgr.ItemIdMap.Add(this);
-            this.OleServiceProvider.AddService(typeof(IVsHierarchy), root, false);
             IsVisible = true;
         }
         #endregion
@@ -596,15 +623,30 @@ namespace Microsoft.VisualStudioTools.Project
             return null;
         }
 
+#if DEV14_OR_LATER
+        protected virtual bool SupportsIconMonikers
+        {
+            get { return false; }
+        }
+
         /// <summary>
-        /// Return an iconhandle
+        /// Returns the icon to use.
+        /// </summary>
+        protected virtual ImageMoniker GetIconMoniker(bool open)
+        {
+            return default(ImageMoniker);
+        }
+#else
+        /// <summary>
+        /// Return an icon handle
         /// </summary>
         /// <param name="open"></param>
         /// <returns></returns>
-        public virtual object GetIconHandle(bool open)
-        {
-            return null;
+        public virtual object GetIconHandle(bool open) {
+            var index = ImageIndex;
+            return index == NoImage ? null : (object)ProjectMgr.ImageHandler.GetIconHandle(index);
         }
+#endif
 
         /// <summary>
         /// Removes a node from the hierarchy.
@@ -613,7 +655,7 @@ namespace Microsoft.VisualStudioTools.Project
         public virtual void RemoveChild(HierarchyNode node)
         {
             Utilities.ArgumentNotNull("node", node);
-
+            projectMgr.Site.GetUIThread().MustBeCalledFromUIThread();
             this.projectMgr.ItemIdMap.Remove(node);
 
             HierarchyNode last = null;
@@ -654,7 +696,6 @@ namespace Microsoft.VisualStudioTools.Project
         /// </summary>
         /// <param name="propId">the property id of the property requested</param>
         /// <returns>the property object requested</returns>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1800:DoNotCastUnnecessarily"), System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
         public virtual object GetProperty(int propId)
         {
             object result = null;
@@ -676,25 +717,17 @@ namespace Microsoft.VisualStudioTools.Project
                     result = false;
                     break;
 
+#if !DEV14_OR_LATER
                 case __VSHPROPID.VSHPROPID_IconImgList:
                     result = this.ProjectMgr.ImageHandler.ImageList.Handle;
                     break;
 
                 case __VSHPROPID.VSHPROPID_OpenFolderIconIndex:
                 case __VSHPROPID.VSHPROPID_IconIndex:
-                    int index = this.ImageIndex;
-                    if (index != NoImage)
-                    {
+                    int index = ImageIndex;
+                    if (index != NoImage) {
                         result = index;
                     }
-                    break;
-
-                case __VSHPROPID.VSHPROPID_StateIconIndex:
-                    result = (int)this.StateIconIndex;
-                    break;
-
-                case __VSHPROPID.VSHPROPID_OverlayIconIndex:
-                    result = (int)this.OverlayIconIndex;
                     break;
 
                 case __VSHPROPID.VSHPROPID_IconHandle:
@@ -703,6 +736,15 @@ namespace Microsoft.VisualStudioTools.Project
 
                 case __VSHPROPID.VSHPROPID_OpenFolderIconHandle:
                     result = GetIconHandle(true);
+                    break;
+#endif
+
+                case __VSHPROPID.VSHPROPID_StateIconIndex:
+                    result = (int)this.StateIconIndex;
+                    break;
+
+                case __VSHPROPID.VSHPROPID_OverlayIconIndex:
+                    result = (int)this.OverlayIconIndex;
                     break;
 
                 case __VSHPROPID.VSHPROPID_NextVisibleSibling:
@@ -756,7 +798,8 @@ namespace Microsoft.VisualStudioTools.Project
 
                 case __VSHPROPID.VSHPROPID_BrowseObject:
                     result = this.NodeProperties;
-                    if (result != null) result = new DispatchWrapper(result);
+                    if (result != null)
+                        result = new DispatchWrapper(result);
                     break;
 
                 case __VSHPROPID.VSHPROPID_EditLabel:
@@ -773,11 +816,14 @@ namespace Microsoft.VisualStudioTools.Project
 
                 case __VSHPROPID.VSHPROPID_ExtObject:
 #if DEBUG
-                    try {
+                    try
+                    {
 #endif
                         result = GetAutomationObject();
 #if DEBUG
-                    } catch (Exception e) {
+                    }
+                    catch (Exception e)
+                    {
                         Debug.WriteLine(String.Format("Failed to get automation object for node {1}: {0}", e, this));
                         throw;
                     }
@@ -823,17 +869,45 @@ namespace Microsoft.VisualStudioTools.Project
                         }
                         break;
                     }
-            
+
             }
 
 #if DEV11_OR_LATER
             __VSHPROPID5 id5 = (__VSHPROPID5)propId;
-            switch(id5) {
+            switch (id5)
+            {
                 case __VSHPROPID5.VSHPROPID_ProvisionalViewingStatus:
                     result = ProvisionalViewingStatus;
                     break;
             }
 #endif
+
+#if DEV14_OR_LATER
+            __VSHPROPID8 id8 = (__VSHPROPID8)propId;
+            switch (id8)
+            {
+                case __VSHPROPID8.VSHPROPID_SupportsIconMonikers:
+                    result = SupportsIconMonikers;
+                    break;
+
+                case __VSHPROPID8.VSHPROPID_IconMonikerGuid:
+                    result = GetIconMoniker(false).Guid;
+                    break;
+
+                case __VSHPROPID8.VSHPROPID_IconMonikerId:
+                    result = GetIconMoniker(false).Id;
+                    break;
+
+                case __VSHPROPID8.VSHPROPID_OpenFolderIconMonikerGuid:
+                    result = GetIconMoniker(true).Guid;
+                    break;
+
+                case __VSHPROPID8.VSHPROPID_OpenFolderIconMonikerId:
+                    result = GetIconMoniker(true).Id;
+                    break;
+            }
+#endif
+
 #if DEBUG
             if (propId != LastTracedProperty)
             {
@@ -845,8 +919,10 @@ namespace Microsoft.VisualStudioTools.Project
         }
 
 #if DEV11_OR_LATER
-        public virtual __VSPROVISIONALVIEWINGSTATUS ProvisionalViewingStatus {
-            get {
+        public virtual __VSPROVISIONALVIEWINGSTATUS ProvisionalViewingStatus
+        {
+            get
+            {
                 return __VSPROVISIONALVIEWINGSTATUS.PVS_Disabled;
             }
         }
@@ -858,7 +934,6 @@ namespace Microsoft.VisualStudioTools.Project
         /// <param name="propid">the property id of the property to be set</param>
         /// <param name="value">value of the property</param>
         /// <returns>S_OK if succeeded</returns>
-        [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "propid")]
         public virtual int SetProperty(int propid, object value)
         {
             __VSHPROPID id = (__VSHPROPID)propid;
@@ -884,7 +959,6 @@ namespace Microsoft.VisualStudioTools.Project
         /// <param name="propid">property id for the guid property requested</param>
         /// <param name="guid">the requested guid</param>
         /// <returns>S_OK if succeded</returns>
-        [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "propid")]
         public virtual int GetGuidProperty(int propid, out Guid guid)
         {
             guid = Guid.Empty;
@@ -892,6 +966,19 @@ namespace Microsoft.VisualStudioTools.Project
             {
                 guid = this.ItemTypeGuid;
             }
+#if DEV14_OR_LATER
+            __VSHPROPID8 id8 = (__VSHPROPID8)propid;
+            switch (id8)
+            {
+                case __VSHPROPID8.VSHPROPID_IconMonikerGuid:
+                    guid = GetIconMoniker(false).Guid;
+                    break;
+
+                case __VSHPROPID8.VSHPROPID_OpenFolderIconMonikerGuid:
+                    guid = GetIconMoniker(true).Guid;
+                    break;
+            }
+#endif
 
             if (guid.Equals(Guid.Empty))
             {
@@ -915,7 +1002,6 @@ namespace Microsoft.VisualStudioTools.Project
         /// <param name="propid">property id of the guid property to be set</param>
         /// <param name="guid">the guid to be set</param>
         /// <returns>E_NOTIMPL</returns>
-        [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "propid")]
         public virtual int SetGuidProperty(int propid, ref Guid guid)
         {
             return VSConstants.E_NOTIMPL;
@@ -944,7 +1030,6 @@ namespace Microsoft.VisualStudioTools.Project
         /// This method is called by the interface method GetMkDocument to specify the item moniker.
         /// </summary>
         /// <returns>The moniker for this item</returns>
-        [SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "Mk")]
         public virtual string GetMkDocument()
         {
             return String.Empty;
@@ -960,7 +1045,7 @@ namespace Microsoft.VisualStudioTools.Project
 
             // Ask Document tracker listeners if we can remove the item.
             string[] filesToBeDeleted = new string[1] { documentToRemove };
-            if (!String.IsNullOrWhiteSpace(documentToRemove)) 
+            if (!String.IsNullOrWhiteSpace(documentToRemove))
             {
                 VSQUERYREMOVEFILEFLAGS[] queryRemoveFlags = this.GetQueryRemoveFileFlags(filesToBeDeleted);
                 if (!this.ProjectMgr.Tracker.CanRemoveItems(filesToBeDeleted, queryRemoveFlags))
@@ -1004,8 +1089,10 @@ namespace Microsoft.VisualStudioTools.Project
         /// Determines if the node should open with the designer by default, or if we should
         /// just open with the default editor.
         /// </summary>
-        public virtual bool DefaultOpensWithDesignView {
-            get {
+        public virtual bool DefaultOpensWithDesignView
+        {
+            get
+            {
                 // ASPX\ASCX files support design view but should be opened by default with
                 // LOGVIEWID_Primary - this is because they support design and html view which
                 // is a tools option setting for them. If we force designview this option
@@ -1019,8 +1106,10 @@ namespace Microsoft.VisualStudioTools.Project
         /// <summary>
         /// Returns true if the node supports a design view.
         /// </summary>
-        public virtual bool SupportsDesignView {
-            get {
+        public virtual bool SupportsDesignView
+        {
+            get
+            {
                 return false;
             }
         }
@@ -1028,14 +1117,18 @@ namespace Microsoft.VisualStudioTools.Project
         /// <summary>
         /// Returns true if the node represents a code behind file.
         /// </summary>
-        public virtual bool IsCodeBehindFile {
-            get {
+        public virtual bool IsCodeBehindFile
+        {
+            get
+            {
                 return false;
             }
         }
 
-        protected virtual void RaiseOnItemRemoved(string documentToRemove, string[] filesToBeDeleted) {
-            if (!String.IsNullOrWhiteSpace(documentToRemove)) {
+        protected virtual void RaiseOnItemRemoved(string documentToRemove, string[] filesToBeDeleted)
+        {
+            if (!String.IsNullOrWhiteSpace(documentToRemove))
+            {
                 // Notify document tracker listeners that we have removed the item.
                 VSREMOVEFILEFLAGS[] removeFlags = this.GetRemoveFileFlags(filesToBeDeleted);
                 Debug.Assert(removeFlags != null, "At least an empty array should be returned for the GetRemoveFileFlags");
@@ -1146,7 +1239,6 @@ namespace Microsoft.VisualStudioTools.Project
         /// <summary>
         /// Redraws the state icon if the node is not excluded from source control.
         /// </summary>
-        [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Scc")]
         protected internal virtual void UpdateSccStateIcons()
         {
             if (!this.ExcludeNodeFromScc)
@@ -1180,7 +1272,6 @@ namespace Microsoft.VisualStudioTools.Project
         /// Add a new Folder to the project hierarchy.
         /// </summary>
         /// <returns>S_OK if succeeded, otherwise an error</returns>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1800:DoNotCastUnnecessarily")]
         protected virtual int AddNewFolder()
         {
             // Check out the project file.
@@ -1268,15 +1359,33 @@ namespace Microsoft.VisualStudioTools.Project
         /// a progress bar if the operation can take a long time.
         /// </summary>
         /// <returns></returns>
-        internal virtual int ExcludeFromProjectWithProgress() {
-            return ExcludeFromProject();
+        internal virtual int ExcludeFromProjectWithProgress()
+        {
+
+            int hr = ExcludeFromProject();
+            if (ErrorHandler.Succeeded(hr))
+            {
+                // https://pytools.codeplex.com/workitem/1996
+                // Mark the previous sibling or direct parent as the active item
+                IVsUIHierarchyWindow2 windows = UIHierarchyUtilities.GetUIHierarchyWindow(
+                    ProjectMgr.Site,
+                    new Guid(ToolWindowGuids80.SolutionExplorer)) as IVsUIHierarchyWindow2;
+                windows.ExpandItem(
+                    ProjectMgr,
+                    PreviousVisibleSibling != null ?
+                        PreviousVisibleSibling.ID :
+                        Parent.ID,
+                    EXPANDFLAGS.EXPF_SelectItem
+                );
+            }
+            return hr;
         }
-             
+
         /// <summary>
         /// Handles the include in project command.
         /// </summary>
         /// <returns></returns>
-        internal virtual int IncludeInProject(bool includeChildren) 
+        internal virtual int IncludeInProject(bool includeChildren)
         {
             return VSConstants.E_FAIL;
         }
@@ -1285,7 +1394,8 @@ namespace Microsoft.VisualStudioTools.Project
         /// Handles the include in project command showing a progress bar
         /// if the operation can potentially take a long time.
         /// </summary>
-        internal virtual int IncludeInProjectWithProgress(bool includeChildren) {
+        internal virtual int IncludeInProjectWithProgress(bool includeChildren)
+        {
             return IncludeInProject(includeChildren);
         }
 
@@ -1304,7 +1414,6 @@ namespace Microsoft.VisualStudioTools.Project
         /// </summary>
         /// <returns>A stringbuilder.</returns>
         /// <devremark>This method has to be public since seleceted nodes will call it.</devremark>
-        [SuppressMessage("Microsoft.Naming", "CA1702:CompoundWordsShouldBeCasedCorrectly", MessageId = "ClipBoard")]
         protected internal virtual string PrepareSelectedNodesForClipBoard()
         {
             Debug.Assert(this.ProjectMgr != null, " No project mananager available for this node " + ToString());
@@ -1372,7 +1481,6 @@ namespace Microsoft.VisualStudioTools.Project
         /// </summary>
         /// <param name="selectedNodes">list of selected nodes.</param>
         /// <param name="pointerToVariant">contains the location (x,y) at which to show the menu.</param>
-        [SuppressMessage("Microsoft.Naming", "CA1720:IdentifiersShouldNotContainTypeNames", MessageId = "pointer")]
         protected virtual int DisplayContextMenu(IList<HierarchyNode> selectedNodes, IntPtr pointerToVariant)
         {
             if (selectedNodes == null || selectedNodes.Count == 0 || pointerToVariant == IntPtr.Zero)
@@ -1380,42 +1488,102 @@ namespace Microsoft.VisualStudioTools.Project
                 return NativeMethods.OLECMDERR_E_NOTSUPPORTED;
             }
 
-            int idmxStoredMenu = 0;
+            int projectsSelected = 0;
+            int menuId = 0;
+            Guid menuGroup = Guid.Empty;
+
+            bool groupIsConsistent = false;
+            bool cmdidIsConsistent = false;
 
             foreach (HierarchyNode node in selectedNodes)
             {
+                var cmdId = node.MenuCommandId;
+                var grpId = node.MenuGroupId;
+                if (cmdId == VsMenus.IDM_VS_CTXT_PROJNODE)
+                {
+                    projectsSelected += 1;
+                }
+
                 // We check here whether we have a multiple selection of
                 // nodes of differing type.
-                if (idmxStoredMenu == 0)
+                if (menuId == 0)
                 {
                     // First time through or single node case
-                    idmxStoredMenu = node.MenuCommandId;
+                    menuId = cmdId;
+                    cmdidIsConsistent = true;
+                    menuGroup = grpId;
+                    groupIsConsistent = true;
                 }
-                else if (idmxStoredMenu != node.MenuCommandId)
+                else
                 {
-                    // We have different node types. Check if any of the nodes is
-                    // the project node and set the menu accordingly.
-                    if (node.MenuCommandId == VsMenus.IDM_VS_CTXT_PROJNODE)
+                    if (menuGroup != grpId)
                     {
-                        idmxStoredMenu = VsMenus.IDM_VS_CTXT_XPROJ_PROJITEM;
+                        // We have very different node types. If a project is in
+                        // the selection, we will eventually display its context
+                        // menu. More likely, we will display nothing.
+                        groupIsConsistent = false;
                     }
-                    else
+                    else if (menuId != node.MenuCommandId)
                     {
-                        idmxStoredMenu = VsMenus.IDM_VS_CTXT_XPROJ_MULTIITEM;
+                        // We have different node types.
+                        cmdidIsConsistent = false;
                     }
                 }
             }
 
-            object variant = Marshal.GetObjectForNativeVariant(pointerToVariant);
-            UInt32 pointsAsUint = (UInt32)variant;
-            short x = (short)(pointsAsUint & 0x0000ffff);
-            short y = (short)((pointsAsUint & 0xffff0000) / 0x10000);
+            if (groupIsConsistent && !cmdidIsConsistent)
+            {
+                // The selected items agree on a menu group, but not the ID.
+                if (projectsSelected == 0)
+                {
+                    // We will use IDM_VS_CTXT_XPROJ_MULTIITEM (0x0419) with
+                    // whatever group they agreed on. This allows people to create
+                    // multi-selection context menus in custom groups.
+                    menuId = VsMenus.IDM_VS_CTXT_XPROJ_MULTIITEM;
+                    cmdidIsConsistent = true;
+                }
+                else
+                {
+                    // One or more projects were selected, so we will use
+                    // IDM_VS_CTXT_XPROJ_PROJITEM (0x0417) with whatever group
+                    // they agreed on.
+                    menuId = VsMenus.IDM_VS_CTXT_XPROJ_PROJITEM;
+                    cmdidIsConsistent = true;
+                }
+            }
 
+            if (!groupIsConsistent)
+            {
+                // The selected items could not agree on a group. If projects
+                // are selected, display the project context menu. Otherwise,
+                // show nothing.
+                if (projectsSelected > 0)
+                {
+                    menuId = projectsSelected == 1 ?
+                        VsMenus.IDM_VS_CTXT_PROJNODE :
+                        VsMenus.IDM_VS_CTXT_XPROJ_PROJITEM;
+                    menuGroup = VsMenus.guidSHLMainMenu;
+                    groupIsConsistent = true;
+                    cmdidIsConsistent = true;
+                }
+            }
 
-            POINTS points = new POINTS();
-            points.x = x;
-            points.y = y;
-            return ShowContextMenu(idmxStoredMenu, VsMenus.guidSHLMainMenu, points);
+            if (groupIsConsistent && cmdidIsConsistent)
+            {
+                object variant = Marshal.GetObjectForNativeVariant(pointerToVariant);
+                UInt32 pointsAsUint = (UInt32)variant;
+                short x = (short)(pointsAsUint & 0x0000ffff);
+                short y = (short)((pointsAsUint & 0xffff0000) / 0x10000);
+
+                POINTS points = new POINTS();
+                points.x = x;
+                points.y = y;
+                return ShowContextMenu(menuId, menuGroup, points);
+            }
+            else
+            {
+                return VSConstants.S_OK;
+            }
         }
 
         /// <summary>
@@ -1449,9 +1617,6 @@ namespace Microsoft.VisualStudioTools.Project
         /// <param name="pvaIn">Pointer to a VARIANTARG structure containing input arguments. Can be NULL</param>
         /// <param name="pvaOut">VARIANTARG structure to receive command output. Can be NULL.</param>
         /// <returns>If the method succeeds, it returns S_OK. If it fails, it returns an error code.</returns>
-        [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Cmdexecopt")]
-        [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "n")]
-        [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "pva")]
         internal virtual int ExecCommandOnNode(Guid cmdGroup, uint cmd, uint nCmdexecopt, IntPtr pvaIn, IntPtr pvaOut)
         {
             if (InvalidProject())
@@ -1504,12 +1669,12 @@ namespace Microsoft.VisualStudioTools.Project
                         return this.ExcludeFromProjectWithProgress();
                     case VsCommands2K.INCLUDEINPROJECT:
                         return this.IncludeInProjectWithProgress(true);
-
                 }
-            } 
-            else if (cmdGroup == ProjectMgr.SharedCommandGuid) 
+            }
+            else if (cmdGroup == ProjectMgr.SharedCommandGuid)
             {
-                switch ((SharedCommands)cmd) {
+                switch ((SharedCommands)cmd)
+                {
                     case SharedCommands.OpenCommandPromptHere:
                         var psi = new ProcessStartInfo(
                             Path.Combine(
@@ -1520,6 +1685,9 @@ namespace Microsoft.VisualStudioTools.Project
                         psi.WorkingDirectory = FullPathToChildren;
                         Process.Start(psi);
                         return VSConstants.S_OK;
+                    case SharedCommands.CopyFullPath:
+                        System.Windows.Clipboard.SetText(Url);
+                        return VSConstants.S_OK;
                 }
             }
 
@@ -1529,7 +1697,7 @@ namespace Microsoft.VisualStudioTools.Project
         #endregion
 
         #region query command handling
-        
+
 
         /// <summary>
         /// Handles command status on a node. Should be overridden by descendant nodes. If a command cannot be handled then the base should be called.
@@ -1539,7 +1707,6 @@ namespace Microsoft.VisualStudioTools.Project
         /// <param name="pCmdText">Pointer to an OLECMDTEXT structure in which to return the name and/or status information of a single command. Can be NULL to indicate that the caller does not require this information.</param>
         /// <param name="result">An out parameter specifying the QueryStatusResult of the command.</param>
         /// <returns>If the method succeeds, it returns S_OK. If it fails, it returns an error code.</returns>
-        [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "p")]
         internal virtual int QueryStatusOnNode(Guid cmdGroup, uint cmd, IntPtr pCmdText, ref QueryStatusResult result)
         {
             if (cmdGroup == VsMenus.guidStandardCommandSet97)
@@ -1548,7 +1715,8 @@ namespace Microsoft.VisualStudioTools.Project
                 {
                     case VsCommands.AddNewItem:
                     case VsCommands.AddExistingItem:
-                        if (!IsNonMemberItem) {
+                        if (!IsNonMemberItem)
+                        {
                             result |= QueryStatusResult.SUPPORTED | QueryStatusResult.ENABLED;
                             return VSConstants.S_OK;
                         }
@@ -1558,29 +1726,41 @@ namespace Microsoft.VisualStudioTools.Project
             else if (cmdGroup == VsMenus.guidStandardCommandSet2K)
             {
                 // http://social.msdn.microsoft.com/Forums/en/vsx/thread/f348aaed-cdcc-4709-9118-c0fd8b9e154d
-                if ((VsCommands2K)cmd == VsCommands2K.SHOWALLFILES)
+                switch ((VsCommands2K)cmd)
                 {
-                    if (ProjectMgr.CanShowAllFiles) 
-                    {
-                        if (ProjectMgr.IsShowingAllFiles) 
+                    case VsCommands2K.SHOWALLFILES:
+                        if (ProjectMgr.CanShowAllFiles)
                         {
-                            result |= QueryStatusResult.SUPPORTED | QueryStatusResult.ENABLED | QueryStatusResult.LATCHED;
-                        } 
-                        else 
+                            if (ProjectMgr.IsShowingAllFiles)
+                            {
+                                result |= QueryStatusResult.SUPPORTED | QueryStatusResult.ENABLED | QueryStatusResult.LATCHED;
+                            }
+                            else
+                            {
+                                result |= QueryStatusResult.SUPPORTED | QueryStatusResult.ENABLED;
+                            }
+                        }
+                        else
+                        {
+                            result |= QueryStatusResult.NOTSUPPORTED | QueryStatusResult.INVISIBLE;
+                        }
+                        return VSConstants.S_OK;
+                }
+            }
+            else if (cmdGroup == ProjectMgr.SharedCommandGuid)
+            {
+                switch ((SharedCommands)cmd)
+                {
+                    case SharedCommands.OpenCommandPromptHere:
+                        if (CanOpenCommandPrompt)
                         {
                             result |= QueryStatusResult.SUPPORTED | QueryStatusResult.ENABLED;
+                            return VSConstants.S_OK;
                         }
-                    } 
-                    else 
-                    {
-                        result |= QueryStatusResult.NOTSUPPORTED | QueryStatusResult.INVISIBLE;
-                    }
-                    return VSConstants.S_OK;
-                }
-            } else if (cmdGroup == ProjectMgr.SharedCommandGuid) {
-                switch ((SharedCommands)cmd) {
-                    case SharedCommands.OpenCommandPromptHere:
-                        if (CanOpenCommandPrompt) {
+                        break;
+                    case SharedCommands.CopyFullPath:
+                        if (this is IDiskBasedNode || this is ProjectNode)
+                        {
                             result |= QueryStatusResult.SUPPORTED | QueryStatusResult.ENABLED;
                             return VSConstants.S_OK;
                         }
@@ -1631,22 +1811,6 @@ namespace Microsoft.VisualStudioTools.Project
         /// <param name="disposing">Is the Dispose called by some internal member, or it is called by from GC.</param>
         protected virtual void Dispose(bool disposing)
         {
-            if (this.isDisposed)
-            {
-                return;
-            }
-
-            if (disposing)
-            {
-                // This will dispose any subclassed project node that implements IDisposable.
-                if (this.OleServiceProvider != null)
-                {
-                    // Dispose the ole service provider object.
-                    this.OleServiceProvider.Dispose();
-                }
-            }
-
-            this.isDisposed = true;
         }
 
         /// <summary>
@@ -1720,7 +1884,6 @@ namespace Microsoft.VisualStudioTools.Project
         /// </summary>
         /// <param name="files">The list of files to be placed under source control.</param>
         /// <param name="flags">The flags that are associated to the files.</param>
-        [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Scc")]
         protected internal virtual void GetSccFiles(IList<string> files, IList<tagVsSccFilesFlags> flags)
         {
             if (this.ExcludeNodeFromScc || this.IsNonMemberItem)
@@ -1743,8 +1906,6 @@ namespace Microsoft.VisualStudioTools.Project
         /// <param name="sccFile">One of the file associated to the node.</param>
         /// <param name="files">The list of files to be placed under source control.</param>
         /// <param name="flags">The flags that are associated to the files.</param>
-        [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Scc")]
-        [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "scc")]
         protected internal virtual void GetSccSpecialFiles(string sccFile, IList<string> files, IList<tagVsSccFilesFlags> flags)
         {
             if (this.ExcludeNodeFromScc)
@@ -1776,7 +1937,6 @@ namespace Microsoft.VisualStudioTools.Project
         /// Called to determine whether a project item is reloadable. 
         /// </summary>
         /// <returns>True if the project item is reloadable.</returns>
-        [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Reloadable")]
         protected internal virtual bool IsItemReloadable()
         {
             return true;
@@ -1791,6 +1951,12 @@ namespace Microsoft.VisualStudioTools.Project
 
         }
 
+        protected internal virtual void ShowDeleteMessage(IList<HierarchyNode> nodes, __VSDELETEITEMOPERATION action, out bool cancel, out bool useStandardDialog)
+        {
+            useStandardDialog = true;
+            cancel = true;
+        }
+
         #endregion
 
         #region public methods
@@ -1798,7 +1964,7 @@ namespace Microsoft.VisualStudioTools.Project
         /// <summary>
         /// Clears the cached node properties so that it will be recreated on the next request.
         /// </summary>
-        public void ResetNodeProperties() 
+        public void ResetNodeProperties()
         {
             nodeProperties = null;
         }
@@ -1822,12 +1988,13 @@ namespace Microsoft.VisualStudioTools.Project
             ErrorHandler.ThrowOnFailure(windows.ExpandItem(ProjectMgr.GetOuterInterface<IVsUIHierarchy>(), ID, flags));
         }
 
-        public bool GetIsExpanded() {
-            if (ProjectMgr == null || ProjectMgr.Site == null)
+        public bool GetIsExpanded()
+        {
+            if (ProjectMgr == null || ProjectMgr.Site == null || ProjectMgr.ParentHierarchy == null)
             {
                 return false;
             }
-            ProjectMgr.AssertHasParentHierarchy();
+
             IVsUIHierarchyWindow2 windows = UIHierarchyUtilities.GetUIHierarchyWindow(
                 ProjectMgr.Site,
                 new Guid(ToolWindowGuids80.SolutionExplorer)) as IVsUIHierarchyWindow2;
@@ -1852,30 +2019,23 @@ namespace Microsoft.VisualStudioTools.Project
         /// AddChild - add a node, sorted in the right location.
         /// </summary>
         /// <param name="node">The node to add.</param>
-        public void AddChild(HierarchyNode node) 
+        public void AddChild(HierarchyNode node)
         {
             Utilities.ArgumentNotNull("node", node);
 
-            // make sure the node is in the map.
-            Object nodeWithSameID = this.projectMgr.ItemIdMap[node.hierarchyId];
-            if (!Object.ReferenceEquals(node, nodeWithSameID as HierarchyNode)) 
-            {
-                if (nodeWithSameID == null && node.ID <= this.ProjectMgr.ItemIdMap.Count) 
-                { // reuse our hierarchy id if possible.
-                    this.projectMgr.ItemIdMap.SetAt(node.hierarchyId, this);
-                } 
-                else 
-                {
-                    throw new InvalidOperationException();
-                }
-            }
+            Debug.Assert(ProjectMgr.ItemIdMap[node.hierarchyId] == null || ProjectMgr.ItemIdMap[node.hierarchyId] == node);
 
             HierarchyNode previous = null;
+            HierarchyNode previousVisible = null;
             if (this.lastChild != null && this.ProjectMgr.CompareNodes(node, this.lastChild) < 0)
             {
                 // we can add the node at the end of the list quickly:
                 previous = this.lastChild;
                 previous.nextSibling = node;
+                if (previous.IsVisible)
+                {
+                    previousVisible = previous;
+                }
 
                 this.lastChild = node;
                 node.nextSibling = null;
@@ -1885,8 +2045,13 @@ namespace Microsoft.VisualStudioTools.Project
                 // merge node into the list:
                 for (HierarchyNode n = this.firstChild; n != null; n = n.nextSibling)
                 {
-                    if (this.ProjectMgr.CompareNodes(node, n) > 0) break;
+                    if (this.ProjectMgr.CompareNodes(node, n) > 0)
+                        break;
                     previous = n;
+                    if (previous.IsVisible)
+                    {
+                        previousVisible = previous;
+                    }
                 }
                 // insert "node" after "previous".
                 if (previous != null)
@@ -1904,9 +2069,9 @@ namespace Microsoft.VisualStudioTools.Project
                     this.lastChild = node;
                 }
             }
-            
+
             node.parentNode = this;
-            ProjectMgr.OnItemAdded(this, node);
+            ProjectMgr.OnItemAdded(this, node, previousVisible);
 #if DEV10
             // Dev10 won't check the IsHiddenItem flag when we add an item, and it'll just
             // make it visible no matter what.  So we turn around and invalidate our parent
@@ -1929,7 +2094,8 @@ namespace Microsoft.VisualStudioTools.Project
         {
             Utilities.ArgumentNotNull("type", type);
 
-            if (this.projectMgr == null || this.projectMgr.Site == null) return null;
+            if (this.projectMgr == null || this.projectMgr.Site == null)
+                return null;
             return this.projectMgr.Site.GetService(type);
         }
 
@@ -1948,7 +2114,7 @@ namespace Microsoft.VisualStudioTools.Project
 
         #endregion
 
-        public virtual void Close() 
+        public virtual void Close()
         {
             DocumentManager manager = this.GetDocumentManager();
             try
@@ -1957,46 +2123,55 @@ namespace Microsoft.VisualStudioTools.Project
                 {
                     manager.Close(__FRAMECLOSE.FRAMECLOSE_PromptSave);
                 }
-
             }
-            catch { }
+            catch
+            {
+            }
             finally
             {
                 this.Dispose(true);
             }
         }
 
-        internal uint HierarchyId {
-            get {
+        internal uint HierarchyId
+        {
+            get
+            {
                 return hierarchyId;
-        }
             }
+        }
 
         #region helper methods
 
         /// <summary>
         /// Searches the immediate children of this node for a node which matches the specified predicate.
         /// </summary>
-        internal HierarchyNode FindImmediateChild(Func<HierarchyNode, bool> predicate) {
-            for (HierarchyNode child = this.firstChild; child != null; child = child.NextSibling) {
-                if (predicate(child)) {
+        internal HierarchyNode FindImmediateChild(Func<HierarchyNode, bool> predicate)
+        {
+            for (HierarchyNode child = this.firstChild; child != null; child = child.NextSibling)
+            {
+                if (predicate(child))
+                {
                     return child;
-            }
+                }
             }
             return null;
-            }
+        }
 
         /// <summary>
         /// Searches the immediate children of this node for a file who's filename (w/o path) matches
         /// the requested name.
         /// </summary>
-        internal HierarchyNode FindImmediateChildByName(string name) {
+        internal HierarchyNode FindImmediateChildByName(string name)
+        {
             Debug.Assert(!String.IsNullOrEmpty(GetMkDocument()));
 
-            for (HierarchyNode child = this.firstChild; child != null; child = child.NextSibling) {
-                string filename = Path.GetFileName(CommonUtils.TrimEndSeparator(child.ItemNode.GetMetadata(ProjectFileConstants.Include)));
+            for (HierarchyNode child = this.firstChild; child != null; child = child.NextSibling)
+            {
+                string filename = CommonUtils.GetFileOrDirectoryName(child.ItemNode.GetMetadata(ProjectFileConstants.Include));
 
-                if (String.Equals(filename, name, StringComparison.OrdinalIgnoreCase)) {
+                if (String.Equals(filename, name, StringComparison.OrdinalIgnoreCase))
+                {
                     return child;
                 }
             }
@@ -2008,12 +2183,14 @@ namespace Microsoft.VisualStudioTools.Project
         /// </summary>
         /// <typeparam name="T">The type of hierachy node being serched for</typeparam>
         /// <param name="nodes">A list of nodes of type T</param>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
         internal void FindNodesOfType<T>(List<T> nodes)
-            where T : HierarchyNode {
-            for (HierarchyNode n = this.FirstChild; n != null; n = n.NextSibling) {
+            where T : HierarchyNode
+        {
+            for (HierarchyNode n = this.FirstChild; n != null; n = n.NextSibling)
+            {
                 T nodeAsT = n as T;
-                if (nodeAsT != null) {
+                if (nodeAsT != null)
+                {
                     nodes.Add(nodeAsT);
                 }
 
@@ -2026,16 +2203,19 @@ namespace Microsoft.VisualStudioTools.Project
         /// </summary>
         /// <typeparam name="T">The type of hierachy node being serched for</typeparam>
         /// <param name="nodes">A list of nodes of type T</param>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
         internal IEnumerable<T> EnumNodesOfType<T>()
-            where T : HierarchyNode {
-            for (HierarchyNode n = this.FirstChild; n != null; n = n.NextSibling) {
+            where T : HierarchyNode
+        {
+            for (HierarchyNode n = this.FirstChild; n != null; n = n.NextSibling)
+            {
                 T nodeAsT = n as T;
-                if (nodeAsT != null) {
+                if (nodeAsT != null)
+                {
                     yield return nodeAsT;
                 }
 
-                foreach (var node in n.EnumNodesOfType<T>()) {
+                foreach (var node in n.EnumNodesOfType<T>())
+                {
                     yield return node;
                 }
             }
@@ -2052,7 +2232,8 @@ namespace Microsoft.VisualStudioTools.Project
         /// <summary>
         /// DropEffect as defined in oleidl.h
         /// </summary>
-        internal enum DropEffect {
+        internal enum DropEffect
+        {
             None,
             Copy = 1,
             Move = 2,
@@ -2060,5 +2241,61 @@ namespace Microsoft.VisualStudioTools.Project
         };
         #endregion
 
+        #region IOleServiceProvider
+
+        int IOleServiceProvider.QueryService(ref Guid guidService, ref Guid riid, out IntPtr ppvObject)
+        {
+            object obj;
+            int hr = QueryService(ref guidService, out obj);
+            if (ErrorHandler.Succeeded(hr))
+            {
+                if (riid.Equals(NativeMethods.IID_IUnknown))
+                {
+                    ppvObject = Marshal.GetIUnknownForObject(obj);
+                    return VSConstants.S_OK;
+                }
+
+                IntPtr pUnk = IntPtr.Zero;
+                try
+                {
+                    pUnk = Marshal.GetIUnknownForObject(obj);
+                    return Marshal.QueryInterface(pUnk, ref riid, out ppvObject);
+                }
+                finally
+                {
+                    if (pUnk != IntPtr.Zero)
+                    {
+                        Marshal.Release(pUnk);
+                    }
+                }
+            }
+
+            ppvObject = IntPtr.Zero;
+            return hr;
+        }
+
+        /// <summary>
+        /// Provides services for this hierarchy node.  These services are proffered to consumers
+        /// via IVsProject.GetItemContext.  When a service provider is requested we hand out
+        /// the hierarchy node which implements IServiceProvider directly.  Nodes can override
+        /// this function to provide the underlying object which implements the service.
+        /// 
+        /// By default we support handing out the parent project when IVsHierarchy is requested.
+        /// Project nodes support handing their own automation object out, and other services
+        /// such as the Xaml designer context type can also be provided.
+        /// </summary>
+        public virtual int QueryService(ref Guid guidService, out object result)
+        {
+            if (guidService == typeof(IVsHierarchy).GUID)
+            {
+                result = ProjectMgr;
+                return VSConstants.S_OK;
+            }
+
+            result = null;
+            return VSConstants.E_FAIL;
+        }
+
+        #endregion
     }
 }

@@ -36,8 +36,7 @@ namespace Microsoft.VisualStudioTools.Project
     /// <summary>
     /// This class implements an MSBuild logger that output events to VS outputwindow and tasklist.
     /// </summary>
-    [SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "IDE")]
-    internal class IDEBuildLogger : Logger
+    internal class IDEBuildLogger : Logger, IDisposable
     {
         #region fields
 
@@ -46,8 +45,8 @@ namespace Microsoft.VisualStudioTools.Project
 
         private int currentIndent;
         private IVsOutputWindowPane outputWindowPane;
-        private string errorString = SR.GetString(SR.Error, CultureInfo.CurrentUICulture);
-        private string warningString = SR.GetString(SR.Warning, CultureInfo.CurrentUICulture);
+        private string errorString = SR.GetString(SR.Error);
+        private string warningString = SR.GetString(SR.Warning);
         private TaskProvider taskProvider;
         private IVsHierarchy hierarchy;
         private IServiceProvider serviceProvider;
@@ -106,9 +105,8 @@ namespace Microsoft.VisualStudioTools.Project
         /// <summary>
         /// Constructor.  Inititialize member data.
         /// </summary>
-        public IDEBuildLogger(IVsOutputWindowPane output, TaskProvider taskProvider, IVsHierarchy hierarchy) {
-            UIThread.Instance.MustBeCalledFromUIThread();
-
+        public IDEBuildLogger(IVsOutputWindowPane output, TaskProvider taskProvider, IVsHierarchy hierarchy)
+        {
             Utilities.ArgumentNotNull("taskProvider", taskProvider);
             Utilities.ArgumentNotNull("hierarchy", hierarchy);
 
@@ -121,7 +119,31 @@ namespace Microsoft.VisualStudioTools.Project
             this.outputWindowPane = output;
             this.hierarchy = hierarchy;
             this.serviceProvider = new ServiceProvider(site);
+            serviceProvider.GetUIThread().MustBeCalledFromUIThread();
             this.dispatcher = Dispatcher.CurrentDispatcher;
+        }
+
+        #endregion
+
+        #region IDisposable
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                var sp = this.serviceProvider as ServiceProvider;
+                this.serviceProvider = null;
+                if (sp != null)
+                {
+                    sp.Dispose();
+                }
+            }
         }
 
         #endregion
@@ -277,10 +299,20 @@ namespace Microsoft.VisualStudioTools.Project
 
         /// <summary>
         /// This is the delegate for Message event types
-        /// </summary>		
+        /// </summary>
         protected virtual void MessageHandler(object sender, BuildMessageEventArgs messageEvent)
         {
             // NOTE: This may run on a background thread!
+
+            // Special-case this event type. It's reported by tasks derived from ToolTask, and prints out the command line used
+            // to invoke the tool.  It has high priority for some unclear reason, but we really don't want to be showing it for
+            // verbosity below normal (https://nodejstools.codeplex.com/workitem/693). The check here is taken directly from the
+            // standard MSBuild console logger, which does the same thing.
+            if (messageEvent is TaskCommandLineEventArgs && !IsVerbosityAtLeast(LoggerVerbosity.Normal))
+            {
+                return;
+            }
+
             QueueOutputEvent(messageEvent.Importance, messageEvent);
         }
 
@@ -350,10 +382,12 @@ namespace Microsoft.VisualStudioTools.Project
             BeginInvokeWithErrorMessage(this.serviceProvider, this.dispatcher, FlushBuildOutput);
         }
 
-        internal void FlushBuildOutput() {
+        internal void FlushBuildOutput()
+        {
             OutputQueueEntry output;
 
-            while (this.outputQueue.TryDequeue(out output)) {
+            while (this.outputQueue.TryDequeue(out output))
+            {
                 ErrorHandler.ThrowOnFailure(output.Pane.OutputString(output.Message));
             }
         }
@@ -368,10 +402,32 @@ namespace Microsoft.VisualStudioTools.Project
 
         #region task queue
 
+        class NavigableErrorTask : ErrorTask
+        {
+            private readonly IServiceProvider _serviceProvider;
+
+            public NavigableErrorTask(IServiceProvider serviceProvider)
+            {
+                _serviceProvider = serviceProvider;
+            }
+
+            protected override void OnNavigate(EventArgs e)
+            {
+                VsUtilities.NavigateTo(
+                    _serviceProvider,
+                    Document,
+                    Guid.Empty,
+                    Line,
+                    Column - 1
+                );
+                base.OnNavigate(e);
+            }
+        }
+
         protected void QueueTaskEvent(BuildEventArgs errorEvent)
         {
             this.taskQueue.Enqueue(() => {
-                ErrorTask task = new ErrorTask();
+                var task = new NavigableErrorTask(serviceProvider);
 
                 if (errorEvent is BuildErrorEventArgs)
                 {
@@ -574,7 +630,7 @@ namespace Microsoft.VisualStudioTools.Project
             }
             catch (Exception ex)
             {
-                if (Microsoft.VisualStudio.ErrorHandler.IsCriticalException(ex))
+                if (ex.IsCriticalException())
                 {
                     throw;
                 }
@@ -599,12 +655,12 @@ namespace Microsoft.VisualStudioTools.Project
 
         #endregion exception handling helpers
 
-        class OutputQueueEntry 
+        class OutputQueueEntry
         {
             public readonly string Message;
             public readonly IVsOutputWindowPane Pane;
 
-            public OutputQueueEntry(string message, IVsOutputWindowPane pane) 
+            public OutputQueueEntry(string message, IVsOutputWindowPane pane)
             {
                 Message = message;
                 Pane = pane;

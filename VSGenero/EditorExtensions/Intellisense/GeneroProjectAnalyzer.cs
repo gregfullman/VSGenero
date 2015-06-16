@@ -26,6 +26,16 @@ using VSGenero.Analysis.Parsing;
 
 namespace VSGenero.EditorExtensions.Intellisense
 {
+    class EntryEventArgs : EventArgs
+    {
+        public readonly IProjectEntry Entry;
+
+        public EntryEventArgs(IProjectEntry entry)
+        {
+            Entry = entry;
+        }
+    }
+
     class FileEventArgs : EventArgs
     {
         public readonly string Filename;
@@ -39,11 +49,13 @@ namespace VSGenero.EditorExtensions.Intellisense
     struct MonitoredBufferResult
     {
         public readonly BufferParser BufferParser;
+        public readonly ITextView TextView;
         public readonly IProjectEntry ProjectEntry;
 
-        public MonitoredBufferResult(BufferParser bufferParser, IProjectEntry projectEntry)
+        public MonitoredBufferResult(BufferParser bufferParser, ITextView textView, IProjectEntry projectEntry)
         {
             BufferParser = bufferParser;
+            TextView = textView;
             ProjectEntry = projectEntry;
         }
     }
@@ -59,20 +71,25 @@ namespace VSGenero.EditorExtensions.Intellisense
 
         private int _userCount;
 
-        // Internal for tests
-        internal readonly IErrorProviderFactory _errorProvider;
+        internal readonly HashSet<IProjectEntry> _hasParseErrors = new HashSet<IProjectEntry>();
+        internal readonly object _hasParseErrorsLock = new object();
 
-        private static readonly Lazy<TaskProvider> _taskProvider = new Lazy<TaskProvider>(() =>
-        {
-            var _errorList = VSGeneroPackage.GetGlobalService(typeof(SVsErrorList)) as IVsTaskList;
-            return new TaskProvider(_errorList);
-        }, LazyThreadSafetyMode.ExecutionAndPublication);
+        private const string ParserTaskMoniker = "Parser";
+        //internal const string UnresolvedImportMoniker = "UnresolvedImport";
+
+        // Internal for tests
+        private ErrorTaskProvider _errorProvider;
+        //private CommentTaskProvider _commentTaskProvider;
+
+        private readonly IServiceProvider _serviceProvider;
 
         private object _contentsLock = new object();
 
-        internal GeneroProjectAnalyzer(IErrorProviderFactory errorProvider, bool implicitProject = true)
+        internal GeneroProjectAnalyzer(IServiceProvider serviceProvider, bool implicitProject = true)
         {
-            _errorProvider = errorProvider;
+            _serviceProvider = serviceProvider;
+            _errorProvider = (ErrorTaskProvider)serviceProvider.GetService(typeof(ErrorTaskProvider));
+            //_commentTaskProvider = (CommentTaskProvider)serviceProvider.GetService(typeof(CommentTaskProvider));
 
             _queue = new ParseQueue(this);
             _analysisQueue = new AnalysisQueue(this);
@@ -99,14 +116,176 @@ namespace VSGenero.EditorExtensions.Intellisense
         }
 
         /// <summary>
+        /// Creates a new ProjectEntry for the collection of buffers.
+        /// 
+        /// _openFiles must be locked when calling this function.
+        /// </summary>
+        internal void ReAnalyzeTextBuffers(BufferParser bufferParser)
+        {
+            ITextBuffer[] buffers = bufferParser.Buffers;
+            if (buffers.Length > 0)
+            {
+                _errorProvider.ClearErrorSource(bufferParser._currentProjEntry, ParserTaskMoniker);
+                //_errorProvider.ClearErrorSource(bufferParser._currentProjEntry, UnresolvedImportMoniker);
+                //_commentTaskProvider.ClearErrorSource(bufferParser._currentProjEntry, ParserTaskMoniker);
+                //_unresolvedSquiggles.StopListening(bufferParser._currentProjEntry as IPythonProjectEntry);
+
+                var projEntry = CreateProjectEntry(buffers[0], new SnapshotCookie(buffers[0].CurrentSnapshot));
+
+                //bool doSquiggles = !buffers[0].Properties.ContainsProperty(typeof(IReplEvaluator));
+                //if (doSquiggles)
+                //{
+                //    _unresolvedSquiggles.ListenForNextNewAnalysis(projEntry as IPythonProjectEntry);
+                //}
+
+                foreach (var buffer in buffers)
+                {
+                    buffer.Properties.RemoveProperty(typeof(IProjectEntry));
+                    buffer.Properties.AddProperty(typeof(IProjectEntry), projEntry);
+
+                    var classifier = buffer.GetGeneroClassifier();
+                    if (classifier != null)
+                    {
+                        classifier.NewVersion();
+                    }
+
+                    ConnectErrorList(projEntry, buffer);
+                    //if (doSquiggles)
+                    //{
+                    //    _errorProvider.AddBufferForErrorSource(projEntry, UnresolvedImportMoniker, buffer);
+                    //}
+                }
+                bufferParser._currentProjEntry = _openFiles[bufferParser] = projEntry;
+                bufferParser._parser = this;
+
+                foreach (var buffer in buffers)
+                {
+                    // A buffer may have multiple DropDownBarClients, given one may open multiple CodeWindows
+                    // over a single buffer using Window/New Window
+                    List<DropDownBarClient> clients;
+                    if (buffer.Properties.TryGetProperty<List<DropDownBarClient>>(typeof(DropDownBarClient), out clients))
+                    {
+                        foreach (var client in clients)
+                        {
+                            client.UpdateProjectEntry(projEntry);
+                        }
+                    }
+                }
+
+                bufferParser.Requeue();
+            }
+        }
+
+        public void ConnectErrorList(IProjectEntry projEntry, ITextBuffer buffer)
+        {
+            _errorProvider.AddBufferForErrorSource(projEntry, ParserTaskMoniker, buffer);
+            //_commentTaskProvider.AddBufferForErrorSource(projEntry, ParserTaskMoniker, buffer);
+        }
+
+        public void DisconnectErrorList(IProjectEntry projEntry, ITextBuffer buffer)
+        {
+            _errorProvider.RemoveBufferForErrorSource(projEntry, ParserTaskMoniker, buffer);
+            //_commentTaskProvider.RemoveBufferForErrorSource(projEntry, ParserTaskMoniker, buffer);
+        }
+
+        internal void SwitchAnalyzers(GeneroProjectAnalyzer oldAnalyzer)
+        {
+            lock (_openFiles)
+            {
+                // copy the Keys here as ReAnalyzeTextBuffers can mutuate the dictionary
+                foreach (var bufferParser in oldAnalyzer._openFiles.Keys.ToArray())
+                {
+                    ReAnalyzeTextBuffers(bufferParser);
+                }
+            }
+        }
+
+        /// <summary>
         /// Starts monitoring a buffer for changes so we will re-parse the buffer to update the analysis
         /// as the text changes.
         /// </summary>
         internal MonitoredBufferResult MonitorTextBuffer(ITextView textView, ITextBuffer buffer)
         {
-            IGeneroProjectEntry projEntry = CreateProjectEntry(buffer, new SnapshotCookie(buffer.CurrentSnapshot));
-            var bufferParser = _queue.EnqueueBuffer(projEntry, textView, buffer);
-            return new MonitoredBufferResult(bufferParser, projEntry);
+            IProjectEntry projEntry = CreateProjectEntry(buffer, new SnapshotCookie(buffer.CurrentSnapshot));
+
+            //if (!buffer.Properties.ContainsProperty(typeof(IReplEvaluator)))
+            //{
+                ConnectErrorList(projEntry, buffer);
+            //    _errorProvider.AddBufferForErrorSource(projEntry, UnresolvedImportMoniker, buffer);
+            //    _unresolvedSquiggles.ListenForNextNewAnalysis(projEntry as IPythonProjectEntry);
+            //}
+
+            // kick off initial processing on the buffer
+            lock (_openFiles)
+            {
+                var bufferParser = _queue.EnqueueBuffer(projEntry, textView, buffer);
+                _openFiles[bufferParser] = projEntry;
+                return new MonitoredBufferResult(bufferParser, textView, projEntry);
+            }
+        }
+
+        internal void StopMonitoringTextBuffer(BufferParser bufferParser)
+        {
+            bufferParser.StopMonitoring();
+            lock (_openFiles)
+            {
+                _openFiles.Remove(bufferParser);
+            }
+
+            _errorProvider.ClearErrorSource(bufferParser._currentProjEntry, ParserTaskMoniker);
+            //_errorProvider.ClearErrorSource(bufferParser._currentProjEntry, UnresolvedImportMoniker);
+            //_commentTaskProvider.ClearErrorSource(bufferParser._currentProjEntry, ParserTaskMoniker);
+
+            if (ImplicitProject)
+            {
+                // remove the file from the error list
+                _errorProvider.Clear(bufferParser._currentProjEntry, ParserTaskMoniker);
+                //_errorProvider.Clear(bufferParser._currentProjEntry, UnresolvedImportMoniker);
+                //_commentTaskProvider.Clear(bufferParser._currentProjEntry, ParserTaskMoniker);
+
+                string path = bufferParser._currentProjEntry.FilePath;
+                if(path != null)
+                {
+                    // TODO: need to rework this stuff
+
+                    // check to see if the file is still needed
+                    string dirPath = Path.GetDirectoryName(path);
+
+                    IGeneroProject proj;
+                    if (_projects.TryGetValue(dirPath, out proj))
+                    {
+                        IGeneroProjectEntry entry;
+                        if (proj.ProjectEntries.TryGetValue(path, out entry))
+                        {
+                            proj.ProjectEntries[path].IsOpen = entry.IsOpen = false;
+                            // are there any others that are open?
+                            if (!proj.ProjectEntries.Any(x => x.Value != entry && x.Value.IsOpen) &&
+                                proj.ReferencingProjectEntries.Count == 0)
+                            {
+                                // before clearing the top level project's entries, we need to go through
+                                // each one and have any Referenced projects remove the entry from their Referencing set.
+                                foreach (var projEntry in proj.ProjectEntries)
+                                {
+                                    foreach (var refProj in proj.ReferencedProjects)
+                                    {
+                                        if (refProj.Value.ReferencingProjectEntries.Contains(projEntry.Value))
+                                            refProj.Value.ReferencingProjectEntries.Remove(projEntry.Value);
+                                    }
+                                }
+                                proj.ProjectEntries.Clear();
+
+                                // unload any import modules that are not referenced by anything else.
+                                UnloadImportedModules(proj);
+
+                                _projects.TryRemove(dirPath, out proj);
+
+                                // remove the file from the error list
+                                _errorProvider.ClearErrorSource(Path.GetDirectoryName(bufferParser._currentProjEntry.FilePath));
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         internal IGeneroProject AddImportedProject(string projectPath)
@@ -148,7 +327,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                     _projects.TryRemove(projectPath, out proj);
 
                     // remove the file from the error list
-                    _taskProvider.Value.Clear(projectPath);
+                    _errorProvider.ClearErrorSource(projectPath);
                 }
             }
         }
@@ -262,51 +441,6 @@ namespace VSGenero.EditorExtensions.Intellisense
             return true;
         }
 
-        internal void StopMonitoringTextBuffer(BufferParser bufferParser)
-        {
-            bufferParser.StopMonitoring();
-            string path = bufferParser._currentProjEntry.FilePath;
-            if (ImplicitProject && _taskProvider.IsValueCreated && path != null)
-            {
-                // check to see if the file is still needed
-                string dirPath = Path.GetDirectoryName(path);
-
-                IGeneroProject proj;
-                if (_projects.TryGetValue(dirPath, out proj))
-                {
-                    IGeneroProjectEntry entry;
-                    if (proj.ProjectEntries.TryGetValue(path, out entry))
-                    {
-                        proj.ProjectEntries[path].IsOpen = entry.IsOpen = false;
-                        // are there any others that are open?
-                        if (!proj.ProjectEntries.Any(x => x.Value != entry && x.Value.IsOpen) &&
-                            proj.ReferencingProjectEntries.Count == 0)
-                        {
-                            // before clearing the top level project's entries, we need to go through
-                            // each one and have any Referenced projects remove the entry from their Referencing set.
-                            foreach (var projEntry in proj.ProjectEntries)
-                            {
-                                foreach (var refProj in proj.ReferencedProjects)
-                                {
-                                    if (refProj.Value.ReferencingProjectEntries.Contains(projEntry.Value))
-                                        refProj.Value.ReferencingProjectEntries.Remove(projEntry.Value);
-                                }
-                            }
-                            proj.ProjectEntries.Clear();
-
-                            // unload any import modules that are not referenced by anything else.
-                            UnloadImportedModules(proj);
-
-                            _projects.TryRemove(dirPath, out proj);
-
-                            // remove the file from the error list
-                            _taskProvider.Value.Clear(Path.GetDirectoryName(bufferParser._currentProjEntry.FilePath));
-                        }
-                    }
-                }
-            }
-        }
-
         internal void UnloadImportedModules(IGeneroProject project)
         {
             var refList = project.ReferencedProjects.Select(x => x.Value).ToList();
@@ -336,7 +470,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                     IGeneroProject remProj2;
                     if (_projects.TryRemove(refList[i].Directory, out remProj2))
                     {
-                        _taskProvider.Value.Clear(refList[i].Directory);
+                        _errorProvider.ClearErrorSource(refList[i].Directory);
                     }
                 }
             }
@@ -595,25 +729,48 @@ namespace VSGenero.EditorExtensions.Intellisense
 
         }
 
+        internal ITextSnapshot GetOpenSnapshot(IProjectEntry entry)
+        {
+            if (entry == null)
+            {
+                return null;
+            }
+
+            lock (_openFiles)
+            {
+                var item = _openFiles.FirstOrDefault(kv => kv.Value == entry);
+                if (item.Value == null)
+                {
+                    return null;
+                }
+                var document = item.Key.Document;
+                if (document == null)
+                {
+                    return null;
+                }
+
+                var textBuffer = document.TextBuffer;
+                // TextBuffer may be null if we are racing with file close
+                return textBuffer != null ? textBuffer.CurrentSnapshot : null;
+            }
+        }
+
         internal void ParseFile(IProjectEntry projectEntry, string filename, Stream content, Severity indentationSeverity)
         {
             IGeneroProjectEntry pyEntry;
             IAnalysisCookie cookie = (IAnalysisCookie)new FileCookie(filename);
+            ITextSnapshot snapshot = GetOpenSnapshot(projectEntry);
             if ((pyEntry = projectEntry as IGeneroProjectEntry) != null)
             {
                 GeneroAst ast;
                 CollectingErrorSink errorSink;
+                // TODO: get the comment tasks from the parser (eventually)
+                List<TaskProviderItem> commentTasks = new List<TaskProviderItem>();
                 ParseGeneroCode(content, indentationSeverity, pyEntry, out ast, out errorSink);
 
                 if (ast != null)
                 {
                     pyEntry.UpdateTree(ast, cookie);
-                    _analysisQueue.Enqueue(pyEntry, AnalysisPriority.Normal);
-                    pyEntry.UpdateIncludesAndImports(filename, ast);
-                    //if(pyEntry.DetectCircularImports())
-                    //{
-                    //    // TODO: add error(s) from the (to be defined) errors returned from the function
-                    //}
                 }
                 else
                 {
@@ -621,16 +778,12 @@ namespace VSGenero.EditorExtensions.Intellisense
                     pyEntry.UpdateTree(null, null);
                 }
 
-                if (errorSink.Warnings.Count > 0 || errorSink.Errors.Count > 0)
-                {
-                    TaskProvider provider = GetTaskProviderAndClearProjectItems(projectEntry);
-                    if (provider != null)
-                    {
-                        provider.ReplaceWarnings(projectEntry.FilePath, errorSink.Warnings);
-                        provider.ReplaceErrors(projectEntry.FilePath, errorSink.Errors);
+                UpdateErrorsAndWarnings(projectEntry, snapshot, errorSink, commentTasks);
 
-                        UpdateErrorList(errorSink, projectEntry.FilePath, provider);
-                    }
+                if (ast != null)
+                {
+                    _analysisQueue.Enqueue(pyEntry, AnalysisPriority.Normal);
+                    pyEntry.UpdateIncludesAndImports(filename, ast);
                 }
             }
         }
@@ -648,7 +801,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                 {
                     GeneroAst ast;
                     CollectingErrorSink errorSink;
-
+                    List<TaskProviderItem> commentTasks = new List<TaskProviderItem>();
                     var reader = new SnapshotSpanSourceCodeReader(new SnapshotSpan(snapshot, new Span(0, snapshot.Length)));
                     ParseGeneroCode(reader, indentationSeverity, pyProjEntry, out ast, out errorSink);
 
@@ -662,24 +815,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                         //}
                     }
 
-                    // update squiggles for the buffer
-
-                    // SimpleTagger says it's thread safe (http://msdn.microsoft.com/en-us/library/dd885186.aspx), but it's buggy...  
-                    // Post the removing of squiggles to the UI thread so that we don't crash when we're racing with 
-                    // updates to the buffer.  http://pytools.codeplex.com/workitem/142
-                    var dispatcher = bufferParser.Dispatcher;
-
-                    if (dispatcher != null)
-                    {
-                        var entry = bufferParser._currentProjEntry;
-                        dispatcher.BeginInvoke((Action)(() =>
-                        {
-                            UpdateSquiggles(snapshot, entry, errorSink, false);
-                        }));
-                    }
-                }
-                else
-                {
+                    UpdateErrorsAndWarnings(analysis, snapshot, errorSink, commentTasks);
                 }
             }
 
@@ -707,80 +843,103 @@ namespace VSGenero.EditorExtensions.Intellisense
             }
         }
 
-        private void UpdateSquiggles(
-            ITextSnapshot snapshot,
+        private void UpdateErrorsAndWarnings(
             IProjectEntry entry,
+            ITextSnapshot snapshot,
             CollectingErrorSink errorSink,
-            bool unresolvedImportWarning
+            List<TaskProviderItem> commentTasks
         )
         {
-            var squiggles = _errorProvider.GetErrorTagger(snapshot.TextBuffer);
-            var provider = GetTaskProviderAndClearProjectItems(entry);
-
-            squiggles.RemoveTagSpans(x => true);
-            if (entry.FilePath != null)
+            // Update the warn-on-launch state for this entry
+            bool changed = false;
+            lock (_hasParseErrorsLock)
             {
-                foreach (ErrorResult warning in errorSink.Warnings)
-                {
-                    squiggles.CreateTagSpan(
-                        CreateSpan(snapshot, warning.Span),
-                        new ErrorTag(PredefinedErrorTypeNames.Warning, warning.Message)
-                    );
-                }
-
-                foreach (ErrorResult error in errorSink.Errors)
-                {
-                    squiggles.CreateTagSpan(
-                        CreateSpan(snapshot, error.Span),
-                        new ErrorTag(PredefinedErrorTypeNames.SyntaxError, error.Message)
-                    );
-                }
-
-                if (provider != null)
-                {
-                    provider.ReplaceWarnings(entry.FilePath, errorSink.Warnings);
-                    provider.ReplaceErrors(entry.FilePath, errorSink.Errors);
-                    UpdateErrorList(errorSink, entry.FilePath, provider);
-                }
+                changed = errorSink.Errors.Any() ? _hasParseErrors.Add(entry) : _hasParseErrors.Remove(entry);
             }
-        }
-
-        private TaskProvider GetTaskProviderAndClearProjectItems(IProjectEntry projEntry)
-        {
-            if (VSGeneroPackage.Instance != null)
+            if (changed)
             {
-                if (projEntry.FilePath != null)
-                {
-                    _taskProvider.Value.Clear(projEntry.FilePath);
-                }
+                OnShouldWarnOnLaunchChanged(entry);
             }
-            return _taskProvider.Value;
-        }
 
-        private void UpdateErrorList(CollectingErrorSink errorSink, string filepath, TaskProvider provider)
-        {
-            if (errorSink.Warnings.Count > 0)
+            // Update the parser warnings/errors.
+            var factory = new TaskProviderItemFactory(snapshot);
+            if (errorSink.Warnings.Any() || errorSink.Errors.Any())
             {
-                OnWarningAdded(filepath);
+                _errorProvider.ReplaceItems(
+                    entry,
+                    ParserTaskMoniker,
+                    errorSink.Warnings
+                        .Select(er => factory.FromErrorResult(_serviceProvider, er, VSTASKPRIORITY.TP_NORMAL, VSTASKCATEGORY.CAT_BUILDCOMPILE))
+                        .Concat(errorSink.Errors.Select(er => factory.FromErrorResult(_serviceProvider, er, VSTASKPRIORITY.TP_HIGH, VSTASKCATEGORY.CAT_BUILDCOMPILE)))
+                        .ToList()
+                );
             }
             else
             {
-                OnWarningRemoved(filepath);
-            }
-            if (errorSink.Errors.Count > 0)
-            {
-                OnErrorAdded(filepath);
-            }
-            else
-            {
-                OnErrorRemoved(filepath);
+                _errorProvider.Clear(entry, ParserTaskMoniker);
             }
 
-            if (provider != null && (errorSink.Errors.Count > 0 || errorSink.Warnings.Count > 0))
+            // Update comment tasks.
+            //if (commentTasks.Count != 0)
+            //{
+            //    _commentTaskProvider.ReplaceItems(entry, ParserTaskMoniker, commentTasks);
+            //}
+            //else
+            //{
+            //    _commentTaskProvider.Clear(entry, ParserTaskMoniker);
+            //}
+        }
+
+        internal void ClearParserTasks(IProjectEntry entry)
+        {
+            if (entry != null)
             {
-                provider.UpdateTasks();
+                _errorProvider.Clear(entry, ParserTaskMoniker);
+                //_commentTaskProvider.Clear(entry, ParserTaskMoniker);
+                //_unresolvedSquiggles.StopListening(entry as IPythonProjectEntry);
+
+                bool removed = false;
+                lock (_hasParseErrorsLock)
+                {
+                    removed = _hasParseErrors.Remove(entry);
+                }
+                if (removed)
+                {
+                    OnShouldWarnOnLaunchChanged(entry);
+                }
             }
         }
+
+        internal void ClearAllTasks()
+        {
+            _errorProvider.ClearAll();
+            //_commentTaskProvider.ClearAll();
+
+            lock (_hasParseErrorsLock)
+            {
+                _hasParseErrors.Clear();
+            }
+        }
+
+        internal bool ShouldWarnOnLaunch(IProjectEntry entry)
+        {
+            lock (_hasParseErrorsLock)
+            {
+                return _hasParseErrors.Contains(entry);
+            }
+        }
+
+        private void OnShouldWarnOnLaunchChanged(IProjectEntry entry)
+        {
+            var evt = ShouldWarnOnLaunchChanged;
+            if (evt != null)
+            {
+                evt(this, new EntryEventArgs(entry));
+            }
+        }
+
+        internal event EventHandler<EntryEventArgs> ShouldWarnOnLaunchChanged;
+
 
         private void ParseGeneroCode(Stream content, Severity indentationSeverity, IProjectEntry entry, out GeneroAst ast, out CollectingErrorSink errorSink)
         {
@@ -1103,62 +1262,6 @@ namespace VSGenero.EditorExtensions.Intellisense
             _analysisQueue.Stop();
         }
 
-        internal void RemoveErrors(IProjectEntry entry, bool suppressUpdate)
-        {
-            if (entry != null && entry.FilePath != null)
-            {
-                if (_taskProvider.IsValueCreated)
-                {
-                    // _taskProvider may not be created if we've never opened a Python file and
-                    // none of the project files have errors
-                    _taskProvider.Value.Clear(entry.FilePath, !suppressUpdate);
-                }
-                OnWarningRemoved(entry.FilePath);
-                OnErrorRemoved(entry.FilePath);
-            }
-        }
-
-        private void OnWarningAdded(string path)
-        {
-            var evt = WarningAdded;
-            if (evt != null)
-            {
-                evt(this, new FileEventArgs(path));
-            }
-        }
-
-        private void OnWarningRemoved(string path)
-        {
-            var evt = WarningRemoved;
-            if (evt != null)
-            {
-                evt(this, new FileEventArgs(path));
-            }
-        }
-
-        private void OnErrorAdded(string path)
-        {
-            var evt = ErrorAdded;
-            if (evt != null)
-            {
-                evt(this, new FileEventArgs(path));
-            }
-        }
-
-        private void OnErrorRemoved(string path)
-        {
-            var evt = ErrorRemoved;
-            if (evt != null)
-            {
-                evt(this, new FileEventArgs(path));
-            }
-        }
-
-        internal EventHandler<FileEventArgs> WarningAdded;
-        internal EventHandler<FileEventArgs> WarningRemoved;
-        internal EventHandler<FileEventArgs> ErrorAdded;
-        internal EventHandler<FileEventArgs> ErrorRemoved;
-
         private static Stopwatch _stopwatch = MakeStopWatch();
 
         private static Stopwatch MakeStopWatch()
@@ -1176,516 +1279,19 @@ namespace VSGenero.EditorExtensions.Intellisense
             }
         }
 
-        class TaskProvider : IVsTaskProvider
-        {
-            private readonly Dictionary<string, List<ErrorResult>> _warnings = new Dictionary<string, List<ErrorResult>>(StringComparer.OrdinalIgnoreCase);
-            private readonly Dictionary<string, List<ErrorResult>> _errors = new Dictionary<string, List<ErrorResult>>(StringComparer.OrdinalIgnoreCase);
-            private readonly uint _cookie;
-            private readonly IVsTaskList _errorList;
-            private readonly object _contentsLock = new object();
-
-            private class WorkerMessage
-            {
-                public enum MessageType { Clear, Warnings, Errors, Update }
-                public MessageType Type;
-                public string Filename;
-                public List<ErrorResult> Errors;
-
-                public readonly static WorkerMessage Update = new WorkerMessage { Type = MessageType.Update };
-            }
-            private bool _hasWorker;
-            private readonly BlockingCollection<WorkerMessage> _workerQueue;
-
-            public TaskProvider(IVsTaskList errorList)
-            {
-                _errorList = errorList;
-                if (_errorList != null)
-                {
-                    ErrorHandler.ThrowOnFailure(_errorList.RegisterTaskProvider(this, out _cookie));
-                }
-                _workerQueue = new BlockingCollection<WorkerMessage>();
-            }
-
-            private void Worker(object param)
-            {
-                bool changed = false;
-                WorkerMessage msg;
-                var lastUpdateTime = DateTime.Now;
-
-                for (; ; )
-                {
-                    // Give queue up to 1 second to have a message in it before exiting loop
-                    while (_workerQueue.TryTake(out msg, 1000))
-                    {
-                        switch (msg.Type)
-                        {
-                            case WorkerMessage.MessageType.Clear:
-                                lock (_contentsLock)
-                                {
-                                    if (Path.HasExtension(msg.Filename))
-                                    {
-                                        changed = _errors.Remove(msg.Filename) || changed;
-                                        changed = _warnings.Remove(msg.Filename) || changed;
-                                    }
-                                    else
-                                    {
-                                        foreach (var key in _errors.Keys.Where(x => x.StartsWith(msg.Filename, StringComparison.OrdinalIgnoreCase)).ToList())
-                                            changed = _errors.Remove(key) || changed;
-                                        foreach (var key in _warnings.Keys.Where(x => x.StartsWith(msg.Filename, StringComparison.OrdinalIgnoreCase)).ToList())
-                                            changed = _warnings.Remove(key) || changed;
-                                    }
-                                }
-                                break;
-                            case WorkerMessage.MessageType.Warnings:
-                                lock (_contentsLock)
-                                {
-                                    _warnings[msg.Filename] = msg.Errors;
-                                }
-                                changed = true;
-                                break;
-                            case WorkerMessage.MessageType.Errors:
-                                lock (_contentsLock)
-                                {
-                                    _errors[msg.Filename] = msg.Errors;
-                                }
-                                changed = true;
-                                break;
-                            case WorkerMessage.MessageType.Update:
-                                changed = true;
-                                break;
-                        }
-
-                        // Batch refreshes over 1 second
-                        if (changed && _errorList != null)
-                        {
-                            var currentTime = DateTime.Now;
-                            if ((currentTime - lastUpdateTime).TotalMilliseconds > 1000)
-                            {
-                                RefreshTasks();
-                                lastUpdateTime = currentTime;
-                                changed = false;
-                            }
-                        }
-                    }
-
-                    lock (_workerQueue)
-                    {
-                        if (_workerQueue.Count == 0)
-                        {
-                            _hasWorker = false;
-                            break;
-                        }
-                    }
-                }
-
-                // Handle refresh not handled in loop
-                if (changed && _errorList != null)
-                {
-                    RefreshTasks();
-                }
-            }
-
-            private void RefreshTasks()
-            {
-                try
-                {
-                    _errorList.RefreshTasks(_cookie);
-                }
-                catch (InvalidComObjectException)
-                {
-                    // DevDiv2 759317 - Watson bug, COM object can go away...
-                }
-            }
-
-            private void SendMessage(WorkerMessage msg)
-            {
-                lock (_workerQueue)
-                {
-                    _workerQueue.Add(msg);
-                    if (!_hasWorker)
-                    {
-                        _hasWorker = true;
-                        ThreadPool.QueueUserWorkItem(Worker);
-                    }
-                }
-            }
-
-            public void UpdateTasks()
-            {
-                if (_errorList != null)
-                {
-                    SendMessage(WorkerMessage.Update);
-                }
-            }
-
-            public uint Cookie
-            {
-                get
-                {
-                    return _cookie;
-                }
-            }
-
-            #region IVsTaskProvider Members
-
-            public int EnumTaskItems(out IVsEnumTaskItems ppenum)
-            {
-                lock (_contentsLock)
-                {
-                    ppenum = new TaskEnum(CopyErrorList(_warnings), CopyErrorList(_errors));
-                }
-                return VSConstants.S_OK;
-            }
-
-            private static Dictionary<string, ErrorResult[]> CopyErrorList(Dictionary<string, List<ErrorResult>> input)
-            {
-                Dictionary<string, ErrorResult[]> errors = new Dictionary<string, ErrorResult[]>(input.Count);
-                foreach (var keyvalue in input)
-                {
-                    errors[keyvalue.Key] = keyvalue.Value.ToArray();
-                }
-                return errors;
-            }
-
-            public int ImageList(out IntPtr phImageList)
-            {
-                // not necessary if we report our category as build compile.
-                phImageList = IntPtr.Zero;
-                return VSConstants.E_NOTIMPL;
-            }
-
-            public int OnTaskListFinalRelease(IVsTaskList pTaskList)
-            {
-                return VSConstants.S_OK;
-            }
-
-            public int ReRegistrationKey(out string pbstrKey)
-            {
-                pbstrKey = null;
-                return VSConstants.E_NOTIMPL;
-            }
-
-            public int SubcategoryList(uint cbstr, string[] rgbstr, out uint pcActual)
-            {
-                pcActual = 0;
-                return VSConstants.S_OK;
-            }
-
-            #endregion
-
-            /// <summary>
-            /// Replaces the errors for the specified filename with the new set of errors.
-            /// </summary>
-            internal void ReplaceErrors(string filename, List<ErrorResult> errors)
-            {
-                if (errors.Count > 0)
-                {
-                    SendMessage(new WorkerMessage { Type = WorkerMessage.MessageType.Errors, Filename = filename, Errors = errors });
-                }
-            }
-
-            /// <summary>
-            /// Replaces the warnings for the specified filename with the new set of errors.
-            /// </summary>
-            internal void ReplaceWarnings(string filename, List<ErrorResult> warnings)
-            {
-                if (warnings.Count > 0)
-                {
-                    SendMessage(new WorkerMessage { Type = WorkerMessage.MessageType.Warnings, Filename = filename, Errors = warnings });
-                }
-            }
-
-            internal void Clear(string filename)
-            {
-                Clear(filename, true);
-            }
-
-            internal void Clear(string filename, bool updateList)
-            {
-                SendMessage(new WorkerMessage { Type = WorkerMessage.MessageType.Clear, Filename = filename });
-                if (updateList)
-                {
-                    SendMessage(WorkerMessage.Update);
-                }
-            }
-
-            class TaskEnum : IVsEnumTaskItems
-            {
-                private readonly Dictionary<string, ErrorResult[]> _warnings;
-                private readonly Dictionary<string, ErrorResult[]> _errors;
-                private IEnumerator<ErrorInfo> _enum;
-
-                public TaskEnum(Dictionary<string, ErrorResult[]> warnings, Dictionary<string, ErrorResult[]> errors)
-                {
-                    _warnings = warnings;
-                    _errors = errors;
-                    _enum = Enumerator(warnings, errors);
-                }
-
-                struct ErrorInfo
-                {
-                    public readonly string Filename;
-                    public readonly ErrorResult Error;
-                    public readonly bool IsError;
-
-                    public ErrorInfo(string filename, ErrorResult error, bool isError)
-                    {
-                        Filename = filename;
-                        Error = error;
-                        IsError = isError;
-                    }
-                }
-
-                IEnumerator<ErrorInfo> Enumerator(Dictionary<string, ErrorResult[]> warnings, Dictionary<string, ErrorResult[]> errors)
-                {
-                    foreach (var fileAndErrorList in warnings)
-                    {
-                        foreach (var error in fileAndErrorList.Value)
-                        {
-                            yield return new ErrorInfo(fileAndErrorList.Key, error, false);
-                        }
-                    }
-
-                    foreach (var fileAndErrorList in errors)
-                    {
-                        foreach (var error in fileAndErrorList.Value)
-                        {
-                            yield return new ErrorInfo(fileAndErrorList.Key, error, true);
-                        }
-                    }
-                }
-
-                #region IVsEnumTaskItems Members
-
-                public int Clone(out IVsEnumTaskItems ppenum)
-                {
-                    ppenum = new TaskEnum(_warnings, _errors);
-                    return VSConstants.S_OK;
-                }
-
-                public int Next(uint celt, IVsTaskItem[] rgelt, uint[] pceltFetched = null)
-                {
-                    for (int i = 0; i < celt && _enum.MoveNext(); i++)
-                    {
-                        var next = _enum.Current;
-                        pceltFetched[0] = (uint)i + 1;
-                        rgelt[i] = new TaskItem(next.Error, next.Filename, next.IsError);
-                    }
-
-                    return VSConstants.S_OK;
-                }
-
-                public int Reset()
-                {
-                    _enum = Enumerator(_warnings, _errors);
-                    return VSConstants.S_OK;
-                }
-
-                public int Skip(uint celt)
-                {
-                    while (celt != 0 && _enum.MoveNext())
-                    {
-                        celt--;
-                    }
-                    return VSConstants.S_OK;
-                }
-
-                #endregion
-
-                class TaskItem : IVsTaskItem
-                {
-                    private readonly ErrorResult _error;
-                    private readonly string _path;
-                    private readonly bool _isError;
-
-                    public TaskItem(ErrorResult error, string path, bool isError)
-                    {
-                        _error = error;
-                        _path = path;
-                        _isError = isError;
-                    }
-
-                    public SourceSpan Span
-                    {
-                        get
-                        {
-                            return _error.Span;
-                        }
-                    }
-
-                    public string Message
-                    {
-                        get
-                        {
-                            return _error.Message;
-                        }
-                    }
-
-                    #region IVsTaskItem Members
-
-                    public int CanDelete(out int pfCanDelete)
-                    {
-                        pfCanDelete = 0;
-                        return VSConstants.S_OK;
-                    }
-
-                    public int Category(VSTASKCATEGORY[] pCat)
-                    {
-                        pCat[0] = VSTASKCATEGORY.CAT_BUILDCOMPILE;
-                        return VSConstants.S_OK;
-                    }
-
-                    public int Column(out int piCol)
-                    {
-                        if (Span.Start.Line == 1 && Span.Start.Column == 1 && Span.Start.Index != 0)
-                        {
-                            // we don't have the column number calculated
-                            piCol = 0;
-                            return VSConstants.E_FAIL;
-                        }
-                        piCol = Span.Start.Column - 1;
-                        return VSConstants.S_OK;
-                    }
-
-                    public int Document(out string pbstrMkDocument)
-                    {
-                        pbstrMkDocument = _path;
-                        return VSConstants.S_OK;
-                    }
-
-                    public int HasHelp(out int pfHasHelp)
-                    {
-                        pfHasHelp = 0;
-                        return VSConstants.S_OK;
-                    }
-
-                    public int ImageListIndex(out int pIndex)
-                    {
-                        pIndex = 0;
-                        return VSConstants.E_NOTIMPL;
-                    }
-
-                    public int IsReadOnly(VSTASKFIELD field, out int pfReadOnly)
-                    {
-                        pfReadOnly = 1;
-                        return VSConstants.S_OK;
-                    }
-
-                    public int Line(out int piLine)
-                    {
-                        if (Span.Start.Line == 1 && Span.Start.Column == 1 && Span.Start.Index != 0)
-                        {
-                            // we don't have the line number calculated
-                            piLine = 0;
-                            return VSConstants.E_FAIL;
-                        }
-                        piLine = Span.Start.Line - 1;
-                        return VSConstants.S_OK;
-                    }
-
-                    public int NavigateTo()
-                    {
-                        try
-                        {
-                            if (Span.Start.Line == 1 && Span.Start.Column == 1 && Span.Start.Index != 0)
-                            {
-                                // we have just an absolute index, use that to naviagte
-                                VSGeneroPackage.NavigateTo(_path, Guid.Empty, Span.Start.Index);
-                            }
-                            else
-                            {
-                                VSGeneroPackage.NavigateTo(_path, Guid.Empty, Span.Start.Line - 1, Span.Start.Column - 1);
-                            }
-                            return VSConstants.S_OK;
-                        }
-                        catch (DirectoryNotFoundException)
-                        {
-                            // This may happen when the error was in a file that's located inside a .zip archive.
-                            // Let's walk the path and see if it is indeed the case.
-                            string path = _path;
-                            while (path != null)
-                            {
-                                if (File.Exists(path))
-                                {
-                                    var ext = Path.GetExtension(path);
-                                    if (string.Equals(ext, ".zip", StringComparison.OrdinalIgnoreCase) || string.Equals(ext, ".egg", StringComparison.OrdinalIgnoreCase))
-                                    {
-                                        MessageBox.Show("Opening source files contained in .zip archives is not supported", "Cannot open file", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                                        return VSConstants.S_FALSE;
-                                    }
-                                }
-                                path = Path.GetDirectoryName(path);
-                            }
-                            // If it failed for some other reason, let caller handle it.
-                            throw;
-                        }
-                    }
-
-                    public int NavigateToHelp()
-                    {
-                        return VSConstants.E_NOTIMPL;
-                    }
-
-                    public int OnDeleteTask()
-                    {
-                        return VSConstants.E_NOTIMPL;
-                    }
-
-                    public int OnFilterTask(int fVisible)
-                    {
-                        return VSConstants.E_NOTIMPL;
-                    }
-
-                    public int SubcategoryIndex(out int pIndex)
-                    {
-                        pIndex = 0;
-                        return VSConstants.E_NOTIMPL;
-                    }
-
-                    public int get_Checked(out int pfChecked)
-                    {
-                        pfChecked = 0;
-                        return VSConstants.S_OK;
-                    }
-
-                    public int get_Priority(VSTASKPRIORITY[] ptpPriority)
-                    {
-                        ptpPriority[0] = _isError ? VSTASKPRIORITY.TP_HIGH : VSTASKPRIORITY.TP_NORMAL;
-                        return VSConstants.S_OK;
-                    }
-
-                    public int get_Text(out string pbstrName)
-                    {
-                        pbstrName = Message;
-                        return VSConstants.S_OK;
-                    }
-
-                    public int put_Checked(int fChecked)
-                    {
-                        return VSConstants.E_NOTIMPL;
-                    }
-
-                    public int put_Priority(VSTASKPRIORITY tpPriority)
-                    {
-                        return VSConstants.E_NOTIMPL;
-                    }
-
-                    public int put_Text(string bstrName)
-                    {
-                        return VSConstants.E_NOTIMPL;
-                    }
-
-                    #endregion
-                }
-            }
-        }
-
-
         public void Dispose()
         {
-            if (_taskProvider.IsValueCreated)
+            foreach(var proj in _projects.Values)
             {
-                _taskProvider.Value.UpdateTasks();
+                foreach(var entry in proj.ProjectEntries.Values)
+                {
+                    _errorProvider.Clear(entry, ParserTaskMoniker);
+                    //_errorProvider.Clear(entry, UnresolvedImportMoniker);
+                    //_commentTaskProvider.Clear(entry, ParserTaskMoniker);
+                }
+
+                // TODO: dispose of error providers for referenced projects
+                int i = 0;
             }
 
             _analysisQueue.Stop();

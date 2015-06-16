@@ -59,6 +59,7 @@ namespace Microsoft.VisualStudioTools.Project {
         public abstract string GetProductVersion();
 
         protected override void Initialize() {
+            UIThread.EnsureService(this);
             base.Initialize();
             this.RegisterProjectFactory(CreateProjectFactory());
             var editFactory = CreateEditorFactory();

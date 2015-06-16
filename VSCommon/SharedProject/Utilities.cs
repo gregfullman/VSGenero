@@ -84,6 +84,39 @@ namespace Microsoft.VisualStudioTools.Project
         }
 
         /// <summary>
+        /// Use this instead of VsShellUtilities.ShowMessageBox because VSU uses ThreadHelper which
+        /// uses a private interface that can't be mocked AND goes to the global service provider.
+        /// </summary>
+        public static int ShowMessageBox(IServiceProvider serviceProvider, string message, string title, OLEMSGICON icon, OLEMSGBUTTON msgButton, OLEMSGDEFBUTTON defaultButton)
+        {
+            IVsUIShell uiShell = serviceProvider.GetService(typeof(IVsUIShell)) as IVsUIShell;
+            Debug.Assert(uiShell != null, "Could not get the IVsUIShell object from the services exposed by this serviceprovider");
+            if (uiShell == null)
+            {
+                throw new InvalidOperationException();
+            }
+
+            Guid emptyGuid = Guid.Empty;
+            int result = 0;
+
+            serviceProvider.GetUIThread().Invoke(() => {
+                ErrorHandler.ThrowOnFailure(uiShell.ShowMessageBox(
+                    0,
+                    ref emptyGuid,
+                    title,
+                    message,
+                    null,
+                    0,
+                    msgButton,
+                    defaultButton,
+                    icon,
+                    0,
+                    out result));
+            });
+            return result;
+        }
+
+        /// <summary>
         /// Creates a semicolon delinited list of strings. This can be used to provide the properties for VSHPROPID_CfgPropertyPagesCLSIDList, VSHPROPID_PropertyPagesCLSIDList, VSHPROPID_PriorityPropertyPagesCLSIDList
         /// </summary>
         /// <param name="guids">An array of Guids.</param>
@@ -133,6 +166,18 @@ namespace Microsoft.VisualStudioTools.Project
             return guids.ToArray();
         }
 
+        internal static bool GuidEquals(string x, string y)
+        {
+            Guid gx, gy;
+            return Guid.TryParse(x, out gx) && Guid.TryParse(y, out gy) && gx == gy;
+        }
+
+        internal static bool GuidEquals(Guid x, string y)
+        {
+            Guid gy;
+            return Guid.TryParse(y, out gy) && x == gy;
+        }
+
         public static void CheckNotNull(object value, string message = null)
         {
             if (value == null)
@@ -167,15 +212,15 @@ namespace Microsoft.VisualStudioTools.Project
             string errorMessage = String.Empty;
             if (String.IsNullOrEmpty(filePath))
             {
-                errorMessage = String.Format(SR.GetString(SR.ErrorInvalidFileName, CultureInfo.CurrentUICulture), filePath);
+                errorMessage = SR.GetString(SR.ErrorInvalidFileName, filePath);
             }
             else if (filePath.Length > NativeMethods.MAX_PATH)
             {
-                errorMessage = String.Format(CultureInfo.CurrentCulture, SR.GetString(SR.PathTooLong, CultureInfo.CurrentUICulture), filePath);
+                errorMessage = SR.GetString(SR.PathTooLong, filePath);
             }
             else if (ContainsInvalidFileNameChars(filePath))
             {
-                errorMessage = String.Format(SR.GetString(SR.ErrorInvalidFileName, CultureInfo.CurrentUICulture), filePath);
+                errorMessage = SR.GetString(SR.ErrorInvalidFileName, filePath);
             }
 
             if (errorMessage.Length == 0)
@@ -183,7 +228,7 @@ namespace Microsoft.VisualStudioTools.Project
                 string fileName = Path.GetFileName(filePath);
                 if (String.IsNullOrEmpty(fileName) || IsFileNameInvalid(fileName))
                 {
-                    errorMessage = String.Format(SR.GetString(SR.ErrorInvalidFileName, CultureInfo.CurrentUICulture), filePath);
+                    errorMessage = SR.GetString(SR.ErrorInvalidFileName, filePath);
                 }
             }
 
@@ -212,8 +257,6 @@ namespace Microsoft.VisualStudioTools.Project
         /// </summary>
         /// <param name="guids"></param>
         /// <returns>A CALPOLESTR that was created from the the list of strings.</returns>
-
-        [SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "CALPOLESTR")]
         public static CALPOLESTR CreateCALPOLESTR(IList<string> strings)
         {
             CALPOLESTR calpolStr = new CALPOLESTR();
@@ -248,8 +291,6 @@ namespace Microsoft.VisualStudioTools.Project
         /// </summary>
         /// <param name="guids"></param>
         /// <returns>A CADWORD created from the list of tagVsSccFilesFlags.</returns>
-
-        [SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "CADWORD")]
         public static CADWORD CreateCADWORD(IList<tagVsSccFilesFlags> flags)
         {
             CADWORD cadWord = new CADWORD();
@@ -289,6 +330,7 @@ namespace Microsoft.VisualStudioTools.Project
 
             if (imageStream == null)
             {
+                Debug.Fail("ImageStream was null.");
                 return ilist;
             }
             ilist.ColorDepth = ColorDepth.Depth24Bit;
@@ -303,7 +345,7 @@ namespace Microsoft.VisualStudioTools.Project
         /// Gets the active configuration name.
         /// </summary>
         /// <param name="automationObject">The automation object.</param>
-        /// <returns>The name of the active configuartion.</returns>		
+        /// <returns>The name of the active configuartion.</returns>
         internal static string GetActiveConfigurationName(EnvDTE.Project automationObject)
         {
             Utilities.ArgumentNotNull("automationObject", automationObject);
@@ -337,7 +379,6 @@ namespace Microsoft.VisualStudioTools.Project
         /// <param name="obj1">Can be an object, interface or IntPtr</param>
         /// <param name="obj2">Can be an object, interface or IntPtr</param>
         /// <returns>True if the 2 items represent the same thing</returns>
-        [SuppressMessage("Microsoft.Naming", "CA1720:IdentifiersShouldNotContainTypeNames", MessageId = "obj")]
         public static bool IsSameComObject(object obj1, object obj2)
         {
             bool isSame = false;
@@ -395,7 +436,7 @@ namespace Microsoft.VisualStudioTools.Project
                 }
 
                 // We might already have an IUnknown, but if this is an aggregated
-                // object, it may not be THE IUnknown until we QI for it.				
+                // object, it may not be THE IUnknown until we QI for it.
                 Guid IID_IUnknown = VSConstants.IID_IUnknown;
                 ErrorHandler.ThrowOnFailure(Marshal.QueryInterface(unknown, ref IID_IUnknown, out result));
             }
@@ -561,7 +602,8 @@ namespace Microsoft.VisualStudioTools.Project
         {
             // A valid file name cannot be all "c" .
             int charFound = 0;
-            for (charFound = 0; charFound < fileName.Length && fileName[charFound] == c; ++charFound) ;
+            for (charFound = 0; charFound < fileName.Length && fileName[charFound] == c; ++charFound)
+                ;
             if (charFound >= fileName.Length)
             {
                 return true;
@@ -643,7 +685,7 @@ namespace Microsoft.VisualStudioTools.Project
         {
             // Make sure it doesn't already exist
             if (Directory.Exists(target))
-                throw new ArgumentException(String.Format(CultureInfo.CurrentCulture, SR.GetString(SR.FileOrFolderAlreadyExists, CultureInfo.CurrentUICulture), target));
+                throw new ArgumentException(SR.GetString(SR.FileOrFolderAlreadyExists, target));
 
             Directory.CreateDirectory(target);
             DirectoryInfo directory = new DirectoryInfo(source);
@@ -704,14 +746,17 @@ namespace Microsoft.VisualStudioTools.Project
         /// Save dirty files
         /// </summary>
         /// <returns>Whether succeeded</returns>
-        public static bool SaveDirtyFiles() {
+        public static bool SaveDirtyFiles()
+        {
             var rdt = ServiceProvider.GlobalProvider.GetService(typeof(SVsRunningDocumentTable)) as IVsRunningDocumentTable;
-            if (rdt != null) {
+            if (rdt != null)
+            {
                 // Consider using (uint)(__VSRDTSAVEOPTIONS.RDTSAVEOPT_SaveIfDirty | __VSRDTSAVEOPTIONS.RDTSAVEOPT_PromptSave)
                 // when VS settings include prompt for save on build
                 var saveOpt = (uint)__VSRDTSAVEOPTIONS.RDTSAVEOPT_SaveIfDirty;
                 var hr = rdt.SaveDocuments(saveOpt, null, VSConstants.VSITEMID_NIL, VSConstants.VSCOOKIE_NIL);
-                if (hr == VSConstants.E_ABORT) {
+                if (hr == VSConstants.E_ABORT)
+                {
                     return false;
                 }
             }

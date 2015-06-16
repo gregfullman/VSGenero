@@ -156,28 +156,13 @@ namespace Microsoft.VisualStudioTools.Project
         #endregion
 
         #region methods
-        /// <summary>
-        /// Closes the node.
-        /// </summary>
-        /// <returns></returns>
-        public override void Close()
-        {
-            try
-            {
-                this.Dispose(true);
-            }
-            finally
-            {
-                base.Close();
-            }
-        }
 
         /// <summary>
         /// Links a reference node to the project and hierarchy.
         /// </summary>
         protected override void BindReferenceData()
         {
-            UIThread.Instance.MustBeCalledFromUIThread();
+            ProjectMgr.Site.GetUIThread().MustBeCalledFromUIThread();
 
             Debug.Assert(this.assemblyName != null, "The AssemblyName field has not been initialized");
 
@@ -249,11 +234,12 @@ namespace Microsoft.VisualStudioTools.Project
         {
             ReferenceContainerNode referencesFolder = this.ProjectMgr.GetReferenceContainer() as ReferenceContainerNode;
             Debug.Assert(referencesFolder != null, "Could not find the References node");
-            if (referencesFolder == null) {
+            if (referencesFolder == null)
+            {
                 // Return true so that our caller does not try and add us.
                 return true;
             }
-            
+
             bool shouldCheckPath = !string.IsNullOrEmpty(this.Url);
 
             for (HierarchyNode n = referencesFolder.FirstChild; n != null; n = n.NextSibling)
@@ -357,7 +343,7 @@ namespace Microsoft.VisualStudioTools.Project
         /// </summary>
         private void SetReferenceProperties()
         {
-            UIThread.Instance.MustBeCalledFromUIThread();
+            ProjectMgr.Site.GetUIThread().MustBeCalledFromUIThread();
 
             // Set a default HintPath for msbuild to be able to resolve the reference.
             this.ItemNode.SetMetadata(ProjectFileConstants.HintPath, this.assemblyPath);
@@ -448,11 +434,12 @@ namespace Microsoft.VisualStudioTools.Project
         protected virtual void OnAssemblyReferenceChangedOnDisk(object sender, FileChangedOnDiskEventArgs e)
         {
             Debug.Assert(e != null, "No event args specified for the FileChangedOnDisk event");
-            if (e == null) {
+            if (e == null)
+            {
                 return;
             }
 
-            // We only care about file deletes, so check for one before enumerating references.			
+            // We only care about file deletes, so check for one before enumerating references.
             if ((e.FileChangeFlag & _VSFILECHANGEFLAGS.VSFILECHG_Del) == 0)
             {
                 return;

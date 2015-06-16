@@ -50,8 +50,10 @@ namespace Microsoft.VisualStudioTools.Project
         private IVsProjectFlavorCfg flavoredCfg;
         private List<OutputGroup> outputGroups;
         private BuildableProjectConfig buildableCfg;
+        private string platformName;
 
         #region properties
+
         internal ProjectNode ProjectMgr
         {
             get
@@ -69,6 +71,18 @@ namespace Microsoft.VisualStudioTools.Project
             set
             {
                 this.configName = value;
+            }
+        }
+
+        public string PlatformName
+        {
+            get
+            {
+                return platformName;
+            }
+            set
+            {
+                platformName = value;
             }
         }
 
@@ -111,7 +125,24 @@ namespace Microsoft.VisualStudioTools.Project
         internal ProjectConfig(ProjectNode project, string configuration)
         {
             this.project = project;
-            this.configName = configuration;
+
+            if (configuration.Contains("|"))
+            { // If configuration is in the form "<Configuration>|<Platform>"
+                string[] configStrArray = configuration.Split('|');
+                if (2 == configStrArray.Length)
+                {
+                    this.configName = configStrArray[0];
+                    this.platformName = configStrArray[1];
+                }
+                else
+                {
+                    throw new Exception(string.Format(CultureInfo.InvariantCulture, "Invalid configuration format: {0}", configuration));
+                }
+            }
+            else
+            { // If configuration is in the form "<Configuration>"          
+                this.configName = configuration;
+            }
 
             var flavoredCfgProvider = ProjectMgr.GetOuterInterface<IVsProjectFlavorCfgProvider>();
             Utilities.ArgumentNotNull("flavoredCfgProvider", flavoredCfgProvider);
@@ -122,7 +153,7 @@ namespace Microsoft.VisualStudioTools.Project
             IPersistXMLFragment persistXML = flavoredCfg as IPersistXMLFragment;
             if (null != persistXML)
             {
-                this.project.LoadXmlFragment(persistXML, configName);
+                this.project.LoadXmlFragment(persistXML, configName, platformName);
             }
         }
         #endregion
@@ -135,7 +166,8 @@ namespace Microsoft.VisualStudioTools.Project
             return outputGroup;
         }
 
-        public void PrepareBuild(bool clean) {
+        public void PrepareBuild(bool clean)
+        {
             project.PrepareBuild(this.configName, clean);
         }
 
@@ -257,7 +289,7 @@ namespace Microsoft.VisualStudioTools.Project
         /// Implementation of the IVsSpecifyProjectDesignerPages. It will retun the pages that are configuration dependent.
         /// </summary>
         /// <param name="pages">The pages to return.</param>
-        /// <returns>VSConstants.S_OK</returns>		
+        /// <returns>VSConstants.S_OK</returns>
         public virtual int GetProjectDesignerPages(CAUUID[] pages)
         {
             this.GetCfgPropertyPages(pages);
@@ -272,7 +304,15 @@ namespace Microsoft.VisualStudioTools.Project
         /// </summary>
         public virtual int get_DisplayName(out string name)
         {
-            name = DisplayName;
+            if (!string.IsNullOrEmpty(PlatformName))
+            {
+                name = ConfigName + "|" + PlatformName;
+
+            }
+            else
+            {
+                name = DisplayName;
+            }
             return VSConstants.S_OK;
         }
 
@@ -331,7 +371,8 @@ namespace Microsoft.VisualStudioTools.Project
                 pb = null;
                 return VSConstants.E_NOTIMPL;
             }
-            if (buildableCfg == null) {
+            if (buildableCfg == null)
+            {
                 buildableCfg = new BuildableProjectConfig(this);
             }
             pb = buildableCfg;
@@ -590,7 +631,7 @@ namespace Microsoft.VisualStudioTools.Project
 
             if (pages.Length == 0)
             {
-                throw new ArgumentException(SR.GetString(SR.InvalidParameter, CultureInfo.CurrentUICulture), "pages");
+                throw new ArgumentException(SR.GetString(SR.InvalidParameter), "pages");
             }
 
             // Retrive the list of guids from hierarchy properties.
@@ -678,6 +719,12 @@ namespace Microsoft.VisualStudioTools.Project
             var earliestOutput = DateTime.MaxValue;
             bool mustRebuild = false;
 
+            var allInputs = new HashSet<string>(OutputGroups
+                .Where(g => IsInputGroup(g.Name))
+                .SelectMany(x => x.EnumerateOutputs())
+                .Select(input => input.CanonicalName),
+                StringComparer.OrdinalIgnoreCase
+            );
             foreach (var group in OutputGroups.Where(g => !IsInputGroup(g.Name)))
             {
                 foreach (var output in group.EnumerateOutputs())
@@ -714,6 +761,12 @@ namespace Microsoft.VisualStudioTools.Project
                         {
                             continue;
                         }
+                    }
+
+                    // output is an input, ignore it...
+                    if (allInputs.Contains(path))
+                    {
+                        continue;
                     }
 
                     if (modifiedTime.Value < earliestOutput)
@@ -835,10 +888,19 @@ namespace Microsoft.VisualStudioTools.Project
             if (iidCfg == typeof(IVsDebuggableProjectCfg).GUID)
             {
                 ppCfg = Marshal.GetComInterfaceForObject(this, typeof(IVsDebuggableProjectCfg));
-            } else if (iidCfg == typeof(IVsBuildableProjectCfg).GUID) {
+            }
+            else if (iidCfg == typeof(IVsBuildableProjectCfg).GUID)
+            {
                 IVsBuildableProjectCfg buildableConfig;
                 this.get_BuildableProjectCfg(out buildableConfig);
-                ppCfg = Marshal.GetComInterfaceForObject(buildableConfig, typeof(IVsBuildableProjectCfg));
+                //
+                //In some cases we've intentionally shutdown the build options
+                //  If buildableConfig is null then don't try to get the BuildableProjectCfg interface
+                //  
+                if (null != buildableConfig)
+                {
+                    ppCfg = Marshal.GetComInterfaceForObject(buildableConfig, typeof(IVsBuildableProjectCfg));
+                }
             }
 
             // If not supported
@@ -852,32 +914,36 @@ namespace Microsoft.VisualStudioTools.Project
     }
 
     [ComVisible(true)]
-    [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Buildable")]
-    internal class BuildableProjectConfig : IVsBuildableProjectCfg {
+    internal class BuildableProjectConfig : IVsBuildableProjectCfg
+    {
         #region fields
         ProjectConfig config = null;
         EventSinkCollection callbacks = new EventSinkCollection();
         #endregion
 
         #region ctors
-        public BuildableProjectConfig(ProjectConfig config) {
+        public BuildableProjectConfig(ProjectConfig config)
+        {
             this.config = config;
         }
         #endregion
 
         #region IVsBuildableProjectCfg methods
 
-        public virtual int AdviseBuildStatusCallback(IVsBuildStatusCallback callback, out uint cookie) {
+        public virtual int AdviseBuildStatusCallback(IVsBuildStatusCallback callback, out uint cookie)
+        {
             cookie = callbacks.Add(callback);
             return VSConstants.S_OK;
         }
 
-        public virtual int get_ProjectCfg(out IVsProjectCfg p) {
+        public virtual int get_ProjectCfg(out IVsProjectCfg p)
+        {
             p = config;
             return VSConstants.S_OK;
         }
 
-        public virtual int QueryStartBuild(uint options, int[] supported, int[] ready) {
+        public virtual int QueryStartBuild(uint options, int[] supported, int[] ready)
+        {
             if (supported != null && supported.Length > 0)
                 supported[0] = 1;
             if (ready != null && ready.Length > 0)
@@ -885,7 +951,8 @@ namespace Microsoft.VisualStudioTools.Project
             return VSConstants.S_OK;
         }
 
-        public virtual int QueryStartClean(uint options, int[] supported, int[] ready) {
+        public virtual int QueryStartClean(uint options, int[] supported, int[] ready)
+        {
             if (supported != null && supported.Length > 0)
                 supported[0] = 1;
             if (ready != null && ready.Length > 0)
@@ -893,7 +960,8 @@ namespace Microsoft.VisualStudioTools.Project
             return VSConstants.S_OK;
         }
 
-        public virtual int QueryStartUpToDateCheck(uint options, int[] supported, int[] ready) {
+        public virtual int QueryStartUpToDateCheck(uint options, int[] supported, int[] ready)
+        {
             if (supported != null && supported.Length > 0)
                 supported[0] = 1;
             if (ready != null && ready.Length > 0)
@@ -901,12 +969,14 @@ namespace Microsoft.VisualStudioTools.Project
             return VSConstants.S_OK;
         }
 
-        public virtual int QueryStatus(out int done) {
+        public virtual int QueryStatus(out int done)
+        {
             done = (this.config.ProjectMgr.BuildInProgress) ? 0 : 1;
             return VSConstants.S_OK;
         }
 
-        public virtual int StartBuild(IVsOutputWindowPane pane, uint options) {
+        public virtual int StartBuild(IVsOutputWindowPane pane, uint options)
+        {
             config.PrepareBuild(false);
 
             // Current version of MSBuild wish to be called in an STA
@@ -918,29 +988,34 @@ namespace Microsoft.VisualStudioTools.Project
             return VSConstants.S_OK;
         }
 
-        public virtual int StartClean(IVsOutputWindowPane pane, uint options) {
+        public virtual int StartClean(IVsOutputWindowPane pane, uint options)
+        {
             config.PrepareBuild(true);
             // Current version of MSBuild wish to be called in an STA
             this.Build(options, pane, MsBuildTarget.Clean);
             return VSConstants.S_OK;
         }
 
-        public virtual int StartUpToDateCheck(IVsOutputWindowPane pane, uint options) {
+        public virtual int StartUpToDateCheck(IVsOutputWindowPane pane, uint options)
+        {
             return config.IsUpToDate() ?
                 VSConstants.S_OK :
                 VSConstants.E_FAIL;
         }
 
-        public virtual int Stop(int fsync) {
+        public virtual int Stop(int fsync)
+        {
             return VSConstants.S_OK;
         }
 
-        public virtual int UnadviseBuildStatusCallback(uint cookie) {
+        public virtual int UnadviseBuildStatusCallback(uint cookie)
+        {
             callbacks.RemoveAt(cookie);
             return VSConstants.S_OK;
         }
 
-        public virtual int Wait(uint ms, int fTickWhenMessageQNotEmpty) {
+        public virtual int Wait(uint ms, int fTickWhenMessageQNotEmpty)
+        {
             return VSConstants.E_NOTIMPL;
         }
         #endregion
@@ -948,17 +1023,23 @@ namespace Microsoft.VisualStudioTools.Project
         #region helpers
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
-        private bool NotifyBuildBegin() {
+        private bool NotifyBuildBegin()
+        {
             int shouldContinue = 1;
-            foreach (IVsBuildStatusCallback cb in callbacks) {
-                try {
+            foreach (IVsBuildStatusCallback cb in callbacks)
+            {
+                try
+                {
                     ErrorHandler.ThrowOnFailure(cb.BuildBegin(ref shouldContinue));
-                    if (shouldContinue == 0) {
+                    if (shouldContinue == 0)
+                    {
                         return false;
                     }
-                } catch (Exception e) {
+                }
+                catch (Exception e)
+                {
                     // If those who ask for status have bugs in their code it should not prevent the build/notification from happening
-                    Debug.Fail(String.Format(CultureInfo.CurrentCulture, SR.GetString(SR.BuildEventError, CultureInfo.CurrentUICulture), e.Message));
+                    Debug.Fail(SR.GetString(SR.BuildEventError, e.Message));
                 }
             }
 
@@ -966,16 +1047,23 @@ namespace Microsoft.VisualStudioTools.Project
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
-        private void NotifyBuildEnd(MSBuildResult result, string buildTarget) {
+        private void NotifyBuildEnd(MSBuildResult result, string buildTarget)
+        {
             int success = ((result == MSBuildResult.Successful) ? 1 : 0);
 
-            foreach (IVsBuildStatusCallback cb in callbacks) {
-                try {
+            foreach (IVsBuildStatusCallback cb in callbacks)
+            {
+                try
+                {
                     ErrorHandler.ThrowOnFailure(cb.BuildEnd(success));
-                } catch (Exception e) {
+                }
+                catch (Exception e)
+                {
                     // If those who ask for status have bugs in their code it should not prevent the build/notification from happening
-                    Debug.Fail(String.Format(CultureInfo.CurrentCulture, SR.GetString(SR.BuildEventError, CultureInfo.CurrentUICulture), e.Message));
-                } finally {
+                    Debug.Fail(SR.GetString(SR.BuildEventError, e.Message));
+                }
+                finally
+                {
                     // We want to refresh the references if we are building with the Build or Rebuild target or if the project was opened for browsing only.
                     bool shouldRepaintReferences = (buildTarget == null || buildTarget == MsBuildTarget.Build || buildTarget == MsBuildTarget.Rebuild);
 
@@ -984,26 +1072,38 @@ namespace Microsoft.VisualStudioTools.Project
                     // One scenario to think at is when an assembly reference is renamed on disk thus becomming unresolvable, 
                     // but msbuild can actually resolve it.
                     // Another one if the project was opened only for browsing and now the user chooses to build or rebuild.
-                    if (shouldRepaintReferences && (result == MSBuildResult.Successful)) {
+                    if (shouldRepaintReferences && (result == MSBuildResult.Successful))
+                    {
                         this.RefreshReferences();
                     }
                 }
             }
         }
 
-        private void Build(uint options, IVsOutputWindowPane output, string target) {
-            if (!this.NotifyBuildBegin()) {
+        private void Build(uint options, IVsOutputWindowPane output, string target)
+        {
+            if (!this.NotifyBuildBegin())
+            {
                 return;
             }
 
-            try {
+            try
+            {
                 config.ProjectMgr.BuildAsync(options, this.config.ConfigName, output, target, (result, buildTarget) => this.NotifyBuildEnd(result, buildTarget));
-            } catch (Exception e) {
+            }
+            catch (Exception e)
+            {
+                if (e.IsCriticalException())
+                {
+                    throw;
+                }
                 Trace.WriteLine("Exception : " + e.Message);
                 ErrorHandler.ThrowOnFailure(output.OutputStringThreadSafe("Unhandled Exception:" + e.Message + "\n"));
                 this.NotifyBuildEnd(MSBuildResult.Failed, target);
                 throw;
-            } finally {
+            }
+            finally
+            {
                 ErrorHandler.ThrowOnFailure(output.FlushToTaskList());
             }
         }
@@ -1011,11 +1111,14 @@ namespace Microsoft.VisualStudioTools.Project
         /// <summary>
         /// Refreshes references and redraws them correctly.
         /// </summary>
-        private void RefreshReferences() {
+        private void RefreshReferences()
+        {
             // Refresh the reference container node for assemblies that could be resolved.
             IReferenceContainer referenceContainer = this.config.ProjectMgr.GetReferenceContainer();
-            if (referenceContainer != null) {
-                foreach (ReferenceNode referenceNode in referenceContainer.EnumReferences()) {
+            if (referenceContainer != null)
+            {
+                foreach (ReferenceNode referenceNode in referenceContainer.EnumReferences())
+                {
                     referenceNode.RefreshReference();
                 }
             }

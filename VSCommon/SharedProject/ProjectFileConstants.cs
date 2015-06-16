@@ -19,7 +19,6 @@ namespace Microsoft.VisualStudioTools.Project
     /// <summary>
     /// Defines the constant strings for various msbuild targets
     /// </summary>
-    [SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "Ms")]
     public static class MsBuildTarget
     {
         public const string ResolveProjectReferences = "ResolveProjectReferences";
@@ -30,7 +29,6 @@ namespace Microsoft.VisualStudioTools.Project
         public const string Clean = "Clean";
     }
 
-    [SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "Ms")]
     public static class MsBuildGeneratedItemType
     {
         public const string ReferenceCopyLocalPaths = "ReferenceCopyLocalPaths";
@@ -40,7 +38,6 @@ namespace Microsoft.VisualStudioTools.Project
     /// <summary>
     /// Defines the constant strings used with project files.
     /// </summary>
-    [SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "COM")]
     public static class ProjectFileConstants
     {
         public const string Include = "Include";
@@ -63,11 +60,11 @@ namespace Microsoft.VisualStudioTools.Project
         public const string EmbeddedResource = "EmbeddedResource";
         public const string RootNamespace = "RootNamespace";
         public const string OutputType = "OutputType";
-        [SuppressMessage("Microsoft.Naming", "CA1702:CompoundWordsShouldBeCasedCorrectly", MessageId = "SubType")]
         public const string SubType = "SubType";
         public const string DependentUpon = "DependentUpon";
         public const string Link = "Link";
         public const string Compile = "Compile";
+        public const string None = "None";
         public const string ReferencePath = "ReferencePath";
         public const string ResolvedProjectReferencePaths = "ResolvedProjectReferencePaths";
         public const string Configuration = "Configuration";
@@ -75,26 +72,19 @@ namespace Microsoft.VisualStudioTools.Project
         public const string AvailablePlatforms = "AvailablePlatforms";
         public const string BuildVerbosity = "BuildVerbosity";
         public const string Template = "Template";
-        [SuppressMessage("Microsoft.Naming", "CA1702:CompoundWordsShouldBeCasedCorrectly", MessageId = "SubProject")]
         public const string SubProject = "SubProject";
         public const string BuildAction = "BuildAction";
-        [SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "COM")]
         public const string COMReference = "COMReference";
         public const string Guid = "GUID";
         public const string VersionMajor = "VersionMajor";
         public const string VersionMinor = "VersionMinor";
-        [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Lcid")]
         public const string Lcid = "Lcid";
         public const string Isolated = "Isolated";
         public const string WrapperTool = "WrapperTool";
         public const string BuildingInsideVisualStudio = "BuildingInsideVisualStudio";
-        [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Scc")]
         public const string SccProjectName = "SccProjectName";
-        [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Scc")]
         public const string SccLocalPath = "SccLocalPath";
-        [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Scc")]
         public const string SccAuxPath = "SccAuxPath";
-        [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Scc")]
         public const string SccProvider = "SccProvider";
         public const string ProjectGuid = "ProjectGuid";
         public const string ProjectTypeGuids = "ProjectTypeGuids";
@@ -103,6 +93,9 @@ namespace Microsoft.VisualStudioTools.Project
         public const string FlavorProperties = "FlavorProperties";
         public const string VisualStudio = "VisualStudio";
         public const string User = "User";
+        public const string PlatformAware = "PlatformAware";
+        public const string AppxPackage = "AppxPackage";
+        public const string WindowsAppContainer = "WindowsAppContainer";
     }
 
     public static class ProjectFileAttributeValue

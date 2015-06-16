@@ -454,5 +454,12 @@ namespace VSGenero.EditorExtensions.Intellisense
             return mixedChanges;
         }
 
+        internal ITextDocument Document
+        {
+            get
+            {
+                return _document;
+            }
+        }
     }
 }
