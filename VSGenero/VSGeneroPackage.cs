@@ -334,12 +334,39 @@ namespace VSGenero
             set { _functionProvider = value; }
         }
 
+        #region Program File Provider
+
+        private object _programFileProviderLock = new object();
         private IProgramFileProvider _programFileProvider;
         public IProgramFileProvider ProgramFileProvider
         {
             get { return _programFileProvider; }
-            set { _programFileProvider = value; }
+            set 
+            {
+                lock (_programFileProviderLock)
+                {
+                    if (_programFileProvider == null)
+                    {
+                        _programFileProvider = value;
+                        _programFileProvider.ImportModuleLocationChanged += _programFileProvider_ImportModuleLocationChanged;
+                        _programFileProvider.IncludeFileLocationChanged += _programFileProvider_IncludeFileLocationChanged;
+                    }
+                }
+            }
         }
+
+        void _programFileProvider_IncludeFileLocationChanged(object sender, IncludeFileLocationChangedEventArgs e)
+        {
+            int i = 0;
+        }
+
+        void _programFileProvider_ImportModuleLocationChanged(object sender, ImportModuleLocationChangedEventArgs e)
+        {
+            // TODO: any projects in the analyzer that are referencing the specified module need to be updated
+            DefaultAnalyzer.UpdateImportedProject(e.ImportModule, e.NewLocation);
+        }
+
+        #endregion
 
         private List<IContentType> _programCodeContentTypes;
         public IList<IContentType> ProgramCodeContentTypes

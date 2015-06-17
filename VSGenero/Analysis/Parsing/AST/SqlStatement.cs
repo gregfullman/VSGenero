@@ -536,6 +536,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 if (parser.PeekToken(TokenKind.SetKeyword))
                 {
                     parser.NextToken();
+                    // TODO: there are various constructs that can be used.
                     ExpressionNode setExpr;
                     if (ExpressionNode.TryGetExpressionNode(parser, out setExpr, GeneroAst.ValidStatementKeywords.Union(new[] { TokenKind.WhereKeyword }).ToList()))
                         node.SetExpression = setExpr;

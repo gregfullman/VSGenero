@@ -301,6 +301,32 @@ namespace VSGenero.EditorExtensions.Intellisense
             return projEntry;
         }
 
+        internal void UpdateImportedProject(string projectName, string newProjectPath)
+        {
+            var key = _projects.Keys.FirstOrDefault(x => x.EndsWith(projectName, StringComparison.OrdinalIgnoreCase));
+            if(key != null)
+            {
+                IGeneroProject proj;
+                if (_projects.TryGetValue(key, out proj))
+                {
+                    // need to update the project
+                    RemoveImportedProject(proj.Directory);
+                    if(newProjectPath == null)
+                    {
+                        newProjectPath = VSGeneroPackage.Instance.ProgramFileProvider.GetImportModuleFilename(projectName);
+                    }
+                    var newProj = AddImportedProject(newProjectPath);
+
+                    foreach(var refProj in proj.ReferencingProjectEntries)
+                    {
+                        refProj.ParentProject.RemoveImportedModule(key);
+                        refProj.ParentProject.AddImportedModule(newProjectPath);
+                        newProj.ReferencingProjectEntries.Add(refProj);
+                    }
+                }
+            }
+        }
+
         internal void RemoveImportedProject(string projectPath)
         {
             IGeneroProject proj;
@@ -441,7 +467,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             return true;
         }
 
-        internal void UnloadImportedModules(IGeneroProject project)
+        private void UnloadImportedModules(IGeneroProject project)
         {
             var refList = project.ReferencedProjects.Select(x => x.Value).ToList();
             for (int i = 0; i < refList.Count; i++)
