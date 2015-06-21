@@ -394,14 +394,18 @@ namespace VSGenero.Analysis
             get { return _directory; }
         }
 
+        private object _refProjEntriesLock = new object();
         private HashSet<IGeneroProjectEntry> _referencingProjectEntries;
         public HashSet<IGeneroProjectEntry> ReferencingProjectEntries
         {
             get
             {
-                if (_referencingProjectEntries == null)
-                    _referencingProjectEntries = new HashSet<IGeneroProjectEntry>();
-                return _referencingProjectEntries;
+                lock (_refProjEntriesLock)
+                {
+                    if (_referencingProjectEntries == null)
+                        _referencingProjectEntries = new HashSet<IGeneroProjectEntry>();
+                    return _referencingProjectEntries;
+                }
             }
         }
 
