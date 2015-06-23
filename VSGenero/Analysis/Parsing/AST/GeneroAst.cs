@@ -446,7 +446,8 @@ namespace VSGenero.Analysis.Parsing.AST
                 else
                 {
                     if (SystemVariables.TryGetValue(dotPiece, out res) ||
-                       SystemConstants.TryGetValue(dotPiece, out res))
+                       SystemConstants.TryGetValue(dotPiece, out res) ||
+                        SystemMacros.TryGetValue(dotPiece, out res))
                     {
                         continue;
                     }

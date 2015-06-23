@@ -230,7 +230,10 @@ namespace VSGenero.Analysis.Parsing.AST
                 }
             }
             if (consts)
+            {
                 members.AddRange(SystemConstants.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Keyword, this)));
+                members.AddRange(SystemMacros.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Constant, this)));
+            }
             if (vars)
                 members.AddRange(SystemVariables.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Keyword, this)));
             if (funcs)
