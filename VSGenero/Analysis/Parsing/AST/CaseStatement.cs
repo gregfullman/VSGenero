@@ -113,7 +113,7 @@ namespace VSGenero.Analysis.Parsing.AST
         public int DecoratorEnd { get; set; }
     }
 
-    public class WhenStatement : AstNode
+    public class WhenStatement : AstNode, IOutlinableResult
     {
         public ExpressionNode ConditionExpression { get; private set; }
 
@@ -137,7 +137,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     node.ConditionExpression = expr;
                 else
                     parser.ReportSyntaxError("Case value or conditional expression expected.");
-
+                node.DecoratorEnd = parser.Token.Span.End;
                 while (!parser.PeekToken(TokenKind.EndOfFile) && 
                       !parser.PeekToken(TokenKind.WhenKeyword) &&
                       !parser.PeekToken(TokenKind.OtherwiseKeyword) &&
@@ -167,9 +167,27 @@ namespace VSGenero.Analysis.Parsing.AST
 
             return result;
         }
+
+        public bool CanOutline
+        {
+            get { return true; }
+        }
+
+        public int DecoratorStart
+        {
+            get
+            {
+                return StartIndex;
+            }
+            set
+            {
+            }
+        }
+
+        public int DecoratorEnd { get; set; }
     }
 
-    public class OtherwiseStatement : AstNode
+    public class OtherwiseStatement : AstNode, IOutlinableResult
     {
         public static bool TryParseNode(Parser parser, out OtherwiseStatement node,
                                         IModuleResult containingModule,
@@ -185,7 +203,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 node = new OtherwiseStatement();
                 parser.NextToken();
                 node.StartIndex = parser.Token.Span.Start;
-
+                node.DecoratorEnd = parser.Token.Span.End;
                 while (!parser.PeekToken(TokenKind.EndOfFile) && 
                       !parser.PeekToken(TokenKind.WhenKeyword) &&
                       !parser.PeekToken(TokenKind.OtherwiseKeyword) &&
@@ -215,5 +233,23 @@ namespace VSGenero.Analysis.Parsing.AST
 
             return result;
         }
+
+        public bool CanOutline
+        {
+            get { return true; }
+        }
+
+        public int DecoratorStart
+        {
+            get
+            {
+                return StartIndex;
+            }
+            set
+            {
+            }
+        }
+
+        public int DecoratorEnd { get; set; }
     }
 }
