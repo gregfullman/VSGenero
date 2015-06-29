@@ -116,8 +116,9 @@ namespace VSGenero.Analysis.Parsing.AST
                             }
                         default:
                             {
+                                List<TokenKind> validExits = new List<TokenKind> { TokenKind.ProgramKeyword };
                                 FglStatement statement;
-                                if (parser.StatementFactory.TryParseNode(parser, out statement, containingModule, defNode.BindPrepareCursorFromIdentifier) && statement != null)
+                                if (parser.StatementFactory.TryParseNode(parser, out statement, containingModule, defNode.BindPrepareCursorFromIdentifier, false, validExits) && statement != null)
                                 {
                                     AstNode stmtNode = statement as AstNode;
                                     defNode.Children.Add(stmtNode.StartIndex, stmtNode);

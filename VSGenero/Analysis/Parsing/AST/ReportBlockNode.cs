@@ -130,12 +130,13 @@ namespace VSGenero.Analysis.Parsing.AST
                     }
                 }
 
+                List<TokenKind> validExits = new List<TokenKind> { TokenKind.ProgramKeyword };
                 // try to parse one or more declaration statements
                 while (!parser.PeekToken(TokenKind.EndOfFile) &&
                        !(parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.ReportKeyword, 2)))
                 {
                     FglStatement statement;
-                    if (parser.StatementFactory.TryParseNode(parser, out statement, containingModule, defNode.BindPrepareCursorFromIdentifier) && statement != null)
+                    if (parser.StatementFactory.TryParseNode(parser, out statement, containingModule, defNode.BindPrepareCursorFromIdentifier, false, validExits) && statement != null)
                     {
                         AstNode stmtNode = statement as AstNode;
                         defNode.Children.Add(stmtNode.StartIndex, stmtNode);
