@@ -357,12 +357,11 @@ namespace VSGenero
 
         void _programFileProvider_IncludeFileLocationChanged(object sender, IncludeFileLocationChangedEventArgs e)
         {
-            int i = 0;
+            DefaultAnalyzer.UpdateIncludedFile(e.IncludeFile, e.NewLocation);
         }
 
         void _programFileProvider_ImportModuleLocationChanged(object sender, ImportModuleLocationChangedEventArgs e)
         {
-            // TODO: any projects in the analyzer that are referencing the specified module need to be updated
             DefaultAnalyzer.UpdateImportedProject(e.ImportModule, e.NewLocation);
         }
 

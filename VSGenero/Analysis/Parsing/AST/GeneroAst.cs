@@ -78,7 +78,7 @@ namespace VSGenero.Analysis.Parsing.AST
         {
             if(Body is ModuleNode)
             {
-                return (Body as ModuleNode).IncludeFiles;
+                return (Body as ModuleNode).IncludeFiles.Keys;
             }
             return new string[0];
         }
@@ -667,6 +667,27 @@ namespace VSGenero.Analysis.Parsing.AST
                         }
                     }
 
+                    // try include files
+                    bool foundInclude = false;
+                    foreach(var includeFile in this.ProjectEntry.GetIncludedFiles())
+                    {
+                        if (includeFile.Analysis != null &&
+                            includeFile.Analysis.Body is IModuleResult)
+                        {
+                            var mod = includeFile.Analysis.Body as IModuleResult;
+                            if (mod.Types.TryGetValue(dotPiece, out res) ||
+                               mod.Constants.TryGetValue(dotPiece, out res) ||
+                               mod.GlobalTypes.TryGetValue(dotPiece, out res) ||
+                               mod.GlobalConstants.TryGetValue(dotPiece, out res))
+                            {
+                                foundInclude = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (foundInclude)
+                        continue;
+
                     if (_databaseProvider != null)
                     {
                         res = _databaseProvider.GetTable(dotPiece);
@@ -900,6 +921,24 @@ namespace VSGenero.Analysis.Parsing.AST
                             if (locInfo != null && (locInfo.Index > 0 || (locInfo.Line > 0 && locInfo.Column > 0)))
                                 vars.Add(new AnalysisVariable(locInfo, VariableType.Definition));
                         }
+                    }
+                }
+            }
+
+            foreach(var includeFile in this.ProjectEntry.GetIncludedFiles())
+            {
+                IAnalysisResult res;
+                if(includeFile.Analysis != null &&
+                   includeFile.Analysis.Body is IModuleResult)
+                {
+                    var mod = includeFile.Analysis.Body as IModuleResult;
+                    if (mod.Types.TryGetValue(exprText, out res))
+                    {
+                        vars.Add(new AnalysisVariable(ResolveLocationInternal(null, includeFile, res), VariableType.Definition));
+                    }
+                    if (mod.Constants.TryGetValue(exprText, out res))
+                    {
+                        vars.Add(new AnalysisVariable(ResolveLocationInternal(null, includeFile, res), VariableType.Definition));
                     }
                 }
             }

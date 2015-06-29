@@ -292,6 +292,18 @@ namespace VSGenero.Analysis.Parsing.AST
                         return udt.GetMembers(ast, memberType).Select(x => x.Var).Where(y => y != null);
                     }
                     
+                    foreach(var includedFile in ast.ProjectEntry.GetIncludedFiles())
+                    {
+                        if(includedFile.Analysis != null)
+                        {
+                            var res = includedFile.Analysis.GetValueByIndex(_typeNameString, 1, null, null, null, out definingProject, out projectEntry);
+                            if(res != null)
+                            {
+                                return res.GetMembers(ast, memberType).Select(x => x.Var).Where(y => y != null);
+                            }
+                        }
+                    }
+
                     // try to get the _typeNameString from types available in imported modules
                     if(ast.ProjectEntry.ParentProject.ReferencedProjects.Count > 0)
                     {
@@ -355,6 +367,20 @@ namespace VSGenero.Analysis.Parsing.AST
                     if (udt != null)
                     {
                         return udt.GetMembers(ast, memberType);
+                    }
+
+                    foreach (var includedFile in ast.ProjectEntry.GetIncludedFiles())
+                    {
+                        if (includedFile.Analysis != null)
+                        {
+                            IGeneroProject dummyProj;
+                            IProjectEntry dummyProjEntry;
+                            var res = includedFile.Analysis.GetValueByIndex(_typeNameString, 1, null, null, null, out dummyProj, out dummyProjEntry);
+                            if (res != null)
+                            {
+                                return res.GetMembers(ast, memberType);
+                            }
+                        }
                     }
 
                     if (ast.ProjectEntry.ParentProject.ReferencedProjects.Count > 0)

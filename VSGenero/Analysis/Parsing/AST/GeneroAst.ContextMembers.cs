@@ -362,6 +362,8 @@ namespace VSGenero.Analysis.Parsing.AST
                 members.Add(new MemberResult(_functionProvider.Name, GeneroMemberType.Namespace, this));
             }
 
+            members.AddRange(this.ProjectEntry.GetIncludedFiles().Where(x => x.Analysis != null).SelectMany(x => x.Analysis.GetDefinedMembers(1, vars, consts, types, funcs)));
+
             return members;
         }
 

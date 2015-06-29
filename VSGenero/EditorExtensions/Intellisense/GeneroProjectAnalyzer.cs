@@ -60,12 +60,29 @@ namespace VSGenero.EditorExtensions.Intellisense
         }
     }
 
+    public class GeneroProjectEntryComparer : IEqualityComparer<IGeneroProjectEntry>
+    {
+        public bool Equals(IGeneroProjectEntry x, IGeneroProjectEntry y)
+        {
+            return string.Equals(x.FilePath, y.FilePath, StringComparison.OrdinalIgnoreCase);
+        }
+
+        public int GetHashCode(IGeneroProjectEntry obj)
+        {
+            return obj.FilePath.GetHashCode();
+        }
+    }
+
     public class GeneroProjectAnalyzer : IDisposable
     {
+        private static GeneroProjectEntryComparer ProjectEntryComparer = new GeneroProjectEntryComparer();
         private readonly ParseQueue _queue;
         private readonly AnalysisQueue _analysisQueue;
         private readonly Dictionary<BufferParser, IProjectEntry> _openFiles = new Dictionary<BufferParser, IProjectEntry>();
         private readonly ConcurrentDictionary<string, IGeneroProject> _projects;
+
+
+
         private readonly bool _implicitProject;
         private readonly AutoResetEvent _queueActivityEvent = new AutoResetEvent(false);
 
@@ -97,6 +114,9 @@ namespace VSGenero.EditorExtensions.Intellisense
             _implicitProject = implicitProject;
 
             _projects = new ConcurrentDictionary<string, IGeneroProject>(StringComparer.OrdinalIgnoreCase);
+            _includeFiles = new ConcurrentDictionary<string, IGeneroProjectEntry>(StringComparer.OrdinalIgnoreCase);
+            _includesToIncludersMap = new ConcurrentDictionary<IGeneroProjectEntry, HashSet<IGeneroProjectEntry>>(ProjectEntryComparer);
+            _includersToIncludesMap = new ConcurrentDictionary<IGeneroProjectEntry, HashSet<IGeneroProjectEntry>>(ProjectEntryComparer);
 
             _userCount = 1;
         }
@@ -210,7 +230,7 @@ namespace VSGenero.EditorExtensions.Intellisense
 
             //if (!buffer.Properties.ContainsProperty(typeof(IReplEvaluator)))
             //{
-                ConnectErrorList(projEntry, buffer);
+            ConnectErrorList(projEntry, buffer);
             //    _errorProvider.AddBufferForErrorSource(projEntry, UnresolvedImportMoniker, buffer);
             //    _unresolvedSquiggles.ListenForNextNewAnalysis(projEntry as IPythonProjectEntry);
             //}
@@ -244,7 +264,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                 //_commentTaskProvider.Clear(bufferParser._currentProjEntry, ParserTaskMoniker);
 
                 string path = bufferParser._currentProjEntry.FilePath;
-                if(path != null)
+                if (path != null)
                 {
                     // TODO: need to rework this stuff
 
@@ -259,29 +279,193 @@ namespace VSGenero.EditorExtensions.Intellisense
                         {
                             proj.ProjectEntries[path].IsOpen = entry.IsOpen = false;
                             // are there any others that are open?
-                            if (!proj.ProjectEntries.Any(x => x.Value != entry && x.Value.IsOpen) &&
-                                proj.ReferencingProjectEntries.Count == 0)
+                            if (!proj.ProjectEntries.Any(x => x.Value != entry && x.Value.IsOpen))
                             {
-                                // before clearing the top level project's entries, we need to go through
-                                // each one and have any Referenced projects remove the entry from their Referencing set.
-                                foreach (var projEntry in proj.ProjectEntries)
+                                if (proj.ReferencingProjectEntries.Count == 0)
                                 {
-                                    foreach (var refProj in proj.ReferencedProjects)
+                                    // before clearing the top level project's entries, we need to go through
+                                    // each one and have any Referenced projects remove the entry from their Referencing set.
+                                    foreach (var projEntry in proj.ProjectEntries)
                                     {
-                                        if (refProj.Value.ReferencingProjectEntries.Contains(projEntry.Value))
-                                            refProj.Value.ReferencingProjectEntries.Remove(projEntry.Value);
+                                        foreach (var refProj in proj.ReferencedProjects)
+                                        {
+                                            if (refProj.Value.ReferencingProjectEntries.Contains(projEntry.Value))
+                                                refProj.Value.ReferencingProjectEntries.Remove(projEntry.Value);
+                                        }
                                     }
+
+                                    // Clear the entry's included files
+                                    foreach (var pEntry in proj.ProjectEntries.Values)
+                                    {
+                                        HashSet<IGeneroProjectEntry> includedFiles;
+                                        if (_includersToIncludesMap.TryGetValue(pEntry, out includedFiles) &&
+                                            includedFiles.Count > 0)
+                                        {
+                                            foreach (var includeFile in includedFiles.ToList())
+                                                RemoveIncludedFile(includeFile.FilePath, pEntry);
+                                        }
+                                    }
+
+                                    proj.ProjectEntries.Clear();
+
+                                    // unload any import modules that are not referenced by anything else.
+                                    UnloadImportedModules(proj);
+
+                                    _projects.TryRemove(dirPath, out proj);
+
+                                    // remove the file from the error list
+                                    _errorProvider.ClearErrorSource(Path.GetDirectoryName(bufferParser._currentProjEntry.FilePath));
                                 }
-                                proj.ProjectEntries.Clear();
-
-                                // unload any import modules that are not referenced by anything else.
-                                UnloadImportedModules(proj);
-
-                                _projects.TryRemove(dirPath, out proj);
-
-                                // remove the file from the error list
-                                _errorProvider.ClearErrorSource(Path.GetDirectoryName(bufferParser._currentProjEntry.FilePath));
                             }
+                        }
+                    }
+                }
+            }
+        }
+
+
+        // includes
+        private readonly object _includeFilesLock = new object();
+        private readonly ConcurrentDictionary<string, IGeneroProjectEntry> _includeFiles;
+        private readonly object _includersLock = new object();
+        private readonly ConcurrentDictionary<IGeneroProjectEntry, HashSet<IGeneroProjectEntry>> _includesToIncludersMap;
+        private readonly ConcurrentDictionary<IGeneroProjectEntry, HashSet<IGeneroProjectEntry>> _includersToIncludesMap;
+
+        internal HashSet<IGeneroProjectEntry> GetIncludedFiles(IGeneroProjectEntry includingProjectEntry)
+        {
+            lock (_includersLock)
+            {
+                HashSet<IGeneroProjectEntry> files = null;
+                if (!_includersToIncludesMap.TryGetValue(includingProjectEntry, out files))
+                    files = new HashSet<IGeneroProjectEntry>();
+                return files;
+            }
+        }
+
+        internal bool IsIncludeFileIncludedByProjectEntry(string includeFilePath, IGeneroProjectEntry includingProjectEntry)
+        {
+            IGeneroProjectEntry includeFileEntry;
+
+            // check to see if the include file path even exists
+            lock (_includeFilesLock)
+            {
+                if (_includeFiles.TryGetValue(includeFilePath, out includeFileEntry))
+                {
+                    lock (_includersLock)
+                    {
+                        HashSet<IGeneroProjectEntry> includingProjectEntries;
+                        if (_includesToIncludersMap.TryGetValue(includeFileEntry, out includingProjectEntries))
+                        {
+                            return includingProjectEntries.Contains(includingProjectEntry);
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        internal IGeneroProjectEntry AddIncludedFile(string includeFilePath, IGeneroProjectEntry includer)
+        {
+            IGeneroProjectEntry includeEntry;
+            lock (_includeFilesLock)
+            {
+                if (!_includeFiles.TryGetValue(includeFilePath, out includeEntry))
+                {
+                    string moduleName = null;   // TODO: get module name from provider (if provider is null, take the file's directory name)
+                    IAnalysisCookie cookie = null;
+                    includeEntry = new GeneroProjectEntry(moduleName, includeFilePath, cookie, false);
+                    _includeFiles.AddOrUpdate(includeFilePath, includeEntry, (x, y) => y);
+                    lock (_includersLock)
+                    {
+                        if (_includesToIncludersMap.ContainsKey(includeEntry))
+                        {
+                            _includesToIncludersMap[includeEntry].Add(includer);
+                        }
+                        else
+                        {
+                            _includesToIncludersMap.AddOrUpdate(includeEntry, new HashSet<IGeneroProjectEntry>(ProjectEntryComparer) { includer }, (x, y) => y);
+                        }
+
+                        if (_includersToIncludesMap.ContainsKey(includer))
+                        {
+                            _includersToIncludesMap[includer].Add(includeEntry);
+                        }
+                        else
+                        {
+                            _includersToIncludesMap.AddOrUpdate(includer, new HashSet<IGeneroProjectEntry>(ProjectEntryComparer) { includeEntry }, (x, y) => y);
+                        }
+                    }
+                    QueueFileAnalysis(includeFilePath);
+                }
+                else
+                {
+                    lock (_includersLock)
+                    {
+                        if (_includesToIncludersMap.ContainsKey(includeEntry))
+                        {
+                            _includesToIncludersMap[includeEntry].Add(includer);
+                        }
+                        else
+                        {
+                            _includesToIncludersMap.AddOrUpdate(includeEntry, new HashSet<IGeneroProjectEntry>(ProjectEntryComparer) { includer }, (x, y) => y);
+                        }
+
+                        if (_includersToIncludesMap.ContainsKey(includer))
+                        {
+                            _includersToIncludesMap[includer].Add(includeEntry);
+                        }
+                        else
+                        {
+                            _includersToIncludesMap.AddOrUpdate(includer, new HashSet<IGeneroProjectEntry>(ProjectEntryComparer) { includeEntry }, (x, y) => y);
+                        }
+                    }
+                }
+            }
+            return includeEntry;
+        }
+
+        internal void UpdateIncludedFile(string includeFile, string newLocation)
+        {
+            var key = _includeFiles.Keys.FirstOrDefault(x => x.EndsWith(includeFile, StringComparison.OrdinalIgnoreCase));
+            if (key != null)
+            {
+                IGeneroProjectEntry includeEntry;
+                if (_includeFiles.TryGetValue(key, out includeEntry))
+                {
+                    // TODO: need to do the update
+                }
+            }
+        }
+
+        internal void RemoveIncludedFile(string includeFile, IGeneroProjectEntry includer)
+        {
+            lock (_includeFilesLock)
+            {
+                IGeneroProjectEntry includeEntry;
+                if (_includeFiles.TryGetValue(includeFile, out includeEntry))
+                {
+                    // see if this is the last includer
+                    if (_includesToIncludersMap.ContainsKey(includeEntry))
+                    {
+                        if (_includesToIncludersMap[includeEntry].Contains(includer))
+                            _includesToIncludersMap[includeEntry].Remove(includer);
+                        if (_includesToIncludersMap[includeEntry].Count == 0)
+                        {
+                            HashSet<IGeneroProjectEntry> dummy;
+                            _includesToIncludersMap.TryRemove(includeEntry, out dummy);
+                            _includeFiles.TryRemove(includeFile, out includeEntry);
+                        }
+                    }
+
+                    if (_includersToIncludesMap.ContainsKey(includer))
+                    {
+                        if (_includersToIncludesMap[includer].Contains(includeEntry))
+                            _includersToIncludesMap[includer].Remove(includeEntry);
+                        if (_includersToIncludesMap[includer].Count == 0)
+                        {
+                            HashSet<IGeneroProjectEntry> dummy;
+                            _includersToIncludesMap.TryRemove(includer, out dummy);
                         }
                     }
                 }
@@ -304,20 +488,20 @@ namespace VSGenero.EditorExtensions.Intellisense
         internal void UpdateImportedProject(string projectName, string newProjectPath)
         {
             var key = _projects.Keys.FirstOrDefault(x => x.EndsWith(projectName, StringComparison.OrdinalIgnoreCase));
-            if(key != null)
+            if (key != null)
             {
                 IGeneroProject proj;
                 if (_projects.TryGetValue(key, out proj))
                 {
                     // need to update the project
                     RemoveImportedProject(proj.Directory);
-                    if(newProjectPath == null)
+                    if (newProjectPath == null)
                     {
                         newProjectPath = VSGeneroPackage.Instance.ProgramFileProvider.GetImportModuleFilename(projectName);
                     }
                     var newProj = AddImportedProject(newProjectPath);
 
-                    foreach(var refProj in proj.ReferencingProjectEntries)
+                    foreach (var refProj in proj.ReferencingProjectEntries)
                     {
                         refProj.ParentProject.RemoveImportedModule(key);
                         refProj.ParentProject.AddImportedModule(newProjectPath);
@@ -434,6 +618,39 @@ namespace VSGenero.EditorExtensions.Intellisense
 
         private void ProjectEntryAnalyzed(string path, IGeneroProjectEntry projEntry)
         {
+            lock (_includeFilesLock)
+            {
+                bool includeFile = false;
+                if (_includeFiles.ContainsKey(path))
+                {
+                    _includeFiles[path] = projEntry;
+                    includeFile = true;
+                }
+
+                // update the includers map
+                lock (_includersLock)
+                {
+                    HashSet<IGeneroProjectEntry> includingProjects;
+                    if(_includesToIncludersMap.TryRemove(projEntry, out includingProjects))
+                    {
+                        _includesToIncludersMap.AddOrUpdate(projEntry, includingProjects, (x, y) => y);
+
+                        foreach (var includingProject in includingProjects)
+                        {
+                            if(_includersToIncludesMap.ContainsKey(includingProject))
+                            {
+                                _includersToIncludesMap[includingProject].Remove(projEntry);
+                                _includersToIncludesMap[includingProject].Add(projEntry);
+                            }
+                        }
+                    }
+                }
+
+
+                if (includeFile)
+                    return;
+            }
+
             string dirPath = Path.GetDirectoryName(path);
             IGeneroProject proj;
             if (_projects.TryGetValue(dirPath, out proj))
@@ -496,6 +713,16 @@ namespace VSGenero.EditorExtensions.Intellisense
                     IGeneroProject remProj2;
                     if (_projects.TryRemove(refList[i].Directory, out remProj2))
                     {
+                        foreach (var remProj2Entry in remProj2.ProjectEntries.Values)
+                        {
+                            HashSet<IGeneroProjectEntry> includedFiles;
+                            if (_includersToIncludesMap.TryGetValue(remProj2Entry, out includedFiles) &&
+                                includedFiles.Count > 0)
+                            {
+                                foreach (var includeFile in includedFiles.ToList())
+                                    RemoveIncludedFile(includeFile.FilePath, remProj2Entry);
+                            }
+                        }
                         _errorProvider.ClearErrorSource(refList[i].Directory);
                     }
                 }
@@ -1307,9 +1534,9 @@ namespace VSGenero.EditorExtensions.Intellisense
 
         public void Dispose()
         {
-            foreach(var proj in _projects.Values)
+            foreach (var proj in _projects.Values)
             {
-                foreach(var entry in proj.ProjectEntries.Values)
+                foreach (var entry in proj.ProjectEntries.Values)
                 {
                     _errorProvider.Clear(entry, ParserTaskMoniker);
                     //_errorProvider.Clear(entry, UnresolvedImportMoniker);

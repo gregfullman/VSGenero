@@ -67,7 +67,7 @@ namespace VSGenero.Analysis
                 }
 
                 _tree = newAst;
-                if(_cookie == null || _cookie is FileCookie || !(newCookie is FileCookie))
+                if (_cookie == null || _cookie is FileCookie || !(newCookie is FileCookie))
                     _cookie = newCookie;
 
                 if (_curWaiter != null)
@@ -261,7 +261,6 @@ namespace VSGenero.Analysis
             }
         }
 
-        private HashSet<string> _lastIncludedFiles;
         private HashSet<string> _lastImportedModules;
 
         public void UpdateIncludesAndImports(string filename, GeneroAst ast)
@@ -282,7 +281,7 @@ namespace VSGenero.Analysis
                         if (impProj != null)
                         {
                             _lastImportedModules.Add(mod);
-                            if(!impProj.ReferencingProjectEntries.Contains(this))
+                            if (!impProj.ReferencingProjectEntries.Contains(this))
                                 impProj.ReferencingProjectEntries.Add(this);
                         }
                     }
@@ -298,20 +297,30 @@ namespace VSGenero.Analysis
                 }
 
                 // next do includes
-                if (_lastIncludedFiles == null)
-                    _lastIncludedFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                 var includes = ast.GetIncludedFiles();
-                HashSet<string> currentlyIncludedFiles = new HashSet<string>(_lastIncludedFiles, StringComparer.OrdinalIgnoreCase);
-                foreach(var incl in includes.Select(x => VSGeneroPackage.Instance.ProgramFileProvider.GetIncludeFile(x)).Where(y => y != null))
+                HashSet<string> currentlyIncludedFiles = new HashSet<string>(VSGeneroPackage.Instance.DefaultAnalyzer.GetIncludedFiles(this).Select(x => x.FilePath), StringComparer.OrdinalIgnoreCase);
+                foreach (var incl in includes.Select(x => VSGeneroPackage.Instance.ProgramFileProvider.GetIncludeFile(x)).Where(y => y != null))
                 {
-                    if (!_lastIncludedFiles.Contains(incl))
+                    if (!VSGeneroPackage.Instance.DefaultAnalyzer.IsIncludeFileIncludedByProjectEntry(incl, this))
                     {
-
+                        VSGeneroPackage.Instance.DefaultAnalyzer.AddIncludedFile(incl, this);
                     }
                     else
                         currentlyIncludedFiles.Remove(incl);
                 }
+
+                // delete the leftovers
+                foreach (var include in currentlyIncludedFiles)
+                {
+                    IGeneroProjectEntry dummy;
+                    VSGeneroPackage.Instance.DefaultAnalyzer.RemoveIncludedFile(include, this);
+                }
             }
+        }
+
+        public IEnumerable<IGeneroProjectEntry> GetIncludedFiles()
+        {
+            return VSGeneroPackage.Instance.DefaultAnalyzer.GetIncludedFiles(this);
         }
 
         public bool DetectCircularImports()
@@ -326,11 +335,6 @@ namespace VSGenero.Analysis
         public GeneroProject(string directory)
         {
             _directory = directory;
-        }
-
-        public void AddIncludedFile(string path)
-        {
-
         }
 
         public IGeneroProject AddImportedModule(string path)
@@ -350,11 +354,6 @@ namespace VSGenero.Analysis
                 }
             }
             return refProj;
-        }
-
-        public void RemoveIncludedFile(string path)
-        {
-
         }
 
         public void RemoveImportedModule(string path)
@@ -427,9 +426,9 @@ namespace VSGenero.Analysis
 
         public string Documentation
         {
-            get 
+            get
             {
-                return string.Format("Imported module {0}", Name); 
+                return string.Format("Imported module {0}", Name);
             }
         }
 
@@ -528,7 +527,7 @@ namespace VSGenero.Analysis
                     IModuleResult modRes = projEntry.Value.Analysis.Body as IModuleResult;
                     if (modRes != null)
                     {
-                        if(memberType.HasFlag(MemberType.Variables))
+                        if (memberType.HasFlag(MemberType.Variables))
                         {
                             members.AddRange(modRes.GlobalVariables.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Variable, ast)));
                             members.AddRange(modRes.Variables.Where(x => x.Value.IsPublic).Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Variable, ast)));
@@ -540,13 +539,13 @@ namespace VSGenero.Analysis
                             members.AddRange(modRes.Types.Where(x => x.Value.IsPublic).Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Class, ast)));
                         }
 
-                        if(memberType.HasFlag(MemberType.Constants))
+                        if (memberType.HasFlag(MemberType.Constants))
                         {
                             members.AddRange(modRes.GlobalConstants.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Constant, ast)));
                             members.AddRange(modRes.Constants.Where(x => x.Value.IsPublic).Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Constant, ast)));
                         }
 
-                        if(memberType.HasFlag(MemberType.Functions))
+                        if (memberType.HasFlag(MemberType.Functions))
                         {
                             members.AddRange(modRes.Functions.Where(x => x.Value.IsPublic).Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Function, ast)));
                         }
@@ -626,9 +625,7 @@ namespace VSGenero.Analysis
     public interface IGeneroProject
     {
         IGeneroProject AddImportedModule(string path);
-        void AddIncludedFile(string path);
         void RemoveImportedModule(string path);
-        void RemoveIncludedFile(string path);
 
         string Directory { get; }
         /// <summary>
@@ -646,6 +643,8 @@ namespace VSGenero.Analysis
 
     public interface IGeneroProjectEntry : IProjectEntry
     {
+        IEnumerable<IGeneroProjectEntry> GetIncludedFiles();
+
         bool IsOpen { get; set; }
 
         IGeneroProject ParentProject { get; }

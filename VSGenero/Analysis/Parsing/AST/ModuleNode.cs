@@ -73,13 +73,13 @@ namespace VSGenero.Analysis.Parsing.AST
             }
         }
 
-        private HashSet<string> _includeFiles;
-        public HashSet<string> IncludeFiles
+        private Dictionary<string, List<PreprocessorNode>> _includeFiles;
+        public Dictionary<string, List<PreprocessorNode>> IncludeFiles
         {
             get
             {
                 if (_includeFiles == null)
-                    _includeFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                    _includeFiles = new Dictionary<string, List<PreprocessorNode>>(StringComparer.OrdinalIgnoreCase);
                 return _includeFiles;
             }
         }
@@ -89,16 +89,28 @@ namespace VSGenero.Analysis.Parsing.AST
             PreprocessorNode preNode;
             if (PreprocessorNode.TryParseNode(parser, out preNode))
             {
-                if(preNode.Type == PreprocessorType.Include &&
-                   !string.IsNullOrWhiteSpace(preNode.IncludeFile) &&
-                   VSGeneroPackage.Instance.ProgramFileProvider != null)
+                if(preNode.Type == PreprocessorType.Include && !string.IsNullOrWhiteSpace(preNode.IncludeFile))
                 {
-                    var fullFilename = VSGeneroPackage.Instance.ProgramFileProvider.GetIncludeFile(preNode.IncludeFile);
-                    if(!string.IsNullOrWhiteSpace(fullFilename))
+                    if(node.IncludeFiles.ContainsKey(preNode.IncludeFile))
                     {
-                        parser.CreateIncludeParser(fullFilename);
+                        node.IncludeFiles[preNode.IncludeFile].Add(preNode);
+                    }
+                    else
+                    {
+                        node.IncludeFiles.Add(preNode.IncludeFile, new List<PreprocessorNode>() { preNode });
                     }
                 }
+                
+                //if(preNode.Type == PreprocessorType.Include &&
+                //   !string.IsNullOrWhiteSpace(preNode.IncludeFile) &&
+                //   VSGeneroPackage.Instance.ProgramFileProvider != null)
+                //{
+                //    var fullFilename = VSGeneroPackage.Instance.ProgramFileProvider.GetIncludeFile(preNode.IncludeFile);
+                //    if(!string.IsNullOrWhiteSpace(fullFilename))
+                //    {
+                //        parser.CreateIncludeParser(fullFilename);
+                //    }
+                //}
                 return true;
             }
             return false;
