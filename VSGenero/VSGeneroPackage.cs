@@ -357,7 +357,7 @@ namespace VSGenero
 
         void _programFileProvider_IncludeFileLocationChanged(object sender, IncludeFileLocationChangedEventArgs e)
         {
-            DefaultAnalyzer.UpdateIncludedFile(e.IncludeFile, e.NewLocation);
+            DefaultAnalyzer.UpdateIncludedFile(e.NewLocation);
         }
 
         void _programFileProvider_ImportModuleLocationChanged(object sender, ImportModuleLocationChangedEventArgs e)

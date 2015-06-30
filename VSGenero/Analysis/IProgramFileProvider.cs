@@ -29,12 +29,9 @@ namespace VSGenero.Analysis
 
     public class IncludeFileLocationChangedEventArgs : LocationChangedEventArgs
     {
-        public string IncludeFile { get; private set; }
-
-        public IncludeFileLocationChangedEventArgs(string includeFile, string newLocation)
+        public IncludeFileLocationChangedEventArgs(string newLocation)
             : base(newLocation)
         {
-            IncludeFile = includeFile;
         }
     }
 

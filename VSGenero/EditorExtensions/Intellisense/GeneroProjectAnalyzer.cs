@@ -425,15 +425,40 @@ namespace VSGenero.EditorExtensions.Intellisense
             return includeEntry;
         }
 
-        internal void UpdateIncludedFile(string includeFile, string newLocation)
+        internal void UpdateIncludedFile(string newLocation)
         {
-            var key = _includeFiles.Keys.FirstOrDefault(x => x.EndsWith(includeFile, StringComparison.OrdinalIgnoreCase));
-            if (key != null)
+            IGeneroProjectEntry includeEntry;
+            HashSet<IGeneroProjectEntry> includingProjectEntries = null;
+            bool refill = false;
+
+            lock (_includeFilesLock)
             {
-                IGeneroProjectEntry includeEntry;
-                if (_includeFiles.TryGetValue(key, out includeEntry))
+                var filename = Path.GetFileName(newLocation);
+                var includeFile = _includeFiles.Keys.FirstOrDefault(x => x.EndsWith(filename, StringComparison.OrdinalIgnoreCase));
+                if (includeFile != null)
                 {
-                    // TODO: need to do the update
+                    // need to remove the current include file, since the key has now changed
+                    if (_includeFiles.TryRemove(includeFile, out includeEntry))
+                    {
+                        // now need to remove the mappings between include files and including project entries
+                        lock (_includersLock)
+                        {
+                            if (_includesToIncludersMap.TryRemove(includeEntry, out includingProjectEntries))
+                            {
+                                refill = true;
+                                foreach (var includer in includingProjectEntries)
+                                    _includersToIncludesMap[includer].Remove(includeEntry);
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (refill && includingProjectEntries != null)
+            {
+                foreach(var includer in includingProjectEntries)
+                {
+                    AddIncludedFile(newLocation, includer);
                 }
             }
         }
@@ -631,13 +656,13 @@ namespace VSGenero.EditorExtensions.Intellisense
                 lock (_includersLock)
                 {
                     HashSet<IGeneroProjectEntry> includingProjects;
-                    if(_includesToIncludersMap.TryRemove(projEntry, out includingProjects))
+                    if (_includesToIncludersMap.TryRemove(projEntry, out includingProjects))
                     {
                         _includesToIncludersMap.AddOrUpdate(projEntry, includingProjects, (x, y) => y);
 
                         foreach (var includingProject in includingProjects)
                         {
-                            if(_includersToIncludesMap.ContainsKey(includingProject))
+                            if (_includersToIncludesMap.ContainsKey(includingProject))
                             {
                                 _includersToIncludesMap[includingProject].Remove(projEntry);
                                 _includersToIncludesMap[includingProject].Add(projEntry);
