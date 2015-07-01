@@ -399,6 +399,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         if (parser.PeekToken(TokenKind.DialogKeyword, 2))
                         {
                             parser.NextToken();
+                            node.StartIndex = parser.Token.Span.Start;
                             parser.NextToken();
                         }
                         else
@@ -408,6 +409,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 case TokenKind.NextKeyword:
                     {
                         parser.NextToken();
+                        node.StartIndex = parser.Token.Span.Start;
                         if (parser.PeekToken(TokenKind.FieldKeyword))
                         {
                             parser.NextToken();
@@ -440,6 +442,9 @@ namespace VSGenero.Analysis.Parsing.AST
                         break;
                     }
             }
+
+            if (result)
+                node.EndIndex = parser.Token.Span.End;
 
             return result;
         }

@@ -158,7 +158,10 @@ namespace VSGenero.Analysis.Parsing.AST
                    nextTok.Kind <= TokenKind.LastOperator)
                 {
                     parser.NextToken();
-                    node.AppendExpression(new TokenExpressionNode(parser.Token));
+                    if (node == null)
+                        node = new TokenExpressionNode(parser.Token);
+                    else
+                        node.AppendExpression(new TokenExpressionNode(parser.Token));
                 }
                 else
                 {
