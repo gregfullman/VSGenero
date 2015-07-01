@@ -20,26 +20,28 @@ namespace VSGenero.Analysis.Parsing
 
         // numeric expression operators
         FirstOperator = Add,
-        LastOperator = DoubleBar,
-        Add      = 32,
-        Subtract = 33,
-        Multiply = 34,
-        Divide   = 35,
-        Assign   = 36,
-        Power    = 37,
+        LastOperator = SingleBar,
+        Add      = 20,
+        Subtract = 21,
+        Multiply = 22,
+        Divide   = 23,
+        Assign   = 24,
+        Power    = 26,
 
         // boolean expression operators
-        DoubleEquals       = 38,
-        LessThan           = 39,
-        GreaterThan        = 40,
-        LessThanOrEqual    = 41,
-        GreaterThanOrEqual = 42,
-        Equals             = 43,
-        NotEquals          = 44,
-        NotEqualsLTGT      = 45,
+        DoubleEquals       = 30,
+        LessThan           = 31,
+        GreaterThan        = 32,
+        LessThanOrEqual    = 33,
+        GreaterThanOrEqual = 34,
+        Equals             = 35,
+        NotEquals          = 36,
+        NotEqualsLTGT      = 37,
 
         // string expression operators
-        DoubleBar        = 46,
+        DoubleBar        = 38,
+        Exclamation      = 39,
+        SingleBar        = 40,
 
         // other non-keyword tokens
         Ampersand        = 47,
@@ -496,8 +498,10 @@ namespace VSGenero.Analysis.Parsing
         private static readonly Token symDivideToken = new OperatorToken(TokenKind.Divide, "/", 5);
         private static readonly Token symPowerToken = new OperatorToken(TokenKind.Power, "**", 6);
         private static readonly Token symConcatToken = new OperatorToken(TokenKind.DoubleBar, "||", 6);
+        private static readonly Token symSingleBarToken = new OperatorToken(TokenKind.SingleBar, "|", 6);
         private static readonly Token symNotEqualGTLT = new OperatorToken(TokenKind.NotEqualsLTGT, "<>", 6);
         private static readonly Token symNotEqual = new OperatorToken(TokenKind.NotEquals, "!=", 6);
+        private static readonly Token symExclamation = new OperatorToken(TokenKind.Exclamation, "!", 6);
         private static readonly Token symLessThan = new OperatorToken(TokenKind.LessThan, "<", 6);
         private static readonly Token symLessThanEquals = new OperatorToken(TokenKind.LessThanOrEqual, "<=", 6);
         private static readonly Token symGreaterThan = new OperatorToken(TokenKind.GreaterThan, ">", 6);
@@ -603,9 +607,19 @@ namespace VSGenero.Analysis.Parsing
             get { return symConcatToken; }
         }
 
+        public static Token SingleBarToken
+        {
+            get { return symSingleBarToken; }
+        }
+
         public static Token NotEqualsToken
         {
             get { return symNotEqual; }
+        }
+
+        public static Token ExclamationToken
+        {
+            get { return symExclamation; }
         }
 
         public static Token NotEqualsLTGTToken

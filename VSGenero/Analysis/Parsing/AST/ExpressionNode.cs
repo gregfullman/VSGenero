@@ -79,6 +79,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 }
                 else if(parser.PeekToken(TokenKind.CurrentKeyword))
                 {
+                    result = true;
                     parser.NextToken();
                     string currentTypeConstraint;
                     if(TypeConstraints.VerifyValidConstraint(parser, out currentTypeConstraint, TokenKind.CurrentKeyword, true))
@@ -92,7 +93,10 @@ namespace VSGenero.Analysis.Parsing.AST
                     }
                     else
                     {
-                        parser.ReportSyntaxError("Invalid use of CURRENT operator detected.");
+                        if (node == null)
+                            node = new TokenExpressionNode(parser.Token);
+                        else
+                            node.AppendExpression(new TokenExpressionNode(parser.Token));
                     }
                 }
                 else if (parser.PeekToken(TokenCategory.Identifier) ||
@@ -158,10 +162,64 @@ namespace VSGenero.Analysis.Parsing.AST
                    nextTok.Kind <= TokenKind.LastOperator)
                 {
                     parser.NextToken();
+                    // TODO: not sure if we want to do more analysis on what operators can start an expression
                     if (node == null)
                         node = new TokenExpressionNode(parser.Token);
                     else
                         node.AppendExpression(new TokenExpressionNode(parser.Token));
+
+                    switch(parser.Token.Token.Kind)
+                    {
+                        case TokenKind.LessThan:
+                            // check for '<=' or '<>'
+                            if(parser.PeekToken(TokenKind.Equals) ||
+                               parser.PeekToken(TokenKind.GreaterThan))
+                            {
+                                parser.NextToken();
+                                node.AppendExpression(new TokenExpressionNode(parser.Token));
+                            }
+                            break;
+                        case TokenKind.GreaterThan:
+                            // check for '>='
+                            if(parser.PeekToken(TokenKind.Equals))
+                            {
+                                parser.NextToken();
+                                node.AppendExpression(new TokenExpressionNode(parser.Token));
+                            }
+                            break;
+                        case TokenKind.Exclamation:
+                            // check for '!='
+                            if(parser.PeekToken(TokenKind.Equals))
+                            {
+                                parser.NextToken();
+                                node.AppendExpression(new TokenExpressionNode(parser.Token));
+                            }
+                            else
+                            {
+                                parser.ReportSyntaxError("Invalid token '!' found in expression.");
+                            }
+                            break;
+                        case TokenKind.Equals:
+                            // check for '=='
+                            if(parser.PeekToken(TokenKind.Equals))
+                            {
+                                parser.NextToken();
+                                node.AppendExpression(new TokenExpressionNode(parser.Token));
+                            }
+                            break;
+                        case TokenKind.SingleBar:
+                            //  check for '||'
+                            if(parser.PeekToken(TokenKind.SingleBar))
+                            {
+                                parser.NextToken();
+                                node.AppendExpression(new TokenExpressionNode(parser.Token));
+                            }
+                            else
+                            {
+                                parser.ReportSyntaxError("Invalid token '|' found in expression.");
+                            }
+                            break;
+                    }
                 }
                 else
                 {

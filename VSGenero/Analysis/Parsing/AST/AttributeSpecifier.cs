@@ -24,7 +24,8 @@ namespace VSGenero.Analysis.Parsing.AST
             node = null;
             bool result = false;
 
-            if(parser.PeekToken(TokenKind.AttributeKeyword))
+            if(parser.PeekToken(TokenKind.AttributeKeyword) ||
+               parser.PeekToken(TokenKind.AttributesKeyword))
             {
                 result = true;
                 node = new AttributeSpecifier();
