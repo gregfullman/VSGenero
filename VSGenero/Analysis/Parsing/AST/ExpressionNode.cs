@@ -10,7 +10,7 @@ namespace VSGenero.Analysis.Parsing.AST
     {
         protected static List<TokenKind> _preExpressionTokens = new List<TokenKind> 
         { 
-            TokenKind.NotKeyword, TokenKind.ColumnKeyword, TokenKind.Subtract, TokenKind.AsciiKeyword
+            TokenKind.NotKeyword, TokenKind.ColumnKeyword, TokenKind.Subtract, TokenKind.AsciiKeyword, TokenKind.Add
         };
 
         public abstract void PrependExpression(ExpressionNode node);
@@ -19,7 +19,7 @@ namespace VSGenero.Analysis.Parsing.AST
         public abstract string ToString();
         public abstract string GetType();
 
-        public static bool TryGetExpressionNode(Parser parser, out ExpressionNode node, List<TokenKind> breakTokens = null, bool allowStarParam = false)
+        public static bool TryGetExpressionNode(Parser parser, out ExpressionNode node, List<TokenKind> breakTokens = null, bool allowStarParam = false, bool allowAnythingForFunctionParams = false)
         {
             node = null;
             bool result = false;
@@ -27,14 +27,14 @@ namespace VSGenero.Analysis.Parsing.AST
             bool requireExpression = false;
 
             TokenExpressionNode startingToken = null;
-            
+
             while (true)
             {
                 // First check for allowed pre-expression tokens
                 if (_preExpressionTokens.Contains(parser.PeekToken().Kind))
                 {
                     parser.NextToken();
-                    if(node == null)
+                    if (node == null)
                         node = new TokenExpressionNode(parser.Token);
                     else
                         node.AppendExpression(new TokenExpressionNode(parser.Token));
@@ -44,7 +44,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 if (parser.PeekToken(TokenKind.LeftParenthesis))
                 {
                     ParenWrappedExpressionNode parenExpr;
-                    if (ParenWrappedExpressionNode.TryParseExpression(parser, out parenExpr))
+                    if (ParenWrappedExpressionNode.TryParseExpression(parser, out parenExpr, allowAnythingForFunctionParams))
                     {
                         if (node == null)
                             node = parenExpr;
@@ -55,6 +55,22 @@ namespace VSGenero.Analysis.Parsing.AST
                     else
                     {
                         parser.ReportSyntaxError("Paren-nested expression expected.");
+                    }
+                }
+                else if (parser.PeekToken(TokenKind.LeftBracket))
+                {
+                    BracketWrappedExpressionNode brackNode;
+                    if(BracketWrappedExpressionNode.TryParseNode(parser, out brackNode))
+                    {
+                        if (node == null)
+                            node = brackNode;
+                        else
+                            node.AppendExpression(brackNode);
+                        result = true;
+                    }
+                    else
+                    {
+                        parser.ReportSyntaxError("Bracket-nested expression expected.");
                     }
                 }
                 else if (parser.PeekToken(TokenCategory.StringLiteral) ||
@@ -77,12 +93,12 @@ namespace VSGenero.Analysis.Parsing.AST
                     else
                         node.AppendExpression(new TokenExpressionNode(parser.Token));
                 }
-                else if(parser.PeekToken(TokenKind.CurrentKeyword))
+                else if (parser.PeekToken(TokenKind.CurrentKeyword))
                 {
                     result = true;
                     parser.NextToken();
                     string currentTypeConstraint;
-                    if(TypeConstraints.VerifyValidConstraint(parser, out currentTypeConstraint, TokenKind.CurrentKeyword, true))
+                    if (TypeConstraints.VerifyValidConstraint(parser, out currentTypeConstraint, TokenKind.CurrentKeyword, true))
                     {
                         result = true;
                         StringExpressionNode strExpr = new StringExpressionNode(currentTypeConstraint);
@@ -104,7 +120,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 {
                     FunctionCallExpressionNode funcCall;
                     NameExpression nonFuncCallName;
-                    if (FunctionCallExpressionNode.TryParseExpression(parser, out funcCall, out nonFuncCallName, false, allowStarParam))
+                    if (FunctionCallExpressionNode.TryParseExpression(parser, out funcCall, out nonFuncCallName, false, allowStarParam, allowAnythingForFunctionParams))
                     {
                         result = true;
                         if (node == null)
@@ -155,76 +171,76 @@ namespace VSGenero.Analysis.Parsing.AST
                 requireExpression = false;
 
                 Token nextTok = parser.PeekToken();
-                // Check to see if the token is an operator, in which case we can continue gathering the expression 
-                if(breakTokens != null &&
-                   !breakTokens.Contains(nextTok.Kind) && 
-                   nextTok.Kind >= TokenKind.FirstOperator && 
-                   nextTok.Kind <= TokenKind.LastOperator)
+                bool isOperator = true;
+                while (isOperator && !requireExpression)
                 {
-                    parser.NextToken();
-                    // TODO: not sure if we want to do more analysis on what operators can start an expression
-                    if (node == null)
-                        node = new TokenExpressionNode(parser.Token);
-                    else
-                        node.AppendExpression(new TokenExpressionNode(parser.Token));
-
-                    switch(parser.Token.Token.Kind)
+                    if (breakTokens != null &&
+                        !breakTokens.Contains(nextTok.Kind) &&
+                        nextTok.Kind >= TokenKind.FirstOperator &&
+                        nextTok.Kind <= TokenKind.LastOperator)
                     {
-                        case TokenKind.LessThan:
-                            // check for '<=' or '<>'
-                            if(parser.PeekToken(TokenKind.Equals) ||
-                               parser.PeekToken(TokenKind.GreaterThan))
-                            {
-                                parser.NextToken();
-                                node.AppendExpression(new TokenExpressionNode(parser.Token));
-                            }
-                            break;
-                        case TokenKind.GreaterThan:
-                            // check for '>='
-                            if(parser.PeekToken(TokenKind.Equals))
-                            {
-                                parser.NextToken();
-                                node.AppendExpression(new TokenExpressionNode(parser.Token));
-                            }
-                            break;
-                        case TokenKind.Exclamation:
-                            // check for '!='
-                            if(parser.PeekToken(TokenKind.Equals))
-                            {
-                                parser.NextToken();
-                                node.AppendExpression(new TokenExpressionNode(parser.Token));
-                            }
-                            else
-                            {
-                                parser.ReportSyntaxError("Invalid token '!' found in expression.");
-                            }
-                            break;
-                        case TokenKind.Equals:
-                            // check for '=='
-                            if(parser.PeekToken(TokenKind.Equals))
-                            {
-                                parser.NextToken();
-                                node.AppendExpression(new TokenExpressionNode(parser.Token));
-                            }
-                            break;
-                        case TokenKind.SingleBar:
-                            //  check for '||'
-                            if(parser.PeekToken(TokenKind.SingleBar))
-                            {
-                                parser.NextToken();
-                                node.AppendExpression(new TokenExpressionNode(parser.Token));
-                            }
-                            else
-                            {
-                                parser.ReportSyntaxError("Invalid token '|' found in expression.");
-                            }
-                            break;
+                        parser.NextToken();
+                        // TODO: not sure if we want to do more analysis on what operators can start an expression
+                        if (node == null)
+                            node = new TokenExpressionNode(parser.Token);
+                        else
+                            node.AppendExpression(new TokenExpressionNode(parser.Token));
+
+                        switch (parser.Token.Token.Kind)
+                        {
+                            case TokenKind.LessThan:
+                                // check for '<=' or '<>'
+                                if (parser.PeekToken(TokenKind.Equals) ||
+                                   parser.PeekToken(TokenKind.GreaterThan))
+                                {
+                                    parser.NextToken();
+                                    node.AppendExpression(new TokenExpressionNode(parser.Token));
+                                }
+                                break;
+                            case TokenKind.GreaterThan:
+                                // check for '>='
+                                if (parser.PeekToken(TokenKind.Equals))
+                                {
+                                    parser.NextToken();
+                                    node.AppendExpression(new TokenExpressionNode(parser.Token));
+                                }
+                                break;
+                            case TokenKind.Exclamation:
+                                // check for '!='
+                                if (parser.PeekToken(TokenKind.Equals))
+                                {
+                                    parser.NextToken();
+                                    node.AppendExpression(new TokenExpressionNode(parser.Token));
+                                }
+                                else
+                                {
+                                    parser.ReportSyntaxError("Invalid token '!' found in expression.");
+                                }
+                                break;
+                            case TokenKind.Equals:
+                                // check for '=='
+                                if (parser.PeekToken(TokenKind.Equals))
+                                {
+                                    parser.NextToken();
+                                    node.AppendExpression(new TokenExpressionNode(parser.Token));
+                                }
+                                break;
+                            case TokenKind.SingleBar:
+                                //  check for '||'
+                                if (parser.PeekToken(TokenKind.SingleBar))
+                                {
+                                    parser.NextToken();
+                                    node.AppendExpression(new TokenExpressionNode(parser.Token));
+                                }
+                                else
+                                {
+                                    parser.ReportSyntaxError("Invalid token '|' found in expression.");
+                                }
+                                break;
+                        }
+                        requireExpression = true;
                     }
-                }
-                else
-                {
-                    bool isOperator = true;
-                    while (isOperator && !requireExpression)
+                    else
                     {
                         // check for non-symbol operators
                         switch (nextTok.Kind)
@@ -298,16 +314,20 @@ namespace VSGenero.Analysis.Parsing.AST
                         if (!isOperator)
                             break;
                         else
+                        {
                             nextTok = parser.PeekToken();
+                            if (nextTok.Kind == TokenKind.EndOfFile)
+                                break;
+                        }
                     }
-                    if(!requireExpression)
-                    {
-                        break;
-                    }
+                }
+                if (!requireExpression)
+                {
+                    break;
                 }
             }
 
-            if(result && node != null)
+            if (result && node != null)
             {
                 node.EndIndex = parser.Token.Span.End;
             }
@@ -331,7 +351,18 @@ namespace VSGenero.Analysis.Parsing.AST
             }
         }
 
-        public static bool TryParseExpression(Parser parser, out FunctionCallExpressionNode node, out NameExpression nonFunctionCallName, bool leftParenRequired = false, bool allowStarParam = false)
+        private List<Token> _anythingParameters;
+        public List<Token> AnythingParameters
+        {
+            get
+            {
+                if (_anythingParameters == null)
+                    _anythingParameters = new List<Token>();
+                return _anythingParameters;
+            }
+        }
+
+        public static bool TryParseExpression(Parser parser, out FunctionCallExpressionNode node, out NameExpression nonFunctionCallName, bool leftParenRequired = false, bool allowStarParam = false, bool allowAnythingParam = false)
         {
             node = null;
             nonFunctionCallName = null;
@@ -349,24 +380,58 @@ namespace VSGenero.Analysis.Parsing.AST
                 {
                     result = true;
                     parser.NextToken();
-                    // Parameters can be any expression, comma seperated
-                    ExpressionNode expr;
-                    while (ExpressionNode.TryGetExpressionNode(parser, out expr, new List<TokenKind> { TokenKind.Comma, TokenKind.RightParenthesis }, allowStarParam))
-                    {
-                        node.Parameters.Add(expr);
-                        if (!parser.PeekToken(TokenKind.Comma))
-                            break;
-                        parser.NextToken();
-                    }
 
-                    // get the right paren
-                    if (parser.PeekToken(TokenKind.RightParenthesis))
+                    if (!allowAnythingParam)
                     {
-                        parser.NextToken(); // TODO: not sure if this is needed
+                        // Parameters can be any expression, comma seperated
+                        ExpressionNode expr;
+                        while (ExpressionNode.TryGetExpressionNode(parser, out expr, new List<TokenKind> { TokenKind.Comma, TokenKind.RightParenthesis }, allowStarParam))
+                        {
+                            node.Parameters.Add(expr);
+                            if (!parser.PeekToken(TokenKind.Comma))
+                                break;
+                            parser.NextToken();
+                        }
+
+                        // get the right paren
+                        if (parser.PeekToken(TokenKind.RightParenthesis))
+                        {
+                            parser.NextToken(); // TODO: not sure if this is needed
+                        }
+                        else
+                        {
+                            parser.ReportSyntaxError("Call statement missing right parenthesis.");
+                        }
                     }
                     else
                     {
-                        parser.ReportSyntaxError("Call statement missing right parenthesis.");
+                        // just 
+                        int rightParenLevel = 1;
+                        Token tok;
+                        bool done = false;
+                        while (true)
+                        {
+                            tok = parser.NextToken();
+                            switch (tok.Kind)
+                            {
+                                case TokenKind.LeftParenthesis:
+                                    rightParenLevel++;
+                                    break;
+                                case TokenKind.RightParenthesis:
+                                    rightParenLevel--;
+                                    if (rightParenLevel == 0)
+                                        done = true;
+                                    break;
+                                case TokenKind.EndOfFile:
+                                    done = true;
+                                    break;
+                                default:
+                                    node.AnythingParameters.Add(tok);
+                                    break;
+                            }
+                            if (done)
+                                break;
+                        }
                     }
                 }
                 else
@@ -400,7 +465,7 @@ namespace VSGenero.Analysis.Parsing.AST
             StringBuilder sb = new StringBuilder();
             sb.Append(Function.Name);
             sb.Append("(");
-            for (int i = 0; i < Parameters.Count; i++ )
+            for (int i = 0; i < Parameters.Count; i++)
             {
                 sb.Append(Parameters[i].ToString());
                 if (i + 1 < Parameters.Count)
@@ -421,40 +486,164 @@ namespace VSGenero.Analysis.Parsing.AST
         }
     }
 
-    public class ParenWrappedExpressionNode : ExpressionNode
+    public class BracketWrappedExpressionNode : ExpressionNode
     {
-        public ExpressionNode InnerExpression { get; private set; }
+        private List<ExpressionNode> _parameters;
+        public List<ExpressionNode> Parameters
+        {
+            get
+            {
+                if (_parameters == null)
+                    _parameters = new List<ExpressionNode>();
+                return _parameters;
+            }
+        }
 
-        public static bool TryParseExpression(Parser parser, out ParenWrappedExpressionNode node)
+        public static bool TryParseNode(Parser parser, out BracketWrappedExpressionNode node)
         {
             node = null;
             bool result = false;
 
-            if(parser.PeekToken(TokenKind.LeftParenthesis))
+            if (parser.PeekToken(TokenKind.LeftBracket))
+            {
+                result = true;
+                node = new BracketWrappedExpressionNode();
+                parser.NextToken();
+                node.StartIndex = parser.Token.Span.Start;
+
+                ExpressionNode expr;
+                while (ExpressionNode.TryGetExpressionNode(parser, out expr, new List<TokenKind> { TokenKind.Comma, TokenKind.LeftBracket }))
+                {
+                    node.Parameters.Add(expr);
+                    if (!parser.PeekToken(TokenKind.Comma))
+                        break;
+                    parser.NextToken();
+                }
+
+                // get the right paren
+                if (parser.PeekToken(TokenKind.RightBracket))
+                {
+                    parser.NextToken(); // TODO: not sure if this is needed
+                }
+                else
+                {
+                    parser.ReportSyntaxError("Call statement missing right bracket.");
+                }
+                node.EndIndex = parser.Token.Span.End;
+            }
+            return result;
+        }
+
+        public override void PrependExpression(ExpressionNode node)
+        {
+        }
+
+        public override void AppendExpression(ExpressionNode node)
+        {
+        }
+
+        public override void AppendOperator(TokenExpressionNode tokenKind)
+        {
+        }
+
+        public override string ToString()
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append("[");
+            for (int i = 0; i < Parameters.Count; i++ )
+            {
+                sb.Append(Parameters[i].ToString());
+                if (i + 1 < Parameters.Count)
+                    sb.Append(", ");
+            }
+            sb.Append("]");
+            return sb.ToString();
+        }
+
+        public override string GetType()
+        {
+            return null;
+        }
+    }
+
+    public class ParenWrappedExpressionNode : ExpressionNode
+    {
+        public ExpressionNode InnerExpression { get; private set; }
+
+        private List<Token> _anythingTokens;
+        public List<Token> AnythingTokens
+        {
+            get
+            {
+                if (_anythingTokens == null)
+                    _anythingTokens = new List<Token>();
+                return _anythingTokens;
+            }
+        }
+
+        public static bool TryParseExpression(Parser parser, out ParenWrappedExpressionNode node, bool allowAnythingInParens = false)
+        {
+            node = null;
+            bool result = false;
+
+            if (parser.PeekToken(TokenKind.LeftParenthesis))
             {
                 parser.NextToken();
                 node = new ParenWrappedExpressionNode();
                 result = true;
                 node.StartIndex = parser.Token.Span.Start;
 
-                ExpressionNode exprNode;
-                if(!ExpressionNode.TryGetExpressionNode(parser, out exprNode, new List<TokenKind> { TokenKind.RightParenthesis }))
+                if (!allowAnythingInParens)
                 {
-                    parser.ReportSyntaxError("Invalid expression found within parentheses.");
-                }
-                else
-                {
-                    node.InnerExpression = exprNode;
-                }
+                    ExpressionNode exprNode;
+                    if (!ExpressionNode.TryGetExpressionNode(parser, out exprNode, new List<TokenKind> { TokenKind.RightParenthesis }))
+                    {
+                        parser.ReportSyntaxError("Invalid expression found within parentheses.");
+                    }
+                    else
+                    {
+                        node.InnerExpression = exprNode;
+                    }
 
-                if(parser.PeekToken(TokenKind.RightParenthesis))
-                {
-                    parser.NextToken();
-                    node.EndIndex = parser.Token.Span.End;
+                    if (parser.PeekToken(TokenKind.RightParenthesis))
+                    {
+                        parser.NextToken();
+                        node.EndIndex = parser.Token.Span.End;
+                    }
+                    else
+                    {
+                        parser.ReportSyntaxError("Right parenthesis not found.");
+                    }
                 }
                 else
                 {
-                    parser.ReportSyntaxError("Right parenthesis not found.");
+                    // just 
+                    int rightParenLevel = 1;
+                    Token tok;
+                    bool done = false;
+                    while (true)
+                    {
+                        tok = parser.NextToken();
+                        switch (tok.Kind)
+                        {
+                            case TokenKind.LeftParenthesis:
+                                rightParenLevel++;
+                                break;
+                            case TokenKind.RightParenthesis:
+                                rightParenLevel--;
+                                if (rightParenLevel == 0)
+                                    done = true;
+                                break;
+                            case TokenKind.EndOfFile:
+                                done = true;
+                                break;
+                            default:
+                                node.AnythingTokens.Add(tok);
+                                break;
+                        }
+                        if (done)
+                            break;
+                    }
                 }
             }
 
@@ -471,7 +660,7 @@ namespace VSGenero.Analysis.Parsing.AST
 
         public override string ToString()
         {
-            if(InnerExpression != null)
+            if (InnerExpression != null)
                 return string.Format("({0})", InnerExpression.ToString());
             return null;
         }
@@ -510,12 +699,12 @@ namespace VSGenero.Analysis.Parsing.AST
 
         public override void AppendExpression(ExpressionNode node)
         {
-            if(node is StringExpressionNode)
+            if (node is StringExpressionNode)
             {
                 _literalValue.Append((node as StringExpressionNode).LiteralValue);
-                
+
             }
-            else if(node is TokenExpressionNode)
+            else if (node is TokenExpressionNode)
             {
                 // TODO: we should be able to follow the coversion rules to append to the literal value
             }
@@ -571,7 +760,7 @@ namespace VSGenero.Analysis.Parsing.AST
         public override string ToString()
         {
             StringBuilder sb = new StringBuilder();
-            for(int i = 0; i < Tokens.Count; i++)
+            for (int i = 0; i < Tokens.Count; i++)
             {
                 sb.Append(Tokens[i].Value.ToString());
                 if (i + 1 < Tokens.Count)

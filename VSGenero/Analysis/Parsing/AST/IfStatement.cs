@@ -13,7 +13,8 @@ namespace VSGenero.Analysis.Parsing.AST
         public static bool TryParseNode(Parser parser, out IfStatement node,
                                  IModuleResult containingModule,
                                  Action<PrepareStatement> prepStatementBinder = null,
-                                 List<TokenKind> validExitKeywords = null)
+                                 List<TokenKind> validExitKeywords = null,
+                                 IEnumerable<ContextStatementFactory> contextStatementFactories = null)
         {
             node = null;
             bool result = false;
@@ -42,7 +43,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     node.DecoratorEnd = parser.Token.Span.End;
 
                     IfBlockContentsNode ifBlock;
-                    if (IfBlockContentsNode.TryParseNode(parser, out ifBlock, containingModule, prepStatementBinder, validExitKeywords))
+                    if (IfBlockContentsNode.TryParseNode(parser, out ifBlock, containingModule, prepStatementBinder, validExitKeywords, contextStatementFactories))
                     {
                         if(ifBlock != null)
                             node.Children.Add(ifBlock.StartIndex, ifBlock);
@@ -52,7 +53,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     {
                         parser.NextToken();
                         ElseBlockContentsNode elseBlock;
-                        if (ElseBlockContentsNode.TryParseNode(parser, out elseBlock, containingModule, prepStatementBinder, validExitKeywords))
+                        if (ElseBlockContentsNode.TryParseNode(parser, out elseBlock, containingModule, prepStatementBinder, validExitKeywords, contextStatementFactories))
                         {
                             if(elseBlock != null)
                                 node.Children.Add(elseBlock.StartIndex, elseBlock);
@@ -101,7 +102,8 @@ namespace VSGenero.Analysis.Parsing.AST
         public static bool TryParseNode(Parser parser, out IfBlockContentsNode node,
                                  IModuleResult containingModule,
                                  Action<PrepareStatement> prepStatementBinder = null,
-                                 List<TokenKind> validExitKeywords = null)
+                                 List<TokenKind> validExitKeywords = null,
+                                 IEnumerable<ContextStatementFactory> contextStatementFactories = null)
         {
             node = new IfBlockContentsNode();
             node.StartIndex = parser.Token.Span.Start;
@@ -110,7 +112,26 @@ namespace VSGenero.Analysis.Parsing.AST
                   !(parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.IfKeyword, 2)))
             {
                 FglStatement statement;
-                if (parser.StatementFactory.TryParseNode(parser, out statement, containingModule, prepStatementBinder, false, validExitKeywords))
+                if(contextStatementFactories != null)
+                {
+                    bool hitOne = false;
+                    foreach(var context in contextStatementFactories)
+                    {
+                        statement = context(parser);
+                        if(statement != null)
+                        {
+                            AstNode stmtNode = statement as AstNode;
+                            if (stmtNode != null && !node.Children.ContainsKey(stmtNode.StartIndex))
+                                node.Children.Add(stmtNode.StartIndex, stmtNode);
+                            hitOne = true;
+                            break;
+                        }
+                    }
+                    if (hitOne)
+                        continue;
+                }
+
+                if (parser.StatementFactory.TryParseNode(parser, out statement, containingModule, prepStatementBinder, false, validExitKeywords, contextStatementFactories))
                 {
                     AstNode stmtNode = statement as AstNode;
                     if (stmtNode != null && !node.Children.ContainsKey(stmtNode.StartIndex))
@@ -132,7 +153,8 @@ namespace VSGenero.Analysis.Parsing.AST
         public static bool TryParseNode(Parser parser, out ElseBlockContentsNode node,
                                  IModuleResult containingModule,
                                  Action<PrepareStatement> prepStatementBinder = null,
-                                 List<TokenKind> validExitKeywords = null)
+                                 List<TokenKind> validExitKeywords = null,
+                                 IEnumerable<ContextStatementFactory> contextStatementFactories = null)
         {
             node = new ElseBlockContentsNode();
             node.StartIndex = parser.Token.Span.Start;
@@ -140,7 +162,26 @@ namespace VSGenero.Analysis.Parsing.AST
                    !(parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.IfKeyword, 2)))
             {
                 FglStatement statement;
-                if (parser.StatementFactory.TryParseNode(parser, out statement, containingModule, prepStatementBinder, false, validExitKeywords))
+                if (contextStatementFactories != null)
+                {
+                    bool hitOne = false;
+                    foreach (var context in contextStatementFactories)
+                    {
+                        statement = context(parser);
+                        if (statement != null)
+                        {
+                            AstNode stmtNode = statement as AstNode;
+                            if (stmtNode != null && !node.Children.ContainsKey(stmtNode.StartIndex))
+                                node.Children.Add(stmtNode.StartIndex, stmtNode);
+                            hitOne = true;
+                            break;
+                        }
+                    }
+                    if (hitOne)
+                        continue;
+                }
+
+                if (parser.StatementFactory.TryParseNode(parser, out statement, containingModule, prepStatementBinder, false, validExitKeywords, contextStatementFactories))
                 {
                     AstNode stmtNode = statement as AstNode;
                     if(stmtNode != null && !node.Children.ContainsKey(stmtNode.StartIndex))

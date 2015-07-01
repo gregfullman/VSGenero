@@ -1518,7 +1518,7 @@ namespace VSGenero.Analysis.Parsing
                     {
                         return Tokens.ConcatToken;
                     }
-                    break;
+                    return Tokens.SingleBarToken;
                 case '<':
                     if (NextChar('>'))
                     {
@@ -1540,7 +1540,7 @@ namespace VSGenero.Analysis.Parsing
                     {
                         return Tokens.NotEqualsToken;
                     }
-                    return BadChar(ch);
+                    return Tokens.ExclamationToken;
                 case '(':
                     _state.ParenLevel++;
                     return Tokens.LeftParenthesisToken;

@@ -214,7 +214,7 @@ namespace VSGenero.Analysis.Parsing.AST
         public NameExpression ActionName { get; private set; }
         public List<NameExpression> KeyNames { get; private set; }
         public ExpressionNode IdleSeconds { get; private set; }
-        public NameExpression OptionName { get; private set; }
+        public ExpressionNode OptionName { get; private set; }
         public ExpressionNode OptionComment { get; private set; }
         public ExpressionNode HelpNumber { get; private set; }
 
@@ -265,8 +265,9 @@ namespace VSGenero.Analysis.Parsing.AST
                                 parser.ReportSyntaxError("Expecting left-paren in dialog statement.");
                         }
 
-                        if(NameExpression.TryParseNode(parser, out nameExpr))
-                            node.OptionName = nameExpr;
+                        ExpressionNode nameExpression;
+                        if (ExpressionNode.TryGetExpressionNode(parser, out nameExpression))
+                            node.OptionName = nameExpression;
                         else
                             parser.ReportSyntaxError("Invalid expression found in dialog statement.");
 

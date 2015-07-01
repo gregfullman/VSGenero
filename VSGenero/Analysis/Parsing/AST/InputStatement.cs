@@ -424,10 +424,7 @@ namespace VSGenero.Analysis.Parsing.AST
 
     public class InputDialogStatementFactory
     {
-        public static bool TryGetStatement(Parser parser, out FglStatement node, bool isArray,
-                                 IModuleResult containingModule,
-                                 Action<PrepareStatement> prepStatementBinder = null,
-                                 List<TokenKind> validExitKeywords = null)
+        private static bool TryGetInputDialogStatement(Parser parser, out InputDialogStatement node, bool isArray)
         {
             bool result = false;
             node = null;
@@ -437,9 +434,32 @@ namespace VSGenero.Analysis.Parsing.AST
             {
                 node = inputStmt;
             }
+
+            return result;
+        }
+
+        public static bool TryGetStatement(Parser parser, out FglStatement node, bool isArray,
+                                 IModuleResult containingModule,
+                                 Action<PrepareStatement> prepStatementBinder = null,
+                                 List<TokenKind> validExitKeywords = null)
+        {
+            bool result = false;
+            node = null;
+
+            InputDialogStatement inputStmt;
+            if ((result = TryGetInputDialogStatement(parser, out inputStmt, isArray)))
+            {
+                node = inputStmt;
+            }
             else
             {
-                result = parser.StatementFactory.TryParseNode(parser, out node, containingModule, prepStatementBinder, false, validExitKeywords);
+                ContextStatementFactory csf = (x) =>
+                    {
+                        InputDialogStatement testNode;
+                        TryGetInputDialogStatement(x, out testNode, isArray);
+                        return testNode;
+                    };
+                result = parser.StatementFactory.TryParseNode(parser, out node, containingModule, prepStatementBinder, false, validExitKeywords, new[] { csf });
             }
 
             return result;

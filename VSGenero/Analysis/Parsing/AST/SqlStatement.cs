@@ -209,9 +209,15 @@ namespace VSGenero.Analysis.Parsing.AST
                     while (ExpressionNode.TryGetExpressionNode(parser, out name, new List<TokenKind>
                         {
                             TokenKind.Comma, TokenKind.IntoKeyword, TokenKind.FromKeyword
-                        }, true))
+                        }, true, true))
                     {
                         node.SelectList.Add(name);
+                        // TODO: there may be other sql select functions that should be allowed in the select list...
+                        if(name is FunctionCallExpressionNode &&
+                           (name as FunctionCallExpressionNode).Function.Name.Equals("top", StringComparison.OrdinalIgnoreCase))
+                        {
+                            continue;
+                        }
                         if (!parser.PeekToken(TokenKind.Comma))
                             break;
                         parser.NextToken();
@@ -263,7 +269,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     if(ExpressionNode.TryGetExpressionNode(parser, out conditionalExpr, GeneroAst.ValidStatementKeywords.Union(new List<TokenKind>
                         {
                             TokenKind.GroupKeyword, TokenKind.OrderKeyword
-                        }).ToList()))
+                        }).ToList(), true, true))
                     {
                         node.ConditionalExpression = conditionalExpr;
                     }
