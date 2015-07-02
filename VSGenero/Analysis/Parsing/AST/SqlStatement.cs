@@ -194,6 +194,8 @@ namespace VSGenero.Analysis.Parsing.AST
                     case TokenKind.DistinctKeyword: node.DuplicatesOption = SelectDuplicatesOption.Distinct; break;
                     case TokenKind.UniqueKeyword: node.DuplicatesOption = SelectDuplicatesOption.Unique; break;
                 }
+                if (node.DuplicatesOption != SelectDuplicatesOption.None)
+                    parser.NextToken();
 
                 // get the select list
                 node.SelectList = new List<ExpressionNode>();
@@ -205,22 +207,50 @@ namespace VSGenero.Analysis.Parsing.AST
                 else
                 {
                     node.SelectAll = false;
-                    ExpressionNode name;
-                    while (ExpressionNode.TryGetExpressionNode(parser, out name, new List<TokenKind>
-                        {
-                            TokenKind.Comma, TokenKind.IntoKeyword, TokenKind.FromKeyword
-                        }, true, true))
+                    while (true)
                     {
-                        node.SelectList.Add(name);
-                        // TODO: there may be other sql select functions that should be allowed in the select list...
-                        if(name is FunctionCallExpressionNode &&
-                           (name as FunctionCallExpressionNode).Function.Name.Equals("top", StringComparison.OrdinalIgnoreCase))
+                        if (parser.PeekToken(TokenKind.CaseKeyword))
                         {
-                            continue;
+                            // this is a pretty kludgy way of handling a case statement within a select statement, but for now it will do.
+                            parser.NextToken();
+                            TokenExpressionNode tokenExpression = new TokenExpressionNode(parser.Token);
+                            while(!parser.PeekToken(TokenKind.IntoKeyword) &&
+                                  !parser.PeekToken(TokenKind.FromKeyword) &&
+                                  !parser.PeekToken(TokenKind.Comma))
+                            {
+                                parser.NextToken();
+                                tokenExpression.AppendExpression(new TokenExpressionNode(parser.Token));
+                                if(parser.PeekToken(TokenKind.EndKeyword))
+                                {
+                                    parser.NextToken();
+                                    tokenExpression.AppendExpression(new TokenExpressionNode(parser.Token));
+                                    break;
+                                }
+                            }
+                            node.SelectList.Add(tokenExpression);
+                        }
+                        else
+                        {
+                            ExpressionNode name;
+                            if (ExpressionNode.TryGetExpressionNode(parser, out name, new List<TokenKind>
+                                {
+                                    TokenKind.Comma, TokenKind.IntoKeyword, TokenKind.FromKeyword
+                                }, true, true))
+                            {
+                                node.SelectList.Add(name);
+                                // TODO: there may be other sql select functions that should be allowed in the select list...
+                                if (name is FunctionCallExpressionNode &&
+                                   (name as FunctionCallExpressionNode).Function.Name.Equals("top", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    continue;
+                                }
+                            }
                         }
                         if (!parser.PeekToken(TokenKind.Comma))
                             break;
                         parser.NextToken();
+                        if (parser.PeekToken(TokenKind.IntoKeyword))
+                            break;
                     }
                 }
 

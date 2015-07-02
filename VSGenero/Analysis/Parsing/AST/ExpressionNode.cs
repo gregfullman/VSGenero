@@ -115,6 +115,36 @@ namespace VSGenero.Analysis.Parsing.AST
                             node.AppendExpression(new TokenExpressionNode(parser.Token));
                     }
                 }
+                else if(parser.PeekToken(TokenKind.IntervalKeyword))
+                {
+                    parser.NextToken();
+                    TokenExpressionNode intervalNode = new TokenExpressionNode(parser.Token);
+                    if (node == null)
+                        node = intervalNode;
+                    else
+                        node.AppendExpression(intervalNode);
+                    if (parser.PeekToken(TokenKind.LeftParenthesis))
+                    {
+                        parser.NextToken();
+                        node.AppendExpression(new TokenExpressionNode(parser.Token));
+                        while(!parser.PeekToken(TokenKind.EndOfFile))
+                        {
+                            parser.NextToken();
+                            node.AppendExpression(new TokenExpressionNode(parser.Token));
+                            if (parser.Token.Token.Kind == TokenKind.RightParenthesis)
+                                break;
+                        }
+                        string intervalString;
+                        if (TypeConstraints.VerifyValidConstraint(parser, out intervalString, TokenKind.IntervalKeyword, true))
+                        {
+                            result = true;
+                            node.AppendExpression(new StringExpressionNode(intervalString));
+                        }
+                        else
+                            parser.ReportSyntaxError("Invalid interval expression found.");
+                    }
+                }
+                
                 else if (parser.PeekToken(TokenCategory.Identifier) ||
                         parser.PeekToken(TokenCategory.Keyword))
                 {
@@ -130,12 +160,37 @@ namespace VSGenero.Analysis.Parsing.AST
                     }
                     else if (nonFuncCallName != null)
                     {
-                        // it's a name expression
-                        result = true;
-                        if (node == null)
-                            node = nonFuncCallName;
-                        else
-                            node.AppendExpression(nonFuncCallName);
+                        bool isDatetime = false;
+                        var dtToken = Tokens.GetToken(nonFuncCallName.Name);
+                        if(dtToken != null)
+                        {
+                            if (TypeConstraints.DateTimeQualifiers.Contains(dtToken.Kind))
+                            {
+                                string dtString;
+                                isDatetime = true;
+                                if (TypeConstraints.VerifyValidConstraint(parser, out dtString, TokenKind.DatetimeKeyword, true, dtToken.Kind))
+                                {
+                                    result = true;
+                                    var strExpr = new StringExpressionNode(dtString);
+                                    if (node == null)
+                                        node = strExpr;
+                                    else
+                                        node.AppendExpression(strExpr);
+                                }
+                                else
+                                    parser.ReportSyntaxError("Invalid datetime expression found.");
+                            }
+                        }
+
+                        if (!isDatetime)
+                        {
+                            // it's a name expression
+                            result = true;
+                            if (node == null)
+                                node = nonFuncCallName;
+                            else
+                                node.AppendExpression(nonFuncCallName);
+                        }
                     }
                     else
                     {

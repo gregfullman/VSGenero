@@ -364,12 +364,14 @@ namespace VSGenero.Analysis.Parsing.AST
                 case TokenKind.ContinueKeyword:
                 case TokenKind.ExitKeyword:
                     {
-                        parser.NextToken();
-                        node.StartIndex = parser.Token.Span.Start;
-                        if (parser.PeekToken(TokenKind.ConstructKeyword))
+                        if (parser.PeekToken(TokenKind.ConstructKeyword, 2))
+                        {
                             parser.NextToken();
+                            node.StartIndex = parser.Token.Span.Start;
+                            parser.NextToken();
+                        }
                         else
-                            parser.ReportSyntaxError("Expecting \"construct\" keyword in input statement.");
+                            result = false;
                         break;
                     }
                 case TokenKind.NextKeyword:

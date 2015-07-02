@@ -355,6 +355,7 @@
     <Compile Include="Analysis\Parsing\AST\OpenStatement.cs" />
     <Compile Include="Analysis\Parsing\AST\OptionsStatement.cs" />
     <Compile Include="Analysis\Parsing\AST\PrepareStatement.cs" />
+    <Compile Include="Analysis\Parsing\AST\PromptStatement.cs" />
     <Compile Include="Analysis\Parsing\AST\ReturnStatement.cs" />
     <Compile Include="Analysis\Parsing\AST\SleepStatement.cs" />
     <Compile Include="Analysis\Parsing\AST\SqlBlockNode.cs" />

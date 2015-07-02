@@ -115,7 +115,11 @@ namespace VSGenero.Analysis.Parsing.AST
                 {
                     DialogControlBlock icb;
                     if (DialogControlBlock.TryParseNode(parser, out icb, containingModule, prepStatementBinder, validExits) && icb != null)
+                    {
+                        if (icb.StartIndex < 0)
+                            continue;
                         node.Children.Add(icb.StartIndex, icb);
+                    }
                     else
                         parser.NextToken();
                 }
@@ -230,6 +234,14 @@ namespace VSGenero.Analysis.Parsing.AST
 
             switch(parser.PeekToken().Kind)
             {
+                case TokenKind.Ampersand:
+                    {
+                        // handle include file
+                        PreprocessorNode preNode;
+                        PreprocessorNode.TryParseNode(parser, out preNode);
+                        node.StartIndex = -1;
+                        break;
+                    }
                 case TokenKind.BeforeKeyword:
                 case TokenKind.AfterKeyword:
                     parser.NextToken();
@@ -343,7 +355,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     break;
             }
 
-            if (result)
+            if (result && node.StartIndex >= 0)
             {
                 // get the dialog statements
                 FglStatement inputStmt;

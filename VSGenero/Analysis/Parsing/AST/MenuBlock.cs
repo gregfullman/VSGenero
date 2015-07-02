@@ -100,7 +100,11 @@ namespace VSGenero.Analysis.Parsing.AST
                 {
                     MenuOption menuOpt;
                     if (MenuOption.TryParseNode(parser, out menuOpt, containingModule, prepStatementBinder, validExits) && menuOpt != null)
+                    {
+                        if (menuOpt.StartIndex < 0)
+                            continue;
                         node.Children.Add(menuOpt.StartIndex, menuOpt);
+                    }
                     else
                         parser.NextToken();
                 }
@@ -179,11 +183,14 @@ namespace VSGenero.Analysis.Parsing.AST
                 case TokenKind.ContinueKeyword:
                 case TokenKind.ExitKeyword:
                     {
-                        parser.NextToken();
-                        if (parser.PeekToken(TokenKind.MenuKeyword))
+                        if (parser.PeekToken(TokenKind.MenuKeyword, 2))
+                        {
                             parser.NextToken();
+                            node.StartIndex = parser.Token.Span.Start;
+                            parser.NextToken();
+                        }
                         else
-                            parser.ReportSyntaxError("Expecting \"menu\" keyword in menu statement.");
+                            result = false;
                         break;
                     }
                 case TokenKind.NextKeyword:
@@ -284,6 +291,13 @@ namespace VSGenero.Analysis.Parsing.AST
 
             switch (parser.PeekToken().Kind)
             {
+                case TokenKind.Ampersand:
+                    {
+                        PreprocessorNode preNode;
+                        PreprocessorNode.TryParseNode(parser, out preNode);
+                        node.StartIndex = -1;
+                        break;
+                    }
                 case TokenKind.CommandKeyword:
                     {
                         parser.NextToken();

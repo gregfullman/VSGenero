@@ -148,26 +148,36 @@ namespace VSGenero.Analysis.Parsing.AST
                             validExits.AddRange(validExitKeywords);
                         validExits.Add(TokenKind.DisplayKeyword);
 
-                        // get the display control blocks
-                        while (!parser.PeekToken(TokenKind.EndOfFile) &&
-                               !(parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.DisplayKeyword, 2)))
+                        bool hasControlBlocks = false;
+                        DisplayControlBlock icb;
+                        while(DisplayControlBlock.TryParseNode(parser, out icb, containingModule, node.IsArray, prepStatementBinder, validExits) && icb != null)
                         {
-                            DisplayControlBlock icb;
-                            if (DisplayControlBlock.TryParseNode(parser, out icb, containingModule, node.IsArray, prepStatementBinder, validExits) && icb != null)
-                                node.Children.Add(icb.StartIndex, icb);
-                            else
-                                parser.NextToken();
+                            // check for include file sign
+                            if (icb.StartIndex < 0)
+                                continue;
+
+                            node.Children.Add(icb.StartIndex, icb);
+                            hasControlBlocks = true;
+                            if (parser.PeekToken(TokenKind.EndOfFile) ||
+                                (parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.DisplayKeyword, 2)))
+                            {
+                                break;
+                            }
                         }
 
-                        if (!(parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.DisplayKeyword, 2)))
+                        if(hasControlBlocks ||
+                           (parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.DisplayKeyword, 2)))
                         {
-                            parser.ReportSyntaxError("A display block must be terminated with \"end display\".");
-                        }
-                        else
-                        {
-                            parser.NextToken(); // advance to the 'end' token
-                            parser.NextToken(); // advance to the 'display' token
-                            node.EndIndex = parser.Token.Span.End;
+                            if (!(parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.DisplayKeyword, 2)))
+                            {
+                                parser.ReportSyntaxError("A display block must be terminated with \"end display\".");
+                            }
+                            else
+                            {
+                                parser.NextToken(); // advance to the 'end' token
+                                parser.NextToken(); // advance to the 'display' token
+                                node.EndIndex = parser.Token.Span.End;
+                            }
                         }
                     }
                     else
@@ -220,7 +230,7 @@ namespace VSGenero.Analysis.Parsing.AST
                             parser.NextToken();
                             if (parser.PeekToken(TokenKind.LeftParenthesis))
                             {
-
+                                parser.NextToken();
                                 DisplayAttribute attrib;
                                 while (DisplayAttribute.TryParseNode(parser, out attrib, node.IsArray))
                                 {
@@ -290,13 +300,8 @@ namespace VSGenero.Analysis.Parsing.AST
                 case TokenKind.ReverseKeyword:
                 case TokenKind.BlinkKeyword:
                 case TokenKind.UnderlineKeyword:
-                    parser.NextToken();
-                    break;
                 case TokenKind.InvisibleKeyword:
-                    if (isArray)
-                        parser.NextToken();
-                    else
-                        parser.ReportSyntaxError("Keyword \"invisible\" is only allowed in a display array statement.");
+                    parser.NextToken();
                     break;
                 case TokenKind.AcceptKeyword:
                 case TokenKind.CancelKeyword:
@@ -423,6 +428,14 @@ namespace VSGenero.Analysis.Parsing.AST
             bool isDragAndDrop = false;
             switch (parser.PeekToken().Kind)
             {
+                case TokenKind.Ampersand:
+                    {
+                        // handle include file
+                        PreprocessorNode preNode;
+                        PreprocessorNode.TryParseNode(parser, out preNode);
+                        node.StartIndex = -1;
+                        break;
+                    }
                 case TokenKind.BeforeKeyword:
                 case TokenKind.AfterKeyword:
                     {
@@ -565,7 +578,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     break;
             }
 
-            if (result)
+            if (result && node.StartIndex >= 0)
             {
                 node.DecoratorEnd = parser.Token.Span.End;
                 if(isDragAndDrop)
@@ -648,7 +661,7 @@ namespace VSGenero.Analysis.Parsing.AST
 
     public class DisplayStatement : FglStatement
     {
-        public static bool TryParseNode(Parser parser, out DisplayStatement node, bool isArray)
+        public static bool TryParseNode(Parser parser, out DisplayStatement node, bool isArray, List<TokenKind> validExitKeywords = null)
         {
             node = new DisplayStatement();
             bool result = true;

@@ -32,7 +32,12 @@ namespace VSGenero.Analysis.Parsing.AST
             TokenKind.FractionKeyword
         };
 
-        public static bool VerifyValidConstraint(IParser parser, out string typeConstraintString, TokenKind specifiedToken = TokenKind.EndOfFile, bool suppressErrors = false)
+        public static HashSet<TokenKind> DateTimeQualifiers
+        {
+            get { return _dtQuals; }
+        }
+
+        public static bool VerifyValidConstraint(IParser parser, out string typeConstraintString, TokenKind specifiedToken = TokenKind.EndOfFile, bool suppressErrors = false, TokenKind alreadyEatenToken = TokenKind.EndOfFile)
         {
             typeConstraintString = null;
             StringBuilder sb = new StringBuilder();
@@ -122,9 +127,13 @@ namespace VSGenero.Analysis.Parsing.AST
                 case TokenKind.CurrentKeyword:
                 case TokenKind.DatetimeKeyword:
                     {
-                        if (_dtQuals.Contains(parser.PeekToken().Kind))
+                        TokenKind tokenToLookAt = alreadyEatenToken;
+                        if (tokenToLookAt == TokenKind.EndOfFile)
+                            tokenToLookAt = parser.PeekToken().Kind;
+                        if (_dtQuals.Contains(tokenToLookAt))
                         {
-                            parser.NextToken();
+                            if(alreadyEatenToken == TokenKind.EndOfFile)
+                                parser.NextToken();
                             sb.AppendFormat(" {0}", parser.Token.Token.Value.ToString());
 
                             if (parser.PeekToken(TokenKind.ToKeyword))

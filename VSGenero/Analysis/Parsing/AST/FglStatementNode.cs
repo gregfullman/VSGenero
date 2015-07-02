@@ -343,6 +343,15 @@ namespace VSGenero.Analysis.Parsing.AST
                         }
                         break;
                     }
+                case TokenKind.PromptKeyword:
+                    {
+                        PromptStatement promptStmt;
+                        if((result = PromptStatement.TryParseNode(parser, out promptStmt, containingModule, prepStatementBinder, validExitKeywords)))
+                        {
+                            node = promptStmt;
+                        }
+                        break;
+                    }
                 case TokenKind.DialogKeyword:
                     {
                         DialogBlock dialogBlock;

@@ -37,6 +37,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     case TokenKind.AbsoluteKeyword:
                     case TokenKind.RelativeKeyword:
                         {
+                            parser.NextToken();
                             ExpressionNode expr;
                             if (!ExpressionNode.TryGetExpressionNode(parser, out expr))
                                 parser.ReportSyntaxError("Invalid expression found in fetch statement.");
