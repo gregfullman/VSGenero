@@ -61,18 +61,26 @@ namespace VSGenero.Analysis.Parsing.AST
                 else if(parser.PeekToken(TokenKind.LikeKeyword))
                 {
                     parser.NextToken();
-                    defNode.SourceTable = parser.Token.Token.Value.ToString();
-                    parser.NextToken(); // advance to the dot
-                    if (parser.Token.Token.Kind == TokenKind.Dot)
+                    if (parser.PeekToken(TokenCategory.Identifier))
                     {
-                        if (parser.PeekToken(TokenKind.Multiply) ||
-                            parser.PeekToken(TokenCategory.Identifier) ||
-                            parser.PeekToken(TokenCategory.Keyword))
+                        parser.NextToken();
+                        defNode.SourceTable = parser.Token.Token.Value.ToString();
+                        parser.NextToken(); // advance to the dot
+                        if (parser.Token.Token.Kind == TokenKind.Dot)
                         {
-                            parser.NextToken(); // advance to the column name
-                            defNode.SourceColumn = parser.Token.Token.Value.ToString();
-                            defNode.IsComplete = true;
-                            defNode.EndIndex = parser.Token.Span.End;
+                            if (parser.PeekToken(TokenKind.Multiply) ||
+                                parser.PeekToken(TokenCategory.Identifier) ||
+                                parser.PeekToken(TokenCategory.Keyword))
+                            {
+                                parser.NextToken(); // advance to the column name
+                                defNode.SourceColumn = parser.Token.Token.Value.ToString();
+                                defNode.IsComplete = true;
+                                defNode.EndIndex = parser.Token.Span.End;
+                            }
+                            else
+                            {
+                                parser.ReportSyntaxError("Invalid initialization form detected.");
+                            }
                         }
                         else
                         {
@@ -80,9 +88,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         }
                     }
                     else
-                    {
-                        parser.ReportSyntaxError("Invalid initialization form detected.");
-                    }
+                        parser.ReportSyntaxError("Expected table name in initialization statement.");
                 }
                 else
                 {

@@ -50,6 +50,25 @@ namespace VSGenero.Analysis.Parsing.AST
                                 parser.ReportSyntaxError("Invalid token found in options input statement.");
                             break;
                         }
+                    case TokenKind.FieldKeyword:
+                        {
+                            parser.NextToken();
+                            if (parser.PeekToken(TokenKind.OrderKeyword))
+                            {
+                                parser.NextToken();
+                                if (parser.PeekToken(TokenKind.ConstrainedKeyword) ||
+                                   parser.PeekToken(TokenKind.UnconstrainedKeyword) ||
+                                   parser.PeekToken(TokenKind.FormKeyword))
+                                {
+                                    parser.NextToken();
+                                }
+                                else
+                                    parser.ReportSyntaxError("Expected one of keywords \"constrained\", \"unconstrained\", or \"form\" in options field statement.");
+                            }
+                            else
+                                parser.ReportSyntaxError("Expected keyword \"order\" in options field statement.");
+                            break;
+                        }
                     default:
                         {
                             parser.ReportSyntaxError("Unsupported options statement found.");

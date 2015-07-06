@@ -45,8 +45,10 @@ namespace VSGenero.Analysis.Parsing.AST
                         parser.ReportSyntaxError("Invalid prepared statement id found in execute statement.");
 
                     HashSet<TokenKind> inVarMods = new HashSet<TokenKind> { TokenKind.InKeyword, TokenKind.OutKeyword, TokenKind.InOutKeyword };
+                    bool hitUsing = false;
                     if(parser.PeekToken(TokenKind.UsingKeyword))
                     {
+                        hitUsing = true;
                         parser.NextToken();
                         NameExpression inVar;
                         while(NameExpression.TryParseNode(parser, out inVar, TokenKind.Comma))
@@ -68,6 +70,22 @@ namespace VSGenero.Analysis.Parsing.AST
                         while (NameExpression.TryParseNode(parser, out outVar, TokenKind.Comma))
                         {
                             node.InputVars.Add(outVar);
+                            if (parser.PeekToken(TokenKind.Comma))
+                                parser.NextToken();
+                            else
+                                break;
+                        }
+                    }
+
+                    if (!hitUsing && parser.PeekToken(TokenKind.UsingKeyword))
+                    {
+                        parser.NextToken();
+                        NameExpression inVar;
+                        while (NameExpression.TryParseNode(parser, out inVar, TokenKind.Comma))
+                        {
+                            node.InputVars.Add(inVar);
+                            if (inVarMods.Contains(parser.PeekToken().Kind))
+                                parser.NextToken();
                             if (parser.PeekToken(TokenKind.Comma))
                                 parser.NextToken();
                             else

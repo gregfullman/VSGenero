@@ -11,12 +11,13 @@ namespace VSGenero.Analysis.Parsing.AST
         public ExpressionNode CounterVariable { get; private set; }
         public ExpressionNode StartValueExpresison { get; private set; }
         public ExpressionNode EndValueExpression { get; private set; }
-        public int StepValue { get; private set; }
+        public ExpressionNode StepValue { get; private set; }
 
         public static bool TryParserNode(Parser parser, out ForStatement node, 
                                         IModuleResult containingModule,
                                         Action<PrepareStatement> prepStatementBinder = null,
-                                        List<TokenKind> validExitKeywords = null)
+                                        List<TokenKind> validExitKeywords = null,
+                                        IEnumerable<ContextStatementFactory> contextStatementFactories = null)
         {
             node = null;
             bool result = false;
@@ -27,7 +28,6 @@ namespace VSGenero.Analysis.Parsing.AST
                 node = new ForStatement();
                 parser.NextToken();
                 node.StartIndex = parser.Token.Span.Start;
-                node.StepValue = 1; // default value
 
                 ExpressionNode counterVar;
                 if(ExpressionNode.TryGetExpressionNode(parser, out counterVar, new List<TokenKind> { TokenKind.Equals }))
@@ -62,31 +62,36 @@ namespace VSGenero.Analysis.Parsing.AST
                 if(parser.PeekToken(TokenKind.StepKeyword))
                 {
                     parser.NextToken();
-                    bool negative = false;
-                    if (parser.PeekToken(TokenKind.Subtract))
-                    {
-                        negative = true;
-                        parser.NextToken();
-                    }
-                    if(parser.PeekToken(TokenCategory.NumericLiteral))
-                    {
-                        parser.NextToken();
-                        int temp;
-                        if(int.TryParse(parser.Token.Token.Value.ToString(), out temp))
-                        {
-                            node.StepValue = temp;
-                            if (negative)
-                                node.StepValue = -(node.StepValue);
-                        }
-                        else
-                        {
-                            parser.ReportSyntaxError("Invalid step value found.");
-                        }
-                    }
+                    ExpressionNode stepExpr;
+                    if (ExpressionNode.TryGetExpressionNode(parser, out stepExpr))
+                        node.StepValue = stepExpr;
                     else
-                    {
-                        parser.ReportSyntaxError("Invalid step value found.");
-                    }
+                        parser.ReportSyntaxError("Invalid step expression found.");
+                    //bool negative = false;
+                    //if (parser.PeekToken(TokenKind.Subtract))
+                    //{
+                    //    negative = true;
+                    //    parser.NextToken();
+                    //}
+                    //if(parser.PeekToken(TokenCategory.NumericLiteral))
+                    //{
+                    //    parser.NextToken();
+                    //    int temp;
+                    //    if(int.TryParse(parser.Token.Token.Value.ToString(), out temp))
+                    //    {
+                    //        node.StepValue = temp;
+                    //        if (negative)
+                    //            node.StepValue = -(node.StepValue);
+                    //    }
+                    //    else
+                    //    {
+                    //        parser.ReportSyntaxError("Invalid step value found.");
+                    //    }
+                    //}
+                    //else
+                    //{
+                    //    parser.ReportSyntaxError("Invalid step value found.");
+                    //}
                 }
 
                 node.DecoratorEnd = parser.Token.Span.End;
@@ -100,7 +105,7 @@ namespace VSGenero.Analysis.Parsing.AST
                       !(parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.ForKeyword, 2)))
                 {
                     FglStatement statement;
-                    if (parser.StatementFactory.TryParseNode(parser, out statement, containingModule, prepStatementBinder, false, validExits) && statement != null)
+                    if (parser.StatementFactory.TryParseNode(parser, out statement, containingModule, prepStatementBinder, false, validExits, contextStatementFactories) && statement != null)
                     {
                         AstNode stmtNode = statement as AstNode;
                         node.Children.Add(stmtNode.StartIndex, stmtNode);

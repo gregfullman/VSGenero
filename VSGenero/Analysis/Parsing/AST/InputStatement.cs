@@ -19,7 +19,8 @@ namespace VSGenero.Analysis.Parsing.AST
         public static bool TryParseNode(Parser parser, out InputBlock node,
                                  IModuleResult containingModule,
                                  Action<PrepareStatement> prepStatementBinder = null,
-                                 List<TokenKind> validExitKeywords = null)
+                                 List<TokenKind> validExitKeywords = null,
+                                 IEnumerable<ContextStatementFactory> contextStatementFactories = null)
         {
             node = null;
             bool result = false;
@@ -151,7 +152,7 @@ namespace VSGenero.Analysis.Parsing.AST
                        !(parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.InputKeyword, 2)))
                 {
                     InputControlBlock icb;
-                    if (InputControlBlock.TryParseNode(parser, out icb, containingModule, node.IsArray, prepStatementBinder, validExits) && icb != null)
+                    if (InputControlBlock.TryParseNode(parser, out icb, containingModule, node.IsArray, prepStatementBinder, validExits, contextStatementFactories) && icb != null)
                         node.Children.Add(icb.StartIndex, icb);
                     else
                         parser.NextToken();
@@ -219,7 +220,8 @@ namespace VSGenero.Analysis.Parsing.AST
         public static bool TryParseNode(Parser parser, out InputControlBlock node, IModuleResult containingModule,
                                  bool isArray = false,
                                  Action<PrepareStatement> prepStatementBinder = null,
-                                 List<TokenKind> validExitKeywords = null)
+                                 List<TokenKind> validExitKeywords = null,
+                                 IEnumerable<ContextStatementFactory> contextStatementFactories = null)
         {
             node = new InputControlBlock();
             bool result = true;
@@ -386,7 +388,7 @@ namespace VSGenero.Analysis.Parsing.AST
             {
                 // get the dialog statements
                 FglStatement inputStmt;
-                while (InputDialogStatementFactory.TryGetStatement(parser, out inputStmt, isArray, containingModule, prepStatementBinder, validExitKeywords))
+                while (InputDialogStatementFactory.TryGetStatement(parser, out inputStmt, isArray, containingModule, prepStatementBinder, validExitKeywords, contextStatementFactories))
                 {
                     if (inputStmt != null)
                     {
@@ -441,7 +443,8 @@ namespace VSGenero.Analysis.Parsing.AST
         public static bool TryGetStatement(Parser parser, out FglStatement node, bool isArray,
                                  IModuleResult containingModule,
                                  Action<PrepareStatement> prepStatementBinder = null,
-                                 List<TokenKind> validExitKeywords = null)
+                                 List<TokenKind> validExitKeywords = null,
+                                 IEnumerable<ContextStatementFactory> contextStatementFactories = null)
         {
             bool result = false;
             node = null;
@@ -453,13 +456,16 @@ namespace VSGenero.Analysis.Parsing.AST
             }
             else
             {
-                ContextStatementFactory csf = (x) =>
+                List<ContextStatementFactory> csfs = new List<ContextStatementFactory>();
+                if (contextStatementFactories != null)
+                    csfs.AddRange(contextStatementFactories);
+                csfs.Add((x) =>
                     {
                         InputDialogStatement testNode;
                         TryGetInputDialogStatement(x, out testNode, isArray);
                         return testNode;
-                    };
-                result = parser.StatementFactory.TryParseNode(parser, out node, containingModule, prepStatementBinder, false, validExitKeywords, new[] { csf });
+                    });
+                result = parser.StatementFactory.TryParseNode(parser, out node, containingModule, prepStatementBinder, false, validExitKeywords, csfs);
             }
 
             return result;

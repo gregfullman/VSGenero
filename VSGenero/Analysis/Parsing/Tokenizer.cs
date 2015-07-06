@@ -1004,22 +1004,22 @@ namespace VSGenero.Analysis.Parsing
             int sadd = 0;
             bool isTriple = false;
 
-            if (NextChar(quote))
-            {
-                if (NextChar(quote))
-                {
-                    isTriple = true; sadd += 3;
-                }
-                else
-                {
-                    BufferBack();
-                    sadd++;
-                }
-            }
-            else
-            {
+            //if (NextChar(quote))
+            //{
+            //    if (NextChar(quote))
+            //    {
+            //        isTriple = true; sadd += 3;
+            //    }
+            //    else
+            //    {
+            //        BufferBack();
+            //        sadd++;
+            //    }
+            //}
+            //else
+            //{
                 sadd++;
-            }
+            //}
 
             if (isRaw) sadd++;
             if (isUni) sadd++;
@@ -1148,6 +1148,12 @@ namespace VSGenero.Analysis.Parsing
                             tempPos--;
                         }
                         if (backslashCount % 2 != 0) continue;
+                    }
+
+                    // back to back quotes within a string should not terminate the string
+                    if (quote == '\"' && NextChar(quote))
+                    {
+                        continue;
                     }
 
                     if (isTriple)

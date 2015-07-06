@@ -112,25 +112,6 @@ namespace VSGenero.Analysis.Parsing.AST
                   !(parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.IfKeyword, 2)))
             {
                 FglStatement statement;
-                if(contextStatementFactories != null)
-                {
-                    bool hitOne = false;
-                    foreach(var context in contextStatementFactories)
-                    {
-                        statement = context(parser);
-                        if(statement != null)
-                        {
-                            AstNode stmtNode = statement as AstNode;
-                            if (stmtNode != null && !node.Children.ContainsKey(stmtNode.StartIndex))
-                                node.Children.Add(stmtNode.StartIndex, stmtNode);
-                            hitOne = true;
-                            break;
-                        }
-                    }
-                    if (hitOne)
-                        continue;
-                }
-
                 if (parser.StatementFactory.TryParseNode(parser, out statement, containingModule, prepStatementBinder, false, validExitKeywords, contextStatementFactories))
                 {
                     AstNode stmtNode = statement as AstNode;
@@ -162,25 +143,6 @@ namespace VSGenero.Analysis.Parsing.AST
                    !(parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.IfKeyword, 2)))
             {
                 FglStatement statement;
-                if (contextStatementFactories != null)
-                {
-                    bool hitOne = false;
-                    foreach (var context in contextStatementFactories)
-                    {
-                        statement = context(parser);
-                        if (statement != null)
-                        {
-                            AstNode stmtNode = statement as AstNode;
-                            if (stmtNode != null && !node.Children.ContainsKey(stmtNode.StartIndex))
-                                node.Children.Add(stmtNode.StartIndex, stmtNode);
-                            hitOne = true;
-                            break;
-                        }
-                    }
-                    if (hitOne)
-                        continue;
-                }
-
                 if (parser.StatementFactory.TryParseNode(parser, out statement, containingModule, prepStatementBinder, false, validExitKeywords, contextStatementFactories))
                 {
                     AstNode stmtNode = statement as AstNode;

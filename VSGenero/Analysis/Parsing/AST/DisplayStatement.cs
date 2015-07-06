@@ -21,12 +21,13 @@ namespace VSGenero.Analysis.Parsing.AST
         public static bool TryParseNode(Parser parser, out DisplayBlock node,
                                  IModuleResult containingModule,
                                  Action<PrepareStatement> prepStatementBinder = null,
-                                 List<TokenKind> validExitKeywords = null)
+                                 List<TokenKind> validExitKeywords = null,
+                                 IEnumerable<ContextStatementFactory> contextStatementFactories = null)
         {
             node = null;
             bool result = false;
 
-            if(parser.PeekToken(TokenKind.DisplayKeyword))
+            if (parser.PeekToken(TokenKind.DisplayKeyword))
             {
                 result = true;
                 node = new DisplayBlock();
@@ -37,7 +38,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 node.FieldSpecs = new List<NameExpression>();
                 node.DecoratorEnd = parser.Token.Span.End;
 
-                if(parser.PeekToken(TokenKind.ByKeyword))
+                if (parser.PeekToken(TokenKind.ByKeyword))
                 {
                     parser.NextToken();
                     if (parser.PeekToken(TokenKind.NameKeyword))
@@ -57,7 +58,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         node.DecoratorEnd = parser.Token.Span.End;
 
                         // get the optional attributes
-                        if(parser.PeekToken(TokenKind.AttributesKeyword) || parser.PeekToken(TokenKind.AttributeKeyword))
+                        if (parser.PeekToken(TokenKind.AttributesKeyword) || parser.PeekToken(TokenKind.AttributeKeyword))
                         {
                             parser.NextToken();
                             if (parser.PeekToken(TokenKind.LeftParenthesis))
@@ -85,7 +86,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     else
                         parser.ReportSyntaxError("Expected \"name\" keyword in display statement.");
                 }
-                else if(parser.PeekToken(TokenKind.ArrayKeyword))
+                else if (parser.PeekToken(TokenKind.ArrayKeyword))
                 {
                     parser.NextToken();
                     node.IsArray = true;
@@ -150,7 +151,7 @@ namespace VSGenero.Analysis.Parsing.AST
 
                         bool hasControlBlocks = false;
                         DisplayControlBlock icb;
-                        while(DisplayControlBlock.TryParseNode(parser, out icb, containingModule, node.IsArray, prepStatementBinder, validExits) && icb != null)
+                        while (DisplayControlBlock.TryParseNode(parser, out icb, containingModule, node.IsArray, prepStatementBinder, validExits, contextStatementFactories) && icb != null)
                         {
                             // check for include file sign
                             if (icb.StartIndex < 0)
@@ -165,7 +166,7 @@ namespace VSGenero.Analysis.Parsing.AST
                             }
                         }
 
-                        if(hasControlBlocks ||
+                        if (hasControlBlocks ||
                            (parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.DisplayKeyword, 2)))
                         {
                             if (!(parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.DisplayKeyword, 2)))
@@ -184,7 +185,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         parser.ReportSyntaxError("Expected \"to\" keyword in display array statement.");
                 }
                 else
-                {   
+                {
                     // get the expression(s)
                     ExpressionNode mainExpression = null;
                     while (true)
@@ -210,7 +211,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     else
                         parser.ReportSyntaxError("Invalid expression found in display statement.");
 
-                    if(parser.PeekToken(TokenKind.ToKeyword))
+                    if (parser.PeekToken(TokenKind.ToKeyword))
                     {
                         parser.NextToken();
 
@@ -419,7 +420,8 @@ namespace VSGenero.Analysis.Parsing.AST
         public static bool TryParseNode(Parser parser, out DisplayControlBlock node, IModuleResult containingModule,
                                  bool isArray = false,
                                  Action<PrepareStatement> prepStatementBinder = null,
-                                 List<TokenKind> validExitKeywords = null)
+                                 List<TokenKind> validExitKeywords = null,
+                                 IEnumerable<ContextStatementFactory> contextStatementFactories = null)
         {
             node = new DisplayControlBlock();
             bool result = true;
@@ -502,10 +504,10 @@ namespace VSGenero.Analysis.Parsing.AST
                                     if (parser.PeekToken(TokenKind.RightParenthesis))
                                         parser.NextToken();
                                     else
-                                        parser.ReportSyntaxError("Expected right-paren in input control block.");
+                                        parser.ReportSyntaxError("Expected right-paren in display array block.");
                                 }
                                 else
-                                    parser.ReportSyntaxError("Expected left-paren in input control block.");
+                                    parser.ReportSyntaxError("Expected left-paren in display array block.");
                                 break;
                             case TokenKind.AppendKeyword:
                                 node.Type = DisplayControlBlockType.Append;
@@ -526,20 +528,41 @@ namespace VSGenero.Analysis.Parsing.AST
                             case TokenKind.ExpandKeyword:
                                 node.Type = DisplayControlBlockType.Expand;
                                 parser.NextToken();
-                                NameExpression rowInd;
-                                if (NameExpression.TryParseNode(parser, out rowInd))
-                                    node.RowIndex = rowInd;
+                                if (parser.PeekToken(TokenKind.LeftParenthesis))
+                                {
+                                    parser.NextToken();
+                                    NameExpression rowInd;
+                                    if (NameExpression.TryParseNode(parser, out rowInd))
+                                        node.RowIndex = rowInd;
+                                    else
+                                        parser.ReportSyntaxError("Invalid row-index found in display array statement.");
+
+                                    if (parser.PeekToken(TokenKind.RightParenthesis))
+                                        parser.NextToken();
+                                    else
+                                        parser.ReportSyntaxError("Expected right-paren in display array statement.");
+                                }
                                 else
-                                    parser.ReportSyntaxError("Invalid row-index found in display array statement.");
+                                    parser.ReportSyntaxError("Expected left-paren in display array statement.");
                                 break;
                             case TokenKind.CollapseKeyword:
                                 node.Type = DisplayControlBlockType.Collapse;
                                 parser.NextToken();
-                                NameExpression rowInd1;
-                                if (NameExpression.TryParseNode(parser, out rowInd1))
-                                    node.RowIndex = rowInd1;
+                                if (parser.PeekToken(TokenKind.LeftParenthesis))
+                                {
+                                    parser.NextToken();
+                                    NameExpression rowInd1;
+                                    if (NameExpression.TryParseNode(parser, out rowInd1))
+                                        node.RowIndex = rowInd1;
+                                    else
+                                        parser.ReportSyntaxError("Invalid row-index found in display array statement.");
+                                    if (parser.PeekToken(TokenKind.RightParenthesis))
+                                        parser.NextToken();
+                                    else
+                                        parser.ReportSyntaxError("Expected right-paren in display array statement.");
+                                }
                                 else
-                                    parser.ReportSyntaxError("Invalid row-index found in display array statement.");
+                                    parser.ReportSyntaxError("Expected left-paren in display array statement.");
                                 break;
                             case TokenKind.Drag_EnterKeyword:
                                 node.Type = DisplayControlBlockType.DragEnter;
@@ -547,6 +570,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                 isDragAndDrop = true;
                                 break;
                             case TokenKind.Drag_FinishKeyword:
+                            case TokenKind.Drag_FinishedKeyword:
                                 node.Type = DisplayControlBlockType.DragFinish;
                                 parser.NextToken();
                                 isDragAndDrop = true;
@@ -581,7 +605,7 @@ namespace VSGenero.Analysis.Parsing.AST
             if (result && node.StartIndex >= 0)
             {
                 node.DecoratorEnd = parser.Token.Span.End;
-                if(isDragAndDrop)
+                if (isDragAndDrop)
                 {
                     if (parser.PeekToken(TokenKind.LeftParenthesis))
                     {
@@ -603,7 +627,7 @@ namespace VSGenero.Analysis.Parsing.AST
 
                 // get the dialog statements
                 FglStatement dispStmt;
-                while (DisplayStatementFactory.TryGetStatement(parser, out dispStmt, isArray, containingModule, prepStatementBinder, validExitKeywords) && dispStmt != null)
+                while (DisplayStatementFactory.TryGetStatement(parser, out dispStmt, isArray, containingModule, prepStatementBinder, validExitKeywords, contextStatementFactories) && dispStmt != null)
                 {
                     node.Children.Add(dispStmt.StartIndex, dispStmt);
                     node.EndIndex = dispStmt.EndIndex;
@@ -637,10 +661,7 @@ namespace VSGenero.Analysis.Parsing.AST
 
     public class DisplayStatementFactory
     {
-        public static bool TryGetStatement(Parser parser, out FglStatement node, bool isArray,
-                                 IModuleResult containingModule,
-                                 Action<PrepareStatement> prepStatementBinder = null,
-                                 List<TokenKind> validExitKeywords = null)
+        private static bool TryGetDisplayStatement(Parser parser, out DisplayStatement node, bool isArray)
         {
             bool result = false;
             node = null;
@@ -650,9 +671,36 @@ namespace VSGenero.Analysis.Parsing.AST
             {
                 node = inputStmt;
             }
+
+            return result;
+        }
+
+        public static bool TryGetStatement(Parser parser, out FglStatement node, bool isArray,
+                                 IModuleResult containingModule,
+                                 Action<PrepareStatement> prepStatementBinder = null,
+                                 List<TokenKind> validExitKeywords = null,
+                                 IEnumerable<ContextStatementFactory> contextStatementFactories = null)
+        {
+            bool result = false;
+            node = null;
+
+            DisplayStatement inputStmt;
+            if ((result = TryGetDisplayStatement(parser, out inputStmt, isArray)))
+            {
+                node = inputStmt;
+            }
             else
             {
-                result = parser.StatementFactory.TryParseNode(parser, out node, containingModule, prepStatementBinder, false, validExitKeywords);
+                List<ContextStatementFactory> csfs = new List<ContextStatementFactory>();
+                if (contextStatementFactories != null)
+                    csfs.AddRange(contextStatementFactories);
+                csfs.Add((x) =>
+                {
+                    DisplayStatement testNode;
+                    TryGetDisplayStatement(x, out testNode, isArray);
+                    return testNode;
+                });
+                result = parser.StatementFactory.TryParseNode(parser, out node, containingModule, prepStatementBinder, false, validExitKeywords, csfs);
             }
 
             return result;

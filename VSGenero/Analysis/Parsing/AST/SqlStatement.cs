@@ -199,12 +199,19 @@ namespace VSGenero.Analysis.Parsing.AST
 
                 // get the select list
                 node.SelectList = new List<ExpressionNode>();
+                bool isStarOnly = false;
                 if(parser.PeekToken(TokenKind.Multiply))
                 {
+                    isStarOnly = true;
                     parser.NextToken();
                     node.SelectAll = true;
+                    if (parser.PeekToken(TokenKind.Comma))
+                    {
+                        parser.NextToken();
+                        isStarOnly = false;
+                    }
                 }
-                else
+                if (!isStarOnly)
                 {
                     node.SelectAll = false;
                     while (true)
@@ -247,7 +254,24 @@ namespace VSGenero.Analysis.Parsing.AST
                             }
                         }
                         if (!parser.PeekToken(TokenKind.Comma))
-                            break;
+                        {
+                            if(!parser.PeekToken(TokenKind.IntoKeyword) &&
+                               !parser.PeekToken(TokenKind.FromKeyword))
+                            {
+                                // we may have a column alias
+                                ExpressionNode alias;
+                                if(ExpressionNode.TryGetExpressionNode(parser, out alias, new List<TokenKind>
+                                {
+                                    TokenKind.Comma, TokenKind.IntoKeyword, TokenKind.FromKeyword
+                                }))
+                                {
+                                    if (!parser.PeekToken(TokenKind.Comma))
+                                        break;
+                                }
+                            }
+                            else
+                                break;
+                        }
                         parser.NextToken();
                         if (parser.PeekToken(TokenKind.IntoKeyword))
                             break;
@@ -574,7 +598,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     parser.NextToken();
                     // TODO: there are various constructs that can be used.
                     ExpressionNode setExpr;
-                    if (ExpressionNode.TryGetExpressionNode(parser, out setExpr, GeneroAst.ValidStatementKeywords.Union(new[] { TokenKind.WhereKeyword }).ToList()))
+                    if (ExpressionNode.TryGetExpressionNode(parser, out setExpr, GeneroAst.ValidStatementKeywords.Union(new[] { TokenKind.WhereKeyword }).ToList(), true, true))
                         node.SetExpression = setExpr;
                     else
                         parser.ReportSyntaxError("Invalid expression found in update statement.");
@@ -601,7 +625,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         else
                         {
                             ExpressionNode conditionalExpr;
-                            if (ExpressionNode.TryGetExpressionNode(parser, out conditionalExpr, GeneroAst.ValidStatementKeywords.ToList()))
+                            if (ExpressionNode.TryGetExpressionNode(parser, out conditionalExpr, GeneroAst.ValidStatementKeywords.ToList(), true, true))
                                 node.ConditionalExpression = conditionalExpr;
                             else
                                 parser.ReportSyntaxError("Invalid conditional expression found in update statement.");

@@ -177,8 +177,6 @@ namespace VSGenero.Analysis.Parsing.AST
                                     else
                                         node.AppendExpression(strExpr);
                                 }
-                                else
-                                    parser.ReportSyntaxError("Invalid datetime expression found.");
                             }
                         }
 
@@ -229,8 +227,8 @@ namespace VSGenero.Analysis.Parsing.AST
                 bool isOperator = true;
                 while (isOperator && !requireExpression)
                 {
-                    if (breakTokens != null &&
-                        !breakTokens.Contains(nextTok.Kind) &&
+                    if ((breakTokens == null ||
+                         (breakTokens != null && !breakTokens.Contains(nextTok.Kind))) &&
                         nextTok.Kind >= TokenKind.FirstOperator &&
                         nextTok.Kind <= TokenKind.LastOperator)
                     {

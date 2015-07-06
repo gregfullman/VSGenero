@@ -351,6 +351,7 @@
     <Compile Include="Analysis\Parsing\AST\LabelStatement.cs" />
     <Compile Include="Analysis\Parsing\AST\LoadStatement.cs" />
     <Compile Include="Analysis\Parsing\AST\MenuBlock.cs" />
+    <Compile Include="Analysis\Parsing\AST\MessageStatement.cs" />
     <Compile Include="Analysis\Parsing\AST\NameNode.cs" />
     <Compile Include="Analysis\Parsing\AST\OpenStatement.cs" />
     <Compile Include="Analysis\Parsing\AST\OptionsStatement.cs" />
