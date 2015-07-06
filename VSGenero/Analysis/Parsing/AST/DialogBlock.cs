@@ -64,7 +64,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 csfs.Add((x) =>
                 {
                     DialogStatement testNode;
-                    DialogStatementFactory.TryGetDialogStatement(x, out testNode);
+                    DialogStatementFactory.TryGetDialogStatement(x, out testNode, true);
                     return testNode;
                 });
                 while(moreBlocks)
@@ -383,12 +383,12 @@ namespace VSGenero.Analysis.Parsing.AST
 
     public class DialogStatementFactory
     {
-        internal static bool TryGetDialogStatement(Parser parser, out DialogStatement node)
+        internal static bool TryGetDialogStatement(Parser parser, out DialogStatement node, bool returnFalseInsteadOfErrors = false)
         {
             bool result = false;
             node = null;
             DialogStatement inputStmt;
-            if ((result = DialogStatement.TryParseNode(parser, out inputStmt)))
+            if ((result = DialogStatement.TryParseNode(parser, out inputStmt, returnFalseInsteadOfErrors)))
             {
                 node = inputStmt;
             }
@@ -417,7 +417,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 csfs.Add((x) =>
                 {
                     DialogStatement testNode;
-                    TryGetDialogStatement(x, out testNode);
+                    TryGetDialogStatement(x, out testNode, true);
                     return testNode;
                 });
                 result = parser.StatementFactory.TryParseNode(parser, out node, containingModule, prepStatementBinder, false, validExitKeywords, csfs);
@@ -431,7 +431,7 @@ namespace VSGenero.Analysis.Parsing.AST
     {
         public NameExpression FieldSpec { get; private set; }
 
-        public static bool TryParseNode(Parser parser, out DialogStatement node)
+        public static bool TryParseNode(Parser parser, out DialogStatement node, bool returnFalseInsteadOfErrors = false)
         {
             node = new DialogStatement();
             bool result = true;
@@ -479,7 +479,12 @@ namespace VSGenero.Analysis.Parsing.AST
                             }
                         }
                         else
-                            parser.ReportSyntaxError("Expecting \"field\" keyword in dialog statement.");
+                        {
+                            if (!returnFalseInsteadOfErrors)
+                                parser.ReportSyntaxError("Expecting \"field\" keyword in dialog statement.");
+                            else
+                                return false;
+                        }
                         break;
                     }
                 default:

@@ -25,7 +25,7 @@ namespace VSGenero.Analysis.Parsing.AST
             node = null;
             bool result = false;
 
-            if(parser.PeekToken(TokenKind.InputKeyword))
+            if (parser.PeekToken(TokenKind.InputKeyword))
             {
                 result = true;
                 node = new InputBlock();
@@ -35,7 +35,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 node.FieldList = new List<NameExpression>();
                 node.Attributes = new List<InputAttribute>();
 
-                if(parser.PeekToken(TokenKind.ByKeyword))
+                if (parser.PeekToken(TokenKind.ByKeyword))
                 {
                     parser.NextToken();
                     if (parser.PeekToken(TokenKind.NameKeyword))
@@ -48,7 +48,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     else
                         parser.ReportSyntaxError("Expected \"name\" token in input statement.");
                 }
-                else if(parser.PeekToken(TokenKind.ArrayKeyword))
+                else if (parser.PeekToken(TokenKind.ArrayKeyword))
                 {
                     parser.NextToken();
                     node.IsArray = true;
@@ -72,7 +72,7 @@ namespace VSGenero.Analysis.Parsing.AST
                             break;
                         parser.NextToken();
                     }
-                } 
+                }
 
                 if (parser.PeekToken(TokenKind.WithoutKeyword))
                 {
@@ -85,9 +85,9 @@ namespace VSGenero.Analysis.Parsing.AST
                         parser.ReportSyntaxError("Expected \"defaults\" token in input statement.");
                 }
 
-                if(!node.IsImplicitMapping || node.IsArray)
+                if (!node.IsImplicitMapping || node.IsArray)
                 {
-                    if(parser.PeekToken(TokenKind.FromKeyword))
+                    if (parser.PeekToken(TokenKind.FromKeyword))
                     {
                         parser.NextToken();
 
@@ -104,7 +104,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         parser.ReportSyntaxError("Expected \"from\" token in input statement.");
                 }
 
-                if(parser.PeekToken(TokenKind.AttributesKeyword) || parser.PeekToken(TokenKind.AttributeKeyword))
+                if (parser.PeekToken(TokenKind.AttributesKeyword) || parser.PeekToken(TokenKind.AttributeKeyword))
                 {
                     parser.NextToken();
                     if (parser.PeekToken(TokenKind.LeftParenthesis))
@@ -130,7 +130,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         parser.ReportSyntaxError("Expecting left-paren in input attributes section.");
                 }
 
-                if(parser.PeekToken(TokenKind.HelpKeyword))
+                if (parser.PeekToken(TokenKind.HelpKeyword))
                 {
                     parser.NextToken();
 
@@ -147,26 +147,35 @@ namespace VSGenero.Analysis.Parsing.AST
                     validExits.AddRange(validExits);
                 validExits.Add(TokenKind.InputKeyword);
 
-                // get the dialog control blocks
-                while (!parser.PeekToken(TokenKind.EndOfFile) &&
-                       !(parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.InputKeyword, 2)))
+                bool hasControlBlocks = false;
+                InputControlBlock icb;
+                while (InputControlBlock.TryParseNode(parser, out icb, containingModule, node.IsArray, prepStatementBinder, validExits, contextStatementFactories) && icb != null)
                 {
-                    InputControlBlock icb;
-                    if (InputControlBlock.TryParseNode(parser, out icb, containingModule, node.IsArray, prepStatementBinder, validExits, contextStatementFactories) && icb != null)
-                        node.Children.Add(icb.StartIndex, icb);
-                    else
-                        parser.NextToken();
+                    if (icb.StartIndex < 0)
+                        continue;
+
+                    node.Children.Add(icb.StartIndex, icb);
+                    hasControlBlocks = true;
+                    if (parser.PeekToken(TokenKind.EndOfFile) ||
+                        (parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.InputKeyword, 2)))
+                    {
+                        break;
+                    }
                 }
 
-                if (!(parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.InputKeyword, 2)))
+                if (hasControlBlocks || 
+                    (parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.InputKeyword, 2)))
                 {
-                    parser.ReportSyntaxError("A input block must be terminated with \"end input\".");
-                }
-                else
-                {
-                    parser.NextToken(); // advance to the 'end' token
-                    parser.NextToken(); // advance to the 'input' token
-                    node.EndIndex = parser.Token.Span.End;
+                    if (!(parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.InputKeyword, 2)))
+                    {
+                        parser.ReportSyntaxError("A input block must be terminated with \"end input\".");
+                    }
+                    else
+                    {
+                        parser.NextToken(); // advance to the 'end' token
+                        parser.NextToken(); // advance to the 'input' token
+                        node.EndIndex = parser.Token.Span.End;
+                    }
                 }
             }
 
@@ -228,8 +237,16 @@ namespace VSGenero.Analysis.Parsing.AST
             node.FieldSpecList = new List<NameExpression>();
             node.KeyNameList = new List<NameExpression>();
 
-            switch(parser.PeekToken().Kind)
+            switch (parser.PeekToken().Kind)
             {
+                case TokenKind.Ampersand:
+                    {
+                        // handle include file
+                        PreprocessorNode preNode;
+                        PreprocessorNode.TryParseNode(parser, out preNode);
+                        node.StartIndex = -1;
+                        break;
+                    }
                 case TokenKind.BeforeKeyword:
                 case TokenKind.AfterKeyword:
                     {
@@ -256,20 +273,20 @@ namespace VSGenero.Analysis.Parsing.AST
                             node.Type = InputControlBlockType.Input;
                             node.DecoratorEnd = parser.Token.Span.End;
                         }
-                        else if(isArray &&
+                        else if (isArray &&
                                 parser.PeekToken(TokenKind.DeleteKeyword))
                         {
                             parser.NextToken();
                             node.Type = InputControlBlockType.Delete;
                             node.DecoratorEnd = parser.Token.Span.End;
                         }
-                        else if(isArray && parser.PeekToken(TokenKind.RowKeyword))
+                        else if (isArray && parser.PeekToken(TokenKind.RowKeyword))
                         {
                             parser.NextToken();
                             node.Type = InputControlBlockType.Row;
                             node.DecoratorEnd = parser.Token.Span.End;
                         }
-                        else if(isArray && parser.PeekToken(TokenKind.InsertKeyword))
+                        else if (isArray && parser.PeekToken(TokenKind.InsertKeyword))
                         {
                             parser.NextToken();
                             node.Type = InputControlBlockType.Insert;
@@ -286,7 +303,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     {
                         parser.NextToken();
                         node.StartIndex = parser.Token.Span.Start;
-                        switch(parser.PeekToken().Kind)
+                        switch (parser.PeekToken().Kind)
                         {
                             case TokenKind.ChangeKeyword:
                                 parser.NextToken();
@@ -323,7 +340,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                 else
                                     parser.ReportSyntaxError("Invalid action-name found in input statement.");
                                 node.DecoratorEnd = parser.Token.Span.End;
-                                if(parser.PeekToken(TokenKind.InfieldKeyword))
+                                if (parser.PeekToken(TokenKind.InfieldKeyword))
                                 {
                                     parser.NextToken();
                                     // get the field-spec
@@ -384,7 +401,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     break;
             }
 
-            if(result)
+            if (result && node.StartIndex >= 0)
             {
                 // get the dialog statements
                 FglStatement inputStmt;
@@ -426,13 +443,13 @@ namespace VSGenero.Analysis.Parsing.AST
 
     public class InputDialogStatementFactory
     {
-        private static bool TryGetInputDialogStatement(Parser parser, out InputDialogStatement node, bool isArray)
+        private static bool TryGetInputDialogStatement(Parser parser, out InputDialogStatement node, bool isArray, bool returnFalseInsteadOfErrors = false)
         {
             bool result = false;
             node = null;
 
             InputDialogStatement inputStmt;
-            if ((result = InputDialogStatement.TryParseNode(parser, out inputStmt, isArray)))
+            if ((result = InputDialogStatement.TryParseNode(parser, out inputStmt, isArray, returnFalseInsteadOfErrors)))
             {
                 node = inputStmt;
             }
@@ -462,7 +479,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 csfs.Add((x) =>
                     {
                         InputDialogStatement testNode;
-                        TryGetInputDialogStatement(x, out testNode, isArray);
+                        TryGetInputDialogStatement(x, out testNode, isArray, true);
                         return testNode;
                     });
                 result = parser.StatementFactory.TryParseNode(parser, out node, containingModule, prepStatementBinder, false, validExitKeywords, csfs);
@@ -476,12 +493,12 @@ namespace VSGenero.Analysis.Parsing.AST
     {
         public NameExpression FieldSpec { get; private set; }
 
-        public static bool TryParseNode(Parser parser, out InputDialogStatement node, bool isArray)
+        public static bool TryParseNode(Parser parser, out InputDialogStatement node, bool isArray, bool returnFalseInsteadOfErrors = false)
         {
             node = new InputDialogStatement();
             bool result = true;
 
-            switch(parser.PeekToken().Kind)
+            switch (parser.PeekToken().Kind)
             {
                 case TokenKind.AcceptKeyword:
                 case TokenKind.ContinueKeyword:
@@ -504,7 +521,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         if (parser.PeekToken(TokenKind.FieldKeyword))
                         {
                             parser.NextToken();
-                            switch(parser.PeekToken().Kind)
+                            switch (parser.PeekToken().Kind)
                             {
                                 case TokenKind.CurrentKeyword:
                                 case TokenKind.NextKeyword:
@@ -524,7 +541,12 @@ namespace VSGenero.Analysis.Parsing.AST
                             }
                         }
                         else
-                            parser.ReportSyntaxError("Expecting \"field\" keyword in input statement.");
+                        {
+                            if (!returnFalseInsteadOfErrors)
+                                parser.ReportSyntaxError("Expecting \"field\" keyword in input statement.");
+                            else
+                                return false;
+                        }
                         break;
                     }
                 case TokenKind.CancelKeyword:
@@ -539,7 +561,12 @@ namespace VSGenero.Analysis.Parsing.AST
                                 parser.ReportSyntaxError("Expected \"delete\" or \"insert\" keyword in input statement.");
                         }
                         else
-                            parser.ReportSyntaxError("Keyword \"cancel\" can only exist in an input array statement.");
+                        {
+                            if (!returnFalseInsteadOfErrors)
+                                parser.ReportSyntaxError("Keyword \"cancel\" can only exist in an input array statement.");
+                            else
+                                return false;
+                        }
                         break;
                     }
                 default:
@@ -564,7 +591,7 @@ namespace VSGenero.Analysis.Parsing.AST
             node.StartIndex = parser.Token.Span.Start;
             bool result = true;
 
-            switch(parser.PeekToken().Kind)
+            switch (parser.PeekToken().Kind)
             {
                 case TokenKind.BlackKeyword:
                 case TokenKind.BlueKeyword:
@@ -588,7 +615,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 case TokenKind.UnbufferedKeyword:
                     {
                         parser.NextToken();
-                        if(parser.PeekToken(TokenKind.Equals))
+                        if (parser.PeekToken(TokenKind.Equals))
                         {
                             parser.NextToken();
                             ExpressionNode boolExpr;
@@ -684,7 +711,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 case TokenKind.InsertKeyword:
                     {
                         parser.NextToken();
-                        if(parser.PeekToken(TokenKind.RowKeyword))
+                        if (parser.PeekToken(TokenKind.RowKeyword))
                         {
                             parser.NextToken();
                             if (parser.PeekToken(TokenKind.Equals))

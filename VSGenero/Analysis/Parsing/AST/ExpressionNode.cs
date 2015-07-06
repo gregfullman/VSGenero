@@ -19,7 +19,7 @@ namespace VSGenero.Analysis.Parsing.AST
         public abstract string ToString();
         public abstract string GetType();
 
-        public static bool TryGetExpressionNode(Parser parser, out ExpressionNode node, List<TokenKind> breakTokens = null, bool allowStarParam = false, bool allowAnythingForFunctionParams = false)
+        public static bool TryGetExpressionNode(IParser parser, out ExpressionNode node, List<TokenKind> breakTokens = null, bool allowStarParam = false, bool allowAnythingForFunctionParams = false)
         {
             node = null;
             bool result = false;
@@ -415,7 +415,7 @@ namespace VSGenero.Analysis.Parsing.AST
             }
         }
 
-        public static bool TryParseExpression(Parser parser, out FunctionCallExpressionNode node, out NameExpression nonFunctionCallName, bool leftParenRequired = false, bool allowStarParam = false, bool allowAnythingParam = false)
+        public static bool TryParseExpression(IParser parser, out FunctionCallExpressionNode node, out NameExpression nonFunctionCallName, bool leftParenRequired = false, bool allowStarParam = false, bool allowAnythingParam = false)
         {
             node = null;
             nonFunctionCallName = null;
@@ -552,7 +552,7 @@ namespace VSGenero.Analysis.Parsing.AST
             }
         }
 
-        public static bool TryParseNode(Parser parser, out BracketWrappedExpressionNode node)
+        public static bool TryParseNode(IParser parser, out BracketWrappedExpressionNode node)
         {
             node = null;
             bool result = false;
@@ -634,7 +634,7 @@ namespace VSGenero.Analysis.Parsing.AST
             }
         }
 
-        public static bool TryParseExpression(Parser parser, out ParenWrappedExpressionNode node, bool allowAnythingInParens = false)
+        public static bool TryParseExpression(IParser parser, out ParenWrappedExpressionNode node, bool allowAnythingInParens = false)
         {
             node = null;
             bool result = false;

@@ -10,7 +10,7 @@ namespace VSGenero.Analysis.Parsing.AST
     {
         public ExpressionNode ImmediateExpression { get; private set; }
         public NameExpression PreparedStatementId { get; private set; }
-        public List<NameExpression> InputVars { get; private set; }
+        public List<ExpressionNode> InputVars { get; private set; }
         public List<NameExpression> OutputVars { get; private set; }
 
         public static bool TryParseNode(Parser parser, out ExecuteStatement node)
@@ -24,7 +24,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 node = new ExecuteStatement();
                 parser.NextToken();
                 node.StartIndex = parser.Token.Span.Start;
-                node.InputVars = new List<NameExpression>();
+                node.InputVars = new List<ExpressionNode>();
                 node.OutputVars = new List<NameExpression>();
 
                 if(parser.PeekToken(TokenKind.ImmediateKeyword))
@@ -80,8 +80,8 @@ namespace VSGenero.Analysis.Parsing.AST
                     if (!hitUsing && parser.PeekToken(TokenKind.UsingKeyword))
                     {
                         parser.NextToken();
-                        NameExpression inVar;
-                        while (NameExpression.TryParseNode(parser, out inVar, TokenKind.Comma))
+                        ExpressionNode inVar;
+                        while (ExpressionNode.TryGetExpressionNode(parser, out inVar))
                         {
                             node.InputVars.Add(inVar);
                             if (inVarMods.Contains(parser.PeekToken().Kind))

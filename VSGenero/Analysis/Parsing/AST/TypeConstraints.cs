@@ -65,10 +65,22 @@ namespace VSGenero.Analysis.Parsing.AST
                         {
                             parser.NextToken();
                             sb.Append("(");
-                            if (parser.PeekToken(TokenCategory.NumericLiteral))
+                            ExpressionNode expr;
+                            if (ExpressionNode.TryGetExpressionNode(parser, out expr))
                             {
-                                parser.NextToken();
-                                sb.Append(parser.Token.Token.Value.ToString());
+                                sb.Append(expr.ToString());
+                                if(tokenToCheck == TokenKind.VarcharKeyword &&
+                                   parser.PeekToken(TokenKind.Comma))
+                                {
+                                    parser.NextToken();
+                                    sb.Append(", ");
+                                    if (ExpressionNode.TryGetExpressionNode(parser, out expr))
+                                    {
+                                        sb.Append(expr.ToString());
+                                    }
+                                    else
+                                        parser.ReportSyntaxError("Invalid expression found in varchar definition.");
+                                }
                                 if (parser.PeekToken(TokenKind.RightParenthesis))
                                 {
                                     parser.NextToken();

@@ -8,7 +8,7 @@ namespace VSGenero.Analysis.Parsing.AST
 {
     public class MenuBlock : FglStatement, IOutlinableResult
     {
-        public ExpressionNode MenuTitle { get; private set; }
+        public string MenuTitle { get; private set; }
         public List<ExpressionNode> Attributes { get; private set; }
 
         public static bool TryParseNode(Parser parser, out MenuBlock node,
@@ -28,15 +28,11 @@ namespace VSGenero.Analysis.Parsing.AST
                 node.StartIndex = parser.Token.Span.Start;
                 node.Attributes = new List<ExpressionNode>();
 
-                ExpressionNode titleExpr;
-                if (ExpressionNode.TryGetExpressionNode(parser, out titleExpr, new List<TokenKind>
-                    {
-                        TokenKind.AttributesKeyword, TokenKind.BeforeKeyword, TokenKind.CommandKeyword,
-                        TokenKind.OnKeyword, TokenKind.EndKeyword
-                    }))
-                    node.MenuTitle = titleExpr;
-                else
-                    parser.ReportSyntaxError("Invalid expression found in menu title.");
+                if(parser.PeekToken(TokenCategory.StringLiteral))
+                {
+                    parser.NextToken();
+                    node.MenuTitle = parser.Token.Token.Value.ToString();
+                }
 
                 node.DecoratorEnd = parser.Token.Span.End;
 
@@ -146,13 +142,13 @@ namespace VSGenero.Analysis.Parsing.AST
 
     public class MenuStatementFactory
     {
-        private static bool TryGetMenuStatement(Parser parser, out MenuStatement node)
+        private static bool TryGetMenuStatement(Parser parser, out MenuStatement node, bool returnFalseInsteadOfErrors = false)
         {
             bool result = false;
             node = null;
 
             MenuStatement menuStmt;
-            if ((result = MenuStatement.TryParseNode(parser, out menuStmt)))
+            if ((result = MenuStatement.TryParseNode(parser, out menuStmt, returnFalseInsteadOfErrors)))
             {
                 node = menuStmt;
             }
@@ -182,7 +178,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 csfs.Add((x) =>
                 {
                     MenuStatement testNode;
-                    TryGetMenuStatement(x, out testNode);
+                    TryGetMenuStatement(x, out testNode, true);
                     return testNode;
                 });
                 result = parser.StatementFactory.TryParseNode(parser, out node, containingModule, prepStatementBinder, false, validExitKeywords, csfs);
@@ -196,7 +192,7 @@ namespace VSGenero.Analysis.Parsing.AST
     {
         public List<NameExpression> OptionNames { get; private set; }
 
-        public static bool TryParseNode(Parser parser, out MenuStatement node)
+        public static bool TryParseNode(Parser parser, out MenuStatement node, bool returnFalseInsteadOfErrors = false)
         {
             node = new MenuStatement();
             node.StartIndex = parser.Token.Span.Start;
@@ -231,7 +227,13 @@ namespace VSGenero.Analysis.Parsing.AST
                                 parser.ReportSyntaxError("Invalid option name found in menu statement.");
                         }
                         else
-                            parser.ReportSyntaxError("Expecting \"option\" keyword in menu statement.");
+                        {
+                            if (!returnFalseInsteadOfErrors)
+                                parser.ReportSyntaxError("Expecting \"option\" keyword in menu statement.");
+                            else
+                                return false;
+                        }
+                            
                         break;
                     }
                 case TokenKind.ShowKeyword:
@@ -256,7 +258,12 @@ namespace VSGenero.Analysis.Parsing.AST
                             }
                         }
                         else
-                            parser.ReportSyntaxError("Expecting \"option\" keyword in menu statement.");
+                        {
+                            if (!returnFalseInsteadOfErrors)
+                                parser.ReportSyntaxError("Expecting \"option\" keyword in menu statement.");
+                            else
+                                return false;
+                        }
                         break;
                     }
                 default:

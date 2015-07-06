@@ -155,7 +155,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 {
                     if (!(parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.ConstructKeyword, 2)))
                     {
-                        parser.ReportSyntaxError("A display block must be terminated with \"end construct\".");
+                        parser.ReportSyntaxError("A construct block must be terminated with \"end construct\".");
                     }
                     else
                     {
@@ -326,7 +326,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         break;
                     }
                 default:
-                    //result = false;
+                    result = false;
                     break;
             }
 
@@ -347,13 +347,13 @@ namespace VSGenero.Analysis.Parsing.AST
 
     public class ConstructDialogStatementFactory
     {
-        private static bool TryGetConstructStatement(Parser parser, out ConstructDialogStatement node)
+        private static bool TryGetConstructStatement(Parser parser, out ConstructDialogStatement node, bool returnFalseInsteadOfErrors = false)
         {
             bool result = false;
             node = null;
 
             ConstructDialogStatement constStmt;
-            if ((result = ConstructDialogStatement.TryParseNode(parser, out constStmt)))
+            if ((result = ConstructDialogStatement.TryParseNode(parser, out constStmt, returnFalseInsteadOfErrors)))
             {
                 node = constStmt;
             }
@@ -383,7 +383,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 csfs.Add((x) =>
                 {
                     ConstructDialogStatement testNode;
-                    TryGetConstructStatement(x, out testNode);
+                    TryGetConstructStatement(x, out testNode, true);
                     return testNode;
                 });
                 result = parser.StatementFactory.TryParseNode(parser, out node, containingModule, prepStatementBinder, false, validExitKeywords, csfs);
@@ -397,7 +397,7 @@ namespace VSGenero.Analysis.Parsing.AST
     {
         public NameExpression FieldSpec { get; private set; }
 
-        public static bool TryParseNode(Parser parser, out ConstructDialogStatement node)
+        public static bool TryParseNode(Parser parser, out ConstructDialogStatement node, bool returnFalseInsteadOfErrors = false)
         {
             node = new ConstructDialogStatement();
             bool result = true;
@@ -443,7 +443,12 @@ namespace VSGenero.Analysis.Parsing.AST
                             }
                         }
                         else
-                            parser.ReportSyntaxError("Expecting \"field\" keyword in construct statement.");
+                        {
+                            if (!returnFalseInsteadOfErrors)
+                                parser.ReportSyntaxError("Expecting \"field\" keyword in construct statement.");
+                            else
+                                return false;
+                        }
                         break;
                     }
                 default:

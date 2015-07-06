@@ -661,13 +661,13 @@ namespace VSGenero.Analysis.Parsing.AST
 
     public class DisplayStatementFactory
     {
-        private static bool TryGetDisplayStatement(Parser parser, out DisplayStatement node, bool isArray)
+        private static bool TryGetDisplayStatement(Parser parser, out DisplayStatement node, bool isArray, bool returnFalseInsteadOfErrors = false)
         {
             bool result = false;
             node = null;
 
             DisplayStatement inputStmt;
-            if ((result = DisplayStatement.TryParseNode(parser, out inputStmt, isArray)))
+            if ((result = DisplayStatement.TryParseNode(parser, out inputStmt, isArray, null, returnFalseInsteadOfErrors)))
             {
                 node = inputStmt;
             }
@@ -697,7 +697,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 csfs.Add((x) =>
                 {
                     DisplayStatement testNode;
-                    TryGetDisplayStatement(x, out testNode, isArray);
+                    TryGetDisplayStatement(x, out testNode, isArray, true);
                     return testNode;
                 });
                 result = parser.StatementFactory.TryParseNode(parser, out node, containingModule, prepStatementBinder, false, validExitKeywords, csfs);
@@ -709,7 +709,7 @@ namespace VSGenero.Analysis.Parsing.AST
 
     public class DisplayStatement : FglStatement
     {
-        public static bool TryParseNode(Parser parser, out DisplayStatement node, bool isArray, List<TokenKind> validExitKeywords = null)
+        public static bool TryParseNode(Parser parser, out DisplayStatement node, bool isArray, List<TokenKind> validExitKeywords = null, bool returnFalseInsteadOfErrors = false)
         {
             node = new DisplayStatement();
             bool result = true;

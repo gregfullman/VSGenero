@@ -9,7 +9,7 @@ namespace VSGenero.Analysis.Parsing.AST
     public class OpenStatement : FglStatement
     {
         public NameExpression CursorId { get; private set; }
-        public List<NameExpression> InputVars { get; private set; }
+        public List<ExpressionNode> InputVars { get; private set; }
 
         public static bool TryParseNode(Parser parser, out OpenStatement node)
         {
@@ -22,7 +22,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 node = new OpenStatement();
                 parser.NextToken();
                 node.StartIndex = parser.Token.Span.Start;
-                node.InputVars = new List<NameExpression>();
+                node.InputVars = new List<ExpressionNode>();
 
                 NameExpression cid;
                 if (NameExpression.TryParseNode(parser, out cid))
@@ -34,8 +34,8 @@ namespace VSGenero.Analysis.Parsing.AST
                 if (parser.PeekToken(TokenKind.UsingKeyword))
                 {
                     parser.NextToken();
-                    NameExpression inVar;
-                    while (NameExpression.TryParseNode(parser, out inVar, TokenKind.Comma))
+                    ExpressionNode inVar;
+                    while (ExpressionNode.TryGetExpressionNode(parser, out inVar))
                     {
                         node.InputVars.Add(inVar);
                         if (inVarMods.Contains(parser.PeekToken().Kind))

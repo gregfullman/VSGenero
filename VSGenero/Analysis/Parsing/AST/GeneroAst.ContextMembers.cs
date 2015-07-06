@@ -576,7 +576,10 @@ namespace VSGenero.Analysis.Parsing.AST
             TokenKind.SkipKeyword,
 
             // Others
-            TokenKind.OnKeyword
+            TokenKind.OnKeyword,
+            TokenKind.BeforeKeyword,
+            TokenKind.AfterKeyword,
+
         };
 
         private static TokenKind[] OptionsStartTokens = new TokenKind[]

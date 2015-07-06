@@ -10,7 +10,7 @@ namespace VSGenero.Analysis.Parsing.AST
     {
         public string Name { get; private set; }
 
-        public static bool TryParseNode(Parser parser, out NameExpression node, TokenKind breakToken = TokenKind.EndOfFile)
+        public static bool TryParseNode(IParser parser, out NameExpression node, TokenKind breakToken = TokenKind.EndOfFile)
         {
             node = null;
             bool result = false;
@@ -95,7 +95,7 @@ namespace VSGenero.Analysis.Parsing.AST
             return string.Format("[{0}]", _expression.ToString());
         }
 
-        public static bool TryParse(Parser parser, out ArrayIndexNameExpressionPiece node, TokenKind breakToken = TokenKind.EndOfFile)
+        public static bool TryParse(IParser parser, out ArrayIndexNameExpressionPiece node, TokenKind breakToken = TokenKind.EndOfFile)
         {
             node = null;
             bool result = false;
@@ -178,7 +178,7 @@ namespace VSGenero.Analysis.Parsing.AST
             return _text;
         }
 
-        public static bool TryParse(Parser parser, out MemberAccessNameExpressionPiece node)
+        public static bool TryParse(IParser parser, out MemberAccessNameExpressionPiece node)
         {
             node = null;
             bool result = false;
