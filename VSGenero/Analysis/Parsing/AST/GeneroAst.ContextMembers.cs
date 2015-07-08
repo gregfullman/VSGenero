@@ -473,6 +473,21 @@ namespace VSGenero.Analysis.Parsing.AST
 
         #region Enums
 
+        public static HashSet<TokenKind> Acceptable_ReturnVariableName_StatementKeywords = new HashSet<TokenKind>
+        {
+            TokenKind.ConstantKeyword,
+            TokenKind.TypeKeyword,
+            TokenKind.DefineKeyword,
+            TokenKind.MainKeyword,
+            TokenKind.FunctionKeyword,
+            TokenKind.ReportKeyword,
+            TokenKind.ImportKeyword,
+            TokenKind.SchemaKeyword,
+            TokenKind.DescribeKeyword,
+            TokenKind.DatabaseKeyword,
+            TokenKind.GlobalsKeyword,
+        };
+
         public static HashSet<TokenKind> ValidStatementKeywords = new HashSet<TokenKind>
         {
             // keywords that are valid after an access mod

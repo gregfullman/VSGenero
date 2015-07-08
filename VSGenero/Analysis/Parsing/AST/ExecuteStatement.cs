@@ -50,8 +50,8 @@ namespace VSGenero.Analysis.Parsing.AST
                     {
                         hitUsing = true;
                         parser.NextToken();
-                        NameExpression inVar;
-                        while(NameExpression.TryParseNode(parser, out inVar, TokenKind.Comma))
+                        ExpressionNode inVar;
+                        while (ExpressionNode.TryGetExpressionNode(parser, out inVar))
                         {
                             node.InputVars.Add(inVar);
                             if (inVarMods.Contains(parser.PeekToken().Kind))

@@ -786,6 +786,11 @@ namespace VSGenero.Analysis.Parsing
 
                         return Tokens.DotToken;
 
+                    case '?':
+                        _state.LastNewLine = false;
+                        MarkTokenEnd();
+                        return Tokens.QuestionMarkToken;
+
                     case '0':
                     case '1':
                     case '2':

@@ -226,7 +226,7 @@ namespace VSGenero.Analysis.Parsing.AST
     {
         public DialogControlBlockType Type { get; private set; }
         public NameExpression ActionName { get; private set; }
-        public List<NameExpression> KeyNames { get; private set; }
+        public List<VirtualKey> KeyNames { get; private set; }
         public ExpressionNode IdleSeconds { get; private set; }
         public ExpressionNode OptionName { get; private set; }
         public ExpressionNode OptionComment { get; private set; }
@@ -240,7 +240,7 @@ namespace VSGenero.Analysis.Parsing.AST
         {
             node = new DialogControlBlock();
             node.StartIndex = parser.Token.Span.Start;
-            node.KeyNames = new List<NameExpression>();
+            node.KeyNames = new List<VirtualKey>();
             bool result = true;
 
             switch(parser.PeekToken().Kind)
@@ -269,16 +269,16 @@ namespace VSGenero.Analysis.Parsing.AST
                         parser.NextToken();
                         node.Type = DialogControlBlockType.Command;
 
-                        NameExpression nameExpr;
                         if(parser.PeekToken(TokenKind.KeyKeyword))
                         {
                             parser.NextToken();
                             if (parser.PeekToken(TokenKind.LeftParenthesis))
                             {
                                 parser.NextToken();
-                                while (NameExpression.TryParseNode(parser, out nameExpr))
+                                VirtualKey vKey;
+                                while (VirtualKey.TryGetKey(parser, out vKey))
                                 {
-                                    node.KeyNames.Add(nameExpr);
+                                    node.KeyNames.Add(vKey);
                                     if (parser.PeekToken(TokenKind.Comma))
                                         break;
                                     parser.NextToken();
@@ -294,7 +294,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         else
                             parser.ReportSyntaxError("Invalid expression found in dialog statement.");
 
-                        if(!parser.PeekToken(TokenKind.HelpKeyword))
+                        if(!parser.PeekToken(TokenKind.HelpKeyword) && parser.PeekToken(TokenCategory.StringLiteral))
                         {
                             ExpressionNode commentExpr;
                             if (ExpressionNode.TryGetExpressionNode(parser, out commentExpr, new List<TokenKind> { TokenKind.HelpKeyword }))
@@ -335,9 +335,10 @@ namespace VSGenero.Analysis.Parsing.AST
                                 if (parser.PeekToken(TokenKind.LeftParenthesis))
                                 {
                                     parser.NextToken();
-                                    while (NameExpression.TryParseNode(parser, out nameExpr))
+                                    VirtualKey vKey;
+                                    while (VirtualKey.TryGetKey(parser, out vKey))
                                     {
-                                        node.KeyNames.Add(nameExpr);
+                                        node.KeyNames.Add(vKey);
                                         if (parser.PeekToken(TokenKind.Comma))
                                             break;
                                         parser.NextToken();

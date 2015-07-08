@@ -149,7 +149,7 @@ namespace VSGenero.Analysis.Parsing.AST
 
                 bool hasControlBlocks = false;
                 InputControlBlock icb;
-                while (InputControlBlock.TryParseNode(parser, out icb, containingModule, node.IsArray, prepStatementBinder, validExits, contextStatementFactories) && icb != null)
+                while (InputControlBlock.TryParseNode(parser, out icb, containingModule, hasControlBlocks, node.IsArray, prepStatementBinder, validExits, contextStatementFactories) && icb != null)
                 {
                     if (icb.StartIndex < 0)
                         continue;
@@ -222,11 +222,11 @@ namespace VSGenero.Analysis.Parsing.AST
         public NameExpression ActionField { get; private set; }
 
         public List<NameExpression> FieldSpecList { get; private set; }
-        public List<NameExpression> KeyNameList { get; private set; }
+        public List<VirtualKey> KeyNameList { get; private set; }
 
         public InputControlBlockType Type { get; private set; }
 
-        public static bool TryParseNode(Parser parser, out InputControlBlock node, IModuleResult containingModule,
+        public static bool TryParseNode(Parser parser, out InputControlBlock node, IModuleResult containingModule, bool allowNonControlBlockStmts,
                                  bool isArray = false,
                                  Action<PrepareStatement> prepStatementBinder = null,
                                  List<TokenKind> validExitKeywords = null,
@@ -235,7 +235,7 @@ namespace VSGenero.Analysis.Parsing.AST
             node = new InputControlBlock();
             bool result = true;
             node.FieldSpecList = new List<NameExpression>();
-            node.KeyNameList = new List<NameExpression>();
+            node.KeyNameList = new List<VirtualKey>();
 
             switch (parser.PeekToken().Kind)
             {
@@ -357,8 +357,8 @@ namespace VSGenero.Analysis.Parsing.AST
                                 {
                                     parser.NextToken();
                                     // get the list of key names
-                                    NameExpression keyName;
-                                    while (NameExpression.TryParseNode(parser, out keyName))
+                                    VirtualKey keyName;
+                                    while (VirtualKey.TryGetKey(parser, out keyName))
                                     {
                                         node.KeyNameList.Add(keyName);
                                         if (!parser.PeekToken(TokenKind.Comma))
@@ -397,7 +397,8 @@ namespace VSGenero.Analysis.Parsing.AST
                         break;
                     }
                 default:
-                    result = false;
+                    if (!allowNonControlBlockStmts)
+                        result = false;
                     break;
             }
 

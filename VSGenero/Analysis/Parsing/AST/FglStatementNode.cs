@@ -411,6 +411,24 @@ namespace VSGenero.Analysis.Parsing.AST
                         }
                         break;
                     }
+                case TokenKind.BreakpointKeyword:
+                    {
+                        BreakpointStatement brkStmt;
+                        if((result = BreakpointStatement.TryParseNode(parser, out brkStmt)))
+                        {
+                            node = brkStmt;
+                        }
+                        break;
+                    }
+                case TokenKind.OutputKeyword:
+                    {
+                        OutputToReportStatement outRpt;
+                        if((result = OutputToReportStatement.TryParseNode(parser, out outRpt)))
+                        {
+                            node = outRpt;
+                        }
+                        break;
+                    }
                 default:
                     {
                         if (SqlStatementFactory.IsValidStatementStart(parser.PeekToken().Kind))
@@ -430,6 +448,23 @@ namespace VSGenero.Analysis.Parsing.AST
             }
 
             return result;
+        }
+    }
+
+    public class BreakpointStatement : FglStatement
+    {
+        public static bool TryParseNode(Parser parser, out BreakpointStatement node)
+        {
+            node = null;
+            if(parser.PeekToken(TokenKind.BreakpointKeyword))
+            {
+                node = new BreakpointStatement();
+                parser.NextToken();
+                node.StartIndex = parser.Token.Span.Start;
+                node.EndIndex = parser.Token.Span.End;
+                return true;
+            }
+            return false;
         }
     }
 }

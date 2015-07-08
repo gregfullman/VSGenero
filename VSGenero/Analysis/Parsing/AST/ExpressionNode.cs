@@ -19,7 +19,9 @@ namespace VSGenero.Analysis.Parsing.AST
         public abstract string ToString();
         public abstract string GetType();
 
-        public static bool TryGetExpressionNode(IParser parser, out ExpressionNode node, List<TokenKind> breakTokens = null, bool allowStarParam = false, bool allowAnythingForFunctionParams = false)
+        public static bool TryGetExpressionNode(IParser parser, out ExpressionNode node, List<TokenKind> breakTokens = null, 
+                                                bool allowStarParam = false, bool allowAnythingForFunctionParams = false, 
+                                                bool allowQuestionMark = false, bool allowNestedSelectStatement = false)
         {
             node = null;
             bool result = false;
@@ -44,7 +46,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 if (parser.PeekToken(TokenKind.LeftParenthesis))
                 {
                     ParenWrappedExpressionNode parenExpr;
-                    if (ParenWrappedExpressionNode.TryParseExpression(parser, out parenExpr, allowAnythingForFunctionParams))
+                    if (ParenWrappedExpressionNode.TryParseExpression(parser, out parenExpr, allowAnythingForFunctionParams, allowNestedSelectStatement))
                     {
                         if (node == null)
                             node = parenExpr;
@@ -144,7 +146,21 @@ namespace VSGenero.Analysis.Parsing.AST
                             parser.ReportSyntaxError("Invalid interval expression found.");
                     }
                 }
-                
+                else if(parser.PeekToken(TokenKind.SelectKeyword) && allowNestedSelectStatement)
+                {
+                    FglStatement selStmt;
+                    bool dummy;
+                    if (SqlStatementFactory.TryParseSqlStatement(parser, out selStmt, out dummy))
+                    {
+                        result = true;
+                        if (node == null)
+                            node = new FglStatementExpression(selStmt);
+                        else
+                            node.AppendExpression(new FglStatementExpression(selStmt));
+                    }
+                    else
+                        parser.ReportSyntaxError("Invalid select statement found in expression.");
+                }
                 else if (parser.PeekToken(TokenCategory.Identifier) ||
                         parser.PeekToken(TokenCategory.Keyword))
                 {
@@ -177,6 +193,10 @@ namespace VSGenero.Analysis.Parsing.AST
                                     else
                                         node.AppendExpression(strExpr);
                                 }
+                                else
+                                {
+                                    isDatetime = false;
+                                }
                             }
                         }
 
@@ -206,6 +226,14 @@ namespace VSGenero.Analysis.Parsing.AST
                     parser.NextToken();
                     if (node == null)
                         node = new TokenExpressionNode(parser.Token);
+                    else
+                        node.AppendExpression(new TokenExpressionNode(parser.Token));
+                }
+                else if(parser.PeekToken(TokenKind.QuestionMark) && allowQuestionMark)
+                {
+                    parser.NextToken();
+                    if (node == null)
+                        parser.ReportSyntaxError("Invalid token '?' found in expression.");
                     else
                         node.AppendExpression(new TokenExpressionNode(parser.Token));
                 }
@@ -308,6 +336,9 @@ namespace VSGenero.Analysis.Parsing.AST
                             case TokenKind.UnitsKeyword:
                             case TokenKind.LikeKeyword:
                             case TokenKind.MatchesKeyword:
+                            case TokenKind.ThroughKeyword:
+                            case TokenKind.ThruKeyword:
+                            case TokenKind.BetweenKeyword:
                                 {
                                     // require another expression
                                     requireExpression = true;
@@ -347,7 +378,8 @@ namespace VSGenero.Analysis.Parsing.AST
                                     parser.NextToken();
                                     node.AppendExpression(new TokenExpressionNode(parser.Token));
                                     if (parser.PeekToken(TokenKind.LikeKeyword) ||
-                                       parser.PeekToken(TokenKind.MatchesKeyword))
+                                       parser.PeekToken(TokenKind.MatchesKeyword) ||
+                                       parser.PeekToken(TokenKind.InKeyword))
                                     {
                                         // require another expression
                                         requireExpression = true;
@@ -429,7 +461,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 node.Function = name;
 
                 // get the left paren
-                if (parser.PeekToken(TokenKind.LeftParenthesis))
+                if(parser.PeekToken(TokenKind.LeftParenthesis))
                 {
                     result = true;
                     parser.NextToken();
@@ -454,6 +486,35 @@ namespace VSGenero.Analysis.Parsing.AST
                         else
                         {
                             parser.ReportSyntaxError("Call statement missing right parenthesis.");
+                        }
+
+                        if(parser.PeekToken(TokenKind.Dot))
+                        {
+                            parser.NextToken();
+                            // get the dotted member access (which could end up being another function call, so this needs to allow recursion)
+                            if (parser.PeekToken(TokenKind.Multiply))
+                            {
+                                parser.NextToken();
+                                node.Children.Add(parser.Token.Span.Start, new TokenExpressionNode(parser.Token));
+                            }
+                            else
+                            {
+                                FunctionCallExpressionNode funcCall;
+                                NameExpression nonFuncCallName;
+                                if (FunctionCallExpressionNode.TryParseExpression(parser, out funcCall, out nonFuncCallName, false, allowStarParam, allowAnythingParam))
+                                {
+                                    node.Children.Add(funcCall.StartIndex, funcCall);
+                                }
+                                else if (nonFuncCallName != null)
+                                {
+                                    node.Children.Add(nonFuncCallName.StartIndex, nonFuncCallName);
+                                }
+                                else
+                                {
+                                    parser.NextToken();
+                                    node.Children.Add(parser.Token.Span.Start, new TokenExpressionNode(parser.Token));
+                                }
+                            }
                         }
                     }
                     else
@@ -634,7 +695,7 @@ namespace VSGenero.Analysis.Parsing.AST
             }
         }
 
-        public static bool TryParseExpression(IParser parser, out ParenWrappedExpressionNode node, bool allowAnythingInParens = false)
+        public static bool TryParseExpression(IParser parser, out ParenWrappedExpressionNode node, bool allowAnythingInParens = false, bool allowNestedSelectStatement = false)
         {
             node = null;
             bool result = false;
@@ -649,7 +710,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 if (!allowAnythingInParens)
                 {
                     ExpressionNode exprNode;
-                    if (!ExpressionNode.TryGetExpressionNode(parser, out exprNode, new List<TokenKind> { TokenKind.RightParenthesis }))
+                    if (!ExpressionNode.TryGetExpressionNode(parser, out exprNode, new List<TokenKind> { TokenKind.RightParenthesis }, false, allowAnythingInParens, false, allowNestedSelectStatement))
                     {
                         parser.ReportSyntaxError("Invalid expression found within parentheses.");
                     }
@@ -829,6 +890,38 @@ namespace VSGenero.Analysis.Parsing.AST
 
         public override void PrependExpression(ExpressionNode node)
         {
+        }
+    }
+
+    public class FglStatementExpression : ExpressionNode
+    {
+        private FglStatement _statement;
+
+        public FglStatementExpression(FglStatement statement)
+        {
+            _statement = statement;
+        }
+
+        public override void PrependExpression(ExpressionNode node)
+        {
+        }
+
+        public override void AppendExpression(ExpressionNode node)
+        {
+        }
+
+        public override void AppendOperator(TokenExpressionNode tokenKind)
+        {
+        }
+
+        public override string ToString()
+        {
+            return _statement.ToString();
+        }
+
+        public override string GetType()
+        {
+            return null;
         }
     }
 }

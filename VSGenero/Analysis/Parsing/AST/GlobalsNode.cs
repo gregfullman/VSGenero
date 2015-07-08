@@ -75,7 +75,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                             if(!defNode.Types.ContainsKey(def.Name))
                                                 defNode.Types.Add(def.Name, def);
                                             else
-                                                parser.ReportSyntaxError(string.Format("Global type {0} is defined more than once.", def.Name));
+                                                parser.ReportSyntaxError(string.Format("Global type {0} is defined more than once.", def.Name), Severity.Warning);
                                         }
                                     }
                                     break;
@@ -91,7 +91,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                             if(!defNode.Constants.ContainsKey(def.Name))
                                                 defNode.Constants.Add(def.Name, def);
                                             else
-                                                parser.ReportSyntaxError(string.Format("Global constant {0} is defined more than once.", def.Name));
+                                                parser.ReportSyntaxError(string.Format("Global constant {0} is defined more than once.", def.Name), Severity.Warning);
                                         }
                                     }
                                     break;

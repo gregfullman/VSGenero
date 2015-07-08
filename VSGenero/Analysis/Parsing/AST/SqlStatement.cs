@@ -10,7 +10,7 @@ namespace VSGenero.Analysis.Parsing.AST
     {
         public static bool IsValidStatementStart(TokenKind tokenKind)
         {
-            switch(tokenKind)
+            switch (tokenKind)
             {
                 case TokenKind.SelectKeyword:
                 case TokenKind.UpdateKeyword:
@@ -22,24 +22,24 @@ namespace VSGenero.Analysis.Parsing.AST
             }
         }
 
-        public static bool TryParseSqlStatement(Parser parser, out FglStatement node, out bool matchedBreakSequence, TokenKind limitTo = TokenKind.EndOfFile, List<List<TokenKind>> breakSequences = null)
+        public static bool TryParseSqlStatement(IParser parser, out FglStatement node, out bool matchedBreakSequence, TokenKind limitTo = TokenKind.EndOfFile, List<List<TokenKind>> breakSequences = null)
         {
             matchedBreakSequence = false;
             node = null;
             bool result = false;
 
-            if(limitTo != TokenKind.EndOfFile)
+            if (limitTo != TokenKind.EndOfFile)
             {
-                if(!parser.PeekToken(limitTo))
+                if (!parser.PeekToken(limitTo))
                     return result;
             }
 
-            switch(parser.PeekToken().Kind)
+            switch (parser.PeekToken().Kind)
             {
                 case TokenKind.SelectKeyword:
                     {
                         SelectStatement selStmt;
-                        if((result = SelectStatement.TryParseNode(parser, out selStmt, out matchedBreakSequence)))
+                        if ((result = SelectStatement.TryParseNode(parser, out selStmt, out matchedBreakSequence)))
                         {
                             node = selStmt;
                         }
@@ -48,7 +48,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 case TokenKind.UpdateKeyword:
                     {
                         UpdateStatement updStmt;
-                        if((result = UpdateStatement.TryParseNode(parser, out updStmt)))
+                        if ((result = UpdateStatement.TryParseNode(parser, out updStmt)))
                         {
                             node = updStmt;
                         }
@@ -57,7 +57,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 case TokenKind.InsertKeyword:
                     {
                         InsertStatement insStmt;
-                        if((result = InsertStatement.TryParseNode(parser, out insStmt)))
+                        if ((result = InsertStatement.TryParseNode(parser, out insStmt)))
                         {
                             node = insStmt;
                         }
@@ -66,7 +66,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 case TokenKind.DeleteKeyword:
                     {
                         DeleteStatement delStmt;
-                        if((result = DeleteStatement.TryParseNode(parser, out delStmt)))
+                        if ((result = DeleteStatement.TryParseNode(parser, out delStmt)))
                         {
                             node = delStmt;
                         }
@@ -74,7 +74,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     }
             }
 
-            if(node != null)
+            if (node != null)
             {
                 result = true;
             }
@@ -117,22 +117,22 @@ namespace VSGenero.Analysis.Parsing.AST
 
         public List<NameExpression> IntoVariables { get; private set; }
 
-        public List<ExpressionNode> Tables { get; private set; }
+        public Dictionary<object, ExpressionNode> Tables { get; private set; }
 
         public ExpressionNode ConditionalExpression { get; private set; }
 
         public List<NameExpression> GroupByList { get; private set; }
-        public ExpressionNode GroupByCondition { get; private set;}
+        public ExpressionNode GroupByCondition { get; private set; }
 
         public List<ExpressionNode> OrderByList { get; private set; }
 
-        public static bool TryParseNode(Parser parser, out SelectStatement node, out bool matchedBreakSequence, List<List<TokenKind>> breakSequences = null)
+        public static bool TryParseNode(IParser parser, out SelectStatement node, out bool matchedBreakSequence, List<List<TokenKind>> breakSequences = null)
         {
             node = null;
             matchedBreakSequence = false;
             bool result = false;
 
-            if(parser.PeekToken(TokenKind.SelectKeyword))
+            if (parser.PeekToken(TokenKind.SelectKeyword))
             {
                 result = true;
                 node = new SelectStatement();
@@ -140,13 +140,13 @@ namespace VSGenero.Analysis.Parsing.AST
                 node.StartIndex = parser.Token.Span.Start;
 
                 // get the subset clause, if available
-                if(parser.PeekToken(TokenKind.SkipKeyword))
+                if (parser.PeekToken(TokenKind.SkipKeyword))
                 {
                     node.SubsetSkip = true;
                     parser.NextToken();
 
                     ExpressionNode skipExpr;
-                    if(ExpressionNode.TryGetExpressionNode(parser, out skipExpr, new List<TokenKind> 
+                    if (ExpressionNode.TryGetExpressionNode(parser, out skipExpr, new List<TokenKind> 
                     { 
                         TokenKind.FirstKeyword, TokenKind.MiddleKeyword, TokenKind.LimitKeyword,
                         TokenKind.AllKeyword, TokenKind.DistinctKeyword, TokenKind.UniqueKeyword,
@@ -162,18 +162,18 @@ namespace VSGenero.Analysis.Parsing.AST
                 }
 
                 node.SubsetType = SelectSubsetType.None;
-                switch(parser.PeekToken().Kind)
+                switch (parser.PeekToken().Kind)
                 {
                     case TokenKind.FirstKeyword: node.SubsetType = SelectSubsetType.First; break;
                     case TokenKind.MiddleKeyword: node.SubsetType = SelectSubsetType.Middle; break;
                     case TokenKind.LimitKeyword: node.SubsetType = SelectSubsetType.Limit; break;
                 }
-                if(node.SubsetType != SelectSubsetType.None)
+                if (node.SubsetType != SelectSubsetType.None)
                 {
                     parser.NextToken();
                     string subsetTypeStr = parser.Token.Token.Value.ToString();
                     ExpressionNode skipExpr;
-                    if(ExpressionNode.TryGetExpressionNode(parser, out skipExpr, new List<TokenKind> 
+                    if (ExpressionNode.TryGetExpressionNode(parser, out skipExpr, new List<TokenKind> 
                     { 
                         TokenKind.AllKeyword, TokenKind.DistinctKeyword, TokenKind.UniqueKeyword,
                         TokenKind.Multiply, TokenKind.IntoKeyword, TokenKind.FromKeyword
@@ -200,7 +200,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 // get the select list
                 node.SelectList = new List<ExpressionNode>();
                 bool isStarOnly = false;
-                if(parser.PeekToken(TokenKind.Multiply))
+                if (parser.PeekToken(TokenKind.Multiply))
                 {
                     isStarOnly = true;
                     parser.NextToken();
@@ -221,13 +221,13 @@ namespace VSGenero.Analysis.Parsing.AST
                             // this is a pretty kludgy way of handling a case statement within a select statement, but for now it will do.
                             parser.NextToken();
                             TokenExpressionNode tokenExpression = new TokenExpressionNode(parser.Token);
-                            while(!parser.PeekToken(TokenKind.IntoKeyword) &&
+                            while (!parser.PeekToken(TokenKind.IntoKeyword) &&
                                   !parser.PeekToken(TokenKind.FromKeyword) &&
                                   !parser.PeekToken(TokenKind.Comma))
                             {
                                 parser.NextToken();
                                 tokenExpression.AppendExpression(new TokenExpressionNode(parser.Token));
-                                if(parser.PeekToken(TokenKind.EndKeyword))
+                                if (parser.PeekToken(TokenKind.EndKeyword))
                                 {
                                     parser.NextToken();
                                     tokenExpression.AppendExpression(new TokenExpressionNode(parser.Token));
@@ -255,12 +255,12 @@ namespace VSGenero.Analysis.Parsing.AST
                         }
                         if (!parser.PeekToken(TokenKind.Comma))
                         {
-                            if(!parser.PeekToken(TokenKind.IntoKeyword) &&
+                            if (!parser.PeekToken(TokenKind.IntoKeyword) &&
                                !parser.PeekToken(TokenKind.FromKeyword))
                             {
                                 // we may have a column alias
                                 ExpressionNode alias;
-                                if(ExpressionNode.TryGetExpressionNode(parser, out alias, new List<TokenKind>
+                                if (ExpressionNode.TryGetExpressionNode(parser, out alias, new List<TokenKind>
                                 {
                                     TokenKind.Comma, TokenKind.IntoKeyword, TokenKind.FromKeyword
                                 }))
@@ -279,7 +279,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 }
 
                 node.IntoVariables = new List<NameExpression>();
-                if(parser.PeekToken(TokenKind.IntoKeyword))
+                if (parser.PeekToken(TokenKind.IntoKeyword))
                 {
                     parser.NextToken();
                     NameExpression name;
@@ -292,7 +292,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     }
                 }
 
-                if(!parser.PeekToken(TokenKind.FromKeyword))
+                if (!parser.PeekToken(TokenKind.FromKeyword))
                 {
                     parser.ReportSyntaxError("Select statement is missing \"from\" keyword.");
                 }
@@ -301,29 +301,108 @@ namespace VSGenero.Analysis.Parsing.AST
                     parser.NextToken();
                 }
 
-                node.Tables = new List<ExpressionNode>();
+                node.Tables = new Dictionary<object, ExpressionNode>();
                 // get the tables
                 ExpressionNode tableName;
-                while (ExpressionNode.TryGetExpressionNode(parser, out tableName, new List<TokenKind>
+                ExpressionNode aliasName;
+                while (true)
+                {
+                    if (parser.PeekToken(TokenKind.LeftParenthesis))
+                    {
+                        parser.NextToken();
+                        if (parser.PeekToken(TokenKind.SelectKeyword))
+                        {
+                            SelectStatement subSelStmt;
+                            bool dummy;
+                            if (SelectStatement.TryParseNode(parser, out subSelStmt, out dummy))
+                            {
+                                node.Tables.Add(subSelStmt, null);
+                                if (!parser.PeekToken(TokenKind.Comma))
+                                {
+                                    var peek = parser.PeekToken();
+                                    var cat = Tokenizer.GetTokenInfo(peek).Category;
+                                    if ((cat == TokenCategory.Keyword ||
+                                       cat == TokenCategory.Identifier) &&
+                                        (!GeneroAst.ValidStatementKeywords.Contains(peek.Kind) &&
+                                        peek.Kind != TokenKind.WhereKeyword &&
+                                        peek.Kind != TokenKind.GroupKeyword &&
+                                        peek.Kind != TokenKind.OrderKeyword))
+                                    {
+                                        if (!ExpressionNode.TryGetExpressionNode(parser, out aliasName))
+                                            parser.ReportSyntaxError("Invalid table alias name found.");
+                                        else
+                                            node.Tables[subSelStmt] = aliasName;
+
+                                        if (!parser.PeekToken(TokenKind.Comma))
+                                            break;
+                                        else
+                                            parser.NextToken();
+                                    }
+                                    else
+                                        break;
+                                }
+                                else
+                                    parser.NextToken();
+                            }
+                        }
+                        else
+                        {
+                            parser.ReportSyntaxError("Invalid table name found in select statement.");
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        if (ExpressionNode.TryGetExpressionNode(parser, out tableName, new List<TokenKind>
                         {
                             TokenKind.Comma
                         }))
-                {
-                    node.Tables.Add(tableName);
-                    if (!parser.PeekToken(TokenKind.Comma))
-                        break;
-                    parser.NextToken();
+                        {
+                            node.Tables.Add(tableName, null);
+                            if (!parser.PeekToken(TokenKind.Comma))
+                            {
+                                var peek = parser.PeekToken();
+                                var cat = Tokenizer.GetTokenInfo(peek).Category;
+                                if ((cat == TokenCategory.Keyword ||
+                                   cat == TokenCategory.Identifier) &&
+                                    (!GeneroAst.ValidStatementKeywords.Contains(peek.Kind) &&
+                                    peek.Kind != TokenKind.WhereKeyword &&
+                                    peek.Kind != TokenKind.GroupKeyword &&
+                                    peek.Kind != TokenKind.OrderKeyword))
+                                {
+                                    if (!ExpressionNode.TryGetExpressionNode(parser, out aliasName))
+                                        parser.ReportSyntaxError("Invalid table alias name found.");
+                                    else
+                                        node.Tables[tableName] = aliasName;
+
+                                    if (!parser.PeekToken(TokenKind.Comma))
+                                        break;
+                                    else
+                                        parser.NextToken();
+                                }
+                                else
+                                    break;
+                            }
+                            else
+                                parser.NextToken();
+                        }
+                        else
+                        {
+                            parser.ReportSyntaxError("Invalid table name found in select statement.");
+                            break;
+                        }
+                    }
                 }
 
                 // get the where clause
-                if(parser.PeekToken(TokenKind.WhereKeyword))
+                if (parser.PeekToken(TokenKind.WhereKeyword))
                 {
                     parser.NextToken();
                     ExpressionNode conditionalExpr;
-                    if(ExpressionNode.TryGetExpressionNode(parser, out conditionalExpr, GeneroAst.ValidStatementKeywords.Union(new List<TokenKind>
+                    if (ExpressionNode.TryGetExpressionNode(parser, out conditionalExpr, GeneroAst.ValidStatementKeywords.Union(new List<TokenKind>
                         {
                             TokenKind.GroupKeyword, TokenKind.OrderKeyword
-                        }).ToList(), true, true))
+                        }).ToList(), true, true, true))
                     {
                         node.ConditionalExpression = conditionalExpr;
                     }
@@ -335,7 +414,7 @@ namespace VSGenero.Analysis.Parsing.AST
 
                 // get group-by clause
                 node.GroupByList = new List<NameExpression>();
-                if(parser.PeekToken(TokenKind.GroupKeyword) && parser.PeekToken(TokenKind.ByKeyword, 2))
+                if (parser.PeekToken(TokenKind.GroupKeyword) && parser.PeekToken(TokenKind.ByKeyword, 2))
                 {
                     parser.NextToken();
                     parser.NextToken();
@@ -348,7 +427,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         parser.NextToken();
                     }
 
-                    if(parser.PeekToken(TokenKind.HavingKeyword))
+                    if (parser.PeekToken(TokenKind.HavingKeyword))
                     {
                         parser.NextToken();
                         ExpressionNode conditionalExpr;
@@ -367,7 +446,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 }
 
                 node.OrderByList = new List<ExpressionNode>();
-                if(parser.PeekToken(TokenKind.OrderKeyword) && parser.PeekToken(TokenKind.ByKeyword, 2))
+                if (parser.PeekToken(TokenKind.OrderKeyword) && parser.PeekToken(TokenKind.ByKeyword, 2))
                 {
                     parser.NextToken();
                     parser.NextToken();
@@ -381,7 +460,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     }
                 }
 
-                if(parser.PeekToken(TokenKind.ForKeyword) &&
+                if (parser.PeekToken(TokenKind.ForKeyword) &&
                    parser.PeekToken(TokenKind.UpdateKeyword, 2))
                 {
                     parser.NextToken();
@@ -406,12 +485,12 @@ namespace VSGenero.Analysis.Parsing.AST
         public bool UsesSelectStmt { get; private set; }
         public List<ExpressionNode> Values { get; private set; }
 
-        public static bool TryParseNode(Parser parser, out InsertStatement node)
+        public static bool TryParseNode(IParser parser, out InsertStatement node)
         {
             node = null;
             bool result = false;
 
-            if(parser.PeekToken(TokenKind.InsertKeyword))
+            if (parser.PeekToken(TokenKind.InsertKeyword))
             {
                 result = true;
                 node = new InsertStatement();
@@ -419,12 +498,12 @@ namespace VSGenero.Analysis.Parsing.AST
                 node.StartIndex = parser.Token.Span.Start;
                 node.Values = new List<ExpressionNode>();
 
-                if(parser.PeekToken(TokenKind.IntoKeyword))
+                if (parser.PeekToken(TokenKind.IntoKeyword))
                 {
                     parser.NextToken();
 
                     NameExpression tableExpr;
-                    if(NameExpression.TryParseNode(parser, out tableExpr))
+                    if (NameExpression.TryParseNode(parser, out tableExpr))
                     {
                         node.TableSpec = tableExpr;
                     }
@@ -453,10 +532,10 @@ namespace VSGenero.Analysis.Parsing.AST
                             parser.ReportSyntaxError("Column list missing right-paren in insert statement.");
                     }
 
-                    if(parser.PeekToken(TokenKind.ValuesKeyword))
+                    if (parser.PeekToken(TokenKind.ValuesKeyword))
                     {
                         parser.NextToken();
-                        if(parser.PeekToken(TokenKind.LeftParenthesis))
+                        if (parser.PeekToken(TokenKind.LeftParenthesis))
                             parser.NextToken();
 
                         ExpressionNode expr;
@@ -503,12 +582,12 @@ namespace VSGenero.Analysis.Parsing.AST
         public ExpressionNode ConditionalExpression { get; private set; }
         public NameExpression CursorName { get; private set; }
 
-        public static bool TryParseNode(Parser parser, out DeleteStatement node)
+        public static bool TryParseNode(IParser parser, out DeleteStatement node)
         {
             node = null;
             bool result = false;
 
-            if(parser.PeekToken(TokenKind.DeleteKeyword))
+            if (parser.PeekToken(TokenKind.DeleteKeyword))
             {
                 result = true;
                 node = new DeleteStatement();
@@ -529,7 +608,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     {
                         parser.NextToken();
 
-                        if(parser.PeekToken(TokenKind.CurrentKeyword))
+                        if (parser.PeekToken(TokenKind.CurrentKeyword))
                         {
                             parser.NextToken();
                             if (parser.PeekToken(TokenKind.OfKeyword))
@@ -570,20 +649,41 @@ namespace VSGenero.Analysis.Parsing.AST
 
     public class UpdateStatement : FglStatement
     {
+        public enum SyntaxType
+        {
+            None,
+            Syntax1,
+            Syntax2,
+            Syntax3,
+            Syntax4
+        }
+
         public NameExpression TableSpec { get; private set; }
-        public ExpressionNode SetExpression { get; private set; }
         public ExpressionNode ConditionalExpression { get; private set; }
         public NameExpression CursorName { get; private set; }
 
-        public static bool TryParseNode(Parser parser, out UpdateStatement node)
+        public SyntaxType Type { get; private set; }
+        public List<NameExpression> ColumnList { get; private set; }
+        public bool WholeTable { get; private set; }
+        public NameExpression WholeTableName { get; private set; }
+        public List<object> Variables { get; set; }
+
+        /// <summary>
+        /// Used for syntax 4
+        /// </summary>
+        public NameExpression RecordName { get; private set; }
+
+        public static bool TryParseNode(IParser parser, out UpdateStatement node)
         {
             node = null;
             bool result = false;
 
-            if(parser.PeekToken(TokenKind.UpdateKeyword))
+            if (parser.PeekToken(TokenKind.UpdateKeyword))
             {
                 result = true;
                 node = new UpdateStatement();
+                node.ColumnList = new List<NameExpression>();
+                node.Variables = new List<object>();
                 parser.NextToken();
                 node.StartIndex = parser.Token.Span.Start;
 
@@ -596,12 +696,183 @@ namespace VSGenero.Analysis.Parsing.AST
                 if (parser.PeekToken(TokenKind.SetKeyword))
                 {
                     parser.NextToken();
-                    // TODO: there are various constructs that can be used.
-                    ExpressionNode setExpr;
-                    if (ExpressionNode.TryGetExpressionNode(parser, out setExpr, GeneroAst.ValidStatementKeywords.Union(new[] { TokenKind.WhereKeyword }).ToList(), true, true))
-                        node.SetExpression = setExpr;
+                    // there are various constructs that can be used.
+                    if (parser.PeekToken(TokenKind.LeftParenthesis))
+                    {
+                        // this can handle syntax 2 or 4
+                        // Collect the column list in either case
+                        parser.NextToken();
+                        NameExpression colName;
+                        while (NameExpression.TryParseNode(parser, out colName, TokenKind.Comma))
+                        {
+                            node.ColumnList.Add(colName);
+                            if (!parser.PeekToken(TokenKind.Comma))
+                                break;
+                            parser.NextToken();
+                        }
+                        if (parser.PeekToken(TokenKind.RightParenthesis))
+                        {
+                            parser.NextToken();
+                            if (parser.PeekToken(TokenKind.Equals))
+                            {
+                                parser.NextToken();
+
+                                if (parser.PeekToken(TokenKind.LeftParenthesis))
+                                {
+                                    // we have syntax 2, let the code below get the variable list
+                                    node.Type = SyntaxType.Syntax2;
+                                    // continued below...
+                                }
+                                else if (parser.PeekToken(TokenCategory.Identifier) || parser.PeekToken(TokenCategory.Keyword))
+                                {
+                                    node.Type = SyntaxType.Syntax4;
+                                    if (NameExpression.TryParseNode(parser, out colName) && colName.Name.EndsWith(".*"))
+                                    {
+                                        node.RecordName = colName;
+                                    }
+                                    else
+                                        parser.ReportSyntaxError("Invalid record name found in update statement.");
+                                }
+                                else
+                                    parser.ReportSyntaxError("Invalid form of update statement found.");
+                            }
+                            else
+                                parser.ReportSyntaxError("Expected '=' token in update statement.");
+                        }
+                        else
+                            parser.ReportSyntaxError("Expected right-paren token in update statement.");
+                    }
+                    else if (parser.PeekToken(TokenKind.Multiply))
+                    {
+                        // this can handle syntax 3 or 4
+                        parser.NextToken();
+                        node.WholeTable = true;
+                        node.Type = SyntaxType.Syntax3;
+                        if (parser.PeekToken(TokenKind.Equals))
+                        {
+                            parser.NextToken();
+                            if (parser.PeekToken(TokenKind.LeftParenthesis))
+                            {
+                                node.Type = SyntaxType.Syntax3;
+                                // continued below...
+                            }
+                            else if (parser.PeekToken(TokenCategory.Identifier) || parser.PeekToken(TokenCategory.Keyword))
+                            {
+                                node.Type = SyntaxType.Syntax4;
+                                NameExpression colName;
+                                if (NameExpression.TryParseNode(parser, out colName) && colName.Name.EndsWith(".*"))
+                                {
+                                    node.RecordName = colName;
+                                }
+                                else
+                                    parser.ReportSyntaxError("Invalid record name found in update statement.");
+                            }
+                            else
+                                parser.ReportSyntaxError("Invalid form of update statement found.");
+                        }
+                        else
+                            parser.ReportSyntaxError("Expected '=' token in update statement.");
+                    }
+                    else if (parser.PeekToken(TokenCategory.Identifier) ||
+                            parser.PeekToken(TokenCategory.Keyword))
+                    {
+                        // this can handle syntax 1, 3, and 4
+                        NameExpression nameExpr;
+                        if (NameExpression.TryParseNode(parser, out nameExpr))
+                        {
+                            if (nameExpr.Name.EndsWith(".*"))
+                            {
+                                node.WholeTableName = nameExpr;
+                                if (parser.PeekToken(TokenKind.Equals))
+                                {
+                                    parser.NextToken();
+                                    if (parser.PeekToken(TokenKind.LeftParenthesis))
+                                    {
+                                        node.Type = SyntaxType.Syntax3;
+                                        // continued below...
+                                    }
+                                    else if (parser.PeekToken(TokenCategory.Identifier) || parser.PeekToken(TokenCategory.Keyword))
+                                    {
+                                        node.Type = SyntaxType.Syntax4;
+                                        NameExpression colName;
+                                        if (NameExpression.TryParseNode(parser, out colName) && colName.Name.EndsWith(".*"))
+                                        {
+                                            node.RecordName = colName;
+                                        }
+                                        else
+                                            parser.ReportSyntaxError("Invalid record name found in update statement.");
+                                    }
+                                    else
+                                        parser.ReportSyntaxError("Invalid form of update statement found.");
+                                }
+                                else
+                                    parser.ReportSyntaxError("Expected '=' token in update statement.");
+                            }
+                            else if (parser.PeekToken(TokenKind.Equals))
+                            {
+                                parser.NextToken();
+                                node.Type = SyntaxType.Syntax1;
+
+                                // continue parsing here, breaking the column names into the column list, and the variables/expression into the variable list
+                                node.ColumnList.Add(nameExpr);
+
+                                ExpressionNode expr;
+                                if (ExpressionNode.TryGetExpressionNode(parser, out expr, new List<TokenKind> { TokenKind.Comma }, false, false, false, true))
+                                    node.Variables.Add(expr);
+                                else
+                                    parser.ReportSyntaxError("Invalid expression found in update statement.");
+
+                                while (parser.PeekToken(TokenKind.Comma))
+                                {
+                                    parser.NextToken();
+                                    if (NameExpression.TryParseNode(parser, out nameExpr))
+                                    {
+                                        node.ColumnList.Add(nameExpr);
+                                        if (parser.PeekToken(TokenKind.Equals))
+                                        {
+                                            parser.NextToken();
+                                            if (ExpressionNode.TryGetExpressionNode(parser, out expr, new List<TokenKind> { TokenKind.Comma }, false, false, false, true))
+                                                node.Variables.Add(expr);
+                                            else
+                                                parser.ReportSyntaxError("Invalid expression found in update statement.");
+                                        }
+                                        else
+                                            parser.ReportSyntaxError("Expected '=' token in update statement.");
+                                    }
+                                    else
+                                        parser.ReportSyntaxError("Invalid name expression found in update statement.");
+                                }
+                            }
+                        }
+                        else
+                            parser.ReportSyntaxError("Invalid name expression found in update statement.");
+                    }
                     else
-                        parser.ReportSyntaxError("Invalid expression found in update statement.");
+                        parser.ReportSyntaxError("Unexpected token found in update statement.");
+
+                    if (node.Type == SyntaxType.Syntax2 || node.Type == SyntaxType.Syntax3)
+                    {
+                        // get the paren-wrapped list of variables/expressions
+                        if (parser.PeekToken(TokenKind.LeftParenthesis))
+                        {
+                            parser.NextToken();
+                            // for now, we'll just use ExpressionNode to get the variables/expressions. Not sure what else can show up here...
+                            ExpressionNode expr;
+                            while (ExpressionNode.TryGetExpressionNode(parser, out expr, new List<TokenKind> { TokenKind.Comma, TokenKind.RightParenthesis }))
+                            {
+                                node.Variables.Add(expr);
+                                if (!parser.PeekToken(TokenKind.Comma))
+                                    break;
+                                parser.NextToken();
+                            }
+                            if (parser.PeekToken(TokenKind.RightParenthesis))
+                                parser.NextToken();
+                            else
+                                parser.ReportSyntaxError("Expected right-paren in update statement.");
+                        }
+                        else
+                            parser.ReportSyntaxError("Expected left-paren in update statement.");
+                    }
 
                     if (parser.PeekToken(TokenKind.WhereKeyword))
                     {
@@ -722,7 +993,7 @@ namespace VSGenero.Analysis.Parsing.AST
             node = null;
             bool result = false;
 
-            if(parser.PeekToken(TokenKind.FlushKeyword))
+            if (parser.PeekToken(TokenKind.FlushKeyword))
             {
                 result = true;
                 node = new FlushStatement();

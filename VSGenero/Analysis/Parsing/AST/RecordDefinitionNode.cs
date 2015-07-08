@@ -122,8 +122,10 @@ namespace VSGenero.Analysis.Parsing.AST
                             if (!defNode.MemberDictionary.ContainsKey(tok.Token.Value.ToString()))
                                 defNode.MemberDictionary.Add(tok.Token.Value.ToString(), new VariableDef(tok.Token.Value.ToString(), tr, tok.Span.Start, true));
                             else
-                                parser.ReportSyntaxError(string.Format("Record field {0} defined more than once.", tok.Token.Value.ToString()));
+                                parser.ReportSyntaxError(string.Format("Record field {0} defined more than once.", tok.Token.Value.ToString()), Severity.Warning);
                         }
+
+                        AttributeSpecifier.TryParseNode(parser, out attribSpec);
 
                         if (parser.MaybeEat(TokenKind.Comma))
                         {

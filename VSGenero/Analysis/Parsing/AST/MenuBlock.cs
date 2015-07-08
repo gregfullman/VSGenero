@@ -284,7 +284,7 @@ namespace VSGenero.Analysis.Parsing.AST
         public ExpressionNode OptionName { get; private set; }
         public ExpressionNode OptionComment { get; private set; }
         public ExpressionNode HelpNumber { get; private set; }
-        public ExpressionNode KeyName { get; private set; }
+        public VirtualKey KeyName { get; private set; }
 
         public NameExpression ActionName { get; private set; }
 
@@ -342,8 +342,8 @@ namespace VSGenero.Analysis.Parsing.AST
                             if (parser.PeekToken(TokenKind.LeftParenthesis))
                             {
                                 parser.NextToken();
-                                ExpressionNode keyName;
-                                if (ExpressionNode.TryGetExpressionNode(parser, out keyName))
+                                VirtualKey keyName;
+                                if (VirtualKey.TryGetKey(parser, out keyName))
                                     node.KeyName = keyName;
                                 else
                                     parser.ReportSyntaxError("Invalid key-name found in menu command option.");

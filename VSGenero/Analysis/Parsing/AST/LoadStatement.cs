@@ -70,6 +70,7 @@ namespace VSGenero.Analysis.Parsing.AST
                             node.ColumnNames.Add(tableName);
                             if (!parser.PeekToken(TokenKind.Comma))
                                 break;
+                            parser.NextToken();
                         }
 
                         if (parser.PeekToken(TokenKind.RightParenthesis))

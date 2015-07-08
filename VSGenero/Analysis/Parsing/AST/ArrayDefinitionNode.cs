@@ -40,55 +40,11 @@ namespace VSGenero.Analysis.Parsing.AST
             }
         }
 
-        private const UInt16 _defaultStaticDimOneSize = UInt16.MaxValue;
-        private const UInt16 _defaultStaticDimTwoSize = UInt16.MaxValue;
-        private const UInt16 _defaultStaticDimThreeSize = UInt16.MaxValue;
+        public ExpressionNode StaticDimOneSize { get; private set; }
 
-        private UInt16 _staticDimOneSize = 0;
-        private UInt16 _staticDimTwoSize = 0;
-        private UInt16 _staticDimThreeSize = 0;
+        public ExpressionNode StaticDimTwoSize { get; private set; }
 
-        public UInt16 StaticDimOneSize
-        {
-            get
-            {
-                if (_staticDimOneSize == 0)
-                    return _defaultStaticDimOneSize;
-                return _staticDimOneSize;
-            }
-            set
-            {
-                _staticDimOneSize = value;
-            }
-        }
-
-        public UInt16 StaticDimTwoSize
-        {
-            get
-            {
-                if (_staticDimTwoSize == 0)
-                    return _defaultStaticDimTwoSize;
-                return _staticDimTwoSize;
-            }
-            set
-            {
-                _staticDimTwoSize = value;
-            }
-        }
-
-        public UInt16 StaticDimThreeSize
-        {
-            get
-            {
-                if (_staticDimThreeSize == 0)
-                    return _defaultStaticDimThreeSize;
-                return _staticDimThreeSize;
-            }
-            set
-            {
-                _staticDimThreeSize = value;
-            }
-        }
+        public ExpressionNode StaticDimThreeSize { get; private set; }
 
         public override string ToString()
         {
@@ -105,19 +61,9 @@ namespace VSGenero.Analysis.Parsing.AST
             else if(ArrayType == ArrayType.Static)
             {
                 sb.Append("array [");
-                if (StaticDimOneSize != UInt16.MaxValue)
-                {
-                    sb.Append(StaticDimOneSize);
-                    if(StaticDimTwoSize != UInt16.MaxValue)
-                    {
-                        sb.AppendFormat(", {0}", StaticDimTwoSize);
-
-                        if(StaticDimThreeSize != UInt16.MaxValue)
-                        {
-                            sb.AppendFormat(", {0}", StaticDimThreeSize);
-                        }
-                    }
-                }
+                sb.Append(StaticDimOneSize.ToString());
+                sb.AppendFormat(", {0}", StaticDimTwoSize.ToString());
+                sb.AppendFormat(", {0}", StaticDimThreeSize.ToString());
                 sb.Append("]");
             }
             else
@@ -258,43 +204,34 @@ namespace VSGenero.Analysis.Parsing.AST
                         parser.ReportSyntaxError("Invalid type specified for java array definition");
                     }
                 }
-                else if (parser.PeekToken(TokenCategory.NumericLiteral))
+                else
                 {
                     defNode.ArrayType = ArrayType.Static;
-                    parser.NextToken();
-
+                    List<TokenKind> breakToks = new List<TokenKind> { TokenKind.Comma, TokenKind.RightBracket };
                     // get the first-dimension size
-                    UInt16 val;
-                    if (!UInt16.TryParse(parser.Token.Token.Value.ToString(), out val))
+                    ExpressionNode dimensionExpr;
+                    if (!ExpressionNode.TryGetExpressionNode(parser, out dimensionExpr, breakToks))
                         parser.ReportSyntaxError("Array's first dimension size is invalid");
                     else
-                        defNode.StaticDimOneSize = val;
+                        defNode.StaticDimOneSize = dimensionExpr;
 
                     if(parser.PeekToken(TokenKind.Comma))
                     {
                         parser.NextToken();
-                        if (!parser.PeekToken(TokenCategory.NumericLiteral))
-                            parser.ReportSyntaxError("Invalid token found in static array size.");
-                        else
-                            parser.NextToken();
 
-                        if (!UInt16.TryParse(parser.Token.Token.Value.ToString(), out val))
+                        if (!ExpressionNode.TryGetExpressionNode(parser, out dimensionExpr, breakToks))
                             parser.ReportSyntaxError("Array's second dimension size is invalid");
                         else
-                            defNode.StaticDimTwoSize = val;
+                            defNode.StaticDimTwoSize = dimensionExpr;
 
                         if (parser.PeekToken(TokenKind.Comma))
                         {
                             parser.NextToken();
-                            if (!parser.PeekToken(TokenCategory.NumericLiteral))
-                                parser.ReportSyntaxError("Invalid token found in static array size.");
-                            else
-                                parser.NextToken();
 
-                            if (!UInt16.TryParse(parser.Token.Token.Value.ToString(), out val))
+                            if (!ExpressionNode.TryGetExpressionNode(parser, out dimensionExpr, breakToks))
                                 parser.ReportSyntaxError("Array's third dimension size is invalid");
                             else
-                                defNode.StaticDimThreeSize = val;
+                                defNode.StaticDimThreeSize = dimensionExpr;
                         }
                     }
 
@@ -320,10 +257,6 @@ namespace VSGenero.Analysis.Parsing.AST
                     {
                         parser.ReportSyntaxError("Invalid type specified for static array definition");
                     }
-                }
-                else
-                {
-                    parser.ReportSyntaxError("Invalid size specified for array.");
                 }
             }
             return result;

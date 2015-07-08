@@ -33,12 +33,17 @@ namespace VSGenero.Analysis.Parsing.AST
 
                 while (true)
                 {
+                    // TODO: not sure about this....it was in here for a reason, right?
                     var tok = parser.PeekToken();
-                    if (GeneroAst.ValidStatementKeywords.Contains(tok.Kind))
+                    if (GeneroAst.ValidStatementKeywords.Contains(tok.Kind) &&
+                        !GeneroAst.Acceptable_ReturnVariableName_StatementKeywords.Contains(tok.Kind))
+                    {
+                        // TODO: need to check and see if there are any variables defined with the same name as the statement keyword?
                         break;
+                    }
 
                     ExpressionNode expr;
-                    if (!ExpressionNode.TryGetExpressionNode(parser, out expr))
+                    if (!ExpressionNode.TryGetExpressionNode(parser, out expr ))
                     {
                         break;
                     }

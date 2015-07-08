@@ -76,7 +76,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                         if (!defNode.Types.ContainsKey(def.Name))
                                             defNode.Types.Add(def.Name, def);
                                         else
-                                            parser.ReportSyntaxError(def.LocationIndex, def.LocationIndex + def.Name.Length, string.Format("Type {0} defined more than once.", def.Name));
+                                            parser.ReportSyntaxError(def.LocationIndex, def.LocationIndex + def.Name.Length, string.Format("Type {0} defined more than once.", def.Name), Severity.Warning);
                                     }
                                 }
                                 break;
@@ -92,7 +92,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                         if (!defNode.Constants.ContainsKey(def.Name))
                                             defNode.Constants.Add(def.Name, def);
                                         else
-                                            parser.ReportSyntaxError(def.LocationIndex, def.LocationIndex + def.Name.Length, string.Format("Constant {0} defined more than once.", def.Name));
+                                            parser.ReportSyntaxError(def.LocationIndex, def.LocationIndex + def.Name.Length, string.Format("Constant {0} defined more than once.", def.Name), Severity.Warning);
                                     }
                                 }
                                 break;
@@ -109,7 +109,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                             if (!defNode.Variables.ContainsKey(vardef.Name))
                                                 defNode.Variables.Add(vardef.Name, vardef);
                                             else
-                                                parser.ReportSyntaxError(vardef.LocationIndex, vardef.LocationIndex + vardef.Name.Length, string.Format("Variable {0} defined more than once.", vardef.Name));
+                                                parser.ReportSyntaxError(vardef.LocationIndex, vardef.LocationIndex + vardef.Name.Length, string.Format("Variable {0} defined more than once.", vardef.Name), Severity.Warning);
                                         }
                                 }
                                 break;

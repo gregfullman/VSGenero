@@ -29,11 +29,13 @@ namespace VSGenero.Analysis.Parsing.AST
                     case TokenKind.SequenceKeyword:
                         CreateSequenceStatement sequenceNode;
                         result = CreateSequenceStatement.TryParseNode(parser, out sequenceNode);
+                        node = sequenceNode;
                         break;
                     case TokenKind.TableKeyword:
                     case TokenKind.TempKeyword:
                         CreateTableStatement tableNode;
                         result = CreateTableStatement.TryParseNode(parser, out tableNode);
+                        node = tableNode;
                         break;
                     default:
                         result = false;

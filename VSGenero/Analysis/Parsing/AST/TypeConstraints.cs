@@ -97,6 +97,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 case TokenKind.DecKeyword:
                 case TokenKind.DecimalKeyword:
                 case TokenKind.MoneyKeyword:
+                case TokenKind.NumericKeyword:
                     {
                         if (parser.PeekToken(TokenKind.LeftParenthesis))
                         {

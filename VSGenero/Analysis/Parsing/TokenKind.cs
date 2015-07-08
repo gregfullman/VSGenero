@@ -17,6 +17,7 @@ namespace VSGenero.Analysis.Parsing
         Name     = 8,
         Constant = 9,
         Dot      = 10,
+        QuestionMark = 11,
 
         // numeric expression operators
         FirstOperator = Add,
@@ -71,6 +72,7 @@ namespace VSGenero.Analysis.Parsing
         AndKeyword,
         AnyKeyword,
         AppendKeyword,
+        ApplicationKeyword,
         ArrayKeyword,
         AsciiKeyword,
         AscKeyword,
@@ -93,6 +95,7 @@ namespace VSGenero.Analysis.Parsing
         BooleanKeyword,
         BorderKeyword,
         BottomKeyword,
+        BreakpointKeyword,
         BufferedKeyword,
         ButtonKeyword,
         ByKeyword,
@@ -385,6 +388,7 @@ namespace VSGenero.Analysis.Parsing
         ShiftKeyword,
         ShowKeyword,
         ShortKeyword,
+        SignalKeyword,
         SizeKeyword,
         SizepolicyKeyword,
         SkipKeyword,
@@ -502,6 +506,7 @@ namespace VSGenero.Analysis.Parsing
         public static readonly Token DotToken = new SymbolToken(TokenKind.Dot, ".");
 
         // Generated
+        private static readonly Token symQuestionMark = new OperatorToken(TokenKind.QuestionMark, "?", 4);
         private static readonly Token symAddToken = new OperatorToken(TokenKind.Add, "+", 4);
         private static readonly Token symSubtractToken = new OperatorToken(TokenKind.Subtract, "-", 4);
         private static readonly Token symMultiplyToken = new OperatorToken(TokenKind.Multiply, "*", 5);
@@ -720,6 +725,11 @@ namespace VSGenero.Analysis.Parsing
         public static Token AddToken
         {
             get { return symAddToken; }
+        }
+
+        public static Token QuestionMarkToken
+        {
+            get { return symQuestionMark; }
         }
 
         public static Token SubtractToken

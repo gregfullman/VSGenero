@@ -205,21 +205,21 @@ namespace VSGenero.Analysis.Parsing.AST
                             if (!defNode.GlobalConstants.ContainsKey(cGlobKVP.Key))
                                 defNode.GlobalConstants.Add(cGlobKVP);
                             else
-                                parser.ReportSyntaxError(cGlobKVP.Value.LocationIndex, cGlobKVP.Value.LocationIndex + cGlobKVP.Value.Name.Length, string.Format("Global constant {0} defined more than once.", cGlobKVP.Key));
+                                parser.ReportSyntaxError(cGlobKVP.Value.LocationIndex, cGlobKVP.Value.LocationIndex + cGlobKVP.Value.Name.Length, string.Format("Global constant {0} defined more than once.", cGlobKVP.Key), Severity.Warning);
                         }
                         foreach (var tGlobKVP in globalNode.Types)
                         {
                             if (!defNode.GlobalTypes.ContainsKey(tGlobKVP.Key))
                                 defNode.GlobalTypes.Add(tGlobKVP);
                             else
-                                parser.ReportSyntaxError(tGlobKVP.Value.LocationIndex, tGlobKVP.Value.LocationIndex + tGlobKVP.Value.Name.Length, string.Format("Global type {0} defined more than once.", tGlobKVP.Key));
+                                parser.ReportSyntaxError(tGlobKVP.Value.LocationIndex, tGlobKVP.Value.LocationIndex + tGlobKVP.Value.Name.Length, string.Format("Global type {0} defined more than once.", tGlobKVP.Key), Severity.Warning);
                         }
                         foreach (var vGlobKVP in globalNode.Variables)
                         {
                             if (!defNode.GlobalVariables.ContainsKey(vGlobKVP.Key))
                                 defNode.GlobalVariables.Add(vGlobKVP);
                             else
-                                parser.ReportSyntaxError(vGlobKVP.Value.LocationIndex, vGlobKVP.Value.LocationIndex + vGlobKVP.Value.Name.Length, string.Format("Global variable {0} defined more than once.", vGlobKVP.Key));
+                                parser.ReportSyntaxError(vGlobKVP.Value.LocationIndex, vGlobKVP.Value.LocationIndex + vGlobKVP.Value.Name.Length, string.Format("Global variable {0} defined more than once.", vGlobKVP.Key), Severity.Warning);
                         }
                         continue;
                     }
@@ -259,7 +259,7 @@ namespace VSGenero.Analysis.Parsing.AST
                             if (!defNode.Constants.ContainsKey(def.Name))
                                 defNode.Constants.Add(def.Name, def);
                             else
-                                parser.ReportSyntaxError(def.LocationIndex, def.LocationIndex + def.Name.Length, string.Format("Module constant {0} defined more than once.", def.Name));
+                                parser.ReportSyntaxError(def.LocationIndex, def.LocationIndex + def.Name.Length, string.Format("Module constant {0} defined more than once.", def.Name), Severity.Warning);
                         }
                         continue;
                     }
@@ -287,7 +287,7 @@ namespace VSGenero.Analysis.Parsing.AST
                             if (!defNode.Types.ContainsKey(def.Name))
                                 defNode.Types.Add(def.Name, def);
                             else
-                                parser.ReportSyntaxError(def.LocationIndex, def.LocationIndex + def.Name.Length, string.Format("Module type {0} defined more than once.", def.Name));
+                                parser.ReportSyntaxError(def.LocationIndex, def.LocationIndex + def.Name.Length, string.Format("Module type {0} defined more than once.", def.Name), Severity.Warning);
                         }
                         continue;
                     }
@@ -316,7 +316,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                 if (!defNode.Variables.ContainsKey(vardef.Name))
                                     defNode.Variables.Add(vardef.Name, vardef);
                                 else
-                                    parser.ReportSyntaxError(vardef.LocationIndex, vardef.LocationIndex + vardef.Name.Length, string.Format("Module variable {0} defined more than once.", vardef.Name));
+                                    parser.ReportSyntaxError(vardef.LocationIndex, vardef.LocationIndex + vardef.Name.Length, string.Format("Module variable {0} defined more than once.", vardef.Name), Severity.Warning);
                             }
                         continue;
                     }
@@ -344,7 +344,7 @@ namespace VSGenero.Analysis.Parsing.AST
                             if (!defNode.Cursors.ContainsKey(curRes.Name))
                                 defNode.Cursors.Add(curRes.Name, curRes);
                             else
-                                parser.ReportSyntaxError(curRes.LocationIndex, curRes.LocationIndex + curRes.Name.Length, string.Format("Module variable {0} defined more than once.", curRes.Name));
+                                parser.ReportSyntaxError(curRes.LocationIndex, curRes.LocationIndex + curRes.Name.Length, string.Format("Module variable {0} defined more than once.", curRes.Name), Severity.Warning);
                         }
                     }
                     else
@@ -378,7 +378,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     }
                     else
                     {
-                        parser.ReportSyntaxError(funcNode.LocationIndex, funcNode.LocationIndex + funcNode.Name.Length, string.Format("Function {0} defined more than once.", funcNode.Name));
+                        parser.ReportSyntaxError(funcNode.LocationIndex, funcNode.LocationIndex + funcNode.Name.Length, string.Format("Function {0} defined more than once.", funcNode.Name), Severity.Warning);
                     }
                 }
                 else if (ReportBlockNode.TryParseNode(parser, out repNode, defNode) && repNode != null)
@@ -395,7 +395,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     }
                     else
                     {
-                        parser.ReportSyntaxError(repNode.LocationIndex, repNode.LocationIndex + repNode.Name.Length, string.Format("Report {0} defined more than once.", repNode.Name));
+                        parser.ReportSyntaxError(repNode.LocationIndex, repNode.LocationIndex + repNode.Name.Length, string.Format("Report {0} defined more than once.", repNode.Name), Severity.Warning);
                     }
                 }
                 else
@@ -496,7 +496,7 @@ namespace VSGenero.Analysis.Parsing.AST
             if (!Cursors.ContainsKey(cursorResult.Name))
                 Cursors.Add(cursorResult.Name, cursorResult);
             else
-                parser.ReportSyntaxError(cursorResult.LocationIndex, cursorResult.LocationIndex + cursorResult.Name.Length, string.Format("Module cursor {0} defined more than once.", cursorResult.Name));
+                parser.ReportSyntaxError(cursorResult.LocationIndex, cursorResult.LocationIndex + cursorResult.Name.Length, string.Format("Module cursor {0} defined more than once.", cursorResult.Name), Severity.Warning);
         }
 
         public PrepareStatement PreparedCursorResolver(string prepIdent)

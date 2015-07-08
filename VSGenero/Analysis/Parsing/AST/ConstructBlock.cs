@@ -205,7 +205,7 @@ namespace VSGenero.Analysis.Parsing.AST
         public NameExpression ActionField { get; private set; }
 
         public List<NameExpression> FieldSpecList { get; private set; }
-        public List<NameExpression> KeyNameList { get; private set; }
+        public List<VirtualKey> KeyNameList { get; private set; }
 
         public ConstructControlBlockType Type { get; private set; }
 
@@ -219,7 +219,7 @@ namespace VSGenero.Analysis.Parsing.AST
             bool result = true;
             node.StartIndex = parser.Token.Span.Start;
             node.FieldSpecList = new List<NameExpression>();
-            node.KeyNameList = new List<NameExpression>();
+            node.KeyNameList = new List<VirtualKey>();
 
             switch (parser.PeekToken().Kind)
             {
@@ -302,8 +302,8 @@ namespace VSGenero.Analysis.Parsing.AST
                                 {
                                     parser.NextToken();
                                     // get the list of key names
-                                    NameExpression keyName;
-                                    while (NameExpression.TryParseNode(parser, out keyName))
+                                    VirtualKey keyName;
+                                    while (VirtualKey.TryGetKey(parser, out keyName))
                                     {
                                         node.KeyNameList.Add(keyName);
                                         if (!parser.PeekToken(TokenKind.Comma))

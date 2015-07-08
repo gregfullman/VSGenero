@@ -294,7 +294,7 @@ namespace VSGenero.Analysis.Parsing.AST
     {
         public ExpressionNode IdleSeconds { get; private set; }
         public NameExpression ActionName { get; private set; }
-        public List<NameExpression> KeyNameList { get; private set; }
+        public List<VirtualKey> KeyNameList { get; private set; }
         public PromptControlBlockType Type { get; private set; }
 
         public static bool TryParseNode(Parser parser, out PromptControlBlock node, IModuleResult containingModule,
@@ -304,7 +304,7 @@ namespace VSGenero.Analysis.Parsing.AST
         {
             node = new PromptControlBlock();
             bool result = true;
-            node.KeyNameList = new List<NameExpression>();
+            node.KeyNameList = new List<VirtualKey>();
             
             switch(parser.PeekToken().Kind)
             {
@@ -341,8 +341,8 @@ namespace VSGenero.Analysis.Parsing.AST
                                 {
                                     parser.NextToken();
                                     // get the list of key names
-                                    NameExpression keyName;
-                                    while (NameExpression.TryParseNode(parser, out keyName))
+                                    VirtualKey keyName;
+                                    while (VirtualKey.TryGetKey(parser, out keyName))
                                     {
                                         node.KeyNameList.Add(keyName);
                                         if (!parser.PeekToken(TokenKind.Comma))

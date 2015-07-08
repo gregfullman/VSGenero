@@ -50,9 +50,53 @@ namespace VSGenero.Analysis.Parsing.AST
                             {
                                 parser.NextToken();
                                 if (parser.PeekToken(TokenKind.NoKeyword))
+                                {
                                     parser.NextToken();
-                                if (parser.PeekToken(TokenKind.WrapKeyword))
+                                    if (parser.PeekToken(TokenKind.WrapKeyword))
+                                        parser.NextToken();
+                                    else
+                                        parser.ReportSyntaxError("Invalid token found in options input statement.");
+                                }
+                                else if(parser.PeekToken(TokenKind.AttributesKeyword) || parser.PeekToken(TokenKind.AttributeKeyword))
+                                {
                                     parser.NextToken();
+                                    if (parser.PeekToken(TokenKind.LeftParenthesis))
+                                    {
+                                        parser.NextToken();
+                                        if (parser.PeekToken(TokenKind.LeftParenthesis))
+                                        {
+                                            while (!parser.PeekToken(TokenKind.EndOfFile) && !parser.PeekToken(TokenKind.RightParenthesis))
+                                                parser.NextToken();
+                                            if (parser.PeekToken(TokenKind.RightParenthesis))
+                                                parser.NextToken();
+                                            else
+                                                parser.ReportSyntaxError("Expected rigt-paren in options input statement.");
+                                        }
+                                        else
+                                            parser.ReportSyntaxError("Expected left-paren in options input statement.");
+                                    }
+                                    else
+                                        parser.ReportSyntaxError("Expected left-paren in options input statement.");
+                                }
+                                break;
+                            }
+                        case TokenKind.DisplayKeyword:
+                            {
+                                if (parser.PeekToken(TokenKind.AttributesKeyword) || parser.PeekToken(TokenKind.AttributeKeyword))
+                                {
+                                    parser.NextToken();
+                                    if (parser.PeekToken(TokenKind.LeftParenthesis))
+                                    {
+                                        while (!parser.PeekToken(TokenKind.EndOfFile) && !parser.PeekToken(TokenKind.RightParenthesis))
+                                            parser.NextToken();
+                                        if (parser.PeekToken(TokenKind.RightParenthesis))
+                                            parser.NextToken();
+                                        else
+                                            parser.ReportSyntaxError("Expected rigt-paren in options input statement.");
+                                    }
+                                    else
+                                        parser.ReportSyntaxError("Expected left-paren in options input statement.");
+                                }
                                 else
                                     parser.ReportSyntaxError("Invalid token found in options input statement.");
                                 break;
@@ -87,67 +131,41 @@ namespace VSGenero.Analysis.Parsing.AST
                                 if (parser.PeekToken(TokenKind.KeyKeyword))
                                 {
                                     parser.NextToken();
-                                    switch (parser.PeekToken().Kind)
-                                    {
-                                        case TokenKind.EscapeKeyword:
-                                        case TokenKind.EscKeyword:
-                                        case TokenKind.InterruptKeyword:
-                                        case TokenKind.TagKeyword:
-                                        case TokenKind.LeftKeyword:
-                                        case TokenKind.ReturnKeyword:
-                                        case TokenKind.EnterKeyword:
-                                        case TokenKind.RightKeyword:
-                                        case TokenKind.DownKeyword:
-                                        case TokenKind.UpKeyword:
-                                        case TokenKind.PreviousKeyword:
-                                        case TokenKind.NextKeyword:
-                                        case TokenKind.PrevpageKeyword:
-                                        case TokenKind.NextpageKeyword:
-                                            parser.NextToken();
-                                            break;
-                                        case TokenKind.ControlKeyword:
-                                            parser.NextToken();
-                                            if (parser.PeekToken(TokenKind.Subtract))
-                                            {
-                                                parser.NextToken();
-                                                // TODO: do letter
-                                                if (parser.PeekToken(TokenCategory.Identifier))
-                                                {
-                                                    parser.NextToken();
-                                                    var name = parser.Token.Token.Value.ToString().ToUpper();
-                                                    if (name.Length != 1 ||
-                                                        ((int)name[0] < 65 || (int)name[0] > 90) &&
-                                                        _controlKeyExlusions.Contains(name[0]))
-                                                    {
-                                                        parser.ReportSyntaxError("Invalid control key specified.");
-                                                    }
-                                                }
-                                            }
-                                            else
-                                                parser.ReportSyntaxError("Expected '-' token in options statement.");
-                                            break;
-                                        default:
-                                            {
-                                                // TODO: do F1 - F255
-                                                parser.NextToken();
-                                                var name = parser.Token.Token.Value.ToString();
-                                                if (name.StartsWith("F", StringComparison.OrdinalIgnoreCase))
-                                                {
-                                                    var numberStr = name.Substring(1);
-                                                    int number;
-                                                    if (!int.TryParse(numberStr, out number) || number > 0 || number < 256)
-                                                    {
-                                                        parser.ReportSyntaxError("Invalid function key name found.");
-                                                    }
-                                                }
-                                                else
-                                                    parser.ReportSyntaxError("Function key name must start with 'F'.");
-                                                break;
-                                            }
-                                    }
+                                    VirtualKey vKey;
+                                    if(!VirtualKey.TryGetKey(parser, out vKey))
+                                        parser.ReportSyntaxError("Invalid virtual key found in options statement.");
                                 }
                                 else
                                     parser.ReportSyntaxError("Expected keyword \"key\" in options statement.");
+                                break;
+                            }
+                        case TokenKind.OnKeyword:
+                            {
+                                parser.NextToken();
+                                if (parser.PeekToken(TokenKind.TerminateKeyword) &&
+                                   parser.PeekToken(TokenKind.SignalKeyword, 2) &&
+                                   parser.PeekToken(TokenKind.CallKeyword, 3))
+                                {
+                                    parser.NextToken();
+                                    parser.NextToken();
+                                    parser.NextToken();
+                                    NameExpression funcName;
+                                    if (!NameExpression.TryParseNode(parser, out funcName))
+                                        parser.ReportSyntaxError("Invalid function name found in options statement.");
+                                }
+                                else if(parser.PeekToken(TokenKind.CloseKeyword) &&
+                                        parser.PeekToken(TokenKind.ApplicationKeyword, 2) &&
+                                        parser.PeekToken(TokenKind.CallKeyword, 3))
+                                {
+                                    parser.NextToken();
+                                    parser.NextToken();
+                                    parser.NextToken();
+                                    NameExpression funcName;
+                                    if (!NameExpression.TryParseNode(parser, out funcName))
+                                        parser.ReportSyntaxError("Invalid function name found in options statement.");
+                                }
+                                else
+                                    parser.ReportSyntaxError("Invalid token found in options statement.");
                                 break;
                             }
                         default:
