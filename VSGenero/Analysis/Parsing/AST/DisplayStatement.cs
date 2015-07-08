@@ -600,6 +600,8 @@ namespace VSGenero.Analysis.Parsing.AST
                 default:
                     if (!allowNonControlBlocks)
                         result = false;
+                    else
+                        node.StartIndex = parser.Token.Span.Start;
                     break;
             }
 
