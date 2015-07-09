@@ -542,31 +542,38 @@ namespace VSGenero.Navigation
         /// </summary>
         enum ImageListKind
         {
-            Class,
-            Unknown1,
-            Unknown2,
-            Enum,
-            Unknown3,
-            Lightning,
-            Unknown4,
-            BlueBox,
-            Key,
-            BlueStripe,
-            ThreeDashes,
-            TwoBoxes,
-            Method,
-            StaticMethod,
-            Unknown6,
-            Namespace,
-            Unknown7,
-            Property,
-            Unknown8,
-            Unknown9,
-            Report,
-            Unknown11,
-            Unknown12,
-            Unknown13,
-            ClassMethod
+            Class,          // 0
+            Unknown1,       // 1
+            Unknown2,       // 2
+            Enum,           // 3
+            Unknown3,       // 4
+            Lightning,      // 5
+            Unknown4,       // 6
+            BlueBox,        // 7
+            Key,            // 8
+            BlueStripe,     // 9
+            ThreeDashes,    // 10
+            TwoBoxes,       // 11
+            Method,         // 12
+            StaticMethod,   // 13
+            Unknown6,       // 14
+            Namespace,      // 15
+            Unknown7,       // 16
+            Property,       // 17
+            Unknown8,       // 18
+            Unknown9,       // 19
+            Report,         // 20
+            Unknown11,      // 21
+            Unknown12,      // 22
+            Unknown13,      // 23
+            ClassMethod,    // 24
+            Unknown25,      // 25
+            Unknown26,      // 26
+            Unknown27,      // 27
+            Unknown28,      // 28
+            Unknown29,      // 29
+            Unknown30,      // 30
+            Dialog = 200
         }
 
         /// <summary>
@@ -591,7 +598,12 @@ namespace VSGenero.Navigation
         /// </summary>
         private static int GetImageListIndex(ImageListKind kind, ImageListOverlay overlay)
         {
-            return ((int)kind) * 6 + (int)overlay;
+            if ((int)kind <= 30)
+            {
+                int groupBase = (int)kind * 6;
+                return groupBase + (int)overlay;
+            }
+            return (int)kind;
         }
 
         /// <summary>
@@ -721,6 +733,8 @@ namespace VSGenero.Navigation
             {
                 if (def is ReportBlockNode)
                     return ImageListKind.Report;
+                else if (def is DeclarativeDialogBlock)
+                    return ImageListKind.Dialog;
                 else
                     return ImageListKind.Method;
             }

@@ -362,6 +362,7 @@ namespace VSGenero.Analysis.Parsing.AST
 
                 FunctionBlockNode funcNode;
                 ReportBlockNode repNode;
+                DeclarativeDialogBlock dialogNode;
                 int dummy;
                 if (FunctionBlockNode.TryParseNode(parser, out funcNode, out dummy, defNode) && funcNode != null)
                 {
@@ -396,6 +397,23 @@ namespace VSGenero.Analysis.Parsing.AST
                     else
                     {
                         parser.ReportSyntaxError(repNode.LocationIndex, repNode.LocationIndex + repNode.Name.Length, string.Format("Report {0} defined more than once.", repNode.Name), Severity.Warning);
+                    }
+                }
+                else if (DeclarativeDialogBlock.TryParseNode(parser, out dialogNode, defNode) && dialogNode != null)
+                {
+                    defNode.Children.Add(dialogNode.StartIndex, dialogNode);
+                    dialogNode.Scope = "dialog";
+                    if (string.IsNullOrWhiteSpace(dialogNode.Name))
+                    {
+                        parser.ReportSyntaxError(dialogNode.LocationIndex, dialogNode.LocationIndex, "Invalid declarative dialog definition found.");
+                    }
+                    else if (!defNode.Functions.ContainsKey(dialogNode.Name))
+                    {
+                        defNode.Functions.Add(dialogNode.Name, dialogNode);
+                    }
+                    else
+                    {
+                        parser.ReportSyntaxError(dialogNode.LocationIndex, dialogNode.LocationIndex + dialogNode.Name.Length, string.Format("Declarative dialog {0} defined more than once.", dialogNode.Name), Severity.Warning);
                     }
                 }
                 else

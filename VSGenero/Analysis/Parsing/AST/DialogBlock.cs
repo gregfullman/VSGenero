@@ -6,10 +6,277 @@ using System.Threading.Tasks;
 
 namespace VSGenero.Analysis.Parsing.AST
 {
+    public class DeclarativeDialogBlock : FunctionBlockNode, IFunctionResult
+    {
+        private DialogBlock Dialog { get; set; }
+
+        public static bool TryParseNode(Parser parser, out DeclarativeDialogBlock node, IModuleResult containingModule)
+        {
+            node = null;
+            bool result = false;
+            AccessModifier? accMod = null;
+            string accModToken = null;
+
+            if (parser.PeekToken(TokenKind.PublicKeyword))
+            {
+                accMod = AccessModifier.Public;
+                accModToken = parser.PeekToken().Value.ToString();
+            }
+            else if (parser.PeekToken(TokenKind.PrivateKeyword))
+            {
+                accMod = AccessModifier.Private;
+                accModToken = parser.PeekToken().Value.ToString();
+            }
+
+            uint lookAheadBy = (uint)(accMod.HasValue ? 2 : 1);
+            if (parser.PeekToken(TokenKind.DialogKeyword, lookAheadBy))
+            {
+                result = true;
+                node = new DeclarativeDialogBlock();
+                if (accMod.HasValue)
+                {
+                    parser.NextToken();
+                    node.AccessModifier = accMod.Value;
+                }
+                else
+                {
+                    node.AccessModifier = AccessModifier.Public;
+                }
+
+                parser.NextToken(); // move past the Function keyword
+                node.StartIndex = parser.Token.Span.Start;
+
+                // get the name
+                if (parser.PeekToken(TokenCategory.Keyword) || parser.PeekToken(TokenCategory.Identifier))
+                {
+                    parser.NextToken();
+                    node.Name = parser.Token.Token.Value.ToString();
+                    node.DecoratorEnd = parser.Token.Span.End;
+                }
+                else
+                {
+                    parser.ReportSyntaxError("A declarative dialog must have a name.");
+                }
+
+                if (!parser.PeekToken(TokenKind.LeftParenthesis))
+                    parser.ReportSyntaxError("A declarative dialog must specify zero or more parameters in the form: ([param1][,...])");
+                else
+                    parser.NextToken();
+
+                // get the parameters
+                while (parser.PeekToken(TokenCategory.Keyword) || parser.PeekToken(TokenCategory.Identifier))
+                {
+                    parser.NextToken();
+                    string errMsg;
+                    if (!node.AddArgument(parser.Token, out errMsg))
+                    {
+                        parser.ReportSyntaxError(errMsg);
+                    }
+                    if (parser.PeekToken(TokenKind.Comma))
+                        parser.NextToken();
+
+                    // TODO: probably need to handle "end" "function" case...won't right now
+                }
+
+                if (!parser.PeekToken(TokenKind.RightParenthesis))
+                    parser.ReportSyntaxError("A declarative dialog must specify zero or more parameters in the form: ([param1][,...])");
+                else
+                    parser.NextToken();
+
+                List<List<TokenKind>> breakSequences =
+                    new List<List<TokenKind>>
+                    { 
+                        new List<TokenKind> { TokenKind.InputKeyword },
+                        new List<TokenKind> { TokenKind.ConstructKeyword },
+                        new List<TokenKind> { TokenKind.DisplayKeyword },
+                        new List<TokenKind> { TokenKind.EndKeyword, TokenKind.DialogKeyword }
+                    };
+
+                // only defines are allowed in declarative dialogs
+                DefineNode defineNode;
+                bool matchedBreakSequence = false;
+                while (DefineNode.TryParseDefine(parser, out defineNode, out matchedBreakSequence, breakSequences) && defineNode != null)
+                {
+                    node.Children.Add(defineNode.StartIndex, defineNode);
+                    foreach (var def in defineNode.GetDefinitions())
+                        foreach (var vardef in def.VariableDefinitions)
+                        {
+                            vardef.Scope = "local variable";
+                            if (!node.Variables.ContainsKey(vardef.Name))
+                                node.Variables.Add(vardef.Name, vardef);
+                            else
+                                parser.ReportSyntaxError(vardef.LocationIndex, vardef.LocationIndex + vardef.Name.Length, string.Format("Variable {0} defined more than once.", vardef.Name), Severity.Warning);
+                        }
+
+                    if (parser.PeekToken(TokenKind.EndOfFile) ||
+                          (parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.ReportKeyword, 2)))
+                    {
+                        break;
+                    }
+
+                    // if a break sequence was matched, we don't want to advance the token
+                    if (!matchedBreakSequence)
+                    {
+                        // TODO: not sure whether to break or keep going...for right now, let's keep going until we hit the end keyword
+                        parser.NextToken();
+                    }
+                }
+
+                // we don't want the dialog piece itself to be outlinable, since it's a declarative block
+                node.Dialog = new DialogBlock(false);
+                node.Dialog.Attributes = new List<DialogAttribute>();
+                node.Dialog.Subdialogs = new List<NameExpression>();
+
+                DialogBlock.BuildDialogBlock(parser, node.Dialog, containingModule);
+
+                foreach (var child in node.Dialog.Children)
+                    node.Children.Add(child.Key, child.Value);
+
+                if (!parser.PeekToken(TokenKind.EndOfFile))
+                {
+                    parser.NextToken();
+                    if (parser.PeekToken(TokenKind.DialogKeyword))
+                    {
+                        parser.NextToken();
+                        node.EndIndex = parser.Token.Span.End;
+                        node.IsComplete = true;
+                    }
+                    else
+                    {
+                        parser.ReportSyntaxError(parser.Token.Span.Start, parser.Token.Span.End, "Invalid end of declarative dialog definition.");
+                    }
+                }
+                else
+                {
+                    parser.ReportSyntaxError("Unexpected end of declarative dialog definition");
+                }
+            }
+
+            return result;
+        }
+    }
+
     public class DialogBlock : FglStatement, IOutlinableResult
     {
-        public List<DialogAttribute> Attributes { get; private set; }
-        public List<NameExpression> Subdialogs { get; private set; }
+        private readonly bool _canOutline;
+
+        internal DialogBlock(bool canOutline)
+        {
+            _canOutline = canOutline;
+        }
+
+        public List<DialogAttribute> Attributes { get; internal set; }
+        public List<NameExpression> Subdialogs { get; internal set; }
+
+        internal static void BuildDialogBlock(Parser parser, DialogBlock node, IModuleResult containingModule,
+                                 Action<PrepareStatement> prepStatementBinder = null,
+                                 List<TokenKind> validExitKeywords = null,
+                                 IEnumerable<ContextStatementFactory> contextStatementFactories = null)
+        {
+            if(parser.PeekToken(TokenKind.AttributeKeyword) || parser.PeekToken(TokenKind.AttributesKeyword))
+            {
+                parser.NextToken();
+                if (parser.PeekToken(TokenKind.LeftParenthesis))
+                {
+                    parser.NextToken();
+
+                    // get the list of display or control attributes
+                    DialogAttribute attrib;
+                    while (DialogAttribute.TryParseNode(parser, out attrib))
+                    {
+                        node.Attributes.Add(attrib);
+                        if (!parser.PeekToken(TokenKind.Comma))
+                            break;
+                        parser.NextToken();
+                    }
+
+                    if (parser.PeekToken(TokenKind.RightParenthesis))
+                        parser.NextToken();
+                    else
+                        parser.ReportSyntaxError("Expecting right-paren in dialog attributes section.");
+                }
+                else
+                    parser.ReportSyntaxError("Expecting left-paren in dialog attributes section.");
+            }
+
+            // parse input, construct, display or SUBDIALOG
+            bool moreBlocks = true;
+            List<ContextStatementFactory> csfs = new List<ContextStatementFactory>();
+            if (contextStatementFactories != null)
+                csfs.AddRange(contextStatementFactories);
+            csfs.Add((x) =>
+            {
+                DialogStatement testNode;
+                DialogStatementFactory.TryGetDialogStatement(x, out testNode, true);
+                return testNode;
+            });
+            while(moreBlocks)
+            {
+                switch(parser.PeekToken().Kind)
+                {
+                    case TokenKind.InputKeyword:
+                        {
+                            InputBlock inputBlock;
+                            if (InputBlock.TryParseNode(parser, out inputBlock, containingModule, prepStatementBinder, validExitKeywords, csfs) && inputBlock != null)
+                                node.Children.Add(inputBlock.StartIndex, inputBlock);
+                            else
+                                parser.ReportSyntaxError("Invalid input block found in dialog statement.");
+                            break;
+                        }
+                    case TokenKind.ConstructKeyword:
+                        {
+                            ConstructBlock constructBlock;
+                            if (ConstructBlock.TryParseNode(parser, out constructBlock, containingModule, prepStatementBinder, validExitKeywords, csfs) && constructBlock != null)
+                                node.Children.Add(constructBlock.StartIndex, constructBlock);
+                            else
+                                parser.ReportSyntaxError("Invalid construct block found in dialog statement.");
+                            break;
+                        }
+                    case TokenKind.DisplayKeyword:
+                        {
+                            DisplayBlock dispBlock;
+                            if (DisplayBlock.TryParseNode(parser, out dispBlock, containingModule, prepStatementBinder, validExitKeywords, csfs) && dispBlock != null)
+                                node.Children.Add(dispBlock.StartIndex, dispBlock);
+                            else
+                                parser.ReportSyntaxError("Invalid display block found in dialog statement.");
+                            break;
+                        }
+                    case TokenKind.SubdialogKeyword:
+                        {
+                            parser.NextToken();
+                            NameExpression nameExpr;
+                            if (NameExpression.TryParseNode(parser, out nameExpr))
+                                node.Subdialogs.Add(nameExpr);
+                            else
+                                parser.ReportSyntaxError("Invalid subdialog name found in dialog statement.");
+                            break;
+                        }
+                    default:
+                        moreBlocks = false;
+                        break;
+                }
+            }
+
+            List<TokenKind> validExits = new List<TokenKind>();
+            if (validExitKeywords != null)
+                validExits.AddRange(validExits);
+            validExits.Add(TokenKind.DialogKeyword);
+
+            // get the dialog control blocks
+            while (!parser.PeekToken(TokenKind.EndOfFile) &&
+                    !(parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.DialogKeyword, 2)))
+            {
+                DialogControlBlock icb;
+                if (DialogControlBlock.TryParseNode(parser, out icb, containingModule, prepStatementBinder, validExits, contextStatementFactories) && icb != null)
+                {
+                    if (icb.StartIndex < 0)
+                        continue;
+                    node.Children.Add(icb.StartIndex, icb);
+                }
+                else
+                    parser.NextToken();
+            }
+        }
 
         public static bool TryParseNode(Parser parser, out DialogBlock node,
                                  IModuleResult containingModule,
@@ -23,116 +290,14 @@ namespace VSGenero.Analysis.Parsing.AST
             if(parser.PeekToken(TokenKind.DialogKeyword))
             {
                 result = true;
-                node = new DialogBlock();
+                node = new DialogBlock(true);
                 node.Attributes = new List<DialogAttribute>();
                 node.Subdialogs = new List<NameExpression>();
                 parser.NextToken();
                 node.StartIndex = parser.Token.Span.Start;
                 node.DecoratorEnd = parser.Token.Span.End;
 
-                if(parser.PeekToken(TokenKind.AttributeKeyword) || parser.PeekToken(TokenKind.AttributesKeyword))
-                {
-                    parser.NextToken();
-                    if (parser.PeekToken(TokenKind.LeftParenthesis))
-                    {
-                        parser.NextToken();
-
-                        // get the list of display or control attributes
-                        DialogAttribute attrib;
-                        while (DialogAttribute.TryParseNode(parser, out attrib))
-                        {
-                            node.Attributes.Add(attrib);
-                            if (!parser.PeekToken(TokenKind.Comma))
-                                break;
-                            parser.NextToken();
-                        }
-
-                        if (parser.PeekToken(TokenKind.RightParenthesis))
-                            parser.NextToken();
-                        else
-                            parser.ReportSyntaxError("Expecting right-paren in dialog attributes section.");
-                    }
-                    else
-                        parser.ReportSyntaxError("Expecting left-paren in dialog attributes section.");
-                }
-
-                // parse input, construct, display or SUBDIALOG
-                bool moreBlocks = true;
-                List<ContextStatementFactory> csfs = new List<ContextStatementFactory>();
-                if (contextStatementFactories != null)
-                    csfs.AddRange(contextStatementFactories);
-                csfs.Add((x) =>
-                {
-                    DialogStatement testNode;
-                    DialogStatementFactory.TryGetDialogStatement(x, out testNode, true);
-                    return testNode;
-                });
-                while(moreBlocks)
-                {
-                    switch(parser.PeekToken().Kind)
-                    {
-                        case TokenKind.InputKeyword:
-                            {
-                                InputBlock inputBlock;
-                                if (InputBlock.TryParseNode(parser, out inputBlock, containingModule, prepStatementBinder, validExitKeywords, csfs) && inputBlock != null)
-                                    node.Children.Add(inputBlock.StartIndex, inputBlock);
-                                else
-                                    parser.ReportSyntaxError("Invalid input block found in dialog statement.");
-                                break;
-                            }
-                        case TokenKind.ConstructKeyword:
-                            {
-                                ConstructBlock constructBlock;
-                                if (ConstructBlock.TryParseNode(parser, out constructBlock, containingModule, prepStatementBinder, validExitKeywords, csfs) && constructBlock != null)
-                                    node.Children.Add(constructBlock.StartIndex, constructBlock);
-                                else
-                                    parser.ReportSyntaxError("Invalid construct block found in dialog statement.");
-                                break;
-                            }
-                        case TokenKind.DisplayKeyword:
-                            {
-                                DisplayBlock dispBlock;
-                                if (DisplayBlock.TryParseNode(parser, out dispBlock, containingModule, prepStatementBinder, validExitKeywords, csfs) && dispBlock != null)
-                                    node.Children.Add(dispBlock.StartIndex, dispBlock);
-                                else
-                                    parser.ReportSyntaxError("Invalid display block found in dialog statement.");
-                                break;
-                            }
-                        case TokenKind.SubdialogKeyword:
-                            {
-                                parser.NextToken();
-                                NameExpression nameExpr;
-                                if (NameExpression.TryParseNode(parser, out nameExpr))
-                                    node.Subdialogs.Add(nameExpr);
-                                else
-                                    parser.ReportSyntaxError("Invalid subdialog name found in dialog statement.");
-                                break;
-                            }
-                        default:
-                            moreBlocks = false;
-                            break;
-                    }
-                }
-
-                List<TokenKind> validExits = new List<TokenKind>();
-                if (validExitKeywords != null)
-                    validExits.AddRange(validExits);
-                validExits.Add(TokenKind.DialogKeyword);
-
-                // get the dialog control blocks
-                while (!parser.PeekToken(TokenKind.EndOfFile) &&
-                       !(parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.DialogKeyword, 2)))
-                {
-                    DialogControlBlock icb;
-                    if (DialogControlBlock.TryParseNode(parser, out icb, containingModule, prepStatementBinder, validExits, contextStatementFactories) && icb != null)
-                    {
-                        if (icb.StartIndex < 0)
-                            continue;
-                        node.Children.Add(icb.StartIndex, icb);
-                    }
-                    else
-                        parser.NextToken();
-                }
+                BuildDialogBlock(parser, node, containingModule, prepStatementBinder, validExitKeywords, contextStatementFactories);
 
                 if (!(parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.DialogKeyword, 2)))
                 {
@@ -151,7 +316,7 @@ namespace VSGenero.Analysis.Parsing.AST
 
         public bool CanOutline
         {
-            get { return true; }
+            get { return _canOutline; }
         }
 
         public int DecoratorStart
