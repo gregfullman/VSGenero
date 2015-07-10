@@ -429,6 +429,33 @@ namespace VSGenero.Analysis.Parsing.AST
                         }
                         break;
                     }
+                case TokenKind.StartKeyword:
+                    {
+                        StartReportStatement startRpt;
+                        if((result = StartReportStatement.TryParseNode(parser, out startRpt)))
+                        {
+                            node = startRpt;
+                        }
+                        break;
+                    }
+                case TokenKind.FinishKeyword:
+                    {
+                        FinishReportStatement finRpt;
+                        if ((result = FinishReportStatement.TryParseNode(parser, out finRpt)))
+                        {
+                            node = finRpt;
+                        }
+                        break;
+                    }
+                case TokenKind.TerminateKeyword:
+                    {
+                        TerminateReportStatement termRpt;
+                        if ((result = TerminateReportStatement.TryParseNode(parser, out termRpt)))
+                        {
+                            node = termRpt;
+                        }
+                        break;
+                    }
                 default:
                     {
                         if (SqlStatementFactory.IsValidStatementStart(parser.PeekToken().Kind))

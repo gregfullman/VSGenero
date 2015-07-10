@@ -69,6 +69,10 @@ namespace VSGenero.Analysis.Parsing.AST
                                 parser.ReportSyntaxError("Invalid virtual key name found.");
                             }
                         }
+                        else if(Tokenizer.GetTokenInfo(parser.Token.Token).Category == TokenCategory.StringLiteral)
+                        {
+                            // TODO: do we want to verify the key string?
+                        }
                         else
                             return false;
                         break;

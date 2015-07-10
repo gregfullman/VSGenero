@@ -157,6 +157,7 @@ namespace VSGenero.Analysis.Parsing
         DelimiterKeyword,
         DescKeyword,
         DescribeKeyword,
+        DestinationKeyword,
         DialogKeyword,
         DimensionKeyword,
         DimensionsKeyword,
@@ -222,6 +223,7 @@ namespace VSGenero.Analysis.Parsing
         GreenKeyword,
         GridKeyword,
         GroupKeyword,
+        HandlerKeyword,
         HavingKeyword,
         HboxKeyword,
         HeaderKeyword,
@@ -466,6 +468,7 @@ namespace VSGenero.Analysis.Parsing
         WordwrapKeyword,
         WorkKeyword,
         WrapKeyword,
+        XmlKeyword,
         YearKeyword,
         YellowKeyword,
 
