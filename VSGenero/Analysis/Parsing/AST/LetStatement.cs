@@ -36,7 +36,7 @@ namespace VSGenero.Analysis.Parsing.AST
             }
         }
 
-        public static bool TryParseNode(Parser parser, out LetStatement defNode)
+        public static bool TryParseNode(Parser parser, out LetStatement defNode, ExpressionParsingOptions expressionOptions = null)
         {
             defNode = null;
             bool result = false;
@@ -71,7 +71,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     while (true)
                     {
                         ExpressionNode expr;
-                        if (!ExpressionNode.TryGetExpressionNode(parser, out expr))
+                        if (!ExpressionNode.TryGetExpressionNode(parser, out expr, null, expressionOptions))
                         {
                             parser.ReportSyntaxError("Assignment statement must have one or more comma-separated expressions.");
                             break;

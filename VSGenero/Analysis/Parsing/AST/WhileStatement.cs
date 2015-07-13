@@ -14,7 +14,8 @@ namespace VSGenero.Analysis.Parsing.AST
                                         IModuleResult containingModule,
                                         Action<PrepareStatement> prepStatementBinder = null,
                                         List<TokenKind> validExitKeywords = null,
-                                        IEnumerable<ContextStatementFactory> contextStatementFactories = null)
+                                        IEnumerable<ContextStatementFactory> contextStatementFactories = null,
+                                        ExpressionParsingOptions expressionOptions = null)
         {
             node = null;
             bool result = false;
@@ -27,7 +28,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 node.StartIndex = parser.Token.Span.Start;
 
                 ExpressionNode conditionExpr;
-                if (!ExpressionNode.TryGetExpressionNode(parser, out conditionExpr, GeneroAst.ValidStatementKeywords.ToList()))
+                if (!ExpressionNode.TryGetExpressionNode(parser, out conditionExpr, GeneroAst.ValidStatementKeywords.ToList(), expressionOptions))
                 {
                     parser.ReportSyntaxError("A while statement must have a condition expression.");
                 }
@@ -47,7 +48,7 @@ namespace VSGenero.Analysis.Parsing.AST
                       !(parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.WhileKeyword, 2)))
                 {
                     FglStatement statement;
-                    if (parser.StatementFactory.TryParseNode(parser, out statement, containingModule, prepStatementBinder, false, validExits, contextStatementFactories) && statement != null)
+                    if (parser.StatementFactory.TryParseNode(parser, out statement, containingModule, prepStatementBinder, false, validExits, contextStatementFactories, expressionOptions) && statement != null)
                     {
                         AstNode stmtNode = statement as AstNode;
                         node.Children.Add(stmtNode.StartIndex, stmtNode);

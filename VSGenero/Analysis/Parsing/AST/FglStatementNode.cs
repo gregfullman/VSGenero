@@ -20,7 +20,8 @@ namespace VSGenero.Analysis.Parsing.AST
                                  Action<PrepareStatement> prepStatementBinder = null,
                                  bool returnStatementsOnly = false,
                                  List<TokenKind> validExitKeywords = null,
-                                 IEnumerable<ContextStatementFactory> contextStatementFactories = null)
+                                 IEnumerable<ContextStatementFactory> contextStatementFactories = null,
+                                 ExpressionParsingOptions expressionOptions = null)
         {
             node = null;
             bool result = false;
@@ -57,7 +58,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 case TokenKind.LetKeyword:
                     {
                         LetStatement letStmt;
-                        if ((result = LetStatement.TryParseNode(parser, out letStmt)))
+                        if ((result = LetStatement.TryParseNode(parser, out letStmt, expressionOptions)))
                         {
                             node = letStmt;
                         }
@@ -126,7 +127,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 case TokenKind.IfKeyword:
                     {
                         IfStatement ifStmt;
-                        if ((result = IfStatement.TryParseNode(parser, out ifStmt, containingModule, prepStatementBinder, validExitKeywords, contextStatementFactories)))
+                        if ((result = IfStatement.TryParseNode(parser, out ifStmt, containingModule, prepStatementBinder, validExitKeywords, contextStatementFactories, expressionOptions)))
                         {
                             node = ifStmt;
                         }
@@ -135,7 +136,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 case TokenKind.WhileKeyword:
                     {
                         WhileStatement whileStmt;
-                        if ((result = WhileStatement.TryParseNode(parser, out whileStmt, containingModule, prepStatementBinder, validExitKeywords, contextStatementFactories)))
+                        if ((result = WhileStatement.TryParseNode(parser, out whileStmt, containingModule, prepStatementBinder, validExitKeywords, contextStatementFactories, expressionOptions)))
                         {
                             node = whileStmt;
                         }
@@ -171,7 +172,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 case TokenKind.ForKeyword:
                     {
                         ForStatement forStmt;
-                        if ((result = ForStatement.TryParserNode(parser, out forStmt, containingModule, prepStatementBinder, validExitKeywords, contextStatementFactories)))
+                        if ((result = ForStatement.TryParserNode(parser, out forStmt, containingModule, prepStatementBinder, validExitKeywords, contextStatementFactories, expressionOptions)))
                         {
                             node = forStmt;
                         }
@@ -180,7 +181,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 case TokenKind.CaseKeyword:
                     {
                         CaseStatement caseStmt;
-                        if ((result = CaseStatement.TryParseNode(parser, out caseStmt, containingModule, prepStatementBinder, validExitKeywords, contextStatementFactories)))
+                        if ((result = CaseStatement.TryParseNode(parser, out caseStmt, containingModule, prepStatementBinder, validExitKeywords, contextStatementFactories, expressionOptions)))
                         {
                             node = caseStmt;
                         }

@@ -14,7 +14,8 @@ namespace VSGenero.Analysis.Parsing.AST
                                         IModuleResult containingModule,
                                         Action<PrepareStatement> prepStatementBinder = null,
                                         List<TokenKind> validExitKeywords = null,
-                                        IEnumerable<ContextStatementFactory> contextStatementFactories = null)
+                                        IEnumerable<ContextStatementFactory> contextStatementFactories = null,
+                                        ExpressionParsingOptions expressionOptions = null)
         {
             node = null;
             bool result = false;
@@ -52,7 +53,7 @@ namespace VSGenero.Analysis.Parsing.AST
                       !(parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.CaseKeyword, 2)))
                 {
                     WhenStatement whenStmt;
-                    if (WhenStatement.TryParseNode(parser, out whenStmt, containingModule, prepStatementBinder, validExits, contextStatementFactories) && whenStmt != null)
+                    if (WhenStatement.TryParseNode(parser, out whenStmt, containingModule, prepStatementBinder, validExits, contextStatementFactories, expressionOptions) && whenStmt != null)
                     {
                         if (whenCases)
                         {
@@ -67,7 +68,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     else
                     {
                         OtherwiseStatement otherStmt;
-                        if (OtherwiseStatement.TryParseNode(parser, out otherStmt, containingModule, prepStatementBinder, validExits, contextStatementFactories) && otherStmt != null)
+                        if (OtherwiseStatement.TryParseNode(parser, out otherStmt, containingModule, prepStatementBinder, validExits, contextStatementFactories, expressionOptions) && otherStmt != null)
                         {
                             whenCases = false;
                             node.Children.Add(otherStmt.StartIndex, otherStmt);
@@ -122,7 +123,8 @@ namespace VSGenero.Analysis.Parsing.AST
                                         IModuleResult containingModule,
                                         Action<PrepareStatement> prepStatementBinder = null,
                                         List<TokenKind> validExitKeywords = null,
-                                        IEnumerable<ContextStatementFactory> contextStatementFactories = null)
+                                        IEnumerable<ContextStatementFactory> contextStatementFactories = null,
+                                        ExpressionParsingOptions expressionOptions = null)
         {
             node = null;
             bool result = false;
@@ -146,7 +148,7 @@ namespace VSGenero.Analysis.Parsing.AST
                       !(parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.CaseKeyword, 2)))
                 {
                     FglStatement statement;
-                    if (parser.StatementFactory.TryParseNode(parser, out statement, containingModule, prepStatementBinder, false, validExitKeywords, contextStatementFactories) && statement != null)
+                    if (parser.StatementFactory.TryParseNode(parser, out statement, containingModule, prepStatementBinder, false, validExitKeywords, contextStatementFactories, expressionOptions) && statement != null)
                     {
                         AstNode stmtNode = statement as AstNode;
                         node.Children.Add(stmtNode.StartIndex, stmtNode);
@@ -195,7 +197,8 @@ namespace VSGenero.Analysis.Parsing.AST
                                         IModuleResult containingModule,
                                         Action<PrepareStatement> prepStatementBinder = null,
                                         List<TokenKind> validExitKeywords = null,
-                                        IEnumerable<ContextStatementFactory> contextStatementFactories = null)
+                                        IEnumerable<ContextStatementFactory> contextStatementFactories = null,
+                                        ExpressionParsingOptions expressionOptions = null)
         {
             node = null;
             bool result = false;
@@ -213,7 +216,7 @@ namespace VSGenero.Analysis.Parsing.AST
                       !(parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.CaseKeyword, 2)))
                 {
                     FglStatement statement;
-                    if (parser.StatementFactory.TryParseNode(parser, out statement, containingModule, prepStatementBinder, false, validExitKeywords, contextStatementFactories) && statement != null)
+                    if (parser.StatementFactory.TryParseNode(parser, out statement, containingModule, prepStatementBinder, false, validExitKeywords, contextStatementFactories, expressionOptions) && statement != null)
                     {
                         AstNode stmtNode = statement as AstNode;
                         node.Children.Add(stmtNode.StartIndex, stmtNode);

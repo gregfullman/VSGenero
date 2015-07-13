@@ -252,22 +252,11 @@ namespace VSGenero.EditorExtensions.Intellisense
                 _openFiles.Remove(bufferParser);
             }
 
-            _errorProvider.ClearErrorSource(bufferParser._currentProjEntry, ParserTaskMoniker);
-            //_errorProvider.ClearErrorSource(bufferParser._currentProjEntry, UnresolvedImportMoniker);
-            //_commentTaskProvider.ClearErrorSource(bufferParser._currentProjEntry, ParserTaskMoniker);
-
             if (ImplicitProject)
             {
-                // remove the file from the error list
-                _errorProvider.Clear(bufferParser._currentProjEntry, ParserTaskMoniker);
-                //_errorProvider.Clear(bufferParser._currentProjEntry, UnresolvedImportMoniker);
-                //_commentTaskProvider.Clear(bufferParser._currentProjEntry, ParserTaskMoniker);
-
                 string path = bufferParser._currentProjEntry.FilePath;
                 if (path != null)
                 {
-                    // TODO: need to rework this stuff
-
                     // check to see if the file is still needed
                     string dirPath = Path.GetDirectoryName(path);
 
@@ -312,10 +301,10 @@ namespace VSGenero.EditorExtensions.Intellisense
                                     UnloadImportedModules(proj);
 
                                     _projects.TryRemove(dirPath, out proj);
-
-                                    // remove the file from the error list
-                                    _errorProvider.ClearErrorSource(Path.GetDirectoryName(bufferParser._currentProjEntry.FilePath));
                                 }
+                                // remove the file from the error list
+                                _errorProvider.Clear(dirPath, ParserTaskMoniker);
+                                _errorProvider.ClearErrorSource(dirPath);
                             }
                         }
                     }
@@ -562,6 +551,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                     _projects.TryRemove(projectPath, out proj);
 
                     // remove the file from the error list
+                    _errorProvider.Clear(projectPath, ParserTaskMoniker);
                     _errorProvider.ClearErrorSource(projectPath);
                 }
             }
@@ -1143,6 +1133,8 @@ namespace VSGenero.EditorExtensions.Intellisense
             var factory = new TaskProviderItemFactory(snapshot);
             if (errorSink.Warnings.Any() || errorSink.Errors.Any())
             {
+                if (!_errorProvider.HasErrorSource(entry, ParserTaskMoniker))
+                    _errorProvider.AddBufferForErrorSource(entry, ParserTaskMoniker, null);
                 _errorProvider.ReplaceItems(
                     entry,
                     ParserTaskMoniker,

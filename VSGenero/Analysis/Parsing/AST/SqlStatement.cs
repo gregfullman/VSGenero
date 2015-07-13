@@ -242,7 +242,7 @@ namespace VSGenero.Analysis.Parsing.AST
                             if (ExpressionNode.TryGetExpressionNode(parser, out name, new List<TokenKind>
                                 {
                                     TokenKind.Comma, TokenKind.IntoKeyword, TokenKind.FromKeyword
-                                }, true, true))
+                                }, new ExpressionParsingOptions { AllowStarParam = true, AllowAnythingForFunctionParams = true }))
                             {
                                 node.SelectList.Add(name);
                                 // TODO: there may be other sql select functions that should be allowed in the select list...
@@ -328,7 +328,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                         peek.Kind != TokenKind.GroupKeyword &&
                                         peek.Kind != TokenKind.OrderKeyword))
                                     {
-                                        if (!ExpressionNode.TryGetExpressionNode(parser, out aliasName))
+                                        if (!ExpressionNode.TryGetExpressionNode(parser, out aliasName, null, new ExpressionParsingOptions { AllowAnythingForFunctionParams = true }))
                                             parser.ReportSyntaxError("Invalid table alias name found.");
                                         else
                                             node.Tables[subSelStmt] = aliasName;
@@ -402,7 +402,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     if (ExpressionNode.TryGetExpressionNode(parser, out conditionalExpr, GeneroAst.ValidStatementKeywords.Union(new List<TokenKind>
                         {
                             TokenKind.GroupKeyword, TokenKind.OrderKeyword
-                        }).ToList(), true, true, true))
+                        }).ToList(), new ExpressionParsingOptions { AllowStarParam = true, AllowAnythingForFunctionParams = true, AllowQuestionMark = true }))
                     {
                         node.ConditionalExpression = conditionalExpr;
                     }
@@ -817,7 +817,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                 node.ColumnList.Add(nameExpr);
 
                                 ExpressionNode expr;
-                                if (ExpressionNode.TryGetExpressionNode(parser, out expr, new List<TokenKind> { TokenKind.Comma }, false, false, false, true))
+                                if (ExpressionNode.TryGetExpressionNode(parser, out expr, new List<TokenKind> { TokenKind.Comma }, new ExpressionParsingOptions { AllowNestedSelectStatement = true }))
                                     node.Variables.Add(expr);
                                 else
                                     parser.ReportSyntaxError("Invalid expression found in update statement.");
@@ -831,7 +831,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                         if (parser.PeekToken(TokenKind.Equals))
                                         {
                                             parser.NextToken();
-                                            if (ExpressionNode.TryGetExpressionNode(parser, out expr, new List<TokenKind> { TokenKind.Comma }, false, false, false, true))
+                                            if (ExpressionNode.TryGetExpressionNode(parser, out expr, new List<TokenKind> { TokenKind.Comma }, new ExpressionParsingOptions { AllowNestedSelectStatement = true }))
                                                 node.Variables.Add(expr);
                                             else
                                                 parser.ReportSyntaxError("Invalid expression found in update statement.");
@@ -896,7 +896,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         else
                         {
                             ExpressionNode conditionalExpr;
-                            if (ExpressionNode.TryGetExpressionNode(parser, out conditionalExpr, GeneroAst.ValidStatementKeywords.ToList(), true, true))
+                            if (ExpressionNode.TryGetExpressionNode(parser, out conditionalExpr, GeneroAst.ValidStatementKeywords.ToList(), new ExpressionParsingOptions { AllowStarParam = true, AllowAnythingForFunctionParams = true }))
                                 node.ConditionalExpression = conditionalExpr;
                             else
                                 parser.ReportSyntaxError("Invalid conditional expression found in update statement.");

@@ -438,6 +438,15 @@ namespace VSGenero.EditorExtensions.Intellisense
             SendMessage(WorkerMessage.Clear(entry, moniker));
         }
 
+        public void Clear(string filePath, string moniker)
+        {
+            var remKeys = _errorSources.Where(x => x.Key.Entry.FilePath.StartsWith(filePath, StringComparison.OrdinalIgnoreCase)).Select(x => x.Key).ToList();
+            foreach (var key in remKeys)
+            {
+                SendMessage(WorkerMessage.Clear(key.Entry, moniker));
+            }
+        }
+
         /// <summary>
         /// Waits for all messages to clear the queue. This typically takes at
         /// least one second, since that is the timeout on the worker thread.
@@ -450,6 +459,14 @@ namespace VSGenero.EditorExtensions.Intellisense
             var tcs = new TaskCompletionSource<TimeSpan>();
             SendMessage(WorkerMessage.Flush(tcs));
             return tcs.Task;
+        }
+
+        public bool HasErrorSource(IProjectEntry entry, string moniker)
+        {
+            lock (_errorSources)
+            {
+                return _errorSources.ContainsKey(new EntryKey(entry, moniker));
+            }
         }
 
         /// <summary>
@@ -466,7 +483,8 @@ namespace VSGenero.EditorExtensions.Intellisense
                 {
                     _errorSources[new EntryKey(entry, moniker)] = buffers = new HashSet<ITextBuffer>();
                 }
-                buffers.Add(buffer);
+                if(buffer != null)
+                    buffers.Add(buffer);
             }
         }
 
@@ -501,11 +519,13 @@ namespace VSGenero.EditorExtensions.Intellisense
 
         public void ClearErrorSource(string filePath)
         {
-            lock(_errorSources)
+            lock (_errorSources)
             {
                 var remKeys = _errorSources.Where(x => x.Key.Entry.FilePath.StartsWith(filePath, StringComparison.OrdinalIgnoreCase)).Select(x => x.Key).ToList();
                 foreach (var key in remKeys)
+                {
                     _errorSources.Remove(key);
+                }
             }
         }
 
@@ -650,7 +670,8 @@ namespace VSGenero.EditorExtensions.Intellisense
                 }
             }
 
-            await _serviceProvider.GetUIThread().InvokeAsync(() => {
+            await _serviceProvider.GetUIThread().InvokeAsync(() =>
+            {
                 if (_taskList != null)
                 {
                     if (_cookie == 0)

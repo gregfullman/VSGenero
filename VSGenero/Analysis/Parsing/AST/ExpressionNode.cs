@@ -6,6 +6,17 @@ using System.Threading.Tasks;
 
 namespace VSGenero.Analysis.Parsing.AST
 {
+    public delegate ExpressionNode ExpressionParser(IParser parser);
+
+    public class ExpressionParsingOptions
+    {
+        public bool AllowStarParam { get; set; }
+        public bool AllowAnythingForFunctionParams { get; set; }
+        public bool AllowQuestionMark { get; set; }
+        public bool AllowNestedSelectStatement { get; set; }
+        public IEnumerable<ExpressionParser> AdditionalExpressionParsers { get; set; }
+    }
+
     public abstract class ExpressionNode : AstNode
     {
         protected static List<TokenKind> _preExpressionTokens = new List<TokenKind> 
@@ -19,10 +30,10 @@ namespace VSGenero.Analysis.Parsing.AST
         public abstract string ToString();
         public abstract string GetType();
 
-        public static bool TryGetExpressionNode(IParser parser, out ExpressionNode node, List<TokenKind> breakTokens = null, 
-                                                bool allowStarParam = false, bool allowAnythingForFunctionParams = false, 
-                                                bool allowQuestionMark = false, bool allowNestedSelectStatement = false)
+        public static bool TryGetExpressionNode(IParser parser, out ExpressionNode node, List<TokenKind> breakTokens = null, ExpressionParsingOptions options = null)
         {
+            if (options == null)
+                options = new ExpressionParsingOptions();
             node = null;
             bool result = false;
             bool start = true;
@@ -46,7 +57,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 if (parser.PeekToken(TokenKind.LeftParenthesis))
                 {
                     ParenWrappedExpressionNode parenExpr;
-                    if (ParenWrappedExpressionNode.TryParseExpression(parser, out parenExpr, allowAnythingForFunctionParams, allowNestedSelectStatement))
+                    if (ParenWrappedExpressionNode.TryParseExpression(parser, out parenExpr, options))
                     {
                         if (node == null)
                             node = parenExpr;
@@ -146,7 +157,7 @@ namespace VSGenero.Analysis.Parsing.AST
                             parser.ReportSyntaxError("Invalid interval expression found.");
                     }
                 }
-                else if(parser.PeekToken(TokenKind.SelectKeyword) && allowNestedSelectStatement)
+                else if(parser.PeekToken(TokenKind.SelectKeyword) && options.AllowNestedSelectStatement)
                 {
                     FglStatement selStmt;
                     bool dummy;
@@ -164,63 +175,84 @@ namespace VSGenero.Analysis.Parsing.AST
                 else if (parser.PeekToken(TokenCategory.Identifier) ||
                         parser.PeekToken(TokenCategory.Keyword))
                 {
-                    FunctionCallExpressionNode funcCall;
-                    NameExpression nonFuncCallName;
-                    if (FunctionCallExpressionNode.TryParseExpression(parser, out funcCall, out nonFuncCallName, false, allowStarParam, allowAnythingForFunctionParams))
+                    bool isCustomExpression = false;
+                    if (options != null &&
+                        options.AdditionalExpressionParsers != null)
                     {
-                        result = true;
-                        if (node == null)
-                            node = funcCall;
-                        else
-                            node.AppendExpression(funcCall);
-                    }
-                    else if (nonFuncCallName != null)
-                    {
-                        bool isDatetime = false;
-                        var dtToken = Tokens.GetToken(nonFuncCallName.Name);
-                        if(dtToken != null)
+                        ExpressionNode parsedExpr;
+                        foreach(var exprParser in options.AdditionalExpressionParsers)
                         {
-                            if (TypeConstraints.DateTimeQualifiers.Contains(dtToken.Kind))
+                            if((parsedExpr = exprParser(parser)) != null)
                             {
-                                string dtString;
-                                isDatetime = true;
-                                if (TypeConstraints.VerifyValidConstraint(parser, out dtString, TokenKind.DatetimeKeyword, true, dtToken.Kind))
-                                {
-                                    result = true;
-                                    var strExpr = new StringExpressionNode(dtString);
-                                    if (node == null)
-                                        node = strExpr;
-                                    else
-                                        node.AppendExpression(strExpr);
-                                }
+                                result = true;
+                                if (node == null)
+                                    node = parsedExpr;
                                 else
-                                {
-                                    isDatetime = false;
-                                }
+                                    node.AppendExpression(parsedExpr);
+                                isCustomExpression = true;
                             }
                         }
-
-                        if (!isDatetime)
+                    }
+                    if (!isCustomExpression)
+                    {
+                        FunctionCallExpressionNode funcCall;
+                        NameExpression nonFuncCallName;
+                        if (FunctionCallExpressionNode.TryParseExpression(parser, out funcCall, out nonFuncCallName, false, options))
                         {
-                            // it's a name expression
                             result = true;
                             if (node == null)
-                                node = nonFuncCallName;
+                                node = funcCall;
                             else
-                                node.AppendExpression(nonFuncCallName);
+                                node.AppendExpression(funcCall);
+                        }
+                        else if (nonFuncCallName != null)
+                        {
+                            bool isDatetime = false;
+                            var dtToken = Tokens.GetToken(nonFuncCallName.Name);
+                            if (dtToken != null)
+                            {
+                                if (TypeConstraints.DateTimeQualifiers.Contains(dtToken.Kind))
+                                {
+                                    string dtString;
+                                    isDatetime = true;
+                                    if (TypeConstraints.VerifyValidConstraint(parser, out dtString, TokenKind.DatetimeKeyword, true, dtToken.Kind))
+                                    {
+                                        result = true;
+                                        var strExpr = new StringExpressionNode(dtString);
+                                        if (node == null)
+                                            node = strExpr;
+                                        else
+                                            node.AppendExpression(strExpr);
+                                    }
+                                    else
+                                    {
+                                        isDatetime = false;
+                                    }
+                                }
+                            }
+
+                            if (!isDatetime)
+                            {
+                                // it's a name expression
+                                result = true;
+                                if (node == null)
+                                    node = nonFuncCallName;
+                                else
+                                    node.AppendExpression(nonFuncCallName);
+                            }
+                        }
+                        else
+                        {
+                            result = true;
+                            parser.NextToken();
+                            if (node == null)
+                                node = new TokenExpressionNode(parser.Token);
+                            else
+                                node.AppendExpression(new TokenExpressionNode(parser.Token));
                         }
                     }
-                    else
-                    {
-                        result = true;
-                        parser.NextToken();
-                        if (node == null)
-                            node = new TokenExpressionNode(parser.Token);
-                        else
-                            node.AppendExpression(new TokenExpressionNode(parser.Token));
-                    }
                 }
-                else if (parser.PeekToken(TokenKind.Multiply) && allowStarParam)
+                else if (parser.PeekToken(TokenKind.Multiply) && options.AllowStarParam)
                 {
                     result = true;
                     parser.NextToken();
@@ -229,7 +261,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     else
                         node.AppendExpression(new TokenExpressionNode(parser.Token));
                 }
-                else if(parser.PeekToken(TokenKind.QuestionMark) && allowQuestionMark)
+                else if(parser.PeekToken(TokenKind.QuestionMark) && options.AllowQuestionMark)
                 {
                     parser.NextToken();
                     if (node == null)
@@ -393,8 +425,10 @@ namespace VSGenero.Analysis.Parsing.AST
                                 }
                                 break;
                             default:
-                                isOperator = false;
-                                break;
+                                {
+                                    isOperator = false;
+                                    break;
+                                }
                         }
                         if (!isOperator)
                             break;
@@ -447,8 +481,10 @@ namespace VSGenero.Analysis.Parsing.AST
             }
         }
 
-        public static bool TryParseExpression(IParser parser, out FunctionCallExpressionNode node, out NameExpression nonFunctionCallName, bool leftParenRequired = false, bool allowStarParam = false, bool allowAnythingParam = false)
+        public static bool TryParseExpression(IParser parser, out FunctionCallExpressionNode node, out NameExpression nonFunctionCallName, bool leftParenRequired = false, ExpressionParsingOptions options = null)
         {
+            if (options == null)
+                options = new ExpressionParsingOptions();
             node = null;
             nonFunctionCallName = null;
             bool result = false;
@@ -466,11 +502,11 @@ namespace VSGenero.Analysis.Parsing.AST
                     result = true;
                     parser.NextToken();
 
-                    if (!allowAnythingParam)
+                    if (!options.AllowAnythingForFunctionParams)
                     {
                         // Parameters can be any expression, comma seperated
                         ExpressionNode expr;
-                        while (ExpressionNode.TryGetExpressionNode(parser, out expr, new List<TokenKind> { TokenKind.Comma, TokenKind.RightParenthesis }, allowStarParam))
+                        while (ExpressionNode.TryGetExpressionNode(parser, out expr, new List<TokenKind> { TokenKind.Comma, TokenKind.RightParenthesis }, options))
                         {
                             node.Parameters.Add(expr);
                             if (!parser.PeekToken(TokenKind.Comma))
@@ -501,7 +537,7 @@ namespace VSGenero.Analysis.Parsing.AST
                             {
                                 FunctionCallExpressionNode funcCall;
                                 NameExpression nonFuncCallName;
-                                if (FunctionCallExpressionNode.TryParseExpression(parser, out funcCall, out nonFuncCallName, false, allowStarParam, allowAnythingParam))
+                                if (FunctionCallExpressionNode.TryParseExpression(parser, out funcCall, out nonFuncCallName, false, options))
                                 {
                                     node.Children.Add(funcCall.StartIndex, funcCall);
                                 }
@@ -695,8 +731,10 @@ namespace VSGenero.Analysis.Parsing.AST
             }
         }
 
-        public static bool TryParseExpression(IParser parser, out ParenWrappedExpressionNode node, bool allowAnythingInParens = false, bool allowNestedSelectStatement = false)
+        public static bool TryParseExpression(IParser parser, out ParenWrappedExpressionNode node, ExpressionParsingOptions options = null)
         {
+            if (options == null)
+                options = new ExpressionParsingOptions();
             node = null;
             bool result = false;
 
@@ -707,10 +745,10 @@ namespace VSGenero.Analysis.Parsing.AST
                 result = true;
                 node.StartIndex = parser.Token.Span.Start;
 
-                if (!allowAnythingInParens)
+                if (!options.AllowAnythingForFunctionParams)
                 {
                     ExpressionNode exprNode;
-                    if (!ExpressionNode.TryGetExpressionNode(parser, out exprNode, new List<TokenKind> { TokenKind.RightParenthesis }, false, allowAnythingInParens, false, allowNestedSelectStatement))
+                    if (!ExpressionNode.TryGetExpressionNode(parser, out exprNode, new List<TokenKind> { TokenKind.RightParenthesis }, options))
                     {
                         parser.ReportSyntaxError("Invalid expression found within parentheses.");
                     }
