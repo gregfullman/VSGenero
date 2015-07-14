@@ -62,8 +62,14 @@ namespace VSGenero.Analysis.Parsing.AST
             {
                 sb.Append("array [");
                 sb.Append(StaticDimOneSize.ToString());
-                sb.AppendFormat(", {0}", StaticDimTwoSize.ToString());
-                sb.AppendFormat(", {0}", StaticDimThreeSize.ToString());
+                if (StaticDimTwoSize != null)
+                {
+                    sb.AppendFormat(", {0}", StaticDimTwoSize.ToString());
+                    if (StaticDimThreeSize != null)
+                    {
+                        sb.AppendFormat(", {0}", StaticDimThreeSize.ToString());
+                    }
+                }
                 sb.Append("]");
             }
             else
