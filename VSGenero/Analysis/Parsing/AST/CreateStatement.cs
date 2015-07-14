@@ -216,18 +216,47 @@ namespace VSGenero.Analysis.Parsing.AST
         public NameExpression ReferencingTableName { get; private set; }
         public List<NameExpression> ReferencingTableColumnNames { get; private set; }
 
+        public List<NameExpression> UniqueColumns { get; private set; }
+
         public static bool TryParseNode(Parser parser, out CreatedTableColumn node)
         {
             node = new CreatedTableColumn();
             node.StartIndex = parser.Token.Span.Start;
+            node.UniqueColumns = new List<NameExpression>();
+            node.ReferencingTableColumnNames = new List<NameExpression>();
+
             bool result = true;
 
             switch (parser.PeekToken().Kind)
             {
-                case TokenKind.PrimaryKeyword:
                 case TokenKind.UniqueKeyword:
+                    {
+                        parser.NextToken();
+                        if (parser.PeekToken(TokenKind.LeftParenthesis))
+                        {
+                            parser.NextToken();
+                            NameExpression nameExpr;
+                            while(NameExpression.TryParseNode(parser, out nameExpr))
+                            {
+                                node.UniqueColumns.Add(nameExpr);
+                                if (parser.PeekToken(TokenKind.Comma))
+                                    parser.NextToken();
+                                else
+                                    break;
+                            }
+                            if (parser.PeekToken(TokenKind.RightParenthesis))
+                                parser.NextToken();
+                            else
+                                parser.ReportSyntaxError("Expected right-paren in create table statement.");
+                        }
+                        else
+                            parser.ReportSyntaxError("Expected left-paren in create table statement.");
+                        break;
+                    }
+                case TokenKind.PrimaryKeyword:
                 case TokenKind.CheckKeyword:
                 case TokenKind.ForeignKeyword:
+                    result = false;
                     parser.ReportSyntaxError("Token not supported at this time for create table statements.");
                     break;
                 default:

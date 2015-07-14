@@ -18,7 +18,7 @@ namespace VSGenero.Analysis.Parsing.AST
     public class RecordDefinitionNode : AstNode, IAnalysisResult
     {
         public AttributeSpecifier Attribute { get; private set; }
-        public string MimicTableName { get; private set; }
+        public NameExpression MimicTableName { get; private set; }
         public string MimicDatabaseName { get; private set; }
 
         public bool CanGetValueFromDebugger
@@ -45,9 +45,9 @@ namespace VSGenero.Analysis.Parsing.AST
             StringBuilder sb = new StringBuilder();
             sb.Append("record");
 
-            if (!string.IsNullOrWhiteSpace(MimicTableName))
+            if (MimicTableName != null)
             {
-                sb.AppendFormat(" like {0}.*", MimicTableName);
+                sb.AppendFormat(" like {0}", MimicTableName.Name);
             }
 
             return sb.ToString();
@@ -75,21 +75,15 @@ namespace VSGenero.Analysis.Parsing.AST
                         defNode.MimicDatabaseName = parser.Token.Token.Value.ToString();
                         parser.NextToken(); // advance to the colon
                     }
-                    if (!parser.PeekToken(TokenCategory.Identifier))
+                    NameExpression tableName;
+                    if (NameExpression.TryParseNode(parser, out tableName))
                     {
-                        parser.ReportSyntaxError("Database table name expected.");
-                    }
-                    else if (!parser.PeekToken(TokenKind.Dot, 2) && !parser.PeekToken(TokenKind.Multiply))
-                    {
-                        parser.ReportSyntaxError("A mimicking record must reference a table as follows: \"[tablename].*\".");
+                        defNode.MimicTableName = tableName;
+                        if(!tableName.Name.EndsWith(".*"))
+                            parser.ReportSyntaxError("A mimicking record must reference a table as follows: \"[tablename].*\".");
                     }
                     else
-                    {
-                        parser.NextToken(); // advance to the table name
-                        defNode.MimicTableName = parser.Token.Token.Value.ToString();
-                        parser.NextToken(); // advance to the dot
-                        parser.NextToken(); // advance to the star
-                    }
+                        parser.ReportSyntaxError("Invalid database table name found in record definition.");
                 }
                 else
                 {
@@ -184,7 +178,7 @@ namespace VSGenero.Analysis.Parsing.AST
         {
             definingProject = null;
             projEntry = null;
-            if (MemberDictionary.Count == 0 && !string.IsNullOrEmpty(MimicTableName))
+            if (MemberDictionary.Count == 0 && MimicTableName != null)
             {
                 return null;
             }
@@ -198,10 +192,10 @@ namespace VSGenero.Analysis.Parsing.AST
 
         internal IEnumerable<IAnalysisResult> GetAnalysisResults(GeneroAst ast)
         {
-            if (MemberDictionary.Count == 0 && !string.IsNullOrEmpty(MimicTableName) && ast._databaseProvider != null)
+            if (MemberDictionary.Count == 0 && MimicTableName != null && ast._databaseProvider != null)
             {
                 // get the table's columns
-                return ast._databaseProvider.GetColumns(MimicTableName);
+                return ast._databaseProvider.GetColumns(MimicTableName.Name);
             }
             else
             {
@@ -211,10 +205,10 @@ namespace VSGenero.Analysis.Parsing.AST
 
         public IEnumerable<MemberResult> GetMembers(GeneroAst ast, MemberType memberType)
         {
-            if (MemberDictionary.Count == 0 && !string.IsNullOrEmpty(MimicTableName))
+            if (MemberDictionary.Count == 0 && MimicTableName != null)
             {
                 // get the table's columns
-                return ast._databaseProvider.GetColumns(MimicTableName).Select(x => new MemberResult(x.Name, x, GeneroMemberType.DbColumn, ast));
+                return ast._databaseProvider.GetColumns(MimicTableName.Name).Select(x => new MemberResult(x.Name, x, GeneroMemberType.DbColumn, ast));
             }
             else
             {

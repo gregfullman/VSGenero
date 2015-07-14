@@ -65,6 +65,8 @@ namespace VSGenero.Analysis.Parsing.AST
                                 parser.NextToken();
                                 if (parser.PeekToken(TokenCategory.StringLiteral))
                                     parser.NextToken();
+                                if (parser.PeekToken(TokenKind.ClippedKeyword))
+                                    parser.NextToken();
                             }
                             break;
                         case TokenKind.ColumnKeyword:
@@ -109,6 +111,8 @@ namespace VSGenero.Analysis.Parsing.AST
                                     parser.NextToken();
                                     if (parser.PeekToken(TokenCategory.StringLiteral))
                                         parser.NextToken();
+                                    if (parser.PeekToken(TokenKind.ClippedKeyword))
+                                        parser.NextToken();
                                 }
                                 break;
                             }
@@ -149,6 +153,8 @@ namespace VSGenero.Analysis.Parsing.AST
                                     parser.NextToken();
                                     if (parser.PeekToken(TokenCategory.StringLiteral))
                                         parser.NextToken();
+                                    if (parser.PeekToken(TokenKind.ClippedKeyword))
+                                        parser.NextToken();
                                 }
                                 break;
                             }
@@ -188,18 +194,24 @@ namespace VSGenero.Analysis.Parsing.AST
                                         }
                                     }
                                 }
-                                else
-                                    parser.ReportSyntaxError("Invalid expression found in print statement.");
                                 break;
                             }
                     }
 
-                    if (parser.PeekToken(TokenKind.Comma))
+                    var tokKind = parser.PeekToken().Kind;
+                    if (tokKind == TokenKind.Comma)
+                    {
                         parser.NextToken();
-                    else if(parser.PeekToken(TokenKind.Semicolon))
+                    }
+                    else if (tokKind == TokenKind.Semicolon)
                     {
                         parser.NextToken();
                         break;
+                    }
+                    else if (tokKind >= TokenKind.FirstOperator &&
+                            tokKind <= TokenKind.LastOperator)
+                    {
+                        parser.NextToken();
                     }
                     else
                         break;

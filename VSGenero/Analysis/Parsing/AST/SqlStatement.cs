@@ -454,9 +454,17 @@ namespace VSGenero.Analysis.Parsing.AST
                     while (ExpressionNode.TryGetExpressionNode(parser, out colName, GeneroAst.ValidStatementKeywords.Union(new List<TokenKind> { TokenKind.Comma }).ToList()))
                     {
                         node.OrderByList.Add(colName);
-                        if (!parser.PeekToken(TokenKind.Comma))
+                        if(parser.PeekToken(TokenKind.AscKeyword) || 
+                            parser.PeekToken(TokenKind.DescKeyword))
+                        {
+                            parser.NextToken();
+                        }
+                        if (parser.PeekToken(TokenKind.Comma))
+                        {
+                            parser.NextToken();
+                        }
+                        else
                             break;
-                        parser.NextToken();
                     }
                 }
 
