@@ -575,6 +575,10 @@ namespace VSGenero.Analysis.Parsing.AST
             TokenKind.ConstructKeyword,
             TokenKind.DialogKeyword,
             TokenKind.PromptKeyword,
+            TokenKind.MessageKeyword,
+            TokenKind.ErrorKeyword,
+            TokenKind.ClearKeyword,
+            TokenKind.ScrollKeyword,
 
             // Report driver
             TokenKind.StartKeyword,

@@ -1287,37 +1287,37 @@ namespace VSGenero.EditorExtensions.Intellisense
             //}
 
             // TODO: need to figure out how to get a statement that spans more than one line
-            var tokens = classifier.GetClassificationSpans(new SnapshotSpan(start.GetContainingLine().Start, snapSpan.Start));
-            if (tokens.Count > 0)
-            {
-                // Check for context-sensitive intellisense
-                var lastClass = tokens[tokens.Count - 1];
+            //var tokens = classifier.GetClassificationSpans(new SnapshotSpan(start.GetContainingLine().Start, snapSpan.Start));
+            //if (tokens.Count > 0)
+            //{
+            //    // Check for context-sensitive intellisense
+            //    var lastClass = tokens[tokens.Count - 1];
 
-                if (lastClass.ClassificationType == classifier.Provider.Comment)
-                {
-                    // No completions in comments
-                    return CompletionAnalysis.EmptyCompletionContext;
-                }
-                else if (lastClass.ClassificationType == classifier.Provider.StringLiteral)
-                {
-                    // String completion
-                    //if (lastClass.Span.Start.GetContainingLine().LineNumber == lastClass.Span.End.GetContainingLine().LineNumber)
-                    //{
-                    //    return new StringLiteralCompletionList(span, buffer, options);
-                    //}
-                    //else
-                    //{
-                    // multi-line string, no string completions.
-                    return CompletionAnalysis.EmptyCompletionContext;
-                    //}
-                }
-            }
-            else if ((tokens = classifier.GetClassificationSpans(snapSpan.Start.GetContainingLine().ExtentIncludingLineBreak)).Count > 0 &&
-             tokens[0].ClassificationType == classifier.Provider.StringLiteral)
-            {
-                // multi-line string, no string completions.
-                return CompletionAnalysis.EmptyCompletionContext;
-            }
+            //    if (lastClass.ClassificationType == classifier.Provider.Comment)
+            //    {
+            //        // No completions in comments
+            //        return CompletionAnalysis.EmptyCompletionContext;
+            //    }
+            //    else if (lastClass.ClassificationType == classifier.Provider.StringLiteral)
+            //    {
+            //        // String completion
+            //        //if (lastClass.Span.Start.GetContainingLine().LineNumber == lastClass.Span.End.GetContainingLine().LineNumber)
+            //        //{
+            //        //    return new StringLiteralCompletionList(span, buffer, options);
+            //        //}
+            //        //else
+            //        //{
+            //        // multi-line string, no string completions.
+            //        return CompletionAnalysis.EmptyCompletionContext;
+            //        //}
+            //    }
+            //}
+            //else if ((tokens = classifier.GetClassificationSpans(snapSpan.Start.GetContainingLine().ExtentIncludingLineBreak)).Count > 0 &&
+            // tokens[0].ClassificationType == classifier.Provider.StringLiteral)
+            //{
+            //    // multi-line string, no string completions.
+            //    return CompletionAnalysis.EmptyCompletionContext;
+            //}
 
             var entry = (IGeneroProjectEntry)buffer.GetAnalysis();
             if (entry != null && entry.Analysis != null)
