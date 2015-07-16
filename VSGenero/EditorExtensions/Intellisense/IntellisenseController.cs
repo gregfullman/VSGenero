@@ -175,7 +175,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                     case '&':
                     case '.':
                     case ' ':
-                        if (VSGeneroPackage.Instance.LangPrefs.AutoListMembers)
+                        if (VSGeneroPackage.Instance.LangPrefs.AutoListMembers && AreSurroundingCharactersWhitespace(true))
                         {
                             TriggerCompletionSession(false);
                         }
@@ -214,7 +214,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                         }
                         break;
                     default:
-                        if (VSGeneroPackage.Instance.LangPrefs.AutoListMembers && IsIdentifierChar(ch) && _activeSession == null && IsPreviousCharacterNonWhitespace())
+                        if (VSGeneroPackage.Instance.LangPrefs.AutoListMembers && IsIdentifierChar(ch) && _activeSession == null && AreSurroundingCharactersWhitespace())
                         {
                             TriggerCompletionSession(false);
                         }
@@ -223,7 +223,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             }
         }
 
-        private bool IsPreviousCharacterNonWhitespace()
+        private bool AreSurroundingCharactersWhitespace(bool onlyNextChar = false)
         {
             var point = _textView.GetCaretPosition();
             if (point.HasValue)
@@ -231,9 +231,10 @@ namespace VSGenero.EditorExtensions.Intellisense
                 if (point.Value.Position <= 1) 
                     return true;
                 string prevChar = _textView.TextSnapshot.GetText(new Span(point.Value.Position - 2, 1));
-                if (prevChar == "(" || prevChar == "[")
+                string nextChar = _textView.TextSnapshot.GetText(new Span(point.Value.Position, 1));
+                if ((prevChar == "(" || prevChar == "[") && string.IsNullOrWhiteSpace(nextChar))
                     return true;
-                return string.IsNullOrWhiteSpace(prevChar);
+                return (string.IsNullOrWhiteSpace(prevChar) || onlyNextChar) && string.IsNullOrWhiteSpace(nextChar);
             }
             return false;
         }
