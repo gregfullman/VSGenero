@@ -23,8 +23,14 @@ namespace VSGenero.EditorExtensions
             public Indent(ITextView view)
             {
                 _textView = view;
+                AutoIndent.Initialize();
             }
 
+            /// <summary>
+            /// This is called when the enter key is pressed or when navigating to an empty line.
+            /// </summary>
+            /// <param name="line"></param>
+            /// <returns></returns>
             public int? GetDesiredIndentation(ITextSnapshotLine line)
             {
                 if (VSGeneroPackage.Instance.LangPrefs.IndentMode == vsIndentStyle.vsIndentStyleSmart)

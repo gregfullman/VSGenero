@@ -14,6 +14,7 @@ using VSGenero.Analysis;
 using VSGenero.Analysis.Parsing.AST;
 using VSGenero.EditorExtensions.Intellisense;
 using Microsoft.VisualStudio.VSCommon;
+using VSGenero.Analysis.Parsing;
 
 namespace VSGenero.EditorExtensions
 {
@@ -42,11 +43,21 @@ namespace VSGenero.EditorExtensions
                 (span.Span.GetText() == "{" || span.Span.GetText() == "[" || span.Span.GetText() == "(");
         }
 
+        internal static bool IsOpenGrouping(this TokenKind tokKind)
+        {
+            return tokKind == TokenKind.LeftBracket || tokKind == TokenKind.LeftBrace || tokKind == TokenKind.LeftParenthesis;
+        }
+
         internal static bool IsCloseGrouping(this ClassificationSpan span)
         {
             return span.ClassificationType.IsOfType(Genero4glPredefinedClassificationTypeNames.Grouping) &&
                 span.Span.Length == 1 &&
                 (span.Span.GetText() == "}" || span.Span.GetText() == "]" || span.Span.GetText() == ")");
+        }
+
+        internal static bool IsCloseGrouping(this TokenKind tokKind)
+        {
+            return tokKind == TokenKind.RightBracket || tokKind == TokenKind.RightBrace || tokKind == TokenKind.RightParenthesis;
         }
 
         internal static ExpressionAnalysis GetExpressionAnalysis(this ITextView view, IFunctionInformationProvider functionProvider, IDatabaseInformationProvider databaseProvider,

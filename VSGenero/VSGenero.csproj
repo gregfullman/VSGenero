@@ -658,6 +658,7 @@
     </Content>
     <Compile Include="Analysis\Parsing\AST\GeneroAst.ContextMembers.cs" />
     <None Include="app.config" />
+    <Compile Include="EditorExtensions\AutoIndent.ContextDetermination.cs" />
     <None Include="Genero4GL.xsd">
       <SubType>Designer</SubType>
     </None>

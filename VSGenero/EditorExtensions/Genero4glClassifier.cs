@@ -215,7 +215,10 @@ namespace VSGenero.EditorExtensions
                             length += GetTrailingMultiLineStrings(tokenizer, snapshot, currentLine, state);
                         }
 
-                        var multiStrSpan = new Span(SnapshotSpanToSpan(snapshot, startToken, validPrevLine).Start, length);
+                        int start = SnapshotSpanToSpan(snapshot, startToken, validPrevLine).Start;
+                        if (start + length > snapshot.Length)
+                            length -= 1;
+                        var multiStrSpan = new Span(start, length);
                         classifications.Add(
                             new ClassificationSpan(
                                 new SnapshotSpan(snapshot, multiStrSpan),
@@ -242,7 +245,10 @@ namespace VSGenero.EditorExtensions
                             length += GetTrailingMultiLineComments(tokenizer, snapshot, currentLine, state);
                         }
 
-                        var multiStrSpan = new Span(SnapshotSpanToSpan(snapshot, startToken, validPrevLine).Start, length);
+                        int start = SnapshotSpanToSpan(snapshot, startToken, validPrevLine).Start;
+                        if(start + length > snapshot.Length)
+                            length -= 1;
+                        var multiStrSpan = new Span(start, length);
                         classifications.Add(
                             new ClassificationSpan(
                                 new SnapshotSpan(snapshot, multiStrSpan),

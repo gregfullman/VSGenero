@@ -580,6 +580,15 @@ namespace VSGenero.Analysis.Parsing.AST
             TokenKind.ClearKeyword,
             TokenKind.ScrollKeyword,
 
+            TokenKind.CommandKeyword,
+            TokenKind.OnKeyword,
+            TokenKind.BeforeKeyword,
+            TokenKind.AfterKeyword,
+            TokenKind.NextKeyword,
+            TokenKind.ShowKeyword,
+            TokenKind.HideKeyword,
+            
+
             // Report driver
             TokenKind.StartKeyword,
             TokenKind.FinishKeyword,
@@ -593,12 +602,6 @@ namespace VSGenero.Analysis.Parsing.AST
             TokenKind.NeedKeyword,
             TokenKind.PauseKeyword,
             TokenKind.SkipKeyword,
-
-            // Others
-            TokenKind.OnKeyword,
-            TokenKind.BeforeKeyword,
-            TokenKind.AfterKeyword,
-
         };
 
         private static TokenKind[] OptionsStartTokens = new TokenKind[]
