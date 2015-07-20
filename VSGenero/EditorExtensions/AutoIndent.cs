@@ -184,25 +184,12 @@ namespace VSGenero.EditorExtensions
                     {
                         var tokCat = Tokenizer.GetTokenInfo(tokInfo).Category;
                         // Look for the token in the context map
-                        IEnumerable<ContextPossibilities> possibilities;
+                        IEnumerable<ContextPossibility> possibilities;
                         if (_contextMap.TryGetValue(tokInfo.Kind, out possibilities) ||
                             _contextMap.TryGetValue(tokCat, out possibilities))
                         {
                             var matchContainer = new ContextPossibilityMatchContainer(possibilities);
-                            IEnumerable<ContextPossibilities> matchingPossibilities;
-                            if (matchContainer.TryMatchContextPossibility(classificationSpan.Span.Start.Position, revParser, out matchingPossibilities))
-                            {
-                                var match = matchingPossibilities.FirstOrDefault();
-                                if (match != null)
-                                {
-                                    if (!match.BackwardSearchItems.Any(x => (TokenKind)x.SingleToken == TokenKind.EndKeyword))
-                                    {
-                                        // we should indent
-                                        current.ShouldIndentAfter = true;
-                                    }
-                                }
-                            }
-
+                            current.ShouldIndentAfter = matchContainer.ShouldIndent(classificationSpan.Span.Start.Position + 1, revParser);
                             break;
                         }
                         else if(GeneroAst.ValidStatementKeywords.Contains(tokInfo.Kind))
@@ -215,102 +202,6 @@ namespace VSGenero.EditorExtensions
                 indentation = current.Indentation +
                     (current.ShouldIndentAfter ? tabSize : 0) -
                     (current.ShouldDedentAfter ? tabSize : 0);
-
-                //var tokenStack = new System.Collections.Generic.Stack<ClassificationSpan>();
-                ////tokenStack.Push(null);  // end with an implicit newline
-                ////bool endAtNextNull = false;
-
-                ////foreach (var token in revParser)
-                ////{
-                ////    tokenStack.Push(token);
-                ////    if (token == null && endAtNextNull)
-                ////    {
-                ////        break;
-                ////    }
-                ////    else if (token != null &&
-                ////     token.ClassificationType == revParser.Classifier.Provider.Keyword &&
-                ////     GeneroKeywords.IsOnlyStatementKeyword(token.Span.GetText()))
-                ////    {
-                ////        endAtNextNull = true;
-                ////    }
-                ////}
-
-                ////var indentStack = new System.Collections.Generic.Stack<LineInfo>();
-                ////var current = LineInfo.Empty;
-
-                ////while (tokenStack.Count > 0)
-                ////{
-                //    var token = tokenStack.Pop();
-                ////    if (token == null)
-                ////    {
-                ////        current.NeedsUpdate = true;
-                ////    }
-                ////    else if (token.IsOpenGrouping())
-                ////    {
-                ////        indentStack.Push(current);
-                //        var start = token.Span.Start;
-                //        var line2 = start.GetContainingLine();
-                ////        var next = tokenStack.Count > 0 ? tokenStack.Peek() : null;
-                ////        if (next != null && next.Span.End <= line2.End)
-                ////        {
-                ////            current = new LineInfo
-                ////            {
-                ////                Indentation = start.Position - line2.Start.Position + 1
-                ////            };
-                ////        }
-                ////        else
-                ////        {
-                ////            current = new LineInfo
-                ////            {
-                ////                Indentation = GetIndentation(line2.GetText(), tabSize) + tabSize
-                ////            };
-                ////        }
-                ////    }
-                ////    else if (token.IsCloseGrouping())
-                ////    {
-                ////        if (indentStack.Count > 0)
-                ////        {
-                ////            current = indentStack.Pop();
-                ////        }
-                ////        else
-                ////        {
-                ////            current.NeedsUpdate = true;
-                ////        }
-                ////    }
-                ////    else if (Genero4glReverseParser.IsExplicitLineJoin(token))
-                ////    {
-                ////        while (token != null && tokenStack.Count > 0)
-                ////        {
-                ////            token = tokenStack.Pop();
-                ////        }
-                ////    }
-                ////    else if (current.NeedsUpdate == true)
-                ////    {
-                ////        var line2 = token.Span.Start.GetContainingLine();
-                ////        current = new LineInfo
-                ////        {
-                ////            Indentation = GetIndentation(line2.GetText(), tabSize)
-                ////        };
-                ////    }
-
-                ////    if (token != null && ShouldDedentAfterKeyword(token))
-                ////    {     // dedent after some statements
-                ////        current.ShouldDedentAfter = true;
-                ////    }
-
-                ////    if (token != null && IsStatementStart(token.Span.GetText()) &&         // indent after a colon
-                ////        indentStack.Count == 0)
-                ////    {                               // except in a grouping
-                ////        current.ShouldIndentAfter = true;
-                ////        // If the colon isn't at the end of the line, cancel it out.
-                ////        // If the following is a ShouldDedentAfterKeyword, only one dedent will occur.
-                ////        //current.ShouldDedentAfter = (tokenStack.Count != 0 && tokenStack.Peek() != null);
-                ////    }
-                ////}
-
-                ////indentation = current.Indentation +
-                ////    (current.ShouldIndentAfter ? tabSize : 0) -
-                ////    (current.ShouldDedentAfter ? tabSize : 0);
             }
 
             return indentation;

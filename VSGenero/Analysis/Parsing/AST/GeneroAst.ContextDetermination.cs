@@ -2797,70 +2797,171 @@ namespace VSGenero.Analysis.Parsing.AST
             foreach (var provider in matchedPossibility.SetProviders)
                 members.AddRange(provider(index));
         }
-    }
 
-    public class ContextPossibilityMatchContainer
-    {
-        private Dictionary<object, List<BackwardTokenSearchItem>> _flatMatchingSet;
-        private HashSet<object> _flatNonMatchingSet;
-        private List<ContextPossibilities> _possibilitiesWithNoBackwardSearch;
-        private int _matchingRound;
-
-        public ContextPossibilityMatchContainer(IEnumerable<ContextPossibilities> possibilities)
+        private class ContextPossibilityMatchContainer
         {
-            _matchingRound = 0;
-            _flatMatchingSet = new Dictionary<object, List<BackwardTokenSearchItem>>();
-            _flatNonMatchingSet = new HashSet<object>();
-            _possibilitiesWithNoBackwardSearch = new List<ContextPossibilities>();
-            InitializeQueues(possibilities);
-        }
+            private Dictionary<object, List<BackwardTokenSearchItem>> _flatMatchingSet;
+            private HashSet<object> _flatNonMatchingSet;
+            private List<ContextPossibilities> _possibilitiesWithNoBackwardSearch;
+            private int _matchingRound;
 
-        private void InitializeQueues(IEnumerable<ContextPossibilities> possibilities)
-        {
-            foreach (var possibility in possibilities)
+            public ContextPossibilityMatchContainer(IEnumerable<ContextPossibilities> possibilities)
             {
-                if (possibility.BackwardSearchItems.Length > 0)
-                {
-                    foreach (var searchItem in possibility.BackwardSearchItems)
-                    {
-                        searchItem.ParentContext = possibility;
-                        object key = TokenKind.EndOfFile;
-                        if(searchItem.TokenSet == null)
-                        {
-                            key = searchItem.SingleToken;
-                        }
-                        else
-                        {
-                            key = searchItem.TokenSet.Set[0];
-                        }
-                        
-                        if(_flatMatchingSet.ContainsKey(key))
-                        {
-                            _flatMatchingSet[key].Add(searchItem);
-                        }
-                        else
-                        {
-                            _flatMatchingSet.Add(key, new List<BackwardTokenSearchItem> { searchItem });
-                        }
+                _matchingRound = 0;
+                _flatMatchingSet = new Dictionary<object, List<BackwardTokenSearchItem>>();
+                _flatNonMatchingSet = new HashSet<object>();
+                _possibilitiesWithNoBackwardSearch = new List<ContextPossibilities>();
+                InitializeQueues(possibilities);
+            }
 
-                        if(!searchItem.Match)
-                            _flatNonMatchingSet.Add(key);
+            private void InitializeQueues(IEnumerable<ContextPossibilities> possibilities)
+            {
+                foreach (var possibility in possibilities)
+                {
+                    if (possibility.BackwardSearchItems.Length > 0)
+                    {
+                        foreach (var searchItem in possibility.BackwardSearchItems)
+                        {
+                            searchItem.ParentContext = possibility;
+                            object key = TokenKind.EndOfFile;
+                            if (searchItem.TokenSet == null)
+                            {
+                                key = searchItem.SingleToken;
+                            }
+                            else
+                            {
+                                key = searchItem.TokenSet.Set[0];
+                            }
+
+                            if (_flatMatchingSet.ContainsKey(key))
+                            {
+                                _flatMatchingSet[key].Add(searchItem);
+                            }
+                            else
+                            {
+                                _flatMatchingSet.Add(key, new List<BackwardTokenSearchItem> { searchItem });
+                            }
+
+                            if (!searchItem.Match)
+                                _flatNonMatchingSet.Add(key);
+                        }
+                    }
+                    else
+                    {
+                        _possibilitiesWithNoBackwardSearch.Add(possibility);
                     }
                 }
-                else
-                {
-                    _possibilitiesWithNoBackwardSearch.Add(possibility);
-                }
             }
-        }
 
-        public bool TryMatchContextPossibility(int index, IReverseTokenizer revTokenizer, out IEnumerable<ContextPossibilities> matchingPossibilities)
-        {
-            List<ContextPossibilities> retList = new List<ContextPossibilities>();
-            bool isMatch = false;
-
-            if(_flatMatchingSet.Count > 0)
+            public bool TryMatchContextPossibility(int index, IReverseTokenizer revTokenizer, out IEnumerable<ContextPossibilities> matchingPossibilities)
             {
+                List<ContextPossibilities> retList = new List<ContextPossibilities>();
+                bool isMatch = false;
+
+                if (_flatMatchingSet.Count > 0)
+                {
+                    // start reverse parsing
+                    var enumerator = revTokenizer.GetReversedTokens().Where(x => x.SourceSpan.Start.Index < index).GetEnumerator();
+                    while (true)
+                    {
+                        if (!enumerator.MoveNext())
+                        {
+                            isMatch = false;
+                            break;
+                        }
+                        var tokInfo = enumerator.Current;
+                        if (tokInfo.Equals(default(TokenInfo)) || tokInfo.Token.Kind == TokenKind.NewLine || tokInfo.Token.Kind == TokenKind.NLToken || tokInfo.Token.Kind == TokenKind.Comment)
+                            continue;   // linebreak
+
+                        // look for the token in the matching dictionary
+                        List<BackwardTokenSearchItem> matchList;
+                        if (_flatMatchingSet.TryGetValue(tokInfo.Token.Kind, out matchList) ||
+                            _flatMatchingSet.TryGetValue(tokInfo.Category, out matchList))
+                        {
+                            // need to attempt matching the match list
+                            // 1) grab the potential matches with an ordered set and attempt to completely match each set. If one of the sets completely matches, we have a winner
+                            foreach (var potentialMatch in matchList.Where(x => x.TokenSet != null))
+                            {
+                                if (AttemptOrderedSetMatch(tokInfo.SourceSpan.Start.Index, revTokenizer, potentialMatch.TokenSet))
+                                {
+                                    retList.Add(potentialMatch.ParentContext);
+                                    isMatch = true;
+                                    break;
+                                }
+                            }
+                            if (isMatch)
+                                break;      // if we have a match from the for loop above, we're done.
+
+                            // 2) If we have any single token matches, they win.
+                            var singleMatches = matchList.Where(x =>
+                                (x.SingleToken is TokenKind && (TokenKind)x.SingleToken != TokenKind.EndOfFile) ||
+                                (x.SingleToken is TokenCategory && (TokenCategory)x.SingleToken != TokenCategory.None)).ToList();
+                            if (singleMatches.Count > 0)
+                            {
+                                retList.AddRange(singleMatches.Select(x => x.ParentContext));
+                                isMatch = true;// singleMatches.All(x => x.Match);  // TODO: the match flag isn't being used....need to figure that out.
+                                break;
+                            }
+
+                            // At this point, nothing was matched correctly, so we continue
+                        }
+                        else if (_flatNonMatchingSet.Count > 0 &&
+                                (!_flatNonMatchingSet.Contains(tokInfo.Token.Kind) ||
+                                !_flatNonMatchingSet.Contains(tokInfo.Category)))
+                        {
+                            // need to attempt matching the match list
+                            // 1) grab the potential matches with an ordered set and attempt to completely match each set. If one of the sets completely matches, we have a winner
+                            foreach (var potentialMatch in _flatNonMatchingSet.SelectMany(x => _flatMatchingSet[x]).Where(x => x.TokenSet != null))
+                            {
+                                if (AttemptOrderedSetMatch(tokInfo.SourceSpan.Start.Index, revTokenizer, potentialMatch.TokenSet, false))
+                                {
+                                    retList.Add(potentialMatch.ParentContext);
+                                    isMatch = true;
+                                    break;
+                                }
+                            }
+                            if (isMatch)
+                                break;      // if we have a match from the for loop above, we're done.
+
+                            // 2) If we have any single token matches, they win.
+                            var singleMatches = _flatNonMatchingSet.SelectMany(x => _flatMatchingSet[x]).Where(x =>
+                                (x.SingleToken is TokenKind && (TokenKind)x.SingleToken != TokenKind.EndOfFile) ||
+                                (x.SingleToken is TokenCategory && (TokenCategory)x.SingleToken != TokenCategory.None)).ToList();
+                            if (singleMatches.Count > 0)
+                            {
+                                retList.AddRange(singleMatches.Select(x => x.ParentContext));
+                                isMatch = true;
+                                break;
+                            }
+
+                            // At this point, nothing was matched correctly, so we continue
+                        }
+                        else
+                        {
+                            if (GeneroAst.ValidStatementKeywords.Contains(tokInfo.Token.Kind))
+                            {
+                                isMatch = false;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (!isMatch && _possibilitiesWithNoBackwardSearch.Count > 0)
+                {
+                    retList.AddRange(_possibilitiesWithNoBackwardSearch);
+                    isMatch = true;
+                }
+
+                matchingPossibilities = retList;
+                return isMatch;
+            }
+
+            private bool AttemptOrderedSetMatch(int index, IReverseTokenizer revTokenizer, OrderedTokenSet tokenSet, bool doMatch = true)
+            {
+                bool isMatch = false;
+                int tokenIndex = 1;
+
                 // start reverse parsing
                 var enumerator = revTokenizer.GetReversedTokens().Where(x => x.SourceSpan.Start.Index < index).GetEnumerator();
                 while (true)
@@ -2874,190 +2975,89 @@ namespace VSGenero.Analysis.Parsing.AST
                     if (tokInfo.Equals(default(TokenInfo)) || tokInfo.Token.Kind == TokenKind.NewLine || tokInfo.Token.Kind == TokenKind.NLToken || tokInfo.Token.Kind == TokenKind.Comment)
                         continue;   // linebreak
 
-                    // look for the token in the matching dictionary
-                    List<BackwardTokenSearchItem> matchList;
-                    if (_flatMatchingSet.TryGetValue(tokInfo.Token.Kind, out matchList) ||
-                        _flatMatchingSet.TryGetValue(tokInfo.Category, out matchList))
+                    if (doMatch &&
+                        (tokenSet.Set[tokenIndex] is TokenKind && (TokenKind)tokenSet.Set[tokenIndex] == tokInfo.Token.Kind) ||
+                        (tokenSet.Set[tokenIndex] is TokenCategory && (TokenCategory)tokenSet.Set[tokenIndex] == tokInfo.Category))
                     {
-                        // need to attempt matching the match list
-                        // 1) grab the potential matches with an ordered set and attempt to completely match each set. If one of the sets completely matches, we have a winner
-                        foreach(var potentialMatch in matchList.Where(x => x.TokenSet != null))
+                        tokenIndex++;
+                        if (tokenSet.Set.Count == tokenIndex)
                         {
-                            if(AttemptOrderedSetMatch(tokInfo.SourceSpan.Start.Index, revTokenizer, potentialMatch.TokenSet))
-                            {
-                                retList.Add(potentialMatch.ParentContext);
-                                isMatch = true;
-                                break;
-                            }
-                        }
-                        if (isMatch)
-                            break;      // if we have a match from the for loop above, we're done.
-
-                        // 2) If we have any single token matches, they win.
-                        var singleMatches = matchList.Where(x => 
-                            (x.SingleToken is TokenKind && (TokenKind)x.SingleToken != TokenKind.EndOfFile) ||
-                            (x.SingleToken is TokenCategory && (TokenCategory)x.SingleToken != TokenCategory.None)).ToList();
-                        if(singleMatches.Count > 0)
-                        {
-                            retList.AddRange(singleMatches.Select(x => x.ParentContext));
-                            isMatch = true;// singleMatches.All(x => x.Match);  // TODO: the match flag isn't being used....need to figure that out.
-                            break;
-                        }
-
-                        // At this point, nothing was matched correctly, so we continue
-                    }
-                    else if (_flatNonMatchingSet.Count > 0 &&
-                            (!_flatNonMatchingSet.Contains(tokInfo.Token.Kind) ||
-                            !_flatNonMatchingSet.Contains(tokInfo.Category)))
-                    {
-                        // need to attempt matching the match list
-                        // 1) grab the potential matches with an ordered set and attempt to completely match each set. If one of the sets completely matches, we have a winner
-                        foreach (var potentialMatch in _flatNonMatchingSet.SelectMany(x => _flatMatchingSet[x]).Where(x => x.TokenSet != null))
-                        {
-                            if(AttemptOrderedSetMatch(tokInfo.SourceSpan.Start.Index, revTokenizer, potentialMatch.TokenSet, false))
-                            {
-                                retList.Add(potentialMatch.ParentContext);
-                                isMatch = true;
-                                break;
-                            }
-                        }
-                        if (isMatch)
-                            break;      // if we have a match from the for loop above, we're done.
-
-                        // 2) If we have any single token matches, they win.
-                        var singleMatches = _flatNonMatchingSet.SelectMany(x => _flatMatchingSet[x]).Where(x => 
-                            (x.SingleToken is TokenKind && (TokenKind)x.SingleToken != TokenKind.EndOfFile) ||
-                            (x.SingleToken is TokenCategory && (TokenCategory)x.SingleToken != TokenCategory.None)).ToList();
-                        if(singleMatches.Count > 0)
-                        {
-                            retList.AddRange(singleMatches.Select(x => x.ParentContext));
                             isMatch = true;
                             break;
                         }
-
-                        // At this point, nothing was matched correctly, so we continue
+                    }
+                    else if (!doMatch &&
+                        (tokenSet.Set[tokenIndex] is TokenKind && (TokenKind)tokenSet.Set[tokenIndex] != tokInfo.Token.Kind) ||
+                        (tokenSet.Set[tokenIndex] is TokenCategory && (TokenCategory)tokenSet.Set[tokenIndex] != tokInfo.Category))
+                    {
+                        tokenIndex++;
+                        if (tokenSet.Set.Count == tokenIndex)
+                        {
+                            isMatch = true;
+                            break;
+                        }
                     }
                     else
                     {
-                        if (GeneroAst.ValidStatementKeywords.Contains(tokInfo.Token.Kind))
+                        if (GeneroAst.ValidStatementKeywords.Contains(tokInfo.Token.Kind) ||
+                            tokInfo.Token.Kind == TokenKind.EndOfFile)
                         {
                             isMatch = false;
                             break;
                         }
                     }
                 }
+
+                return isMatch;
             }
-           
-            if(!isMatch && _possibilitiesWithNoBackwardSearch.Count > 0)
+        }
+
+        private class ContextPossibilities
+        {
+            public TokenKind[] SingleTokens { get; private set; }
+            public ContextSetProvider[] SetProviders { get; private set; }
+            public BackwardTokenSearchItem[] BackwardSearchItems { get; private set; }
+
+            public ContextPossibilities(TokenKind[] singleTokens,
+                ContextSetProvider[] setProviders,
+                BackwardTokenSearchItem[] backwardSearchItems)
             {
-                retList.AddRange(_possibilitiesWithNoBackwardSearch);
-                isMatch = true;
+                SingleTokens = singleTokens;
+                SetProviders = setProviders;
+                BackwardSearchItems = backwardSearchItems;
             }
-
-            matchingPossibilities = retList;
-            return isMatch;
         }
 
-        private bool AttemptOrderedSetMatch(int index, IReverseTokenizer revTokenizer, OrderedTokenSet tokenSet, bool doMatch = true)
+        private class BackwardTokenSearchItem
         {
-            bool isMatch = false;
-            int tokenIndex = 1;
+            public OrderedTokenSet TokenSet { get; private set; }
+            public object SingleToken { get; private set; }
+            public bool Match { get; private set; }
+            public ContextPossibilities ParentContext { get; set; }
 
-            // start reverse parsing
-            var enumerator = revTokenizer.GetReversedTokens().Where(x => x.SourceSpan.Start.Index < index).GetEnumerator();
-            while (true)
+            public BackwardTokenSearchItem(OrderedTokenSet tokenSet, bool match = true)
             {
-                if (!enumerator.MoveNext())
-                {
-                    isMatch = false;
-                    break;
-                }
-                var tokInfo = enumerator.Current;
-                if (tokInfo.Equals(default(TokenInfo)) || tokInfo.Token.Kind == TokenKind.NewLine || tokInfo.Token.Kind == TokenKind.NLToken || tokInfo.Token.Kind == TokenKind.Comment)
-                    continue;   // linebreak
-
-                if (doMatch &&
-                    (tokenSet.Set[tokenIndex] is TokenKind && (TokenKind)tokenSet.Set[tokenIndex] == tokInfo.Token.Kind) ||
-                    (tokenSet.Set[tokenIndex] is TokenCategory && (TokenCategory)tokenSet.Set[tokenIndex] == tokInfo.Category))
-                {
-                    tokenIndex++;
-                    if(tokenSet.Set.Count == tokenIndex)
-                    {
-                        isMatch = true;
-                        break;
-                    }
-                }
-                else if(!doMatch &&
-                    (tokenSet.Set[tokenIndex] is TokenKind && (TokenKind)tokenSet.Set[tokenIndex] != tokInfo.Token.Kind) ||
-                    (tokenSet.Set[tokenIndex] is TokenCategory && (TokenCategory)tokenSet.Set[tokenIndex] != tokInfo.Category))
-                {
-                    tokenIndex++;
-                    if(tokenSet.Set.Count == tokenIndex)
-                    {
-                        isMatch = true;
-                        break;
-                    }
-                }
-                else
-                {
-                    if (GeneroAst.ValidStatementKeywords.Contains(tokInfo.Token.Kind) ||
-                        tokInfo.Token.Kind == TokenKind.EndOfFile)
-                    {
-                        isMatch = false;
-                        break;
-                    }
-                }
+                TokenSet = tokenSet;
+                SingleToken = TokenKind.EndOfFile;
+                Match = match;
             }
 
-            return isMatch;
-        }
-    }
-
-    public class ContextPossibilities
-    {
-        public TokenKind[] SingleTokens { get; private set; }
-        public ContextSetProvider[] SetProviders { get; private set; }
-        public BackwardTokenSearchItem[] BackwardSearchItems { get; private set; }
-
-        public ContextPossibilities(TokenKind[] singleTokens,
-            ContextSetProvider[] setProviders,
-            BackwardTokenSearchItem[] backwardSearchItems)
-        {
-            SingleTokens = singleTokens;
-            SetProviders = setProviders;
-            BackwardSearchItems = backwardSearchItems;
-        }
-    }
-
-    public class BackwardTokenSearchItem
-    {
-        public OrderedTokenSet TokenSet { get; private set; }
-        public object SingleToken { get; private set; }
-        public bool Match { get; private set; }
-        public ContextPossibilities ParentContext { get; set; }
-
-        public BackwardTokenSearchItem(OrderedTokenSet tokenSet, bool match = true)
-        {
-            TokenSet = tokenSet;
-            SingleToken = TokenKind.EndOfFile;
-            Match = match;
+            public BackwardTokenSearchItem(TokenKind singleToken, bool match = true)
+            {
+                SingleToken = singleToken;
+                TokenSet = null;
+                Match = match;
+            }
         }
 
-        public BackwardTokenSearchItem(TokenKind singleToken, bool match = true)
+        private class OrderedTokenSet
         {
-            SingleToken = singleToken;
-            TokenSet = null;
-            Match = match;
-        }
-    }
+            public List<object> Set { get; private set; }
 
-    public class OrderedTokenSet
-    {
-        public List<object> Set { get; private set; }
-
-        public OrderedTokenSet(IEnumerable<object> tokenSet)
-        {
-            Set = new List<object>(tokenSet);
+            public OrderedTokenSet(IEnumerable<object> tokenSet)
+            {
+                Set = new List<object>(tokenSet);
+            }
         }
     }
 }
