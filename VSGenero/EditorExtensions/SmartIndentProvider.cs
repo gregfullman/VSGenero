@@ -23,7 +23,7 @@ namespace VSGenero.EditorExtensions
             public Indent(ITextView view)
             {
                 _textView = view;
-                AutoIndent.Initialize();
+                //AutoIndent.Initialize();
             }
 
             /// <summary>

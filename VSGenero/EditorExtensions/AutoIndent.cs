@@ -97,7 +97,7 @@ namespace VSGenero.EditorExtensions
                 var spans = textView.BufferGraph.MapDownToFirstMatch(
                     tokens[tokenIndex].Span,
                     SpanTrackingMode.EdgePositive,
-                    GeneroContentTypePrediciate
+                    PythonContentTypePrediciate
                 );
                 if (spans.Count == 0)
                 {
@@ -114,89 +114,104 @@ namespace VSGenero.EditorExtensions
                     );
 
                 var tokenStack = new System.Collections.Generic.Stack<ClassificationSpan>();
-                var indentStack = new System.Collections.Generic.Stack<LineInfo>();
-                var current = LineInfo.Empty;
-                current.NeedsUpdate = true;
+                tokenStack.Push(null);  // end with an implicit newline
+                bool endAtNextNull = false;
 
-                var enumerator = revParser.GetEnumerator();
-                while (true)
+                foreach (var token in revParser)
                 {
-                    if (!enumerator.MoveNext())
+                    tokenStack.Push(token);
+                    if (token == null && endAtNextNull)
                     {
                         break;
                     }
+                    else if (token != null &&
+                     token.ClassificationType == revParser.Classifier.Provider.Keyword)
+                    {
+                        var tok = Tokens.GetToken(token.Span.GetText());
+                        if (tok != null && GeneroAst.ValidStatementKeywords.Contains(tok.Kind))
+                        {
+                            endAtNextNull = true;
+                        }
+                    }
+                }
 
-                    var classificationSpan = enumerator.Current;
+                var indentStack = new System.Collections.Generic.Stack<LineInfo>();
+                var current = LineInfo.Empty;
 
-                    if (classificationSpan == null ||
-                       classificationSpan.ClassificationType.Classification == PredefinedClassificationTypeNames.Comment)
+                while (tokenStack.Count > 0)
+                {
+                    var token = tokenStack.Pop();
+                    if (token == null)
                     {
                         current.NeedsUpdate = true;
-                        continue;
                     }
-
-                    //if (classificationSpan.IsOpenGrouping())
-                    //{
-                    //    indentStack.Push(current);
-                    //    var start = classificationSpan.Span.Start;
-                    //    var line2 = start.GetContainingLine();
-                    //    var next = tokenStack.Count > 0 ? tokenStack.Peek() : null;
-                    //    if (next != null && next.Span.End <= line2.End)
-                    //    {
-                    //        current = new LineInfo
-                    //        {
-                    //            Indentation = start.Position - line2.Start.Position + 1
-                    //        };
-                    //    }
-                    //    else
-                    //    {
-                    //        current = new LineInfo
-                    //        {
-                    //            Indentation = GetIndentation(line2.GetText(), tabSize) + tabSize
-                    //        };
-                    //    }
-                    //    continue;
-                    //}
-                    //else if (classificationSpan.IsCloseGrouping())
-                    //{
-                    //    if (indentStack.Count > 0)
-                    //    {
-                    //        current = indentStack.Pop();
-                    //    }
-                    //    else
-                    //    {
-                    //        current.NeedsUpdate = true;
-                    //    }
-                    //    continue;
-                    //}
-
-                    if (current.NeedsUpdate == true)
+                    else if (token.IsOpenGrouping())
                     {
-                        var line2 = classificationSpan.Span.Start.GetContainingLine();
+                        indentStack.Push(current);
+                        var start = token.Span.Start;
+                        var line2 = start.GetContainingLine();
+                        var next = tokenStack.Count > 0 ? tokenStack.Peek() : null;
+                        if (next != null && next.Span.End <= line2.End)
+                        {
+                            current = new LineInfo
+                            {
+                                Indentation = start.Position - line2.Start.Position + 1
+                            };
+                        }
+                        else
+                        {
+                            current = new LineInfo
+                            {
+                                Indentation = GetIndentation(line2.GetText(), tabSize) + tabSize
+                            };
+                        }
+                    }
+                    else if (token.IsCloseGrouping())
+                    {
+                        if (indentStack.Count > 0)
+                        {
+                            current = indentStack.Pop();
+                        }
+                        else
+                        {
+                            current.NeedsUpdate = true;
+                        }
+                    }
+                    else if (Genero4glReverseParser.IsExplicitLineJoin(token))
+                    {
+                        while (token != null && tokenStack.Count > 0)
+                        {
+                            token = tokenStack.Pop();
+                        }
+                    }
+                    else if (current.NeedsUpdate == true)
+                    {
+                        var line2 = token.Span.Start.GetContainingLine();
                         current = new LineInfo
                         {
                             Indentation = GetIndentation(line2.GetText(), tabSize)
                         };
                     }
 
-                    var tokInfo = Tokens.GetToken(classificationSpan.Span.GetText());
-                    if (tokInfo != null)
-                    {
-                        var tokCat = Tokenizer.GetTokenInfo(tokInfo).Category;
-                        // Look for the token in the context map
-                        IEnumerable<ContextPossibility> possibilities;
-                        if (_contextMap.TryGetValue(tokInfo.Kind, out possibilities) ||
-                            _contextMap.TryGetValue(tokCat, out possibilities))
-                        {
-                            var matchContainer = new ContextPossibilityMatchContainer(possibilities);
-                            current.ShouldIndentAfter = matchContainer.ShouldIndent(classificationSpan.Span.Start.Position + 1, revParser);
-                            break;
-                        }
-                        else if(GeneroAst.ValidStatementKeywords.Contains(tokInfo.Kind))
-                        {
-                            break;
-                        }
+                    if (token != null && ShouldDedentAfterKeyword(token, revParser))
+                    {     // dedent after some statements
+                        current.ShouldDedentAfter = true;
                     }
+
+                    if (token != null && indentStack.Count == 0 && ShouldIndentAfterKeyword(token, revParser))
+                    {                               // except in a grouping
+                        current.ShouldIndentAfter = true;
+                        // If the colon isn't at the end of the line, cancel it out.
+                        // If the following is a ShouldDedentAfterKeyword, only one dedent will occur.
+                        //if (!current.ShouldDedentAfter)
+                        //    current.ShouldDedentAfter = (tokenStack.Count != 0 && tokenStack.Peek() != null);
+                    }
+
+                    // TODO: need to provide a way to handle certain kinds of statements, where we want to be able to set the indentation according to the current position in the statement.
+                    // For example, a define statement where we want to line up the variable names, like this:
+                    // define x,
+                    //        y     boolean
+                    //
                 }
 
                 indentation = current.Indentation +
@@ -205,27 +220,6 @@ namespace VSGenero.EditorExtensions
             }
 
             return indentation;
-        }
-
-        private static bool IsStatementStart(string tokenText)
-        {
-            var tok = Tokens.GetToken(tokenText);
-            if (tok == null)
-                return false;
-            switch (tok.Kind)
-            {
-                case TokenKind.ForeachKeyword:
-                case TokenKind.ForKeyword:
-                case TokenKind.IfKeyword:
-                case TokenKind.WhileKeyword:
-                case TokenKind.MainKeyword:
-                case TokenKind.FunctionKeyword:
-                case TokenKind.ReportKeyword:
-                case TokenKind.ElseKeyword:
-                    return true;
-                default:
-                    return false;
-            }
         }
 
         private static bool IsUnterminatedStringToken(ClassificationSpan lastToken)
@@ -242,14 +236,48 @@ namespace VSGenero.EditorExtensions
             return false;
         }
 
-        private static bool ShouldDedentAfterKeyword(ClassificationSpan span)
+        private static HashSet<TokenKind> BlockKeywords = new HashSet<TokenKind>
         {
-            return span.ClassificationType.Classification == PredefinedClassificationTypeNames.Keyword && ShouldDedentAfterKeyword(span.Span.GetText());
+             TokenKind.GlobalsKeyword,
+             TokenKind.RecordKeyword,
+             TokenKind.MainKeyword,
+             TokenKind.TryKeyword,
+             TokenKind.SqlKeyword,
+             TokenKind.FunctionKeyword,
+             TokenKind.IfKeyword,
+             TokenKind.ElseKeyword,
+             TokenKind.WhileKeyword, 
+             TokenKind.ForKeyword,
+             TokenKind.ForeachKeyword
+        };
+
+        private static bool ShouldIndentAfterKeyword(ClassificationSpan span, IReverseTokenizer revParser)
+        {
+            var tok = Tokens.GetToken(span.Span.GetText());
+            if (tok != null)
+            {
+                return BlockKeywords.Contains(tok.Kind);
+            }
+            return false;
         }
 
-        private static bool ShouldDedentAfterKeyword(string keyword)
+        private static bool ShouldDedentAfterKeyword(ClassificationSpan span, IReverseTokenizer revParser)
         {
-            return keyword == "pass" || keyword == "return" || keyword == "break" || keyword == "continue" || keyword == "raise";
+            return span.ClassificationType.Classification == PredefinedClassificationTypeNames.Keyword && ShouldDedentAfterKeyword(span.Span.GetText(), revParser);
+        }
+
+        private static bool ShouldDedentAfterKeyword(string keyword, IReverseTokenizer revParser)
+        {
+            var tok = Tokens.GetToken(keyword);
+            if(tok != null)
+            {
+                switch(tok.Kind)
+                {
+                    case TokenKind.EndKeyword:
+                        return true;
+                }
+            }
+            return false;
         }
 
         private static bool IsBlankLine(string lineText)
@@ -282,11 +310,11 @@ namespace VSGenero.EditorExtensions
             baseline = line;
         }
 
-        private static bool GeneroContentTypePrediciate(ITextSnapshot snapshot)
+        private static bool PythonContentTypePrediciate(ITextSnapshot snapshot)
         {
             return snapshot.ContentType.IsOfType(VSGeneroConstants.ContentType4GL) ||
-                   snapshot.ContentType.IsOfType(VSGeneroConstants.ContentTypePER) ||
-                   snapshot.ContentType.IsOfType(VSGeneroConstants.ContentTypeINC);
+                   snapshot.ContentType.IsOfType(VSGeneroConstants.ContentTypeINC) ||
+                   snapshot.ContentType.IsOfType(VSGeneroConstants.ContentTypePER);
         }
 
         internal static int? GetLineIndentation(ITextSnapshotLine line, ITextView textView)
@@ -298,11 +326,11 @@ namespace VSGenero.EditorExtensions
             SkipPreceedingBlankLines(line, out baselineText, out baseline);
 
             ITextBuffer targetBuffer = textView.TextBuffer;
-            if (!targetBuffer.ContentType.IsOfType(VSGeneroConstants.ContentType4GL) &&
-                !targetBuffer.ContentType.IsOfType(VSGeneroConstants.ContentTypePER) &&
-                !targetBuffer.ContentType.IsOfType(VSGeneroConstants.ContentTypeINC))
+            if (!targetBuffer.ContentType.IsOfType(VSGeneroConstants.ContentType4GL) ||
+                !targetBuffer.ContentType.IsOfType(VSGeneroConstants.ContentTypeINC) ||
+                !targetBuffer.ContentType.IsOfType(VSGeneroConstants.ContentTypePER))
             {
-                var match = textView.BufferGraph.MapDownToFirstMatch(line.Start, PointTrackingMode.Positive, GeneroContentTypePrediciate, PositionAffinity.Successor);
+                var match = textView.BufferGraph.MapDownToFirstMatch(line.Start, PointTrackingMode.Positive, PythonContentTypePrediciate, PositionAffinity.Successor);
                 if (match == null)
                 {
                     return 0;
@@ -314,7 +342,7 @@ namespace VSGenero.EditorExtensions
             if (classifier == null)
             {
                 // workaround debugger canvas bug - they wire our auto-indent provider up to a C# buffer
-                // (they query MEF for extensions by hand and filter incorrectly) and we don't have a Genero classifier.  
+                // (they query MEF for extensions by hand and filter incorrectly) and we don't have a Python classifier.  
                 // So now the user's auto-indent is broken in C# but returning null is better than crashing.
                 return null;
             }
