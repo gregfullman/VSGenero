@@ -112,6 +112,11 @@ namespace VSGenero.EditorExtensions
                 VSGeneroPackage.Instance.ProgramFileProvider = _ProgramFileProvider;
             }
 
+            if(VSGeneroPackage.Instance.GlobalDatabaseProvider == null)
+            {
+                VSGeneroPackage.Instance.GlobalDatabaseProvider = _DatabaseInfoProvider;
+            }
+
             return res;
         }
 

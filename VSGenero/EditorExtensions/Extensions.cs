@@ -15,6 +15,8 @@ using VSGenero.Analysis.Parsing.AST;
 using VSGenero.EditorExtensions.Intellisense;
 using Microsoft.VisualStudio.VSCommon;
 using VSGenero.Analysis.Parsing;
+using VSGenero.Snippets;
+using System.Net;
 
 namespace VSGenero.EditorExtensions
 {
@@ -353,13 +355,13 @@ namespace VSGenero.EditorExtensions
             return textView.TextBuffer.GetAnalyzer();
         }
 
-        internal static ITrackingSpan CreateTrackingSpan(this IQuickInfoSession session, ITextBuffer buffer)
+        internal static ITrackingSpan CreateTrackingSpan(this IIntellisenseSession session, ITextBuffer buffer)
         {
             var triggerPoint = session.GetTriggerPoint(buffer);
             var position = triggerPoint.GetPosition(buffer.CurrentSnapshot);
             if (position == buffer.CurrentSnapshot.Length)
             {
-                return ((IIntellisenseSession)session).GetApplicableSpan(buffer);
+                return session.GetApplicableSpan(buffer);
             }
 
             return buffer.CurrentSnapshot.CreateTrackingSpan(position, 1, SpanTrackingMode.EdgeInclusive);
@@ -387,6 +389,62 @@ namespace VSGenero.EditorExtensions
                     break;
             }
             return group;
+        }
+
+        internal static DynamicSnippet GetSnippet(this IFunctionResult functionResult, string optionalNameOverride = null)
+        {
+            string name = optionalNameOverride ?? functionResult.Name;
+            string desc = name;
+            //if (publicFunction.XmlInformation != null && !string.IsNullOrWhiteSpace(publicFunction.XmlInformation.Summary))
+            //    desc = WebUtility.HtmlDecode(publicFunction.XmlInformation.Summary);
+
+
+            // Generate the code
+            List<DynamicSnippetReplacement> replacements = new List<DynamicSnippetReplacement>();
+            StringBuilder codeBuilder = new StringBuilder();
+
+            codeBuilder.AppendFormat("{0}(", name);
+            for (int i = 0; i < functionResult.Parameters.Length; i++)
+            {
+                var param = functionResult.Parameters[i];
+                string pName = string.Format("param{0}", i);
+                replacements.Add(new DynamicSnippetReplacement(pName, string.Format("{0}: {1}", param.Name, param.Type), param.Name));
+
+                // TODO: maybe format things a bit, breaking up lines and such
+
+                codeBuilder.AppendFormat("${0}$", pName);
+                if (i + 1 < functionResult.Parameters.Length)
+                {
+                    codeBuilder.Append(", ");
+                }
+            }
+            codeBuilder.Append(")");
+
+            //if (publicFunction.SourceDocInformation.Returns.Count > 0)
+            //{
+            //    codeBuilder.Append("\n");
+            //    codeBuilder.Append("returning ");
+            //    for (int i = 0; i < publicFunction.SourceDocInformation.Returns.Count; i++)
+            //    {
+            //        var ret = publicFunction.SourceDocInformation.Returns.ElementAt(i);
+            //        string rName = string.Format("ret{0}", i);
+            //        replacements.Add(new DynamicSnippetReplacement(rName, "", ret.Name));   // TODO: get tooltip from xml if available
+
+            //        // TODO: maybe format things a bit, breaking up lines and such
+
+            //        codeBuilder.AppendFormat("${0}$", rName);
+            //        if (i + 1 < publicFunction.SourceDocInformation.Returns.Count)
+            //        {
+            //            codeBuilder.Append(", ");
+            //        }
+            //    }
+            //}
+
+            codeBuilder.Append("$end$");
+
+            DynamicSnippet snippet = new DynamicSnippet(name, name, desc, "VSGenero", codeBuilder.ToString());
+            snippet.Replacements.AddRange(replacements);
+            return snippet;
         }
     }
 }

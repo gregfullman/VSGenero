@@ -3197,6 +3197,8 @@ namespace VSGenero.Analysis.Parsing.AST
             get { return _name; }
         }
 
+        public string Namespace { get { return null; } }
+
         public string Documentation
         {
             get
@@ -3296,6 +3298,8 @@ namespace VSGenero.Analysis.Parsing.AST
             get { return _name; }
         }
 
+        public string Namespace { get { return _parentPackage; } }
+
         public string Documentation
         {
             get
@@ -3305,7 +3309,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 {
                     sb.AppendFormat("({0}) ", Scope);
                 }
-                sb.AppendFormat("{0}.{1}", _parentPackage, Name);
+                sb.AppendFormat("{0}.{1}", Namespace, Name);
                 return sb.ToString();
             }
         }
@@ -3412,6 +3416,8 @@ namespace VSGenero.Analysis.Parsing.AST
             get { return _name; }
         }
 
+        public string Namespace { get { return _parentClass; } }
+
         public string Documentation
         {
             get
@@ -3423,7 +3429,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     sb.AppendFormat("({0}) ", Scope);
                 }
 
-                sb.AppendFormat("{0}.{1}", _parentClass, Name);
+                sb.AppendFormat("{0}.{1}", Namespace, Name);
                 sb.Append('(');
 
                 // if there are any parameters put them in

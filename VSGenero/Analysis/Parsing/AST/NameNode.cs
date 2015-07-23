@@ -60,27 +60,15 @@ namespace VSGenero.Analysis.Parsing.AST
             return result;
         }
 
-        public override void AppendExpression(ExpressionNode node)
-        {
-        }
-
-        public override void AppendOperator(TokenExpressionNode tokenKind)
-        {
-        }
-
-        public override string ToString()
+        protected override string GetStringForm()
         {
             return Name;
         }
 
-        public override string GetType()
+        public override string GetExpressionType()
         {
             // TODO: need to determine the type from the variables available
             return null;
-        }
-
-        public override void PrependExpression(ExpressionNode node)
-        {
         }
     }
 

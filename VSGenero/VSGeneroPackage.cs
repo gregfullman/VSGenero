@@ -254,6 +254,8 @@ namespace VSGenero
                 {
                     new ExtractSqlStatementsCommand()
                 }, GuidList.guidVSGeneroCmdSet);
+
+            TestCompletionAnalysis.InitializeResults();
         }
 
         #endregion
@@ -332,6 +334,13 @@ namespace VSGenero
         {
             get { return _functionProvider; }
             set { _functionProvider = value; }
+        }
+
+        private IDatabaseInformationProvider _dbProvider;
+        public IDatabaseInformationProvider GlobalDatabaseProvider
+        {
+            get { return _dbProvider; }
+            set { _dbProvider = value; }
         }
 
         #region Program File Provider

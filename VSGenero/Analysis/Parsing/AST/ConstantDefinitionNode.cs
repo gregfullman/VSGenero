@@ -240,6 +240,8 @@ namespace VSGenero.Analysis.Parsing.AST
             get { return Identifier; }
         }
 
+        public string Namespace { get; set; }
+
         public override string Documentation
         {
             get
@@ -248,6 +250,10 @@ namespace VSGenero.Analysis.Parsing.AST
                 if (!string.IsNullOrWhiteSpace(Scope))
                 {
                     sb.AppendFormat("({0}) ", Scope);
+                }
+                if(!string.IsNullOrWhiteSpace(Namespace))
+                {
+                    sb.AppendFormat("{0}.", Namespace);
                 }
                 sb.Append(Name);
                 if(!string.IsNullOrWhiteSpace(SpecifiedType))

@@ -59,7 +59,13 @@ namespace VSGenero.Analysis.Parsing.AST
                     // 1) Look up the type from a database provider
                     // 2) Just list the mimicking "table.column"
                     // For right now, we'll go with #2
+                    if (string.IsNullOrWhiteSpace(_typeNameString) && VSGeneroPackage.Instance != null && VSGeneroPackage.Instance.GlobalDatabaseProvider != null)
+                    {
+                        _typeNameString = VSGeneroPackage.Instance.GlobalDatabaseProvider.GetColumnType(TableName, ColumnName);
+                    }
                     sb.AppendFormat("like {0}.{1}", TableName, ColumnName);
+                    if (!string.IsNullOrWhiteSpace(_typeNameString))
+                        sb.AppendFormat(" ({0})", _typeNameString);
                 }
                 else
                 {
@@ -228,6 +234,9 @@ namespace VSGenero.Analysis.Parsing.AST
         {
             get { return ToString(); }
         }
+
+        public string Namespace { get { return null; } }
+
 
         public int LocationIndex
         {

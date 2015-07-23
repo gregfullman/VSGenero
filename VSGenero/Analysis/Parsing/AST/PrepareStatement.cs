@@ -83,6 +83,8 @@ namespace VSGenero.Analysis.Parsing.AST
             get { return Identifier; }
         }
 
+        public string Namespace { get { return null; } }
+
         private string _sqlStatement;
         public void SetSqlStatement(string sqlStmt)
         {

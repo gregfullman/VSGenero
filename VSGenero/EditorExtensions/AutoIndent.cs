@@ -236,7 +236,7 @@ namespace VSGenero.EditorExtensions
             return false;
         }
 
-        private static HashSet<TokenKind> BlockKeywords = new HashSet<TokenKind>
+        public static HashSet<TokenKind> BlockKeywords = new HashSet<TokenKind>
         {
              TokenKind.GlobalsKeyword,
              TokenKind.RecordKeyword,

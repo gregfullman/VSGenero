@@ -40,7 +40,8 @@ namespace VSGenero.EditorExtensions
             _tokenInfos = Classifier.GetTokens(snapSpan);
         }
 
-        public SnapshotSpan? GetExpressionRange(bool forCompletion = true, int nesting = 0) {
+        public SnapshotSpan? GetExpressionRange(bool forCompletion = true, int nesting = 0)
+        {
             int dummy;
             SnapshotPoint? dummyPoint;
             string lastKeywordArg;
@@ -83,8 +84,10 @@ namespace VSGenero.EditorExtensions
             int curLine = startLine.LineNumber;
             var tokens = classifier.GetClassificationSpans(new SnapshotSpan(startLine.Start, startPoint));
 
-            for (; ; ) {
-                for (int i = tokens.Count - 1; i >= 0; i--) {
+            for (; ; )
+            {
+                for (int i = tokens.Count - 1; i >= 0; i--)
+                {
                     yield return tokens[i];
                 }
 
@@ -92,10 +95,13 @@ namespace VSGenero.EditorExtensions
                 yield return null;
 
                 curLine--;
-                if (curLine >= 0) {
+                if (curLine >= 0)
+                {
                     var prevLine = startPoint.Snapshot.GetLineFromLineNumber(curLine);
                     tokens = classifier.GetClassificationSpans(prevLine.Extent);
-                } else {
+                }
+                else
+                {
                     break;
                 }
             }
@@ -104,12 +110,16 @@ namespace VSGenero.EditorExtensions
         /// <summary>
         /// Walks backwards to figure out if we're a parameter name which comes after a (     
         /// </summary>
-        private bool IsParameterNameOpenParen(IEnumerator<ClassificationSpan> enumerator) {
-            if (MoveNextSkipExplicitNewLines(enumerator)) {
-                if (enumerator.Current.ClassificationType.IsOfType(PredefinedClassificationTypeNames.Identifier)) {
+        private bool IsParameterNameOpenParen(IEnumerator<ClassificationSpan> enumerator)
+        {
+            if (MoveNextSkipExplicitNewLines(enumerator))
+            {
+                if (enumerator.Current.ClassificationType.IsOfType(PredefinedClassificationTypeNames.Identifier))
+                {
                     if (MoveNextSkipExplicitNewLines(enumerator) &&
                         enumerator.Current.ClassificationType == Classifier.Provider.Keyword &&
-                        enumerator.Current.Span.GetText() == "def") {
+                        enumerator.Current.Span.GetText() == "def")
+                    {
                         return true;
                     }
                 }
@@ -121,12 +131,16 @@ namespace VSGenero.EditorExtensions
         /// <summary>
         /// Walks backwards to figure out if we're a parameter name which comes after a comma.
         /// </summary>
-        private bool IsParameterNameComma(IEnumerator<ClassificationSpan> enumerator) {
+        private bool IsParameterNameComma(IEnumerator<ClassificationSpan> enumerator)
+        {
             int groupingLevel = 1;
 
-            while (MoveNextSkipExplicitNewLines(enumerator)) {
-                if (enumerator.Current.ClassificationType == _classifier.Provider.Keyword) {
-                    if (enumerator.Current.Span.GetText() == "def" && groupingLevel == 0) {
+            while (MoveNextSkipExplicitNewLines(enumerator))
+            {
+                if (enumerator.Current.ClassificationType == _classifier.Provider.Keyword)
+                {
+                    if (enumerator.Current.Span.GetText() == "def" && groupingLevel == 0)
+                    {
                         return true;
                     }
 
@@ -134,12 +148,16 @@ namespace VSGenero.EditorExtensions
                     //    return false;
                     //}
                 }
-                if (enumerator.Current.IsOpenGrouping()) {
+                if (enumerator.Current.IsOpenGrouping())
+                {
                     groupingLevel--;
-                    if (groupingLevel == 0) {
+                    if (groupingLevel == 0)
+                    {
                         return IsParameterNameOpenParen(enumerator);
                     }
-                } else if (enumerator.Current.IsCloseGrouping()) {
+                }
+                else if (enumerator.Current.IsCloseGrouping())
+                {
                     groupingLevel++;
                 }
             }
@@ -147,18 +165,26 @@ namespace VSGenero.EditorExtensions
             return false;
         }
 
-        private bool MoveNextSkipExplicitNewLines(IEnumerator<ClassificationSpan> enumerator) {
-            while (enumerator.MoveNext()) {
-                if (enumerator.Current == null) {
-                    while (enumerator.Current == null) {
-                        if (!enumerator.MoveNext()) {
+        private bool MoveNextSkipExplicitNewLines(IEnumerator<ClassificationSpan> enumerator)
+        {
+            while (enumerator.MoveNext())
+            {
+                if (enumerator.Current == null)
+                {
+                    while (enumerator.Current == null)
+                    {
+                        if (!enumerator.MoveNext())
+                        {
                             return false;
                         }
                     }
-                    if (!IsExplicitLineJoin(enumerator.Current)) {
+                    if (!IsExplicitLineJoin(enumerator.Current))
+                    {
                         return true;
                     }
-                } else {
+                }
+                else
+                {
                     return true;
                 }
             }
@@ -171,7 +197,8 @@ namespace VSGenero.EditorExtensions
         /// <param name="nesting">1 if we have an opening parenthesis for sig completion</param>
         /// <param name="paramIndex">The current parameter index.</param>
         /// <returns></returns>
-        public SnapshotSpan? GetExpressionRange(int nesting, out int paramIndex, out SnapshotPoint? sigStart, out string lastKeywordArg, out bool isParameterName, bool forCompletion = true) {
+        public SnapshotSpan? GetExpressionRange(int nesting, out int paramIndex, out SnapshotPoint? sigStart, out string lastKeywordArg, out bool isParameterName, bool forCompletion = true)
+        {
             SnapshotSpan? start = null;
             paramIndex = 0;
             sigStart = null;
@@ -184,15 +211,20 @@ namespace VSGenero.EditorExtensions
             ClassificationSpan lastToken = null;
             // Walks backwards over all the lines
             var enumerator = ReverseClassificationSpanEnumerator(_classifier, _span.GetSpan(_snapshot).End);
-            if (enumerator.MoveNext()) {
-                if (enumerator.Current != null && enumerator.Current.ClassificationType == this._classifier.Provider.StringLiteral) {
+            if (enumerator.MoveNext())
+            {
+                if (enumerator.Current != null && enumerator.Current.ClassificationType == this._classifier.Provider.StringLiteral)
+                {
                     return enumerator.Current.Span;
                 }
 
                 lastToken = enumerator.Current;
-                while (ShouldSkipAsLastToken(lastToken, forCompletion) && enumerator.MoveNext()) {
+                while (ShouldSkipAsLastToken(lastToken, forCompletion) && enumerator.MoveNext())
+                {
                     // skip trailing new line if the user is hovering at the end of the line
-                    if (lastToken == null && (nesting + otherNesting == 0)) {
+                    if ((lastToken == null && enumerator.Current != null && enumerator.Current.ClassificationType != Classifier.Provider.DotClassification) &&
+                        (nesting + otherNesting == 0))
+                    {
                         // new line out of a grouping...
                         return _span.GetSpan(_snapshot);
                     }
@@ -202,31 +234,73 @@ namespace VSGenero.EditorExtensions
                 int currentParamAtLastColon = -1;   // used to track the current param index at this last colon, before we hit a lambda.
                 SnapshotSpan? startAtLastToken = null;
                 // Walk backwards over the tokens in the current line
-                do {
+                do
+                {
                     var token = enumerator.Current;
 
-                    if (token == null) {
+                    if (token == null)
+                    {
                         // new line
-                        if (nesting != 0 || otherNesting != 0 || lastTokenWasDot || (enumerator.MoveNext() && IsExplicitLineJoin(enumerator.Current))) {
-                            // we're in a grouping, or the previous token is an explicit line join, we'll keep going.
-                            continue;
-                        } else {
+                        if (nesting != 0 ||
+                            otherNesting != 0 ||
+                            lastTokenWasDot ||
+                            (enumerator.MoveNext() &&
+                             (IsExplicitLineJoin(enumerator.Current) || (enumerator.Current != null && enumerator.Current.ClassificationType == Classifier.Provider.DotClassification))
+                            )
+                           )
+                        {
+                            if (enumerator.Current != null)
+                            {
+                                // we're in a grouping, or the previous token is an explicit line join, we'll keep going.
+                                if (enumerator.Current.ClassificationType != Classifier.Provider.DotClassification)
+                                {
+                                    continue;
+                                }
+                                else
+                                {
+                                    token = lastToken = enumerator.Current;
+                                }
+                            }
+                            else
+                            {
+                                if (lastTokenWasDot)
+                                {
+                                    while (enumerator.MoveNext())
+                                    {
+                                        token = enumerator.Current;
+                                        if (token != null)
+                                            break;
+                                    }
+                                }
+                                else
+                                    break;
+                            }
+                        }
+                        else
+                        {
                             break;
                         }
                     }
 
                     var text = token.Span.GetText();
-                    if (text == "(") {
-                        if (nesting != 0) {
+                    if (text == "(")
+                    {
+                        if (nesting != 0)
+                        {
                             nesting--;
                             nestingChanged = true;
-                            if (nesting == 0) {
-                                if (sigStart == null) {
+                            if (nesting == 0)
+                            {
+                                if (sigStart == null)
+                                {
                                     sigStart = token.Span.Start;
                                 }
                             }
-                        } else {
-                            if (start == null && !forCompletion) {
+                        }
+                        else
+                        {
+                            if (start == null && !forCompletion)
+                            {
                                 // hovering directly over an open paren, don't provide a tooltip
                                 return null;
                             }
@@ -238,12 +312,19 @@ namespace VSGenero.EditorExtensions
                         lastTokenWasCommaOrOperator = true;
                         lastTokenWasKeywordArgAssignment = false;
                         lastTokenWasDot = false;
-                    } else if (token.IsOpenGrouping()) {
-                        if (otherNesting != 0) {
+                    }
+                    else if (token.IsOpenGrouping())
+                    {
+                        if (otherNesting != 0)
+                        {
                             otherNesting--;
-                        } else {
-                            if (nesting == 0) {
-                                if (start == null) {
+                        }
+                        else
+                        {
+                            if (nesting == 0)
+                            {
+                                if (start == null)
+                                {
                                     return null;
                                 }
                                 break;
@@ -254,40 +335,53 @@ namespace VSGenero.EditorExtensions
                         lastTokenWasCommaOrOperator = true;
                         lastTokenWasKeywordArgAssignment = false;
                         lastTokenWasDot = false;
-                    } else if (text == ")") {
+                    }
+                    else if (text == ")")
+                    {
                         nesting++;
                         nestingChanged = true;
                         lastTokenWasCommaOrOperator = true;
                         lastTokenWasKeywordArgAssignment = false;
                         lastTokenWasDot = false;
-                    } else if (token.IsCloseGrouping()) {
+                    }
+                    else if (token.IsCloseGrouping())
+                    {
                         otherNesting++;
                         nestingChanged = true;
                         lastTokenWasCommaOrOperator = true;
                         lastTokenWasKeywordArgAssignment = false;
                         lastTokenWasDot = false;
-                    } else if (/*token.ClassificationType == Classifier.Provider.Keyword ||*/   // We're going to exclude keywords from this logic...messing too many things up
-                               token.ClassificationType == Classifier.Provider.Operator) {
+                    }
+                    else if (/*token.ClassificationType == Classifier.Provider.Keyword ||*/   // We're going to exclude keywords from this logic...messing too many things up
+                             token.ClassificationType == Classifier.Provider.Operator)
+                    {
                         lastTokenWasKeywordArgAssignment = false;
 
-                        if (token.ClassificationType == Classifier.Provider.Keyword && text == "lambda") {
-                            if (currentParamAtLastColon != -1) {
+                        if (token.ClassificationType == Classifier.Provider.Keyword && text == "lambda")
+                        {
+                            if (currentParamAtLastColon != -1)
+                            {
                                 paramIndex = currentParamAtLastColon;
                                 currentParamAtLastColon = -1;
-                            } else {
+                            }
+                            else
+                            {
                                 // fabcd(lambda a, b, c[PARAMINFO]
                                 // We have to be the 1st param.
                                 paramIndex = 0;
                             }
                         }
 
-                        if (text == ":") {
+                        if (text == ":")
+                        {
                             startAtLastToken = start;
                             currentParamAtLastColon = paramIndex;
                         }
 
-                        if (nesting == 0 && otherNesting == 0) {
-                            if (start == null) {
+                        if (nesting == 0 && otherNesting == 0)
+                        {
+                            if (start == null)
+                            {
                                 // http://pytools.codeplex.com/workitem/560
                                 // yield_value = 42
                                 // def f():
@@ -300,46 +394,68 @@ namespace VSGenero.EditorExtensions
                                 // 
                                 // Also repros with "return <ctrl-space>" or "print <ctrl-space>" both
                                 // of which we weren't reporting completions for before
-                                if (forCompletion) {
-                                    if (token.Span.IntersectsWith(_span.GetSpan(_snapshot))) {
+                                if (forCompletion)
+                                {
+                                    if (token.Span.IntersectsWith(_span.GetSpan(_snapshot)))
+                                    {
                                         return token.Span;
-                                    } else {
+                                    }
+                                    else
+                                    {
                                         return _span.GetSpan(_snapshot);
                                     }
                                 }
 
                                 // hovering directly over a keyword, don't provide a tooltip
                                 return null;
-                            } else if ((nestingChanged || forCompletion) && token.ClassificationType == Classifier.Provider.Keyword && text == "def") {
+                            }
+                            else if ((nestingChanged || forCompletion) && token.ClassificationType == Classifier.Provider.Keyword && text == "def")
+                            {
                                 return null;
                             }
-                            if (text == "*" || text == "**") {
-                                if (enumerator.MoveNext()) {
-                                    if (enumerator.Current.ClassificationType == _classifier.Provider.CommaClassification) {
+                            if (text == "*" || text == "**")
+                            {
+                                if (enumerator.MoveNext())
+                                {
+                                    if (enumerator.Current.ClassificationType == _classifier.Provider.CommaClassification)
+                                    {
                                         isParameterName = IsParameterNameComma(enumerator);
-                                    } else if (enumerator.Current.IsOpenGrouping() && enumerator.Current.Span.GetText() == "(") {
+                                    }
+                                    else if (enumerator.Current.IsOpenGrouping() && enumerator.Current.Span.GetText() == "(")
+                                    {
                                         isParameterName = IsParameterNameOpenParen(enumerator);
                                     }
                                 }
                             }
                             break;
-                        } else if ((token.ClassificationType == Classifier.Provider.Keyword) &&
+                        }
+                        else if ((token.ClassificationType == Classifier.Provider.Keyword) &&
                             //PythonKeywords.IsOnlyStatementKeyword(text)) ||
-                            (token.ClassificationType == Classifier.Provider.Operator && IsAssignmentOperator(text))) {
-                            if (isSigHelp && text == "=") {
+                          (token.ClassificationType == Classifier.Provider.Operator && IsAssignmentOperator(text)))
+                        {
+                            if (isSigHelp && text == "=")
+                            {
                                 // keyword argument allowed in signatures
                                 lastTokenWasKeywordArgAssignment = lastTokenWasCommaOrOperator = true;
                                 lastTokenWasDot = false;
-                            } else if (start == null || (nestingChanged && nesting != 0)) {
+                            }
+                            else if (start == null || (nestingChanged && nesting != 0))
+                            {
                                 return null;
-                            } else {
+                            }
+                            else
+                            {
                                 break;
                             }
-                        } else if (token.ClassificationType == Classifier.Provider.Keyword && (text == "if" || text == "else")) {
+                        }
+                        else if (token.ClassificationType == Classifier.Provider.Keyword && (text == "if" || text == "else"))
+                        {
                             // if and else can be used in an expression context or a statement context
-                            if (currentParamAtLastColon != -1) {
+                            if (currentParamAtLastColon != -1)
+                            {
                                 start = startAtLastToken;
-                                if (start == null) {
+                                if (start == null)
+                                {
                                     return null;
                                 }
                                 break;
@@ -347,34 +463,52 @@ namespace VSGenero.EditorExtensions
                         }
                         lastTokenWasCommaOrOperator = true;
                         lastTokenWasDot = false;
-                    } else if (token.ClassificationType == Classifier.Provider.DotClassification) {
+                    }
+                    else if (token.ClassificationType == Classifier.Provider.DotClassification)
+                    {
                         lastTokenWasCommaOrOperator = true;
                         lastTokenWasDot = true;
                         lastTokenWasKeywordArgAssignment = false;
-                    } else if (token.ClassificationType == Classifier.Provider.CommaClassification) {
+                    }
+                    else if (token.ClassificationType == Classifier.Provider.CommaClassification)
+                    {
                         lastTokenWasCommaOrOperator = true;
                         lastTokenWasKeywordArgAssignment = false;
                         lastTokenWasDot = false;
-                        if (nesting == 0 && otherNesting == 0) {
-                            if (start == null && !forCompletion) {
+                        if (nesting == 0 && otherNesting == 0)
+                        {
+                            if (start == null && !forCompletion)
+                            {
                                 return null;
                             }
                             isParameterName = IsParameterNameComma(enumerator);
                             break;
-                        } else if (nesting == 1 && otherNesting == 0 && sigStart == null) {
+                        }
+                        else if (nesting == 1 && otherNesting == 0 && sigStart == null)
+                        {
                             paramIndex++;
                         }
-                    } else if (token.ClassificationType == Classifier.Provider.Comment) {
+                    }
+                    else if (token.ClassificationType == Classifier.Provider.Comment)
+                    {
                         return null;
-                    } else if (!lastTokenWasCommaOrOperator) {
+                    }
+                    else if (!lastTokenWasCommaOrOperator)
+                    {
                         break;
-                    } else {
+                    }
+                    else
+                    {
                         if (lastTokenWasKeywordArgAssignment &&
                             token.ClassificationType.IsOfType(PredefinedClassificationTypeNames.Identifier) &&
-                            lastKeywordArg == null) {
-                            if (paramIndex == 0) {
+                            lastKeywordArg == null)
+                        {
+                            if (paramIndex == 0)
+                            {
                                 lastKeywordArg = text;
-                            } else {
+                            }
+                            else
+                            {
                                 lastKeywordArg = "";
                             }
                         }
@@ -386,7 +520,8 @@ namespace VSGenero.EditorExtensions
                 } while (enumerator.MoveNext());
             }
 
-            if (start.HasValue && lastToken != null && (lastToken.Span.End.Position - start.Value.Start.Position) >= 0) {
+            if (start.HasValue && lastToken != null && (lastToken.Span.End.Position - start.Value.Start.Position) >= 0)
+            {
                 return new SnapshotSpan(
                     Snapshot,
                     new Span(
@@ -399,11 +534,13 @@ namespace VSGenero.EditorExtensions
             return _span.GetSpan(_snapshot);
         }
 
-        private static bool IsAssignmentOperator(string text) {
+        private static bool IsAssignmentOperator(string text)
+        {
             return ((IList<string>)_assignOperators).Contains(text);
         }
 
-        internal static bool IsExplicitLineJoin(ClassificationSpan cur) {
+        internal static bool IsExplicitLineJoin(ClassificationSpan cur)
+        {
             if (cur != null && cur.ClassificationType.IsOfType(Genero4glPredefinedClassificationTypeNames.Operator))
             {
                 var text = cur.Span.GetText();
@@ -416,43 +553,51 @@ namespace VSGenero.EditorExtensions
         /// Returns true if we should skip this token when it's the last token that the user hovers over.  Currently true
         /// for new lines and dot classifications.  
         /// </summary>
-        private bool ShouldSkipAsLastToken(ClassificationSpan lastToken, bool forCompletion) {
+        private bool ShouldSkipAsLastToken(ClassificationSpan lastToken, bool forCompletion)
+        {
             return lastToken == null || (
                 (lastToken.ClassificationType.Classification == PredefinedClassificationTypeNames.WhiteSpace &&
                     (lastToken.Span.GetText() == "\r\n" || lastToken.Span.GetText() == "\n" || lastToken.Span.GetText() == "\r")) ||
                     (lastToken.ClassificationType == Classifier.Provider.DotClassification && !forCompletion));
         }
 
-        public Genero4glClassifier Classifier {
+        public Genero4glClassifier Classifier
+        {
             get { return _classifier ?? (_classifier = (Genero4glClassifier)_buffer.Properties.GetProperty(typeof(Genero4glClassifier))); }
         }
 
-        public ITextSnapshot Snapshot {
+        public ITextSnapshot Snapshot
+        {
             get { return _snapshot; }
         }
 
-        public ITextBuffer Buffer {
+        public ITextBuffer Buffer
+        {
             get { return _buffer; }
         }
 
-        public ITrackingSpan Span {
+        public ITrackingSpan Span
+        {
             get { return _span; }
         }
 
         /// <summary>
         /// Tokens for the current line
         /// </summary>
-        public IList<ClassificationSpan> Tokens {
+        public IList<ClassificationSpan> Tokens
+        {
             get { return _tokens; }
             set { _tokens = value; }
         }
 
-        public ITextSnapshotLine CurrentLine {
+        public ITextSnapshotLine CurrentLine
+        {
             get { return _curLine; }
             set { _curLine = value; }
         }
 
-        public IEnumerator<ClassificationSpan> GetEnumerator() {
+        public IEnumerator<ClassificationSpan> GetEnumerator()
+        {
             return ReverseClassificationSpanEnumerator(_classifier, _span.GetSpan(_snapshot).End);
         }
 
@@ -461,26 +606,36 @@ namespace VSGenero.EditorExtensions
             return ReverseTokenInfoEnumerable(_classifier, _span.GetSpan(_snapshot).End);
         }
 
-        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() {
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+        {
             return ReverseClassificationSpanEnumerator(_classifier, _span.GetSpan(_snapshot).End);
         }
 
-        internal bool IsInGrouping() {
+        internal bool IsInGrouping()
+        {
             // We assume that groupings are correctly matched and keep a simple
             // nesting count.
             int nesting = 0;
-            foreach (var token in this) {
-                if (token == null) {
+            foreach (var token in this)
+            {
+                if (token == null)
+                {
                     continue;
                 }
 
-                if (token.IsCloseGrouping()) {
+                if (token.IsCloseGrouping())
+                {
                     nesting++;
-                } else if (token.IsOpenGrouping()) {
-                    if (nesting-- == 0) {
+                }
+                else if (token.IsOpenGrouping())
+                {
+                    if (nesting-- == 0)
+                    {
                         return true;
                     }
-                } else if (token.ClassificationType.IsOfType(PredefinedClassificationTypeNames.Keyword)) {// &&
+                }
+                else if (token.ClassificationType.IsOfType(PredefinedClassificationTypeNames.Keyword))
+                {// &&
                     //PythonKeywords.IsOnlyStatementKeyword(token.Span.GetText())) {
                     return false;
                 }
@@ -493,7 +648,7 @@ namespace VSGenero.EditorExtensions
         {
             startIndex = -1; endIndex = -1;
             var span = GetExpressionRange();
-            if(span.HasValue)
+            if (span.HasValue)
             {
                 startIndex = span.Value.Start.Position;
                 endIndex = span.Value.End.Position;

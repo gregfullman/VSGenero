@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace VSGenero.Analysis.Parsing.AST
 {
-    public class DeclarativeDialogBlock : FunctionBlockNode, IFunctionResult
+    public class DeclarativeDialogBlock : FunctionBlockNode
     {
         private DialogBlock Dialog { get; set; }
 
@@ -51,6 +51,8 @@ namespace VSGenero.Analysis.Parsing.AST
                 {
                     parser.NextToken();
                     node.Name = parser.Token.Token.Value.ToString();
+                    if (containingModule != null)
+                        node.Namespace = containingModule.ProgramName;
                     node.DecoratorEnd = parser.Token.Span.End;
                 }
                 else

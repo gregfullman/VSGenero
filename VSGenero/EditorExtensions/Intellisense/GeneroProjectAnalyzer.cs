@@ -854,8 +854,8 @@ namespace VSGenero.EditorExtensions.Intellisense
                                                           IFunctionInformationProvider functionProvider, IDatabaseInformationProvider databaseProvider,
                                                           IProgramFileProvider programFileProvider)
         {
-            return TrySpecialCompletions(snapshot, span, point, options, functionProvider, databaseProvider, programFileProvider); /*??
-                   GetNormalCompletionContext(snapshot, span, point, options)*/
+            return TrySpecialCompletions(snapshot, span, point, options, functionProvider, databaseProvider, programFileProvider);
+                   //GetNormalCompletionContext(snapshot, span, point, options);
         }
 
         /// <summary>
@@ -1276,7 +1276,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                 return null;
             }
             var start = snapSpan.Start;
-
+            bool includePublicFunctions = snapSpan.Length > 2;
             var parser = new Genero4glReverseParser(snapshot, buffer, span);
             //if (parser.IsInGrouping())
             //{
@@ -1330,7 +1330,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             if (entry != null && entry.Analysis != null)
             {
                 //var members = entry.Analysis.GetContextMembersByIndex(start, parser, functionProvider, databaseProvider, programFileProvider);
-                var members = entry.Analysis.GetContextMembers(start, parser, functionProvider, databaseProvider, programFileProvider);
+                var members = entry.Analysis.GetContextMembers(start, parser, functionProvider, databaseProvider, programFileProvider, includePublicFunctions, span.GetText(snapshot));
                 if (members != null)
                 {
                     return new ContextSensitiveCompletionAnalysis(members, span, buffer, options);
@@ -1342,27 +1342,7 @@ namespace VSGenero.EditorExtensions.Intellisense
 
         private static CompletionAnalysis GetNormalCompletionContext(ITextSnapshot snapshot, ITrackingSpan applicableSpan, ITrackingPoint point, CompletionOptions options)
         {
-            var span = applicableSpan.GetSpan(snapshot);
-
-            if (IsSpaceCompletion(snapshot, point) && !IntellisenseController.ForceCompletions)
-            {
-                return CompletionAnalysis.EmptyCompletionContext;
-            }
-
-            var parser = new Genero4glReverseParser(snapshot, snapshot.TextBuffer, applicableSpan);
-            if (parser.IsInGrouping())
-            {
-                options = options.Clone();
-                options.IncludeStatementKeywords = false;
-            }
-
-            return new NormalCompletionAnalysis(
-                snapshot.TextBuffer.GetAnalyzer(),
-                snapshot,
-                applicableSpan,
-                snapshot.TextBuffer,
-                options
-            );
+            return new TestCompletionAnalysis(applicableSpan, snapshot.TextBuffer, options);
         }
 
         private static bool IsSpaceCompletion(ITextSnapshot snapshot, ITrackingPoint loc)

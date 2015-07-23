@@ -16,6 +16,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using VSGenero.Snippets;
+using VSGenero.EditorExtensions;
+using VSGenero.Analysis;
 
 namespace VSGenero.EditorExtensions.Intellisense
 {
@@ -232,9 +234,9 @@ namespace VSGenero.EditorExtensions.Intellisense
                     return true;
                 string prevChar = _textView.TextSnapshot.GetText(new Span(point.Value.Position - 2, 1));
                 string nextChar = _textView.TextSnapshot.GetText(new Span(point.Value.Position, 1));
-                if ((prevChar == "(" || prevChar == "[") && string.IsNullOrWhiteSpace(nextChar))
+                if ((prevChar == "(" || prevChar == "[") && (string.IsNullOrWhiteSpace(nextChar) || nextChar == ","))
                     return true;
-                return (string.IsNullOrWhiteSpace(prevChar) || onlyNextChar) && string.IsNullOrWhiteSpace(nextChar);
+                return (string.IsNullOrWhiteSpace(prevChar) || onlyNextChar) && (string.IsNullOrWhiteSpace(nextChar) || nextChar == ",");
             }
             return false;
         }
@@ -279,6 +281,10 @@ namespace VSGenero.EditorExtensions.Intellisense
                         }
 
                         return true;
+                    }
+                    else
+                    {
+                        _sigHelpSession.Dismiss();
                     }
                 }
             }
@@ -489,6 +495,36 @@ namespace VSGenero.EditorExtensions.Intellisense
                     _activeSession.Filter();
                     _activeSession.Dismissed += OnCompletionSessionDismissed;
                     _activeSession.Committed += OnCompletionSessionCommitted;
+                    _textView.TextBuffer.Changed += TextBuffer_Changed;
+                }
+            }
+        }
+
+        void TextBuffer_Changed(object sender, TextContentChangedEventArgs e)
+        {
+            if (_activeSession == null)
+            {
+                _textView.TextBuffer.Changed -= TextBuffer_Changed;
+            }
+            else
+            {
+                if (e.After.Length - e.Before.Length == 1)
+                {
+                    if (_activeSession.SelectedCompletionSet.ApplicableTo.GetText(_textView.TextSnapshot).Length == 2 &&
+                        _provider._PublicFunctionProvider != null)
+                    {
+                        SnapshotSpan? span = GetPrecedingExpression();
+                        if(span.HasValue && span.Value.GetText().EndsWith("."))
+                        {
+                            return;
+                        }
+
+                        Dismiss();
+                        _activeSession = CompletionBroker.TriggerCompletion(_textView);
+                        _activeSession.Filter();
+                        _activeSession.Dismissed += OnCompletionSessionDismissed;
+                        _activeSession.Committed += OnCompletionSessionCommitted;
+                    }
                 }
             }
         }
@@ -526,6 +562,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             if (_activeSession != null)
             {
                 _activeSession.Dismissed -= OnCompletionSessionDismissed;
+                _textView.TextBuffer.Changed -= TextBuffer_Changed;
                 _activeSession = null;
             }
         }
@@ -564,6 +601,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                 {
                     _activeSession.Committed -= OnCompletionSessionCommitted;
                     _activeSession = null;
+                    _textView.TextBuffer.Changed -= TextBuffer_Changed;
                 }
             }
         }
@@ -884,9 +922,20 @@ namespace VSGenero.EditorExtensions.Intellisense
                         case VSConstants.VSStd2KCmdID.DELETEWORDLEFT:
                         case VSConstants.VSStd2KCmdID.DELETEWORDRIGHT:
                             int res = _oldTarget.Exec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
-                            if (_activeSession != null && !_activeSession.IsDismissed)
+                            if (_activeSession != null)
                             {
-                                _activeSession.Filter();
+                                if (!_activeSession.IsDismissed)
+                                {
+                                    _activeSession.Filter();
+                                }
+                                //else
+                                //{
+                                //    _activeSession = null;
+                                //    if((VSConstants.VSStd2KCmdID)nCmdID == VSConstants.VSStd2KCmdID.BACKSPACE)
+                                //    {
+                                //        Backspace();
+                                //    }
+                                //}
                             }
                             return res;
                     }
@@ -932,6 +981,19 @@ namespace VSGenero.EditorExtensions.Intellisense
                             DynamicSnippet dynSnippet = null;
                             // 1) TODO: first do a lookup internally (i.e. within the VSGenero symbols). We're not doing that right now
 
+                            var vars = _textView.TextBuffer.CurrentSnapshot.AnalyzeExpression(
+                                _textView.TextBuffer.CurrentSnapshot.CreateTrackingSpan(span.Value.Span, SpanTrackingMode.EdgeInclusive),
+                                false,
+                                _provider._PublicFunctionProvider,
+                                _provider._DatabaseInfoProvider,
+                                _provider._ProgramFileProvider
+                            );
+                            if(vars != null && 
+                               vars.Value != null &&
+                               vars.Value is IFunctionResult)
+                            {
+                                dynSnippet = (vars.Value as IFunctionResult).GetSnippet(spanText);
+                            }
                             if (dynSnippet == null)
                             {
                                 // 2) Do a lookup using the PublicFunctionSnippetizer

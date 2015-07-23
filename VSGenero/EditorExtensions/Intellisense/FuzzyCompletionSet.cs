@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Media;
 
@@ -161,6 +162,7 @@ namespace VSGenero.EditorExtensions.Intellisense
         readonly FuzzyStringMatcher _comparer;
         readonly bool _shouldFilter;
         readonly bool _shouldHideAdvanced;
+        readonly IComparer<Completion> _initialComparer;
 
         private readonly static Regex _advancedItemPattern = new Regex(
             @"__\w+__($|\s)",
@@ -184,6 +186,7 @@ namespace VSGenero.EditorExtensions.Intellisense
         public FuzzyCompletionSet(string moniker, string displayName, ITrackingSpan applicableTo, IEnumerable<DynamicallyVisibleCompletion> completions, CompletionOptions options, IComparer<Completion> comparer) :
             base(moniker, displayName, applicableTo, null, null)
         {
+            _initialComparer = comparer;
             _completions = new BulkObservableCollection<Completion>();
             _completions.AddRange(completions
                 .Where(c => c != null && !string.IsNullOrWhiteSpace(c.DisplayText))
@@ -228,6 +231,38 @@ namespace VSGenero.EditorExtensions.Intellisense
         private static bool IsVisible(Completion completion)
         {
             return ((DynamicallyVisibleCompletion)completion).Visible;
+        }
+
+        public async Task RecalculateAsync(Func<IEnumerable<DynamicallyVisibleCompletion>> callback)
+        {
+            if (callback != null)
+            {
+                var completions = await Task.Factory.StartNew<IEnumerable<DynamicallyVisibleCompletion>>(callback);
+                if (completions != null)
+                {
+                    _completions.AddRange(completions
+                        .Where(c => c != null && !string.IsNullOrWhiteSpace(c.DisplayText))
+                        .OrderBy(c => c, _initialComparer)
+                    );
+                    if (_shouldFilter | _shouldHideAdvanced)
+                    {
+                        _filteredCompletions = new FilteredObservableCollection<Completion>(_completions);
+
+                        foreach (var c in _completions.Cast<DynamicallyVisibleCompletion>())
+                        {
+                            c.Visible = !_shouldHideAdvanced || !IsAdvanced(c);
+                        }
+                        _filteredCompletions.Filter(IsVisible);
+                    }
+                    Filter();
+                    SelectBestMatch();
+                }
+            }
+        }
+
+        public override void Recalculate()
+        {
+            base.Recalculate();
         }
 
         /// <summary>

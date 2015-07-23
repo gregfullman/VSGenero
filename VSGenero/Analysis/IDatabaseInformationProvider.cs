@@ -14,5 +14,6 @@ namespace VSGenero.Analysis
         IAnalysisResult GetTable(string tablename);
         IEnumerable<IAnalysisResult> GetColumns(string tableName);
         IAnalysisResult GetColumn(string tableName, string columnName);
+        string GetColumnType(string tableName, string columnName);
     }
 }

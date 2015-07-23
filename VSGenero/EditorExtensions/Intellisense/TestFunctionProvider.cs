@@ -36,6 +36,8 @@ namespace VSGenero.EditorExtensions.Intellisense
             get { return "TestFunctions"; }
         }
 
+        public string Namespace { get { return null; } }
+
         public void SetFilename(string filename)
         {
             int i = 0;
@@ -115,11 +117,18 @@ namespace VSGenero.EditorExtensions.Intellisense
         {
             get { return true; }
         }
+
+
+        public IEnumerable<IFunctionResult> GetFunctionsStartingWith(string matchText)
+        {
+            return new IFunctionResult[0];
+        }
     }
 
     internal class TestFunctionCollection : IAnalysisResult
     {
         private readonly Dictionary<string, TestFunction> _functions;
+        public string Namespace { get { return null; } }
 
         internal TestFunctionCollection(string name, IEnumerable<TestFunction> functions)
         {
@@ -207,6 +216,8 @@ namespace VSGenero.EditorExtensions.Intellisense
         {
             get { return true; }
         }
+
+        public string Namespace { get { return null; } }
 
         private readonly ParameterResult[] _parameters;
         public ParameterResult[] Parameters

@@ -424,6 +424,8 @@ namespace VSGenero.Analysis
             get { return Path.GetFileName(_directory); }
         }
 
+        public string Namespace { get { return null; } }
+
         public string Documentation
         {
             get
@@ -585,7 +587,7 @@ namespace VSGenero.Analysis
         }
 
         /// <summary>
-        /// Returns the project entries file path.
+        /// Returns the project entry's file path.
         /// </summary>
         string FilePath { get; }
 

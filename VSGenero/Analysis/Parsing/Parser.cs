@@ -48,7 +48,19 @@ namespace VSGenero.Analysis.Parsing
 
         public readonly FglStatementFactory StatementFactory;
 
-        public string Filename { get { return _filename; } }
+        public string Filename 
+        { 
+            get 
+            { 
+                if(string.IsNullOrWhiteSpace(_filename) &&
+                    _projectEntry != null)
+                {
+                    return _projectEntry.FilePath;
+                }
+                else
+                    return _filename; 
+            } 
+        }
 
         public ErrorSink ErrorSink
         {

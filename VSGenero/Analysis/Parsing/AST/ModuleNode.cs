@@ -1,6 +1,7 @@
 ﻿using Microsoft.VisualStudio.Text;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -119,6 +120,11 @@ namespace VSGenero.Analysis.Parsing.AST
         public static bool TryParseNode(Parser parser, out ModuleNode defNode)
         {
             defNode = new ModuleNode();
+            if (!string.IsNullOrWhiteSpace(parser.Filename))
+            {
+                defNode.ProgramName = Path.GetFileName(Path.GetDirectoryName(parser.Filename));
+            }
+            
             NodesProcessed processed = NodesProcessed.None;
 
             while (!parser.PeekToken(TokenKind.EndOfFile))
@@ -255,6 +261,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         defNode.Children.Add(constNode.StartIndex, constNode);
                         foreach (var def in constNode.GetDefinitions())
                         {
+                            def.Namespace = defNode.ProgramName;
                             def.Scope = "module constant";
                             if (!defNode.Constants.ContainsKey(def.Name))
                                 defNode.Constants.Add(def.Name, def);
@@ -283,6 +290,7 @@ namespace VSGenero.Analysis.Parsing.AST
                             defNode.Children.Add(typeNode.StartIndex, typeNode);
                         foreach (var def in typeNode.GetDefinitions())
                         {
+                            def.Namespace = defNode.ProgramName;
                             def.Scope = "module type";
                             if (!defNode.Types.ContainsKey(def.Name))
                                 defNode.Types.Add(def.Name, def);
@@ -311,6 +319,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         foreach (var def in defineNode.GetDefinitions())
                             foreach (var vardef in def.VariableDefinitions)
                             {
+                                vardef.Namespace = defNode.ProgramName;
                                 vardef.Scope = "module variable";
                                 vardef.SetIsPublic(defineNode.AccessModifier == AccessModifier.Public);
                                 if (!defNode.Variables.ContainsKey(vardef.Name))
@@ -540,5 +549,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 return _cursors;
             }
         }
+
+        public string ProgramName { get; private set; }
     }
 }

@@ -13,6 +13,8 @@ namespace VSGenero.Analysis.Parsing.AST
         private static object _contextMapLock = new object();
         private static Dictionary<object, IEnumerable<ContextPossibilities>> _contextMap;
         private static GeneroAst _instance;
+        private static bool _includePublicFunctions;
+        private static string _contextString;
 
         #region Context Map Init
 
@@ -2727,17 +2729,22 @@ namespace VSGenero.Analysis.Parsing.AST
         #endregion
 
         public IEnumerable<MemberResult> GetContextMembers(int index, IReverseTokenizer revTokenizer, IFunctionInformationProvider functionProvider,
-                                                           IDatabaseInformationProvider databaseProvider, IProgramFileProvider programFileProvider, GetMemberOptions options = GetMemberOptions.IntersectMultipleResults)
+                                                           IDatabaseInformationProvider databaseProvider, IProgramFileProvider programFileProvider,
+                                                           bool includePublicFunctions, string contextStr, 
+                                                           GetMemberOptions options = GetMemberOptions.IntersectMultipleResults)
         {
             _instance = this;
             _functionProvider = functionProvider;
             _databaseProvider = databaseProvider;
             _programFileProvider = programFileProvider;
+            _includePublicFunctions = includePublicFunctions;
+            _contextString = contextStr;
 
             List<MemberResult> members = new List<MemberResult>();
             // First see if we have a member completion
             if (TryMemberAccess(index, revTokenizer, out members))
             {
+                _includePublicFunctions = false;
                 return members;
             }
             
@@ -2746,7 +2753,8 @@ namespace VSGenero.Analysis.Parsing.AST
                 // TODO: do we want to put in the statement keywords?
                 members.AddRange(GetStatementStartKeywords(index));
             }
-
+            _includePublicFunctions = false;
+            _contextString = null;
             return members;
         }
 

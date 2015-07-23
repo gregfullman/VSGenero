@@ -10,6 +10,7 @@ namespace VSGenero.Analysis.Parsing.AST
     public class VariableDef : IAnalysisResult
     {
         public string Name { get; private set; }
+        public string Namespace { get; set; }
         public TypeReference Type { get; private set; }
         private string _filename;
 
@@ -42,6 +43,8 @@ namespace VSGenero.Analysis.Parsing.AST
                 {
                     sb.AppendFormat("({0}) ", Scope);
                 }
+                if (!string.IsNullOrWhiteSpace(Namespace))
+                    sb.AppendFormat("{0}.", Namespace);
                 sb.AppendFormat("{0} {1}", Name, Type.ToString());
                 return sb.ToString();
             }

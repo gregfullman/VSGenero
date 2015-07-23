@@ -551,6 +551,8 @@ new ParameterResult("width", "", "integer"),
             get { return _name; }
         }
 
+        public string Namespace { get { return null; } }
+
         public string Documentation
         {
             get
@@ -630,6 +632,8 @@ new ParameterResult("width", "", "integer"),
         {
             get { return _name; }
         }
+
+        public string Namespace { get { return null; } }
 
         public string Documentation
         {
@@ -721,6 +725,8 @@ new ParameterResult("width", "", "integer"),
         {
             get { return _name; }
         }
+
+        public string Namespace { get { return null; } }
 
         public string Documentation
         {
@@ -836,6 +842,8 @@ new ParameterResult("width", "", "integer"),
         {
             get { return _name; }
         }
+
+        public string Namespace { get { return null; } }
 
         public string Documentation
         {
@@ -1000,6 +1008,8 @@ new ParameterResult("width", "", "integer"),
         {
             get { return _name; }
         }
+
+        public string Namespace { get { return null; } }
 
         public string Documentation
         {

@@ -26,6 +26,8 @@ namespace VSGenero.Analysis.Parsing.AST
 
         public string Name { get; protected set; }
 
+        public string Namespace { get; protected set; }
+
         public int DecoratorEnd { get; set; }
 
         public bool CanGetValueFromDebugger
@@ -41,6 +43,8 @@ namespace VSGenero.Analysis.Parsing.AST
             {
                 StringBuilder sb = new StringBuilder();
 
+                if (!string.IsNullOrWhiteSpace(Namespace))
+                    sb.AppendFormat("{0}.", Namespace);
                 sb.Append(Name);
                 sb.Append('(');
 
@@ -204,6 +208,8 @@ namespace VSGenero.Analysis.Parsing.AST
                 {
                     parser.NextToken();
                     defNode.Name = parser.Token.Token.Value.ToString();
+                    if (containingModule != null)
+                        defNode.Namespace = containingModule.ProgramName;
                     defNode.DecoratorEnd = parser.Token.Span.End;
                 }
                 else
@@ -424,7 +430,7 @@ namespace VSGenero.Analysis.Parsing.AST
 
                                 if (string.IsNullOrEmpty(type))
                                 {
-                                    type = ret.GetType();
+                                    type = ret.GetExpressionType();
                                 }
 
                                 _returns[i] = type;

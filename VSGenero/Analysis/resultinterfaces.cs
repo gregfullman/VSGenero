@@ -22,6 +22,7 @@ namespace VSGenero.Analysis
     {
         string Scope { get; set; }
         string Name { get; }
+        string Namespace { get; }
         string Documentation { get; }
         int LocationIndex { get; }
         LocationInfo Location { get; }
@@ -50,6 +51,8 @@ namespace VSGenero.Analysis
 
     public interface IModuleResult : IAnalysisResultContainer
     {
+        string ProgramName { get; }
+
         List<string> CExtensionImports { get; }
         HashSet<string> FglImports { get; }
         IDictionary<string, IAnalysisResult> Variables { get; }

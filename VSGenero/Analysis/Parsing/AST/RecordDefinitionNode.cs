@@ -167,6 +167,8 @@ namespace VSGenero.Analysis.Parsing.AST
             get { return null; }
         }
 
+        public string Namespace { get { return null; } }
+
         public int LocationIndex
         {
             get { return -1; }

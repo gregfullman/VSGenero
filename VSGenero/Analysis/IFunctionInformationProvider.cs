@@ -14,5 +14,6 @@ namespace VSGenero.Analysis
     {
         void SetFilename(string filename);
         IEnumerable<IFunctionResult> GetFunction(string functionName);
+        IEnumerable<IFunctionResult> GetFunctionsStartingWith(string matchText);
     }
 }

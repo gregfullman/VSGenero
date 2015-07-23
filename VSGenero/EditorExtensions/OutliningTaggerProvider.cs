@@ -202,8 +202,15 @@ namespace VSGenero.EditorExtensions
                     if (length > 0)
                     {
                         var headerLength = outlineResult.DecoratorEnd - outlineResult.DecoratorStart;
+                        ITextSnapshotLine startLine;
+                        if((startLine = snapshot.GetLineFromPosition(outlineResult.DecoratorStart)).LineNumber !=
+                           snapshot.GetLineNumberFromPosition(outlineResult.DecoratorEnd))
+                        {
+                            // the decorator range spans multiple lines, so we want to truncate that
+                            headerLength = startLine.End.Position - outlineResult.DecoratorStart;
+                        }
+                        
                         Span headerSpan = new Span(outlineResult.DecoratorStart, headerLength);
-
                         var span = GetFinalSpan(snapshot, outlineResult.StartIndex, length);
 
                         tagSpan = new TagSpan(

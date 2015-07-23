@@ -163,6 +163,8 @@ namespace VSGenero.Analysis.Parsing.AST
             get { return Identifier; }
         }
 
+        public string Namespace { get { return null; } }
+
         public override string Documentation
         {
             get

@@ -24,11 +24,38 @@ namespace VSGenero.Analysis.Parsing.AST
             TokenKind.NotKeyword, TokenKind.ColumnKeyword, TokenKind.Subtract, TokenKind.AsciiKeyword, TokenKind.Add
         };
 
-        public abstract void PrependExpression(ExpressionNode node);
-        public abstract void AppendExpression(ExpressionNode node);
-        public abstract void AppendOperator(TokenExpressionNode tokenKind);
-        public abstract string ToString();
-        public abstract string GetType();
+        public void AppendExpression(ExpressionNode node)
+        {
+            AppendedExpressions.Add(node);
+        }
+
+        public override string ToString()
+        {
+            StringBuilder sb = new StringBuilder(GetStringForm());
+
+            int index = 0;
+            while(index < AppendedExpressions.Count)
+            {
+                sb.Append(' ');
+                sb.Append(AppendedExpressions[index]);
+                index++;
+            }
+            return sb.ToString();
+        }
+
+        protected abstract string GetStringForm();
+        public abstract string GetExpressionType();
+
+        private List<ExpressionNode> _appendedExpressions;
+        public List<ExpressionNode> AppendedExpressions
+        {
+            get
+            {
+                if (_appendedExpressions == null)
+                    _appendedExpressions = new List<ExpressionNode>();
+                return _appendedExpressions;
+            }
+        }
 
         public static bool TryGetExpressionNode(IParser parser, out ExpressionNode node, List<TokenKind> breakTokens = null, ExpressionParsingOptions options = null)
         {
@@ -602,15 +629,7 @@ namespace VSGenero.Analysis.Parsing.AST
             return result;
         }
 
-        public override void AppendExpression(ExpressionNode node)
-        {
-        }
-
-        public override void AppendOperator(TokenExpressionNode tokenKind)
-        {
-        }
-
-        public override string ToString()
+        protected override string GetStringForm()
         {
             StringBuilder sb = new StringBuilder();
             sb.Append(Function.Name);
@@ -625,14 +644,10 @@ namespace VSGenero.Analysis.Parsing.AST
             return sb.ToString();
         }
 
-        public override string GetType()
+        public override string GetExpressionType()
         {
             // TODO: need to determine the return type for the function call
             return null;
-        }
-
-        public override void PrependExpression(ExpressionNode node)
-        {
         }
     }
 
@@ -684,19 +699,7 @@ namespace VSGenero.Analysis.Parsing.AST
             return result;
         }
 
-        public override void PrependExpression(ExpressionNode node)
-        {
-        }
-
-        public override void AppendExpression(ExpressionNode node)
-        {
-        }
-
-        public override void AppendOperator(TokenExpressionNode tokenKind)
-        {
-        }
-
-        public override string ToString()
+        protected override string GetStringForm()
         {
             StringBuilder sb = new StringBuilder();
             sb.Append("[");
@@ -710,7 +713,7 @@ namespace VSGenero.Analysis.Parsing.AST
             return sb.ToString();
         }
 
-        public override string GetType()
+        public override string GetExpressionType()
         {
             return null;
         }
@@ -802,28 +805,16 @@ namespace VSGenero.Analysis.Parsing.AST
             return result;
         }
 
-        public override void AppendExpression(ExpressionNode node)
-        {
-        }
-
-        public override void AppendOperator(TokenExpressionNode tokenKind)
-        {
-        }
-
-        public override string ToString()
+        protected override string GetStringForm()
         {
             if (InnerExpression != null)
                 return string.Format("({0})", InnerExpression.ToString());
             return null;
         }
 
-        public override string GetType()
+        public override string GetExpressionType()
         {
             return null;
-        }
-
-        public override void PrependExpression(ExpressionNode node)
-        {
         }
     }
 
@@ -849,21 +840,7 @@ namespace VSGenero.Analysis.Parsing.AST
             _literalValue = new StringBuilder(token.Token.Value.ToString());
         }
 
-        public override void AppendExpression(ExpressionNode node)
-        {
-            if (node is StringExpressionNode)
-            {
-                _literalValue.Append((node as StringExpressionNode).LiteralValue);
-
-            }
-            else if (node is TokenExpressionNode)
-            {
-                // TODO: we should be able to follow the coversion rules to append to the literal value
-            }
-            base.AppendExpression(node);
-        }
-
-        public override string ToString()
+        protected override string GetStringForm()
         {
             return LiteralValue;
         }
@@ -896,20 +873,7 @@ namespace VSGenero.Analysis.Parsing.AST
             _tokens.Add(token.Token);
         }
 
-        public override void AppendExpression(ExpressionNode node)
-        {
-            if (node != null && node is TokenExpressionNode && _tokens != null && (node as TokenExpressionNode).Tokens != null)
-            {
-                _tokens.AddRange((node as TokenExpressionNode).Tokens);
-            }
-            EndIndex = node.EndIndex;
-        }
-
-        public override void AppendOperator(TokenExpressionNode tokenKind)
-        {
-        }
-
-        public override string ToString()
+        protected override string GetStringForm()
         {
             StringBuilder sb = new StringBuilder();
             for (int i = 0; i < Tokens.Count; i++)
@@ -921,13 +885,9 @@ namespace VSGenero.Analysis.Parsing.AST
             return sb.ToString();
         }
 
-        public override string GetType()
+        public override string GetExpressionType()
         {
             return null;
-        }
-
-        public override void PrependExpression(ExpressionNode node)
-        {
         }
     }
 
@@ -940,24 +900,12 @@ namespace VSGenero.Analysis.Parsing.AST
             _statement = statement;
         }
 
-        public override void PrependExpression(ExpressionNode node)
-        {
-        }
-
-        public override void AppendExpression(ExpressionNode node)
-        {
-        }
-
-        public override void AppendOperator(TokenExpressionNode tokenKind)
-        {
-        }
-
-        public override string ToString()
+        protected override string GetStringForm()
         {
             return _statement.ToString();
         }
 
-        public override string GetType()
+        public override string GetExpressionType()
         {
             return null;
         }
