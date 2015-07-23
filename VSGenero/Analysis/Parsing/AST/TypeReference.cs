@@ -235,9 +235,6 @@ namespace VSGenero.Analysis.Parsing.AST
             get { return ToString(); }
         }
 
-        public string Namespace { get { return null; } }
-
-
         public int LocationIndex
         {
             get { return StartIndex; }
@@ -338,6 +335,38 @@ namespace VSGenero.Analysis.Parsing.AST
                     {
                         return udt.GetMembers(ast, memberType).Select(x => x.Var).Where(y => y != null);
                     }
+                }
+            }
+            return members;
+        }
+
+        public bool IsArray
+        {
+            get
+            {
+                if (Children.Count == 1)
+                {
+                    // we have an array type or a record type definition
+                    var node = Children[Children.Keys[0]];
+                    if (node is ArrayTypeReference)
+                    {
+                        return true;
+                    }
+                }
+                return false;
+            }
+        }
+
+        internal IEnumerable<MemberResult> GetArrayMembers(GeneroAst ast, MemberType memberType)
+        {
+            List<MemberResult> members = new List<MemberResult>();
+            if (Children.Count == 1)
+            {
+                // we have an array type or a record type definition
+                var node = Children[Children.Keys[0]];
+                if (node is ArrayTypeReference)
+                {
+                    return (node as ArrayTypeReference).GetMembersInternal(ast, memberType, true);
                 }
             }
             return members;
@@ -465,6 +494,11 @@ namespace VSGenero.Analysis.Parsing.AST
                 }
             }
             return false;
+        }
+
+
+        public void SetOneTimeNamespace(string nameSpace)
+        {
         }
     }
 }

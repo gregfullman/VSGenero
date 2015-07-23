@@ -248,7 +248,17 @@ namespace VSGenero.EditorExtensions
              TokenKind.ElseKeyword,
              TokenKind.WhileKeyword, 
              TokenKind.ForKeyword,
-             TokenKind.ForeachKeyword
+             TokenKind.ForeachKeyword,
+             TokenKind.CaseKeyword,
+        };
+
+        // TODO: eventually this will need to support mixed use (e.g. dialog, display, etc. blocks)
+        public static Dictionary<TokenKind, TokenKind> SubBlockKeywords = new Dictionary<TokenKind,TokenKind>
+        {
+            { TokenKind.ElseKeyword, TokenKind.IfKeyword },
+            { TokenKind.CatchKeyword, TokenKind.TryKeyword },
+            { TokenKind.WhenKeyword, TokenKind.CaseKeyword },
+            { TokenKind.OtherwiseKeyword, TokenKind.CaseKeyword }
         };
 
         private static bool ShouldIndentAfterKeyword(ClassificationSpan span, IReverseTokenizer revParser)

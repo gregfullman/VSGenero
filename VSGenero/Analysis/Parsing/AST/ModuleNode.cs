@@ -261,7 +261,6 @@ namespace VSGenero.Analysis.Parsing.AST
                         defNode.Children.Add(constNode.StartIndex, constNode);
                         foreach (var def in constNode.GetDefinitions())
                         {
-                            def.Namespace = defNode.ProgramName;
                             def.Scope = "module constant";
                             if (!defNode.Constants.ContainsKey(def.Name))
                                 defNode.Constants.Add(def.Name, def);
@@ -290,7 +289,6 @@ namespace VSGenero.Analysis.Parsing.AST
                             defNode.Children.Add(typeNode.StartIndex, typeNode);
                         foreach (var def in typeNode.GetDefinitions())
                         {
-                            def.Namespace = defNode.ProgramName;
                             def.Scope = "module type";
                             if (!defNode.Types.ContainsKey(def.Name))
                                 defNode.Types.Add(def.Name, def);
@@ -319,7 +317,6 @@ namespace VSGenero.Analysis.Parsing.AST
                         foreach (var def in defineNode.GetDefinitions())
                             foreach (var vardef in def.VariableDefinitions)
                             {
-                                vardef.Namespace = defNode.ProgramName;
                                 vardef.Scope = "module variable";
                                 vardef.SetIsPublic(defineNode.AccessModifier == AccessModifier.Public);
                                 if (!defNode.Variables.ContainsKey(vardef.Name))

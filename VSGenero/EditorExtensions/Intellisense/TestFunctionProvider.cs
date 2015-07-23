@@ -36,8 +36,6 @@ namespace VSGenero.EditorExtensions.Intellisense
             get { return "TestFunctions"; }
         }
 
-        public string Namespace { get { return null; } }
-
         public void SetFilename(string filename)
         {
             int i = 0;
@@ -123,12 +121,16 @@ namespace VSGenero.EditorExtensions.Intellisense
         {
             return new IFunctionResult[0];
         }
+
+
+        public void SetOneTimeNamespace(string nameSpace)
+        {
+        }
     }
 
     internal class TestFunctionCollection : IAnalysisResult
     {
         private readonly Dictionary<string, TestFunction> _functions;
-        public string Namespace { get { return null; } }
 
         internal TestFunctionCollection(string name, IEnumerable<TestFunction> functions)
         {
@@ -200,6 +202,11 @@ namespace VSGenero.EditorExtensions.Intellisense
         {
             get { return false; }
         }
+
+
+        public void SetOneTimeNamespace(string nameSpace)
+        {
+        }
     }
 
     internal class TestFunction : IFunctionResult
@@ -216,8 +223,6 @@ namespace VSGenero.EditorExtensions.Intellisense
         {
             get { return true; }
         }
-
-        public string Namespace { get { return null; } }
 
         private readonly ParameterResult[] _parameters;
         public ParameterResult[] Parameters
@@ -267,6 +272,8 @@ namespace VSGenero.EditorExtensions.Intellisense
         {
             get { return _name; }
         }
+
+        public string Namespace { get { return null; } }
 
         private readonly string _desc;
         public string Documentation
@@ -357,6 +364,11 @@ namespace VSGenero.EditorExtensions.Intellisense
             set
             {
             }
+        }
+
+
+        public void SetOneTimeNamespace(string nameSpace)
+        {
         }
     }
 }

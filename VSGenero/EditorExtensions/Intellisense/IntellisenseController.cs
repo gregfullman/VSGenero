@@ -234,9 +234,9 @@ namespace VSGenero.EditorExtensions.Intellisense
                     return true;
                 string prevChar = _textView.TextSnapshot.GetText(new Span(point.Value.Position - 2, 1));
                 string nextChar = _textView.TextSnapshot.GetText(new Span(point.Value.Position, 1));
-                if ((prevChar == "(" || prevChar == "[") && (string.IsNullOrWhiteSpace(nextChar) || nextChar == ","))
+                if ((prevChar == "(" || prevChar == "[") && (string.IsNullOrWhiteSpace(nextChar) || nextChar == "," || nextChar == ")"))
                     return true;
-                return (string.IsNullOrWhiteSpace(prevChar) || onlyNextChar) && (string.IsNullOrWhiteSpace(nextChar) || nextChar == ",");
+                return (string.IsNullOrWhiteSpace(prevChar) || onlyNextChar) && (string.IsNullOrWhiteSpace(nextChar) || nextChar == "," || nextChar == ")");
             }
             return false;
         }

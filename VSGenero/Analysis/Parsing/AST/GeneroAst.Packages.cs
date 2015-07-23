@@ -3254,6 +3254,11 @@ namespace VSGenero.Analysis.Parsing.AST
                 return _classes.Values.Any(x => x.IsStatic);
             }
         }
+
+
+        public void SetOneTimeNamespace(string nameSpace)
+        {
+        }
     }
 
     public class GeneroPackageClass : IAnalysisResult
@@ -3338,6 +3343,11 @@ namespace VSGenero.Analysis.Parsing.AST
         public bool HasChildFunctions(GeneroAst ast)
         {
             return true;
+        }
+
+
+        public void SetOneTimeNamespace(string nameSpace)
+        {
         }
     }
 
@@ -3542,6 +3552,11 @@ namespace VSGenero.Analysis.Parsing.AST
             set
             {
             }
+        }
+
+
+        public void SetOneTimeNamespace(string nameSpace)
+        {
         }
     }
 }

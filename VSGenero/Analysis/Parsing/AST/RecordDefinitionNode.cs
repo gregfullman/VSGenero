@@ -167,8 +167,6 @@ namespace VSGenero.Analysis.Parsing.AST
             get { return null; }
         }
 
-        public string Namespace { get { return null; } }
-
         public int LocationIndex
         {
             get { return -1; }
@@ -222,6 +220,11 @@ namespace VSGenero.Analysis.Parsing.AST
         public bool HasChildFunctions(GeneroAst ast)
         {
             return MemberDictionary.Values.Any(x => x.Type.HasChildFunctions(ast));
+        }
+
+
+        public void SetOneTimeNamespace(string nameSpace)
+        {
         }
     }
 }

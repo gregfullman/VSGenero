@@ -286,18 +286,24 @@ namespace VSGenero.Analysis.Parsing.AST
             return results;
         }
 
-        internal IEnumerable<MemberResult> GetMembersInternal(GeneroAst ast, MemberType memberType)
+        internal IEnumerable<MemberResult> GetMembersInternal(GeneroAst ast, MemberType memberType, bool arrayFunctions = false)
         {
             List<MemberResult> results = new List<MemberResult>();
-            if(Children.Count == 1)
+            if (!arrayFunctions)
             {
-                 var node = Children[Children.Keys[0]];
-                 if (node is TypeReference)
-                 {
-                     results.AddRange((node as TypeReference).GetMembers(ast, memberType));
-                 }
+                if (Children.Count == 1)
+                {
+                    var node = Children[Children.Keys[0]];
+                    if (node is TypeReference)
+                    {
+                        results.AddRange((node as TypeReference).GetMembers(ast, memberType));
+                    }
+                }
             }
-            results.AddRange(GeneroAst.ArrayFunctions.Values.Select(x => new MemberResult(x.Name, x, GeneroMemberType.Method, ast)));
+            else
+            {
+                results.AddRange(GeneroAst.ArrayFunctions.Values.Select(x => new MemberResult(x.Name, x, GeneroMemberType.Method, ast)));
+            }
             return results;
         }
     }

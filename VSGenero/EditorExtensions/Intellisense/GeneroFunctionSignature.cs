@@ -26,10 +26,16 @@ namespace VSGenero.EditorExtensions.Intellisense
                 paramIndex = Int32.MaxValue;
             }
 
-            var content = new StringBuilder(overload.Name);
-            var ppContent = new StringBuilder(overload.Name);
-            content.Append('(');
-            ppContent.AppendLine("(");
+
+            var content = new StringBuilder();
+            var ppContent = new StringBuilder();
+            if(!string.IsNullOrWhiteSpace(overload.Namespace))
+            {
+                content.AppendFormat("{0}.", overload.Namespace);
+                ppContent.AppendFormat("{0}.", overload.Namespace);
+            }
+            content.AppendFormat("{0}(", overload.Name);
+            ppContent.AppendFormat("{0}(\n", overload.Name);
             int start = content.Length, ppStart = ppContent.Length;
             var parameters = new IParameter[overload.Parameters.Length];
             for (int i = 0; i < overload.Parameters.Length; i++) {

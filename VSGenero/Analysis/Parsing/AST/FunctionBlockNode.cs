@@ -27,7 +27,7 @@ namespace VSGenero.Analysis.Parsing.AST
         public string Name { get; protected set; }
 
         public string Namespace { get; protected set; }
-
+        private string _oneTimeNamespace;
         public int DecoratorEnd { get; set; }
 
         public bool CanGetValueFromDebugger
@@ -43,8 +43,11 @@ namespace VSGenero.Analysis.Parsing.AST
             {
                 StringBuilder sb = new StringBuilder();
 
-                if (!string.IsNullOrWhiteSpace(Namespace))
-                    sb.AppendFormat("{0}.", Namespace);
+                if (!string.IsNullOrWhiteSpace(_oneTimeNamespace))
+                {
+                    sb.AppendFormat("{0}.", _oneTimeNamespace);
+                    _oneTimeNamespace = null;
+                }
                 sb.Append(Name);
                 sb.Append('(');
 
@@ -578,6 +581,12 @@ namespace VSGenero.Analysis.Parsing.AST
             set
             {
             }
+        }
+
+
+        public void SetOneTimeNamespace(string nameSpace)
+        {
+            _oneTimeNamespace = nameSpace;
         }
     }
 }

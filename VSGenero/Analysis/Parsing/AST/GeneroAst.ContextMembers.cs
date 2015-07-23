@@ -361,7 +361,7 @@ namespace VSGenero.Analysis.Parsing.AST
             {
                 members.Add(new MemberResult(_functionProvider.Name, GeneroMemberType.Namespace, this));
 
-                if(_includePublicFunctions && !string.IsNullOrWhiteSpace(_contextString))
+                if (_includePublicFunctions && !string.IsNullOrWhiteSpace(_contextString))
                 {
                     members.AddRange(_functionProvider.GetFunctionsStartingWith(_contextString).Select(x => new MemberResult(x.Name, x, GeneroMemberType.Function, this)));
                 }
@@ -427,21 +427,13 @@ namespace VSGenero.Analysis.Parsing.AST
                             var analysisRes = GetValueByIndex(var, index, _functionProvider, _databaseProvider, _programFileProvider, out dummyProj, out projEntry);
                             if (analysisRes != null)
                             {
-                                var members = analysisRes.GetMembers(this, memberType);
-                                if (members != null)
+                                if ((analysisRes is VariableDef && (analysisRes as VariableDef).Type.IsArray) && !var[var.Length - 1].Equals(']'))
                                 {
-                                    if (analysisRes is VariableDef && (analysisRes as VariableDef).Type.Children.Any(x => x.Value is ArrayTypeReference))
-                                    {
-                                        bool varsOnly = var[var.Length - 1].Equals(']');
-                                        if (varsOnly)
-                                            results.AddRange(members.Where(x => !(x.Var is IFunctionResult)));
-                                        else
-                                            results.AddRange(members.Where(x => x.Var is IFunctionResult));
-                                    }
-                                    else
-                                    {
-                                        results.AddRange(members);
-                                    }
+                                    results.AddRange((analysisRes as VariableDef).Type.GetArrayMembers(this, memberType));
+                                }
+                                else
+                                {
+                                    results.AddRange(analysisRes.GetMembers(this, memberType));
                                 }
                             }
                             return true;

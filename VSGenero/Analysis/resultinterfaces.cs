@@ -22,7 +22,6 @@ namespace VSGenero.Analysis
     {
         string Scope { get; set; }
         string Name { get; }
-        string Namespace { get; }
         string Documentation { get; }
         int LocationIndex { get; }
         LocationInfo Location { get; }
@@ -30,6 +29,7 @@ namespace VSGenero.Analysis
         bool CanGetValueFromDebugger { get; }
         bool IsPublic { get; }
 
+        void SetOneTimeNamespace(string nameSpace);
         IAnalysisResult GetMember(string name, GeneroAst ast, out IGeneroProject definingProject, out IProjectEntry projectEntry);
         IEnumerable<MemberResult> GetMembers(GeneroAst ast, MemberType memberType);
     }
@@ -77,6 +77,7 @@ namespace VSGenero.Analysis
         IDictionary<string, IAnalysisResult> Types { get; }
         IDictionary<string, IAnalysisResult> Constants { get; }
         string CompletionParentName { get; }
+        string Namespace { get; }
     }
 
     public interface IOutlinableResult

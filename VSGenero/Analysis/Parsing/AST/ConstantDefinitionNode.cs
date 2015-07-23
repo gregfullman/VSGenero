@@ -240,7 +240,7 @@ namespace VSGenero.Analysis.Parsing.AST
             get { return Identifier; }
         }
 
-        public string Namespace { get; set; }
+        private string _oneTimeNamespace;
 
         public override string Documentation
         {
@@ -251,9 +251,10 @@ namespace VSGenero.Analysis.Parsing.AST
                 {
                     sb.AppendFormat("({0}) ", Scope);
                 }
-                if(!string.IsNullOrWhiteSpace(Namespace))
+                if(!string.IsNullOrWhiteSpace(_oneTimeNamespace))
                 {
-                    sb.AppendFormat("{0}.", Namespace);
+                    sb.AppendFormat("{0}.", _oneTimeNamespace);
+                    _oneTimeNamespace = null;
                 }
                 sb.Append(Name);
                 if(!string.IsNullOrWhiteSpace(SpecifiedType))
@@ -289,6 +290,12 @@ namespace VSGenero.Analysis.Parsing.AST
         public bool HasChildFunctions(GeneroAst ast)
         {
             return false;
+        }
+
+
+        public void SetOneTimeNamespace(string nameSpace)
+        {
+            _oneTimeNamespace = nameSpace;
         }
     }
 }

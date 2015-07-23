@@ -22,7 +22,7 @@ namespace VSGenero.Analysis.Parsing.AST
     /// 
     /// For more info, see: http://www.4js.com/online_documentation/fjs-fgl-manual-html/index.html#c_fgl_programs_MAIN.html
     /// </summary>
-    public class MainBlockNode : FunctionBlockNode, IFunctionResult
+    public class MainBlockNode : FunctionBlockNode
     {
         public new bool CanGetValueFromDebugger
         {

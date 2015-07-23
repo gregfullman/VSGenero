@@ -10,10 +10,10 @@ namespace VSGenero.Analysis.Parsing.AST
     public class VariableDef : IAnalysisResult
     {
         public string Name { get; private set; }
-        public string Namespace { get; set; }
+        
         public TypeReference Type { get; private set; }
         private string _filename;
-
+        private string _oneTimeNamespace;
         private bool _isPublic = false;
         public bool IsPublic
         {
@@ -43,8 +43,11 @@ namespace VSGenero.Analysis.Parsing.AST
                 {
                     sb.AppendFormat("({0}) ", Scope);
                 }
-                if (!string.IsNullOrWhiteSpace(Namespace))
-                    sb.AppendFormat("{0}.", Namespace);
+                if (!string.IsNullOrWhiteSpace(_oneTimeNamespace))
+                {
+                    sb.AppendFormat("{0}.", _oneTimeNamespace);
+                    _oneTimeNamespace = null;
+                }
                 sb.AppendFormat("{0} {1}", Name, Type.ToString());
                 return sb.ToString();
             }
@@ -99,6 +102,12 @@ namespace VSGenero.Analysis.Parsing.AST
         public bool CanGetValueFromDebugger
         {
             get { return true; }
+        }
+
+
+        public void SetOneTimeNamespace(string nameSpace)
+        {
+            _oneTimeNamespace = nameSpace;
         }
     }
 

@@ -162,9 +162,6 @@ namespace VSGenero.Analysis.Parsing.AST
         {
             get { return Identifier; }
         }
-
-        public string Namespace { get { return null; } }
-
         public override string Documentation
         {
             get
@@ -230,6 +227,11 @@ namespace VSGenero.Analysis.Parsing.AST
         public bool HasChildFunctions(GeneroAst ast)
         {
             return false;
+        }
+
+
+        public void SetOneTimeNamespace(string nameSpace)
+        {
         }
     }
 }
