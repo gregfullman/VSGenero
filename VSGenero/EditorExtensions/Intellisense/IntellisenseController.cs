@@ -234,9 +234,9 @@ namespace VSGenero.EditorExtensions.Intellisense
                     return true;
                 string prevChar = _textView.TextSnapshot.GetText(new Span(point.Value.Position - 2, 1));
                 string nextChar = _textView.TextSnapshot.GetText(new Span(point.Value.Position, 1));
-                if ((prevChar == "(" || prevChar == "[") && (string.IsNullOrWhiteSpace(nextChar) || nextChar == "," || nextChar == ")"))
+                if ((prevChar == "(" || prevChar == "[") && (string.IsNullOrWhiteSpace(nextChar) || nextChar == "," || nextChar == ")" || nextChar == "]"))
                     return true;
-                return (string.IsNullOrWhiteSpace(prevChar) || onlyNextChar) && (string.IsNullOrWhiteSpace(nextChar) || nextChar == "," || nextChar == ")");
+                return (string.IsNullOrWhiteSpace(prevChar) || onlyNextChar) && (string.IsNullOrWhiteSpace(nextChar) || nextChar == "," || nextChar == ")" || nextChar == "]");
             }
             return false;
         }
@@ -480,6 +480,9 @@ namespace VSGenero.EditorExtensions.Intellisense
                     (set = _activeSession.CompletionSets[0] as FuzzyCompletionSet) != null &&
                     set.SelectSingleBest())
                 {
+                    // prevent the changed handler from triggering
+                    _blockChangeTrigger = true;
+
                     if(_parentSpan == null)
                         _parentSpan = GetCompletionParentSpan();
                     _activeSession.Commit();
@@ -500,11 +503,13 @@ namespace VSGenero.EditorExtensions.Intellisense
             }
         }
 
+        private bool _blockChangeTrigger;
         void TextBuffer_Changed(object sender, TextContentChangedEventArgs e)
         {
-            if (_activeSession == null)
+            if (_activeSession == null || _blockChangeTrigger)
             {
                 _textView.TextBuffer.Changed -= TextBuffer_Changed;
+                _blockChangeTrigger = false;
             }
             else
             {
@@ -771,6 +776,9 @@ namespace VSGenero.EditorExtensions.Intellisense
                         // ensure the completion session gets committed correctly
                         if (_activeSession != null && !_activeSession.IsDismissed)
                         {
+                            // prevent the changed handler from triggering
+                            _blockChangeTrigger = true;
+
                             _activeSession.Commit();
                         }
 
@@ -799,6 +807,9 @@ namespace VSGenero.EditorExtensions.Intellisense
 
                                 bool enterOnComplete = VSGeneroPackage.Instance.IntellisenseOptions4GLPage.AddNewLineAtEndOfFullyTypedWord &&
                                          EnterOnCompleteText();
+
+                                // prevent the changed handler from triggering
+                                _blockChangeTrigger = true;
 
                                 _activeSession.Commit();
 
@@ -838,6 +849,9 @@ namespace VSGenero.EditorExtensions.Intellisense
                             (VSGeneroPackage.Instance.IntellisenseOptions4GLPage.CompletionCommittedBy.IndexOf(ch) != -1 ||
                              (ch == ' ' && VSGeneroPackage.Instance.IntellisenseOptions4GLPage.SpaceCommitsIntellisense)))
                         {
+                            // prevent the changed handler from triggering
+                            _blockChangeTrigger = true;
+
                             if(_parentSpan == null)
                                 _parentSpan = GetCompletionParentSpan();
                             _activeSession.Commit();
@@ -883,6 +897,9 @@ namespace VSGenero.EditorExtensions.Intellisense
                                 bool enterOnComplete = VSGeneroPackage.Instance.IntellisenseOptions4GLPage.AddNewLineAtEndOfFullyTypedWord &&
                                          EnterOnCompleteText();
 
+                                // prevent the changed handler from triggering
+                                _blockChangeTrigger = true;
+
                                 if(_parentSpan == null)
                                     _parentSpan = GetCompletionParentSpan();
                                 _activeSession.Commit();
@@ -891,7 +908,6 @@ namespace VSGenero.EditorExtensions.Intellisense
                                     RemoveParentSpan(_parentSpan);
                                     _parentSpan = null;
                                 }
-
 
                                 if (!enterOnComplete)
                                 {
@@ -906,6 +922,9 @@ namespace VSGenero.EditorExtensions.Intellisense
                         case VSConstants.VSStd2KCmdID.TAB:
                             if (!_activeSession.IsDismissed)
                             {
+                                // prevent the changed handler from triggering
+                                _blockChangeTrigger = true;
+
                                 if(_parentSpan == null)
                                     _parentSpan = GetCompletionParentSpan();
                                 _activeSession.Commit();
