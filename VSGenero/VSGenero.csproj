@@ -392,6 +392,13 @@
     <Compile Include="Analysis\Utils.cs" />
     <Compile Include="Analysis\VariableType.cs" />
     <Compile Include="EditorExtensions\AutoIndent.cs" />
+    <Compile Include="EditorExtensions\BraceCompletion\BraceKinds.cs" />
+    <Compile Include="EditorExtensions\BraceCompletion\CurlyBraceContext.cs" />
+    <Compile Include="EditorExtensions\BraceCompletion\Extensions.cs" />
+    <Compile Include="EditorExtensions\BraceCompletion\Genero4glBraceContextProvider.cs" />
+    <Compile Include="EditorExtensions\BraceCompletion\Genero4glLanguageInfo.cs" />
+    <Compile Include="EditorExtensions\BraceCompletion\LiteralCompletionContext.cs" />
+    <Compile Include="EditorExtensions\BraceCompletion\NormalCompletionContext.cs" />
     <Compile Include="EditorExtensions\BraceHighlighter.cs" />
     <Compile Include="EditorExtensions\GeneroLexer.cs" />
     <Compile Include="EditorExtensions\GeneroTextViewListener.cs" />
@@ -486,6 +493,7 @@
     <Compile Include="EditorExtensions\Intellisense\TestFunctionProvider.cs" />
     <Compile Include="EditorExtensions\ISnapshotTextReader.cs" />
     <Compile Include="EditorExtensions\GeneroPredefinedClassificationTypeNames.cs" />
+    <Compile Include="EditorExtensions\BraceCompletion\LanguageBraceCompletionAttribute.cs" />
     <Compile Include="EditorExtensions\OutliningTaggerProvider.cs" />
     <Compile Include="EditorExtensions\SmartIndentProvider.cs" />
     <Compile Include="EditorExtensions\SnapshotSpanCodeReader.cs" />

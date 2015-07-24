@@ -58,6 +58,7 @@ using System.Reflection;
 using VSGenero.EditorExtensions.Intellisense;
 using Microsoft.VisualStudio.Text.Adornments;
 using VSGenero.Analysis;
+using VSGenero.EditorExtensions.BraceCompletion;
 
 namespace VSGenero
 {
@@ -95,6 +96,7 @@ namespace VSGenero
                             HideAdvancedMembersByDefault = true,
                             EnableAdvancedMembersOption = true,
                             ShowDropDownOptions = true)]
+    [LanguageBraceCompletion(VSGeneroConstants.LanguageName4GL, EnableCompletion = true)]
     [ProvideLanguageExtension(typeof(VSGenero4GLLanguageInfo), VSGeneroConstants.FileExtension4GL)]
     [ProvideLanguageService(typeof(VSGeneroPERLanguageInfo), VSGeneroConstants.LanguageNamePER, 107,
                             RequestStockColors = true,
@@ -104,6 +106,7 @@ namespace VSGenero
                             HideAdvancedMembersByDefault = true,
                             EnableAdvancedMembersOption = true,
                             ShowDropDownOptions = true)]
+    [LanguageBraceCompletion(VSGeneroConstants.LanguageNamePER, EnableCompletion = true)]
     [ProvideLanguageExtension(typeof(VSGeneroPERLanguageInfo), VSGeneroConstants.FileExtensionPER)]
     [ProvideLanguageService(typeof(VSGeneroINCLanguageInfo), VSGeneroConstants.LanguageNameINC, 108,
                             RequestStockColors = true,
@@ -113,6 +116,7 @@ namespace VSGenero
                             HideAdvancedMembersByDefault = true,
                             EnableAdvancedMembersOption = true,
                             ShowDropDownOptions = true)]
+    [LanguageBraceCompletion(VSGeneroConstants.LanguageNameINC, EnableCompletion = true)]
     [ProvideLanguageExtension(typeof(VSGeneroINCLanguageInfo), VSGeneroConstants.FileExtensionINC)]
     [ProvideLanguageEditorOptionPage(typeof(Genero4GLIntellisenseOptionsPage), VSGeneroConstants.LanguageName4GL, "", "Intellisense", "113")]
     [ProvideLanguageEditorOptionPage(typeof(Genero4GLAdvancedOptionsPage), VSGeneroConstants.LanguageName4GL, "", "Advanced", "114")]
