@@ -113,13 +113,15 @@ namespace VSGenero.EditorExtensions
                         )
                     );
 
-                var tokenStack = new System.Collections.Generic.Stack<ClassificationSpan>();
-                tokenStack.Push(null);  // end with an implicit newline
+                var tokenStack = new List<ClassificationSpan>();// new System.Collections.Generic.Stack<ClassificationSpan>();
+                //tokenStack.Push(null);  // end with an implicit newline
+                tokenStack.Insert(0, null);
                 bool endAtNextNull = false;
 
                 foreach (var token in revParser)
                 {
-                    tokenStack.Push(token);
+                    //tokenStack.Push(token);
+                    tokenStack.Insert(0, token);
                     if (token == null && endAtNextNull)
                     {
                         break;
@@ -130,17 +132,31 @@ namespace VSGenero.EditorExtensions
                         var tok = Tokens.GetToken(token.Span.GetText());
                         if (tok != null && GeneroAst.ValidStatementKeywords.Contains(tok.Kind))
                         {
-                            endAtNextNull = true;
+                            switch (tok.Kind)
+                            {
+                                // Handle any tokens that are valid statement keywords in the autocomplete context but not in the "statement start" context
+                                case TokenKind.EndKeyword:
+                                    continue;
+                                default:
+                                    endAtNextNull = true;
+                                    break;
+                            }
                         }
                     }
                 }
 
                 var indentStack = new System.Collections.Generic.Stack<LineInfo>();
                 var current = LineInfo.Empty;
+                List<CancelIndent> cancelIndent = null;
+                int cancelIndentStartingAt = -1;
+                TokenKind firstStatement = TokenKind.EndOfFile;
+                TokenKind latestIndentChangeToken = TokenKind.EndOfFile;
 
-                while (tokenStack.Count > 0)
+                for (int i = 0; i < tokenStack.Count; i++)
                 {
-                    var token = tokenStack.Pop();
+                    //while (tokenStack.Count > 0)
+                    //{
+                    var token = tokenStack[i];//tokenStack.Pop();
                     if (token == null)
                     {
                         current.NeedsUpdate = true;
@@ -179,39 +195,116 @@ namespace VSGenero.EditorExtensions
                     }
                     else if (Genero4glReverseParser.IsExplicitLineJoin(token))
                     {
-                        while (token != null && tokenStack.Count > 0)
+                        while (token != null && i + 1 < tokenStack.Count /* tokenStack.Count > 0*/)
                         {
-                            token = tokenStack.Pop();
+                            i++;
+                            token = tokenStack[i];//.Pop();
                         }
                     }
                     else if (current.NeedsUpdate == true)
                     {
-                        var line2 = token.Span.Start.GetContainingLine();
-                        current = new LineInfo
+                        var tok = Tokens.GetToken(token.Span.GetText());
+                        if (tok == null || !GeneroAst.ValidStatementKeywords.Contains(tok.Kind))
                         {
-                            Indentation = GetIndentation(line2.GetText(), tabSize)
-                        };
+                            current.NeedsUpdate = false;
+                        }
+                        else
+                        {
+                            switch (tok.Kind)
+                            {
+                                // Handle any tokens that are valid statement keywords in the autocomplete context but not in the "statement start" context
+                                case TokenKind.EndKeyword:
+                                    current.NeedsUpdate = false;
+                                    break;
+                                default:
+                                    {
+                                        if (firstStatement == TokenKind.EndOfFile)
+                                            firstStatement = tok.Kind;
+                                        var line2 = token.Span.Start.GetContainingLine();
+                                        current = new LineInfo
+                                        {
+                                            Indentation = GetIndentation(line2.GetText(), tabSize)
+                                        };
+                                        break;
+                                    }
+                            }
+                        }
                     }
 
-                    if (token != null && ShouldDedentAfterKeyword(token, revParser))
+                    if (token != null && current.ShouldIndentAfter && cancelIndent != null)
+                    {
+                        // Check to see if we have following tokens that would cancel the current indent.
+                        var tok = Tokens.GetToken(token.Span.GetText());
+                        if (tok != null)
+                        {
+                            bool allPast = true;
+                            bool cancel = false;
+                            foreach (var ci in cancelIndent)
+                            {
+                                if (ci.TokensAhead < (i - cancelIndentStartingAt))
+                                    continue;
+                                else
+                                {
+                                    allPast = false;
+                                    if (ci.TokensAhead == (i - cancelIndentStartingAt))
+                                    {
+                                        cancel = tok.Kind == ci.CancelToken;
+                                        if (cancel)
+                                            break;
+                                    }
+                                }
+                            }
+                            if (cancel)
+                            {
+                                current.ShouldIndentAfter = false;
+                            }
+                            if (cancel || allPast)
+                            {
+                                cancelIndent = null;
+                                cancelIndentStartingAt = -1;
+                                latestIndentChangeToken = TokenKind.EndOfFile;
+                            }
+                        }
+                    }
+
+                    if (token != null && ShouldDedentAfterKeyword(token))
                     {     // dedent after some statements
                         current.ShouldDedentAfter = true;
                     }
 
-                    if (token != null && indentStack.Count == 0 && ShouldIndentAfterKeyword(token, revParser))
+                    TokenKind tempChangeToken;
+                    if (token != null && indentStack.Count == 0 && ShouldIndentAfterKeyword(token, out tempChangeToken, out cancelIndent))
                     {                               // except in a grouping
+                        latestIndentChangeToken = tempChangeToken;
                         current.ShouldIndentAfter = true;
-                        // If the colon isn't at the end of the line, cancel it out.
-                        // If the following is a ShouldDedentAfterKeyword, only one dedent will occur.
-                        //if (!current.ShouldDedentAfter)
-                        //    current.ShouldDedentAfter = (tokenStack.Count != 0 && tokenStack.Peek() != null);
+                        if (cancelIndent != null)
+                            cancelIndentStartingAt = i;
+                    }
+                }
+
+                if (tokenStack.Count > 2 &&
+                    tokenStack[tokenStack.Count - 2] != null)
+                {
+                    if (latestIndentChangeToken != TokenKind.EndOfFile &&
+                       _customIndentingRules.ContainsKey(latestIndentChangeToken))
+                    {
+                        var potentialIndent = _customIndentingRules[latestIndentChangeToken](tokenStack, tabSize);
+                        if (potentialIndent != 0)
+                        {
+                            return potentialIndent;
+                        }
                     }
 
-                    // TODO: need to provide a way to handle certain kinds of statements, where we want to be able to set the indentation according to the current position in the statement.
-                    // For example, a define statement where we want to line up the variable names, like this:
-                    // define x,
-                    //        y     boolean
-                    //
+                    // see if we have specific alignment rules
+                    if (firstStatement != TokenKind.EndOfFile &&
+                       _customIndentingRules.ContainsKey(firstStatement))
+                    {
+                        var potentialIndent = _customIndentingRules[firstStatement](tokenStack, tabSize);
+                        if (potentialIndent != 0)
+                        {
+                            return potentialIndent;
+                        }
+                    }
                 }
 
                 indentation = current.Indentation +
@@ -220,6 +313,117 @@ namespace VSGenero.EditorExtensions
             }
 
             return indentation;
+        }
+
+        private static Dictionary<TokenKind, Func<List<ClassificationSpan>, int, int>> _customIndentingRules = new Dictionary<TokenKind, Func<List<ClassificationSpan>, int, int>>
+        {
+            { TokenKind.DefineKeyword, DefineStatementIndenting},
+            { TokenKind.TypeKeyword, DefineStatementIndenting},
+            { TokenKind.ConstantKeyword, DefineStatementIndenting},
+            { TokenKind.RecordKeyword, RecordBlockIndenting},
+            { TokenKind.CallKeyword, CallStatementIndenting}
+        };
+
+        private static int RecordBlockIndenting(List<ClassificationSpan> tokenList, int defaultTabSize)
+        {
+            if (tokenList[0] == null && tokenList[tokenList.Count - 1] == null)
+            {
+                if (tokenList.Count > 3)
+                {
+                    var lastTokText = tokenList[tokenList.Count - 2].Span.GetText();
+                    if (lastTokText == ",")
+                    {
+                        var line = tokenList[tokenList.Count - 2].Span.Start.GetContainingLine();
+                        return GetIndentation(line.GetText(), defaultTabSize);
+                    }
+                }
+            }
+            return 0;
+        }
+
+        private static int CallStatementIndenting(List<ClassificationSpan> tokenList, int defaultTabSize)
+        {
+            if (tokenList[0] == null && tokenList[tokenList.Count - 1] == null)
+            {
+                if (tokenList.Count > 3)
+                {
+                    var lastTokText = tokenList[tokenList.Count - 2].Span.GetText();
+                    if (lastTokText == ",")
+                    {
+                        int lastIndex = tokenList.Count - 3;
+                        while (tokenList[lastIndex] == null)
+                            lastIndex--;
+                        var line = tokenList[tokenList.Count - 2].Span.Start.GetContainingLine();
+                        return tokenList[lastIndex].Span.Start - line.Start;
+                    }
+                }
+            }
+            return 0;
+        }
+
+        private static int DefineStatementIndenting(List<ClassificationSpan> tokenList, int defaultTabSize)
+        {
+            if (tokenList[0] == null && tokenList[tokenList.Count - 1] == null)
+            {
+                if (tokenList.Count > 3)
+                {
+                    var startTokText = tokenList[1].Span.GetText();
+                    var startTok = Tokens.GetToken(startTokText);
+                    if (startTok != null)
+                    {
+                        var lastTokText = tokenList[tokenList.Count - 2].Span.GetText();
+                        var lastTok = Tokens.GetToken(lastTokText);
+                        if (lastTok == null)
+                            lastTok = Tokens.GetSymbolToken(lastTokText);
+                        if(lastTok != null)
+                        {
+                            switch (lastTok.Kind)
+                            {
+                                case TokenKind.Comma:
+                                    {
+                                        switch (startTok.Kind)
+                                        {
+                                            case TokenKind.DefineKeyword:
+                                            case TokenKind.ConstantKeyword:
+                                            case TokenKind.TypeKeyword:
+                                                {
+                                                    int nextIndex = 2;
+                                                    while (tokenList[nextIndex] == null)
+                                                        nextIndex++;
+                                                    // grab the next token and get its "indentation"
+                                                    var line = tokenList[nextIndex].Span.Start.GetContainingLine();
+                                                    return tokenList[nextIndex].Span.Start - line.Start;
+                                                }
+                                        }
+                                        break;
+                                    }
+                                case TokenKind.RecordKeyword:
+                                    {
+                                        int lastIndex = tokenList.Count - 3;
+                                        while (tokenList[lastIndex] == null)
+                                            lastIndex--;
+                                        var checkPrevTok = Tokens.GetToken(tokenList[lastIndex].Span.GetText());
+                                        if (checkPrevTok == null || checkPrevTok.Kind != TokenKind.EndKeyword)
+                                        {
+                                            switch (startTok.Kind)
+                                            {
+                                                case TokenKind.DefineKeyword:
+                                                case TokenKind.TypeKeyword:
+                                                    {
+                                                        // get the line of the last token
+                                                        var line = tokenList[tokenList.Count - 2].Span.Start.GetContainingLine();
+                                                        return GetIndentation(line.GetText(), defaultTabSize) + defaultTabSize;
+                                                    }
+                                            }
+                                        }
+                                        break;
+                                    }
+                            }
+                        }
+                    }
+                }
+            }
+            return 0;
         }
 
         private static bool IsUnterminatedStringToken(ClassificationSpan lastToken)
@@ -236,24 +440,38 @@ namespace VSGenero.EditorExtensions
             return false;
         }
 
-        public static HashSet<TokenKind> BlockKeywords = new HashSet<TokenKind>
+        public static HashSet<TokenKind> BlockKeywordsContainsCheck = new HashSet<TokenKind>
         {
-             TokenKind.GlobalsKeyword,
-             TokenKind.RecordKeyword,
-             TokenKind.MainKeyword,
-             TokenKind.TryKeyword,
-             TokenKind.SqlKeyword,
-             TokenKind.FunctionKeyword,
-             TokenKind.IfKeyword,
-             TokenKind.ElseKeyword,
-             TokenKind.WhileKeyword, 
-             TokenKind.ForKeyword,
-             TokenKind.ForeachKeyword,
-             TokenKind.CaseKeyword,
+            TokenKind.RecordKeyword
         };
 
+        public static Dictionary<TokenKind, List<CancelIndent>> BlockKeywords = new Dictionary<TokenKind, List<CancelIndent>>
+        {
+             { TokenKind.GlobalsKeyword, null },
+             { TokenKind.RecordKeyword, new List<CancelIndent>
+             {
+                new CancelIndent { CancelToken = TokenKind.LikeKeyword, TokensAhead = 1 }
+             }},
+             { TokenKind.MainKeyword, null },
+             { TokenKind.TryKeyword, null },
+             { TokenKind.SqlKeyword, null },
+             { TokenKind.FunctionKeyword, null },
+             { TokenKind.IfKeyword, null },
+             { TokenKind.ElseKeyword, null },
+             { TokenKind.WhileKeyword,  null },
+             { TokenKind.ForKeyword, null },
+             { TokenKind.ForeachKeyword, null },
+             { TokenKind.CaseKeyword, null },
+        };
+
+        public class CancelIndent
+        {
+            public TokenKind CancelToken { get; set; }
+            public int TokensAhead { get; set; }
+        }
+
         // TODO: eventually this will need to support mixed use (e.g. dialog, display, etc. blocks)
-        public static Dictionary<TokenKind, TokenKind> SubBlockKeywords = new Dictionary<TokenKind,TokenKind>
+        public static Dictionary<TokenKind, TokenKind> SubBlockKeywords = new Dictionary<TokenKind, TokenKind>
         {
             { TokenKind.ElseKeyword, TokenKind.IfKeyword },
             { TokenKind.CatchKeyword, TokenKind.TryKeyword },
@@ -261,27 +479,33 @@ namespace VSGenero.EditorExtensions
             { TokenKind.OtherwiseKeyword, TokenKind.CaseKeyword }
         };
 
-        private static bool ShouldIndentAfterKeyword(ClassificationSpan span, IReverseTokenizer revParser)
+        private static bool ShouldIndentAfterKeyword(ClassificationSpan span, out TokenKind matchedToken, out List<CancelIndent> cancelIndent)
         {
+            matchedToken = TokenKind.EndOfFile;
+            cancelIndent = null;
             var tok = Tokens.GetToken(span.Span.GetText());
             if (tok != null)
             {
-                return BlockKeywords.Contains(tok.Kind);
+                if (BlockKeywords.TryGetValue(tok.Kind, out cancelIndent))
+                {
+                    matchedToken = tok.Kind;
+                    return true;
+                }
             }
             return false;
         }
 
-        private static bool ShouldDedentAfterKeyword(ClassificationSpan span, IReverseTokenizer revParser)
+        private static bool ShouldDedentAfterKeyword(ClassificationSpan span)
         {
-            return span.ClassificationType.Classification == PredefinedClassificationTypeNames.Keyword && ShouldDedentAfterKeyword(span.Span.GetText(), revParser);
+            return span.ClassificationType.Classification == PredefinedClassificationTypeNames.Keyword && ShouldDedentAfterKeyword(span.Span.GetText());
         }
 
-        private static bool ShouldDedentAfterKeyword(string keyword, IReverseTokenizer revParser)
+        private static bool ShouldDedentAfterKeyword(string keyword)
         {
             var tok = Tokens.GetToken(keyword);
-            if(tok != null)
+            if (tok != null)
             {
-                switch(tok.Kind)
+                switch (tok.Kind)
                 {
                     case TokenKind.EndKeyword:
                         return true;

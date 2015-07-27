@@ -155,7 +155,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                 new BackwardTokenSearchItem(TokenKind.MessageKeyword),
                                 new BackwardTokenSearchItem(TokenKind.ErrorKeyword),
                                 new BackwardTokenSearchItem(new OrderedTokenSet(new object[] { TokenKind.ToKeyword, TokenKind.DisplayKeyword})),
-                                new BackwardTokenSearchItem(new OrderedTokenSet(new object[] { TokenKind.Name, TokenKind.ByKeyword, TokenKind.DisplayKeyword })),
+                                new BackwardTokenSearchItem(new OrderedTokenSet(new object[] { TokenKind.NameKeyword, TokenKind.ByKeyword, TokenKind.DisplayKeyword })),
                             }
                         ),
                     };
@@ -662,6 +662,12 @@ namespace VSGenero.Analysis.Parsing.AST
                     {
                         new ContextPossibilities(
                             emptyTokenKindSet,
+                            new ContextSetProvider[] { GetStatementStartKeywords },
+                            new BackwardTokenSearchItem[] 
+                            { new BackwardTokenSearchItem(TokenKind.EndKeyword) }
+                        ),
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
                             new ContextSetProvider[] { GetVariables },
                             emptyBackwardTokenSearchSet
                         )
@@ -848,6 +854,7 @@ namespace VSGenero.Analysis.Parsing.AST
                             { 
                                 new BackwardTokenSearchItem(TokenKind.WhenKeyword),
                                 new BackwardTokenSearchItem(new OrderedTokenSet(new object[] { TokenCategory.Identifier, TokenKind.DefineKeyword })),
+                                new BackwardTokenSearchItem(new OrderedTokenSet(new object[] { TokenKind.LikeKeyword, TokenKind.DefineKeyword })),
                                 new BackwardTokenSearchItem(new OrderedTokenSet(new object[] { TokenCategory.Identifier, TokenKind.TypeKeyword })),
                                 new BackwardTokenSearchItem(new OrderedTokenSet(new object[] { TokenCategory.Identifier, TokenKind.Comma, TokenKind.RecordKeyword, TokenKind.EndKeyword }))
                             }
@@ -1058,7 +1065,7 @@ namespace VSGenero.Analysis.Parsing.AST
                             new ContextSetProvider[] { GetBinaryOperatorKeywords, GetStatementStartKeywords },
                             new BackwardTokenSearchItem[] 
                             { 
-                                new BackwardTokenSearchItem(new OrderedTokenSet(new object[] { TokenKind.Name, TokenKind.ByKeyword, TokenKind.DisplayKeyword })),
+                                new BackwardTokenSearchItem(new OrderedTokenSet(new object[] { TokenKind.NameKeyword, TokenKind.ByKeyword, TokenKind.DisplayKeyword })),
                                 new BackwardTokenSearchItem(new OrderedTokenSet(new object[] { TokenKind.ToKeyword, TokenKind.DisplayKeyword })),
                                 new BackwardTokenSearchItem(TokenKind.MessageKeyword),
                                 new BackwardTokenSearchItem(TokenKind.ErrorKeyword),
@@ -1694,7 +1701,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                 new BackwardTokenSearchItem(TokenKind.ErrorKeyword),
                                 new BackwardTokenSearchItem(TokenKind.MenuKeyword),
                                 new BackwardTokenSearchItem(new OrderedTokenSet(new object[] { TokenKind.ToKeyword, TokenKind.DisplayKeyword })),
-                                new BackwardTokenSearchItem(new OrderedTokenSet(new object[] { TokenKind.Name, TokenKind.ByKeyword, TokenKind.DisplayKeyword })),
+                                new BackwardTokenSearchItem(new OrderedTokenSet(new object[] { TokenKind.NameKeyword, TokenKind.ByKeyword, TokenKind.DisplayKeyword })),
                             }
                         ),
                         new ContextPossibilities(
@@ -1939,6 +1946,14 @@ namespace VSGenero.Analysis.Parsing.AST
                             }
                         ),
                         new ContextPossibilities(
+                            emptyTokenKindSet,
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.LetKeyword)
+                            }
+                        ),
+                        new ContextPossibilities(
                             new TokenKind[] { TokenKind.ToKeyword },
                             new ContextSetProvider[] { GetBinaryOperatorKeywords, GetStatementStartKeywords },
                             new BackwardTokenSearchItem[] 
@@ -1955,7 +1970,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                 new BackwardTokenSearchItem(TokenKind.ErrorKeyword),
                                 new BackwardTokenSearchItem(TokenKind.MenuKeyword),
                                 new BackwardTokenSearchItem(new OrderedTokenSet(new object[] { TokenKind.ToKeyword, TokenKind.DisplayKeyword })),
-                                new BackwardTokenSearchItem(new OrderedTokenSet(new object[] { TokenKind.Name, TokenKind.ByKeyword, TokenKind.DisplayKeyword })),
+                                new BackwardTokenSearchItem(new OrderedTokenSet(new object[] { TokenKind.NameKeyword, TokenKind.ByKeyword, TokenKind.DisplayKeyword })),
                             }
                         ),
                         new ContextPossibilities(
@@ -1983,7 +1998,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                 new BackwardTokenSearchItem(TokenKind.ErrorKeyword),
                                 new BackwardTokenSearchItem(TokenKind.MenuKeyword),
                                 new BackwardTokenSearchItem(new OrderedTokenSet(new object[] { TokenKind.ToKeyword, TokenKind.DisplayKeyword })),
-                                new BackwardTokenSearchItem(new OrderedTokenSet(new object[] { TokenKind.Name, TokenKind.ByKeyword, TokenKind.DisplayKeyword })),
+                                new BackwardTokenSearchItem(new OrderedTokenSet(new object[] { TokenKind.NameKeyword, TokenKind.ByKeyword, TokenKind.DisplayKeyword })),
                             }
                         ),
                         new ContextPossibilities(
@@ -2304,6 +2319,22 @@ namespace VSGenero.Analysis.Parsing.AST
                     _contextMap.Add(TokenCategory.StringLiteral, new List<ContextPossibilities>
                     {
                         new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetStatementStartKeywords, GetBinaryOperatorKeywords, GetExpressionComponents },
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.WhileKeyword)
+                            }
+                        ),
+                        new ContextPossibilities(
+                            new TokenKind[] { TokenKind.HelpKeyword },
+                            new ContextSetProvider[] { GetStatementStartKeywords, GetBinaryOperatorKeywords, GetExpressionComponents },
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.CommandKeyword)
+                            }
+                        ),
+                        new ContextPossibilities(
                             new TokenKind[] { TokenKind.ToKeyword },
                             new ContextSetProvider[] { GetStatementStartKeywords, GetBinaryOperatorKeywords },
                             new BackwardTokenSearchItem[] 
@@ -2321,6 +2352,15 @@ namespace VSGenero.Analysis.Parsing.AST
                                 new BackwardTokenSearchItem(TokenKind.MenuKeyword),
                                 new BackwardTokenSearchItem(new OrderedTokenSet(new object[] { TokenKind.ToKeyword, TokenKind.DisplayKeyword })),
                                 new BackwardTokenSearchItem(new OrderedTokenSet(new object[] { TokenKind.Name, TokenKind.ByKeyword, TokenKind.DisplayKeyword })),
+                            }
+                        ),
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetStatementStartKeywords, GetBinaryOperatorKeywords },
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(new OrderedTokenSet(new object[] { TokenKind.Equals, TokenKind.LetKeyword })),
+                                new BackwardTokenSearchItem(new OrderedTokenSet(new object[] { TokenKind.Equals, TokenCategory.Identifier, TokenKind.WhereKeyword })),
                             }
                         ),
                     });
@@ -2551,6 +2591,14 @@ namespace VSGenero.Analysis.Parsing.AST
                     });
                     _contextMap.Add(TokenKind.WhileKeyword, new List<ContextPossibilities>
                     {
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetStatementStartKeywords },
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.EndKeyword)
+                            }
+                        ),
                         new ContextPossibilities(
                             emptyTokenKindSet,
                             new ContextSetProvider[] { GetExpressionComponents },

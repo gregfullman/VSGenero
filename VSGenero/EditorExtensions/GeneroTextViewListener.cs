@@ -61,6 +61,7 @@ namespace VSGenero.EditorExtensions
                 var trimmed = lineStr.Trim();
 
                 TokenKind alignWith = TokenKind.EndOfFile;
+                bool useContains = false;
                 if (trimmed.StartsWith("end", StringComparison.OrdinalIgnoreCase))
                 {
                     // get the last word in the line
@@ -68,8 +69,9 @@ namespace VSGenero.EditorExtensions
                     if (word.Length > 1)
                     {
                         var tok = Tokens.GetToken(word[word.Length - 1]);
-                        if (tok != null && AutoIndent.BlockKeywords.Contains(tok.Kind))
+                        if (tok != null && AutoIndent.BlockKeywords.ContainsKey(tok.Kind))
                         {
+                            useContains = AutoIndent.BlockKeywordsContainsCheck.Contains(tok.Kind);
                             alignWith = tok.Kind;
                         }
                     }
@@ -101,7 +103,9 @@ namespace VSGenero.EditorExtensions
                     while (prevLineNo > 0)
                     {
                         prevLine = e.After.GetLineFromLineNumber(prevLineNo);
-                        if ((prevLineStr = prevLine.GetText()).TrimStart().StartsWith(keyword, StringComparison.OrdinalIgnoreCase))
+                        prevLineStr = prevLine.GetText();
+                        if ((!useContains && prevLineStr.TrimStart().StartsWith(keyword, StringComparison.OrdinalIgnoreCase)) ||
+                            prevLineStr.Trim().Contains(keyword))
                         {
                             found = true;
                             break;
@@ -124,8 +128,13 @@ namespace VSGenero.EditorExtensions
                             }
                             else
                             {
-                                replacement = lineStr.PadLeft(desiredIndentation - currIndentation);
+                                StringBuilder sb = new StringBuilder();
+                                for (int i = 0; i < (desiredIndentation - currIndentation); i++)
+                                    sb.Append(' ');
+                                sb.Append(lineStr);
+                                replacement = sb.ToString();
                             }
+                            _ignoreNextChange = _textView.Caret.Position.BufferPosition.Position;
                             ITextEdit edit = _textView.TextBuffer.CreateEdit();
                             edit.Replace(new Span(line.Start, line.Length), replacement);
                             edit.Apply();

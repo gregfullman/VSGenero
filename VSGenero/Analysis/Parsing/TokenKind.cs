@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -9,58 +10,58 @@ namespace VSGenero.Analysis.Parsing
     public enum TokenKind
     {
         EndOfFile = -1,
-        Error    = 0,
-        NewLine  = 1,
-        Indent   = 2,
-        Dedent   = 3,
-        Comment  = 4,
-        Name     = 8,
+        Error = 0,
+        NewLine = 1,
+        Indent = 2,
+        Dedent = 3,
+        Comment = 4,
+        Name = 8,
         Constant = 9,
-        Dot      = 10,
+        Dot = 10,
         QuestionMark = 11,
 
         // numeric expression operators
         FirstOperator = Add,
         LastOperator = SingleBar,
-        Add      = 20,
+        Add = 20,
         Subtract = 21,
         Multiply = 22,
-        Divide   = 23,
-        Assign   = 24,
-        Power    = 26,
+        Divide = 23,
+        Assign = 24,
+        Power = 26,
 
         // boolean expression operators
-        DoubleEquals       = 30,
-        LessThan           = 31,
-        GreaterThan        = 32,
-        LessThanOrEqual    = 33,
+        DoubleEquals = 30,
+        LessThan = 31,
+        GreaterThan = 32,
+        LessThanOrEqual = 33,
         GreaterThanOrEqual = 34,
-        Equals             = 35,
-        NotEquals          = 36,
-        NotEqualsLTGT      = 37,
+        Equals = 35,
+        NotEquals = 36,
+        NotEqualsLTGT = 37,
 
         // string expression operators
-        DoubleBar        = 38,
-        Exclamation      = 39,
-        SingleBar        = 40,
+        DoubleBar = 38,
+        Exclamation = 39,
+        SingleBar = 40,
 
         // other non-keyword tokens
-        Ampersand        = 47,
-        LeftParenthesis  = 48,
+        Ampersand = 47,
+        LeftParenthesis = 48,
         RightParenthesis = 49,
-        LeftBracket      = 50,
-        RightBracket     = 51,
-        LeftBrace        = 52,
-        RightBrace       = 53,
-        Comma            = 54,
-        Colon            = 55,
-        BackQuote        = 56,
-        Semicolon        = 57,
-        
+        LeftBracket = 50,
+        RightBracket = 51,
+        LeftBrace = 52,
+        RightBrace = 53,
+        Comma = 54,
+        Colon = 55,
+        BackQuote = 56,
+        Semicolon = 57,
+
 
         FirstLanguageKeyword = AbsoluteKeyword,
-        LastLanguageKeyword  = YellowKeyword,
-        AbsoluteKeyword      = 75,
+        LastLanguageKeyword = YellowKeyword,
+        AbsoluteKeyword = 75,
         AcceptKeyword,
         ActionKeyword,
         AfterKeyword,
@@ -538,12 +539,32 @@ namespace VSGenero.Analysis.Parsing
         private static readonly Token symAssign = new OperatorToken(TokenKind.Assign, ":=", -1);
         private static readonly Token symAmpersand = new OperatorToken(TokenKind.Ampersand, "&", -1);
 
+        public static Token GetSymbolToken(string tokenText)
+        {
+            foreach (var field in typeof(Tokens).GetFields(BindingFlags.NonPublic | BindingFlags.Static)
+                                               .Where(x => x.FieldType == typeof(Token)))
+            {
+                var val = field.GetValue(null);
+                if (val is OperatorToken &&
+                   (val as OperatorToken).Image == tokenText)
+                {
+                    return (Token)val;
+                }
+                else if(val is SymbolToken &&
+                        (val as SymbolToken).Image == tokenText)
+                {
+                    return (Token)val;
+                }
+            }
+            return null;
+        }
+
         private static Dictionary<string, TokenKind> _keywords;
         public static Dictionary<string, TokenKind> Keywords
         {
             get
             {
-                if(_keywords == null)
+                if (_keywords == null)
                 {
                     InitializeTokens();
                 }
