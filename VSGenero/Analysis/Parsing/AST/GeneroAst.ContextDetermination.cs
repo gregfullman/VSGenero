@@ -1345,7 +1345,12 @@ namespace VSGenero.Analysis.Parsing.AST
                             { 
                                 new BackwardTokenSearchItem(new OrderedTokenSet(new object[] { TokenKind.TableKeyword, TokenKind.CreateKeyword }))
                             }
-                        )
+                        ),
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetExpressionComponents },
+                            emptyBackwardTokenSearchSet
+                        ),
                     });
                     _contextMap.Add(TokenKind.LessThan, new List<ContextPossibilities>
                     {
