@@ -331,23 +331,16 @@ namespace VSGenero.Analysis.Parsing.AST
             return null;
         }
 
-        /// <summary>
-        /// Evaluates the given expression in at the provided line number and returns the values
-        /// that the expression can evaluate to.
-        /// </summary>
-        /// <param name="exprText">The expression to determine the result of.</param>
-        /// <param name="index">The 0-based absolute index into the file where the expression should be evaluated within the module.</param>
-        public IAnalysisResult GetValueByIndex(string exprText, int index, IFunctionInformationProvider functionProvider, 
-                                               IDatabaseInformationProvider databaseProvider, IProgramFileProvider programFileProvider, 
-                                               out IGeneroProject definingProject, out IProjectEntry projectEntry, bool searchInFunctionProvider = false)
+        public static IAnalysisResult GetValueByIndex(string exprText, int index, GeneroAst ast, out IGeneroProject definingProject, out IProjectEntry projectEntry, 
+                                                      bool searchInFunctionProvider = false)
         {
             definingProject = null;
             projectEntry = null;
-            _functionProvider = functionProvider;
-            _databaseProvider = databaseProvider;
-            _programFileProvider = programFileProvider;
+            //_functionProvider = functionProvider;
+            //_databaseProvider = databaseProvider;
+            //_programFileProvider = programFileProvider;
 
-            AstNode containingNode = GetContainingNode(_body, index);
+            AstNode containingNode = GetContainingNode(ast.Body, index);
 
             IAnalysisResult res = null;
             int tmpIndex = 0;
@@ -367,7 +360,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 }
 
                 doSearch = false;
-                switch(exprText[tmpIndex])
+                switch (exprText[tmpIndex])
                 {
                     case '.':
                         {
@@ -414,30 +407,44 @@ namespace VSGenero.Analysis.Parsing.AST
                         break;
                 }
 
-                if(!doSearch)
+                if (!doSearch)
                 {
                     continue;
                 }
 
                 // we can do our search
                 var dotPiece = exprText.Substring(startIndex, (endIndex - startIndex) + 1);
+                if(dotPiece.Contains('('))
+                {
+                    // remove the params piece
+                    int remIndex = dotPiece.IndexOf('(');
+                    dotPiece = dotPiece.Substring(0, remIndex);
+                }
                 resetStartIndex = true;
 
                 if (res != null)
                 {
                     IGeneroProject tempProj;
                     IProjectEntry tempProjEntry;
-                    IAnalysisResult tempRes = res.GetMember(dotPiece, this, out tempProj, out tempProjEntry);
-                    if (tempProj != null)
+                    if (ast != null)
                     {
-                        if (definingProject != tempProj)
+                        IAnalysisResult tempRes = res.GetMember(dotPiece, ast, out tempProj, out tempProjEntry);
+                        if (tempProj != null)
                         {
-                            definingProject = tempProj;
-                            projectEntry = tempProjEntry;
+                            if (definingProject != tempProj)
+                            {
+                                definingProject = tempProj;
+                                projectEntry = tempProjEntry;
+                            }
+                        }
+                        res = tempRes;
+                        if (tempRes == null)
+                        {
+                            res = null;
+                            break;
                         }
                     }
-                    res = tempRes;
-                    if (tempRes == null)
+                    else
                     {
                         res = null;
                         break;
@@ -459,9 +466,9 @@ namespace VSGenero.Analysis.Parsing.AST
                         continue;
                     }
 
-                    if (_functionProvider != null && _functionProvider.Name.Equals(dotPiece, StringComparison.OrdinalIgnoreCase))
+                    if (ast._functionProvider != null && ast._functionProvider.Name.Equals(dotPiece, StringComparison.OrdinalIgnoreCase))
                     {
-                        res = _functionProvider;
+                        res = ast._functionProvider;
                         continue;
                     }
 
@@ -477,10 +484,10 @@ namespace VSGenero.Analysis.Parsing.AST
                         }
                     }
 
-                    if (_body is IModuleResult)
+                    if (ast.Body is IModuleResult)
                     {
                         // check for module vars, types, and constants (and globals defined in this module)
-                        IModuleResult mod = _body as IModuleResult;
+                        IModuleResult mod = ast.Body as IModuleResult;
                         if (mod.Variables.TryGetValue(dotPiece, out res) ||
                            mod.Types.TryGetValue(dotPiece, out res) ||
                            mod.Constants.TryGetValue(dotPiece, out res) ||
@@ -508,9 +515,9 @@ namespace VSGenero.Analysis.Parsing.AST
                     // TODO: this could probably be done more efficiently by having each GeneroAst load globals and functions into
                     // dictionaries stored on the IGeneroProject, instead of in each project entry.
                     // However, this does required more upkeep when changes occur. Will look into it...
-                    if (_projEntry != null && _projEntry is IGeneroProjectEntry)
+                    if (ast.ProjectEntry != null && ast.ProjectEntry is IGeneroProjectEntry)
                     {
-                        IGeneroProjectEntry genProj = _projEntry as IGeneroProjectEntry;
+                        IGeneroProjectEntry genProj = ast.ProjectEntry as IGeneroProjectEntry;
                         if (genProj.ParentProject != null)
                         {
                             bool found = false;
@@ -635,10 +642,10 @@ namespace VSGenero.Analysis.Parsing.AST
 
                     if (searchInFunctionProvider)
                     {
-                        if (res == null && _functionProvider != null)
+                        if (res == null && ast._functionProvider != null)
                         {
                             // check for the function name in the function provider
-                            var funcs = _functionProvider.GetFunction(dotPiece);
+                            var funcs = ast._functionProvider.GetFunction(dotPiece);
                             if (funcs != null)
                             {
                                 res = funcs.FirstOrDefault();
@@ -651,13 +658,13 @@ namespace VSGenero.Analysis.Parsing.AST
                     }
 
                     // try an imported module
-                    if (_body is IModuleResult &&
-                       _projEntry is IGeneroProjectEntry)
+                    if (ast.Body is IModuleResult &&
+                       ast.ProjectEntry is IGeneroProjectEntry)
                     {
-                        if ((_body as IModuleResult).FglImports.Contains(dotPiece))
+                        if ((ast.Body as IModuleResult).FglImports.Contains(dotPiece))
                         {
                             // need to get the ast for the other project entry
-                            var refProjKVP = (_projEntry as IGeneroProjectEntry).ParentProject.ReferencedProjects.Values.FirstOrDefault(x => Path.GetFileName(x.Directory).Equals(dotPiece, StringComparison.OrdinalIgnoreCase));
+                            var refProjKVP = (ast.ProjectEntry as IGeneroProjectEntry).ParentProject.ReferencedProjects.Values.FirstOrDefault(x => Path.GetFileName(x.Directory).Equals(dotPiece, StringComparison.OrdinalIgnoreCase));
                             if (refProjKVP != null && refProjKVP is IAnalysisResult)
                             {
                                 definingProject = refProjKVP;
@@ -669,28 +676,31 @@ namespace VSGenero.Analysis.Parsing.AST
 
                     // try include files
                     bool foundInclude = false;
-                    foreach(var includeFile in this.ProjectEntry.GetIncludedFiles())
+                    if (ast != null)
                     {
-                        if (includeFile.Analysis != null &&
-                            includeFile.Analysis.Body is IModuleResult)
+                        foreach (var includeFile in ast.ProjectEntry.GetIncludedFiles())
                         {
-                            var mod = includeFile.Analysis.Body as IModuleResult;
-                            if (mod.Types.TryGetValue(dotPiece, out res) ||
-                               mod.Constants.TryGetValue(dotPiece, out res) ||
-                               mod.GlobalTypes.TryGetValue(dotPiece, out res) ||
-                               mod.GlobalConstants.TryGetValue(dotPiece, out res))
+                            if (includeFile.Analysis != null &&
+                                includeFile.Analysis.Body is IModuleResult)
                             {
-                                foundInclude = true;
-                                break;
+                                var mod = includeFile.Analysis.Body as IModuleResult;
+                                if (mod.Types.TryGetValue(dotPiece, out res) ||
+                                   mod.Constants.TryGetValue(dotPiece, out res) ||
+                                   mod.GlobalTypes.TryGetValue(dotPiece, out res) ||
+                                   mod.GlobalConstants.TryGetValue(dotPiece, out res))
+                                {
+                                    foundInclude = true;
+                                    break;
+                                }
                             }
                         }
                     }
                     if (foundInclude)
                         continue;
 
-                    if (_databaseProvider != null)
+                    if (ast._databaseProvider != null)
                     {
-                        res = _databaseProvider.GetTable(dotPiece);
+                        res = ast._databaseProvider.GetTable(dotPiece);
                         if (res != null)
                             continue;
                     }
@@ -701,6 +711,23 @@ namespace VSGenero.Analysis.Parsing.AST
             }
 
             return res;
+        }
+
+        /// <summary>
+        /// Evaluates the given expression in at the provided line number and returns the values
+        /// that the expression can evaluate to.
+        /// </summary>
+        /// <param name="exprText">The expression to determine the result of.</param>
+        /// <param name="index">The 0-based absolute index into the file where the expression should be evaluated within the module.</param>
+        public IAnalysisResult GetValueByIndex(string exprText, int index, IFunctionInformationProvider functionProvider, 
+                                               IDatabaseInformationProvider databaseProvider, IProgramFileProvider programFileProvider, 
+                                               out IGeneroProject definingProject, out IProjectEntry projectEntry, bool searchInFunctionProvider = false)
+        {
+            _functionProvider = functionProvider;
+            _databaseProvider = databaseProvider;
+            _programFileProvider = programFileProvider;
+
+            return GetValueByIndex(exprText, index, this, out definingProject, out projectEntry, searchInFunctionProvider);
         }
 
         /// <summary>

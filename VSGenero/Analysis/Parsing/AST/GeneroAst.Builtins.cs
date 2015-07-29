@@ -608,6 +608,11 @@ new ParameterResult("width", "", "integer"),
         public void SetOneTimeNamespace(string nameSpace)
         {
         }
+
+        public string Typename
+        {
+            get { return _typeName; }
+        }
     }
 
     public class SystemMacro : IAnalysisResult
@@ -697,6 +702,11 @@ new ParameterResult("width", "", "integer"),
         public void SetOneTimeNamespace(string nameSpace)
         {
         }
+
+        public string Typename
+        {
+            get { return null; }
+        }
     }
 
     public class SystemConstant : IAnalysisResult
@@ -785,6 +795,11 @@ new ParameterResult("width", "", "integer"),
 
         public void SetOneTimeNamespace(string nameSpace)
         {
+        }
+
+        public string Typename
+        {
+            get { return _typeName; }
         }
     }
 
@@ -876,6 +891,15 @@ new ParameterResult("width", "", "integer"),
                     sb.AppendFormat("({0}) ", Scope);
                 }
 
+                if(_returns.Count == 0)
+                {
+                    sb.Append("void ");
+                }
+                else if(_returns.Count == 1)
+                {
+                    sb.AppendFormat("{0} ", _returns[0]);
+                }
+
                 if (!string.IsNullOrWhiteSpace(_namespace))
                     sb.AppendFormat("{0}.", _namespace);
                 sb.Append(Name);
@@ -896,7 +920,7 @@ new ParameterResult("width", "", "integer"),
 
                 sb.Append(')');
 
-                if (_returns.Count > 0)
+                if (_returns.Count > 1)
                 {
                     sb.AppendLine();
                     sb.Append("returning ");
@@ -1007,6 +1031,19 @@ new ParameterResult("width", "", "integer"),
         public void SetOneTimeNamespace(string nameSpace)
         {
         }
+
+        public string Typename
+        {
+            get 
+            {
+                if (_returns != null && _returns.Count == 1)
+                {
+                    var typeRef = new TypeReference(_returns[0]);
+                    return typeRef.ToString();
+                }
+                return null;
+            }
+        }
     }
 
     public class SystemClass : IAnalysisResult
@@ -1091,6 +1128,11 @@ new ParameterResult("width", "", "integer"),
 
         public void SetOneTimeNamespace(string nameSpace)
         {
+        }
+
+        public string Typename
+        {
+            get { return null; }
         }
     }
 }

@@ -297,5 +297,10 @@ namespace VSGenero.Analysis.Parsing.AST
         {
             _oneTimeNamespace = nameSpace;
         }
+
+        public string Typename
+        {
+            get { return SpecifiedType; }       // TODO: this is usually not specified, so we need to determine the type from the value when it isn't
+        }
     }
 }

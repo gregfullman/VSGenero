@@ -331,6 +331,11 @@ namespace VSGenero.Analysis
 
     public class GeneroProject : IGeneroProject, IAnalysisResult
     {
+        public string Typename
+        {
+            get { return null; }
+        }
+
         private readonly string _directory;
         public GeneroProject(string directory)
         {

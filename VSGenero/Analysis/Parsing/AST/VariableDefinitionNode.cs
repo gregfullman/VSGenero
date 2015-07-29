@@ -104,10 +104,14 @@ namespace VSGenero.Analysis.Parsing.AST
             get { return true; }
         }
 
-
         public void SetOneTimeNamespace(string nameSpace)
         {
             _oneTimeNamespace = nameSpace;
+        }
+
+        public string Typename
+        {
+            get { return Type.ToString(); }
         }
     }
 

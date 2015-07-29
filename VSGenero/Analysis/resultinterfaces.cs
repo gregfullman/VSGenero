@@ -28,6 +28,7 @@ namespace VSGenero.Analysis
         bool HasChildFunctions(GeneroAst ast);
         bool CanGetValueFromDebugger { get; }
         bool IsPublic { get; }
+        string Typename { get; }
 
         void SetOneTimeNamespace(string nameSpace);
         IAnalysisResult GetMember(string name, GeneroAst ast, out IGeneroProject definingProject, out IProjectEntry projectEntry);

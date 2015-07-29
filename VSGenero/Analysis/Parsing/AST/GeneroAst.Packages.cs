@@ -3259,6 +3259,11 @@ namespace VSGenero.Analysis.Parsing.AST
         public void SetOneTimeNamespace(string nameSpace)
         {
         }
+
+        public string Typename
+        {
+            get { return null; }
+        }
     }
 
     public class GeneroPackageClass : IAnalysisResult
@@ -3348,6 +3353,11 @@ namespace VSGenero.Analysis.Parsing.AST
 
         public void SetOneTimeNamespace(string nameSpace)
         {
+        }
+
+        public string Typename
+        {
+            get { return null; }
         }
     }
 
@@ -3439,6 +3449,15 @@ namespace VSGenero.Analysis.Parsing.AST
                     sb.AppendFormat("({0}) ", Scope);
                 }
 
+                if(_returns.Count == 0)
+                {
+                    sb.Append("void ");
+                }
+                else if(_returns.Count == 1)
+                {
+                    sb.AppendFormat("{0} ", _returns[0]);
+                }
+
                 sb.AppendFormat("{0}.{1}", Namespace, Name);
                 sb.Append('(');
 
@@ -3457,7 +3476,7 @@ namespace VSGenero.Analysis.Parsing.AST
 
                 sb.Append(')');
 
-                if (_returns.Count > 0)
+                if (_returns.Count > 1)
                 {
                     sb.AppendLine();
                     sb.Append("returning ");
@@ -3567,6 +3586,19 @@ namespace VSGenero.Analysis.Parsing.AST
 
         public void SetOneTimeNamespace(string nameSpace)
         {
+        }
+
+        public string Typename
+        {
+            get 
+            {
+                if (_returns != null && _returns.Count == 1)
+                {
+                    var typeRef = new TypeReference(_returns[0]);
+                    return typeRef.ToString();
+                }
+                return null;
+            }
         }
     }
 }

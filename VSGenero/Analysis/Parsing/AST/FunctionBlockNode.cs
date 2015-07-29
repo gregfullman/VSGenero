@@ -418,21 +418,20 @@ namespace VSGenero.Analysis.Parsing.AST
                                 string type = null;
                                 var ret = retStmt.Returns[i];
                                 string text = ret.ToString();
-                                IAnalysisResult anRes;
                                 if (text != null)
                                 {
-                                    if (Variables.TryGetValue(text, out anRes))
+                                    IGeneroProject dummyGenProj;
+                                    IProjectEntry dummyProjEntry;
+                                    var result = GeneroAst.GetValueByIndex(text, ret.StartIndex, this.SyntaxTree, out dummyGenProj, out dummyProjEntry);
+                                    if(result != null)
                                     {
-                                        VariableDef varDef = anRes as VariableDef;
-                                        if (varDef != null)
-                                        {
-                                            type = varDef.Type.ToString();
-                                        }
+                                        type = result.Typename;
                                     }
                                 }
 
                                 if (string.IsNullOrEmpty(type))
                                 {
+                                    // it's possible that the return expression is an actual expression (i.e. a + b). Need to determine the type from that...
                                     type = ret.GetExpressionType();
                                 }
 
@@ -587,6 +586,31 @@ namespace VSGenero.Analysis.Parsing.AST
         public void SetOneTimeNamespace(string nameSpace)
         {
             _oneTimeNamespace = nameSpace;
+        }
+
+        private string _typename;
+        public string Typename
+        {
+            get
+            {
+                //if(_typename == null)
+                //{
+                    if (Returns.Length > 0 && Returns.Length < 2)
+                    {
+                        //StringBuilder sb = new StringBuilder();
+                        //if (!string.IsNullOrWhiteSpace(_oneTimeNamespace))
+                        //{
+                        //    sb.AppendFormat("{0}.", _oneTimeNamespace);
+                        //    _oneTimeNamespace = null;
+                        //}
+                        //sb.Append(Returns[0]);
+                        //_typename = sb.ToString();
+                        return Returns[0];
+                    }
+                //}
+                
+                return _typename;
+            }
         }
     }
 }

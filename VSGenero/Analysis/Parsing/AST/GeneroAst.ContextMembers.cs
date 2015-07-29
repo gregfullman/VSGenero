@@ -768,7 +768,7 @@ namespace VSGenero.Analysis.Parsing.AST
 
         #endregion
 
-        private AstNode GetContainingNode(AstNode currentNode, int index)
+        private static AstNode GetContainingNode(AstNode currentNode, int index)
         {
             AstNode containingNode = null;
             if (currentNode.Children.Count > 0)

@@ -126,6 +126,11 @@ namespace VSGenero.EditorExtensions.Intellisense
         public void SetOneTimeNamespace(string nameSpace)
         {
         }
+
+        public string Typename
+        {
+            get { return null; }
+        }
     }
 
     internal class TestFunctionCollection : IAnalysisResult
@@ -206,6 +211,11 @@ namespace VSGenero.EditorExtensions.Intellisense
 
         public void SetOneTimeNamespace(string nameSpace)
         {
+        }
+
+        public string Typename
+        {
+            get { return null; }
         }
     }
 
@@ -369,6 +379,11 @@ namespace VSGenero.EditorExtensions.Intellisense
 
         public void SetOneTimeNamespace(string nameSpace)
         {
+        }
+
+        public string Typename
+        {
+            get { return null; }
         }
     }
 }

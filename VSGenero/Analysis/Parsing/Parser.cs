@@ -307,6 +307,7 @@ namespace VSGenero.Analysis.Parsing
         private GeneroAst CreateAst(AstNode node)
         {
             var ast = new GeneroAst(node, _tokenizer.GetLineLocations(), GeneroLanguageVersion.None, _projectEntry, _filename);
+            node.PropagateSyntaxTree(ast);
             if (_verbatim)
             {
                 if (_lookahead.Token != null)

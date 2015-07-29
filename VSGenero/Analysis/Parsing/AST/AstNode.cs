@@ -18,6 +18,8 @@ namespace VSGenero.Analysis.Parsing.AST
         public IndexSpan _span;
         public bool IsComplete { get; protected set; }
 
+        protected GeneroAst SyntaxTree { get; set; }
+
         public virtual GeneroMemberType MemberType
         {
             get
@@ -93,6 +95,15 @@ namespace VSGenero.Analysis.Parsing.AST
         //    AppendCodeString(res, ast, format);
         //    return res.ToString();
         //}
+
+        public void PropagateSyntaxTree(GeneroAst ast)
+        {
+            SyntaxTree = ast;
+            foreach (var child in Children)
+            {
+                child.Value.PropagateSyntaxTree(ast);
+            }
+        }
 
         public SourceLocation GetStart(GeneroAst parent)
         {

@@ -177,7 +177,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                     case '&':
                     case '.':
                     case ' ':
-                        if (VSGeneroPackage.Instance.LangPrefs.AutoListMembers && AreSurroundingCharactersWhitespace(true))
+                        if (VSGeneroPackage.Instance.LangPrefs.AutoListMembers && AreSurroundingCharactersWhitespace(ch, true))
                         {
                             TriggerCompletionSession(false);
                         }
@@ -216,7 +216,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                         }
                         break;
                     default:
-                        if (VSGeneroPackage.Instance.LangPrefs.AutoListMembers && IsIdentifierChar(ch) && _activeSession == null && AreSurroundingCharactersWhitespace())
+                        if (VSGeneroPackage.Instance.LangPrefs.AutoListMembers && IsIdentifierChar(ch) && _activeSession == null && AreSurroundingCharactersWhitespace(ch))
                         {
                             TriggerCompletionSession(false);
                         }
@@ -225,7 +225,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             }
         }
 
-        private bool AreSurroundingCharactersWhitespace(bool onlyNextChar = false)
+        private bool AreSurroundingCharactersWhitespace(char currChar, bool onlyNextChar = false)
         {
             var point = _textView.GetCaretPosition();
             if (point.HasValue)
@@ -235,6 +235,9 @@ namespace VSGenero.EditorExtensions.Intellisense
                 string prevChar = _textView.TextSnapshot.GetText(new Span(point.Value.Position - 2, 1));
                 string nextChar = _textView.TextSnapshot.GetText(new Span(point.Value.Position, 1));
                 if ((prevChar == "(" || prevChar == "[") && (string.IsNullOrWhiteSpace(nextChar) || nextChar == "," || nextChar == ")" || nextChar == "]"))
+                    return true;
+                // Handle member completion
+                if (onlyNextChar && currChar == '.' && nextChar == "(")
                     return true;
                 return (string.IsNullOrWhiteSpace(prevChar) || onlyNextChar) && (string.IsNullOrWhiteSpace(nextChar) || nextChar == "," || nextChar == ")" || nextChar == "]");
             }
