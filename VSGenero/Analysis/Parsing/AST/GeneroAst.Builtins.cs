@@ -925,12 +925,22 @@ new ParameterResult("width", "", "integer"),
         {
             definingProject = null;
             projEntry = null;
+            if (_returns != null && _returns.Count == 1)
+            {
+                var typeRef = new TypeReference(_returns[0]);
+                return typeRef.GetMember(name, ast, out definingProject, out projEntry);
+            }
             return null;
         }
 
         public IEnumerable<MemberResult> GetMembers(GeneroAst ast, MemberType memberType)
         {
-            return null;
+            if (_returns != null && _returns.Count == 1)
+            {
+                var typeRef = new TypeReference(_returns[0]);
+                return typeRef.GetMembers(ast, memberType);
+            }
+            return new MemberResult[0];
         }
 
         public bool HasChildFunctions(GeneroAst ast)

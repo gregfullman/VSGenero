@@ -35,6 +35,17 @@ namespace VSGenero.Analysis.Parsing.AST
             get { return false; }
         }
 
+        /// <summary>
+        /// This is the default constructor. Don't use this outside of the TypeReference class!
+        /// </summary>
+        internal TypeReference()
+        { }
+
+        internal TypeReference(string typeString)
+        {
+            _typeNameString = typeString;
+        }
+
         public override string ToString()
         {
             if (Children.Count > 0)
@@ -247,17 +258,31 @@ namespace VSGenero.Analysis.Parsing.AST
         {
             definingProject = null;
             projEntry = null;
-            if (!string.IsNullOrWhiteSpace(TableName))
+
+            // need to handle cases where the name is a function call. I think the only time this would happen is if name ends with ')'
+            if (name.EndsWith(")"))
             {
-                // TODO: get the specified column from the database provider
-                return null;
+                // try to get the function from the class
+                int firstParen = name.IndexOf('(');
+                if(firstParen > 0)
+                {
+                    name = name.Substring(0, firstParen);
+                }
             }
-            else
-            {
-                MemberType memType = Analysis.MemberType.All;
-                // TODO: there's probably a better way to do this
-                return GetAnalysisMembers(ast, memType, out definingProject, out projEntry).Where(x => x.Name.Equals(name, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
-            }
+            //else
+            //{
+                if (!string.IsNullOrWhiteSpace(TableName))
+                {
+                    // TODO: get the specified column from the database provider
+                    return null;
+                }
+                else
+                {
+                    MemberType memType = Analysis.MemberType.All;
+                    // TODO: there's probably a better way to do this
+                    return GetAnalysisMembers(ast, memType, out definingProject, out projEntry).Where(x => x.Name.Equals(name, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+                }
+            //}
         }
 
         internal IEnumerable<IAnalysisResult> GetAnalysisMembers(GeneroAst ast, MemberType memberType, out IGeneroProject definingProject, out IProjectEntry projectEntry)
