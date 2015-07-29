@@ -136,6 +136,7 @@ namespace VSGenero.EditorExtensions
                             {
                                 // Handle any tokens that are valid statement keywords in the autocomplete context but not in the "statement start" context
                                 case TokenKind.EndKeyword:
+                                    //endAtNextNull = false;
                                     continue;
                                 default:
                                     endAtNextNull = true;
@@ -214,7 +215,14 @@ namespace VSGenero.EditorExtensions
                             {
                                 // Handle any tokens that are valid statement keywords in the autocomplete context but not in the "statement start" context
                                 case TokenKind.EndKeyword:
-                                    current.NeedsUpdate = false;
+                                    if (firstStatement != TokenKind.EndOfFile)
+                                    {
+                                        current.NeedsUpdate = false;
+                                    }
+                                    else
+                                    {
+                                        latestIndentChangeToken = tok.Kind;
+                                    }
                                     break;
                                 default:
                                     {
@@ -275,8 +283,11 @@ namespace VSGenero.EditorExtensions
                     TokenKind tempChangeToken;
                     if (token != null && indentStack.Count == 0 && ShouldIndentAfterKeyword(token, out tempChangeToken, out cancelIndent))
                     {                               // except in a grouping
+                        if (latestIndentChangeToken != TokenKind.EndKeyword)
+                        {
+                            current.ShouldIndentAfter = true;
+                        }
                         latestIndentChangeToken = tempChangeToken;
-                        current.ShouldIndentAfter = true;
                         if (cancelIndent != null)
                             cancelIndentStartingAt = i;
                     }
