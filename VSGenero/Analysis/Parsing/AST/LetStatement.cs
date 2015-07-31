@@ -1,4 +1,5 @@
 ﻿using Microsoft.VisualStudio.Text;
+using VSGenero.EditorExtensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,10 +21,14 @@ namespace VSGenero.Analysis.Parsing.AST
         {
             if(Children.Count == 1)
             {
-                StringExpressionNode strExpr = Children[Children.Keys[0]] as StringExpressionNode;
+                ExpressionNode strExpr = Children[Children.Keys[0]] as ExpressionNode;
                 if(strExpr != null)
                 {
-                    return strExpr.LiteralValue;
+                    StringBuilder sb = new StringBuilder();
+                    // TODO: come up with a way of formatting a sql statement that has genero code mixed in...
+                    foreach (var line in strExpr.ToString().SplitToLines(80))
+                        sb.AppendLine(line);
+                    return sb.ToString();
                 }
                 else
                 {
