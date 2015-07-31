@@ -54,29 +54,35 @@ namespace VSGenero.EditorExtensions
 
         internal static void Format(ITextView textView, ITextEdit edit, int startLine, int endLine, bool applyEdits = true, bool indentEmptyLines = false)
         {
-            while (startLine > 0)
+            int tabSize = textView.Options.GetTabSize();
+            int baseIndentation = 0;
+            int prevLine = startLine;
+            while (prevLine > 0)
             {
                 // need to get the previous line that isn't blank
-                var lineText = textView.TextBuffer.CurrentSnapshot.GetLineFromLineNumber(--startLine).GetText();
+                var lineText = textView.TextBuffer.CurrentSnapshot.GetLineFromLineNumber(--prevLine).GetText();
                 if (!string.IsNullOrWhiteSpace(lineText) && !lineText.StartsWith("#"))
-                    break;
+                {
+                    var words = lineText.Trim().Split(new[] { ' ' });
+                    if (words.Length >= 1)
+                    {
+                        var tok = Tokens.GetToken(words[0]);
+                        if (tok != null && GeneroAst.ValidStatementKeywords.Contains(tok.Kind))
+                        {
+                            baseIndentation = GetIndentation(lineText, tabSize);
+                            break;
+                        }
+                    }
+                }
             }
 
             bool editsMade = false;
-
-            int tabSize = textView.Options.GetTabSize();
-            int baseIndentation = -1;
-            int currIndentation = -1;
+            int currIndentation = baseIndentation;
             for (int i = startLine; i <= endLine; i++)
             {
                 var line = textView.TextBuffer.CurrentSnapshot.GetLineFromLineNumber(i);
                 var lineStr = line.GetText();
                 var lineIndentation = GetIndentation(lineStr, tabSize);
-                if (baseIndentation < 0)
-                {
-                    // get the indentation of the line (this will be our baseline indentation)
-                    baseIndentation = currIndentation = lineIndentation;
-                }
 
                 bool postIncrement = false, preDecrement = false;
                 var trimmed = lineStr.Trim();
