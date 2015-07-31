@@ -105,12 +105,18 @@ namespace VSGenero.EditorExtensions
                     {
                         prevLine = e.After.GetLineFromLineNumber(prevLineNo);
                         prevLineStr = prevLine.GetText();
-                        if(prevLineStr.TrimStart().StartsWith("end", StringComparison.OrdinalIgnoreCase) && prevLineStr.TrimEnd().EndsWith(keyword, StringComparison.OrdinalIgnoreCase))
+                        var prevTrimmed = prevLineStr.Trim();
+                        if (prevTrimmed.StartsWith("#") || prevTrimmed.StartsWith("--"))
+                        {
+                            prevLineNo--;
+                            continue;
+                        }
+                        else if (prevTrimmed.StartsWith("end", StringComparison.OrdinalIgnoreCase) && prevLineStr.TrimEnd().EndsWith(keyword, StringComparison.OrdinalIgnoreCase))
                         {
                             inNestedBlock = true;
                         }
                         else if ((!useContains && prevLineStr.TrimStart().StartsWith(keyword, StringComparison.OrdinalIgnoreCase)) ||
-                            prevLineStr.Trim().Contains(keyword))
+                            (useContains && prevLineStr.Trim().Contains(keyword)))
                         {
                             if (inNestedBlock)
                             {
