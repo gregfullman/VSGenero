@@ -64,7 +64,7 @@ namespace VSGenero.Navigation
         public abstract int GetLanguageName(out string bstrName);
     }
 
-    [Guid("c41c558d-4373-4ae1-8424-fb04873a0e9c")]
+    [Guid(VSGeneroConstants.guidGenero4glLanguageService)]
     public sealed class VSGenero4GLLanguageInfo : VSGeneroLanguageInfo, IVsLanguageDebugInfo
     {
         public VSGenero4GLLanguageInfo(IServiceProvider serviceProvider)

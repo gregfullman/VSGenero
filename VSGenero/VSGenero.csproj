@@ -550,8 +550,8 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="GlobalSuppressions.cs" />
-    <Compile Include="Snippets\Constants.cs" />
     <Compile Include="Snippets\DynamicSnippet.cs" />
+    <Compile Include="Snippets\ExpansionClient.cs" />
     <Compile Include="Snippets\IPublicFunctionSnippetizer.cs" />
     <Compile Include="Snippets\RegisterSnippetsAttribute.cs" />
     <Compile Include="Snippets\SnippetGenerator.cs" />
@@ -625,6 +625,21 @@
     </When>
   </Choose>
   <ItemGroup>
+    <Content Include="Snippets\CodeSnippets\Snippets\if.snippet">
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="Snippets\CodeSnippets\Snippets\for.snippet">
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="Snippets\CodeSnippets\Snippets\while.snippet">
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="Snippets\CodeSnippets\Snippets\case.snippet">
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="Snippets\CodeSnippets\Snippets\try.snippet">
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <ZipItem Include="Templates\ProjectItems\EmptyPERFile\empty.per">
       <OutputSubPath>EmptyPERFile</OutputSubPath>
     </ZipItem>
@@ -711,9 +726,7 @@
     </EmbeddedResource>
     <Content Include="Resources\Package.ico" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Snippets\CodeSnippets\Snippets\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <ProjectReference Include="..\VSCommon\VSCommon.csproj">
       <Project>{F68C18BD-A5FE-4CF5-A06F-AD1A0A80C7FB}</Project>

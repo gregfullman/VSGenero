@@ -87,7 +87,7 @@ namespace VSGenero
     [PeekSupportedContentType(".4gl")]
     [PeekSupportedContentType(".inc")]
 #endif  
-    [RegisterSnippetsAttribute(VSGenero.Snippets.Constants.guidVSGeneroLanuageServiceString, false, 131, "Genero4GL", @"Snippets\CodeSnippets\SnippetsIndex.xml", @"Snippets\CodeSnippets\Snippets\", @"Snippets\CodeSnippets\Snippets\")]
+    [RegisterSnippetsAttribute(VSGeneroConstants.guidGenero4glLanguageService, false, 131, "Genero4GL", @"Snippets\CodeSnippets\SnippetsIndex.xml", @"Snippets\CodeSnippets\Snippets\", @"Snippets\CodeSnippets\Snippets\")]
     [ProvideLanguageService(typeof(VSGenero4GLLanguageInfo), VSGeneroConstants.LanguageName4GL, 106,
                             RequestStockColors = true,
                             ShowSmartIndent = true,       // enable this when we want to support smart indenting

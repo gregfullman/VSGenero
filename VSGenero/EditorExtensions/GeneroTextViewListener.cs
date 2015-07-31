@@ -100,15 +100,27 @@ namespace VSGenero.EditorExtensions
                     bool found = false;
                     string prevLineStr = null;
                     // find the line that corresponds
+                    bool inNestedBlock = false;
                     while (prevLineNo > 0)
                     {
                         prevLine = e.After.GetLineFromLineNumber(prevLineNo);
                         prevLineStr = prevLine.GetText();
-                        if ((!useContains && prevLineStr.TrimStart().StartsWith(keyword, StringComparison.OrdinalIgnoreCase)) ||
+                        if(prevLineStr.TrimStart().StartsWith("end", StringComparison.OrdinalIgnoreCase) && prevLineStr.TrimEnd().EndsWith(keyword, StringComparison.OrdinalIgnoreCase))
+                        {
+                            inNestedBlock = true;
+                        }
+                        else if ((!useContains && prevLineStr.TrimStart().StartsWith(keyword, StringComparison.OrdinalIgnoreCase)) ||
                             prevLineStr.Trim().Contains(keyword))
                         {
-                            found = true;
-                            break;
+                            if (inNestedBlock)
+                            {
+                                inNestedBlock = false;
+                            }
+                            else
+                            {
+                                found = true;
+                                break;
+                            }
                         }
                         prevLineNo--;
                     }

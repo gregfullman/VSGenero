@@ -11,6 +11,7 @@ using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
 using VSGenero.Analysis;
 using VSGenero.Analysis.Parsing;
 using VSGenero.Analysis.Parsing.AST;
+using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace VSGenero.EditorExtensions
 {
@@ -35,6 +36,108 @@ namespace VSGenero.EditorExtensions
                 }
             }
             return res;
+        }
+
+        internal static void Format(ITextView textView)
+        {
+            TextSpan dummySpan;
+            Format(textView, 0, textView.TextViewLines.Count);  // TODO: probably wrong indices
+        }
+
+        internal static void Format(ITextView textView, int startLine, int endLine)
+        {
+            using (var edit = textView.TextBuffer.CreateEdit())
+            {
+                Format(textView, edit, startLine, endLine);
+            }
+        }
+
+        internal static void Format(ITextView textView, ITextEdit edit, int startLine, int endLine, bool applyEdits = true, bool indentEmptyLines = false)
+        {
+            while (startLine > 0)
+            {
+                // need to get the previous line that isn't blank
+                var lineText = textView.TextBuffer.CurrentSnapshot.GetLineFromLineNumber(--startLine).GetText();
+                if (!string.IsNullOrWhiteSpace(lineText) && !lineText.StartsWith("#"))
+                    break;
+            }
+
+            bool editsMade = false;
+
+            int tabSize = textView.Options.GetTabSize();
+            int baseIndentation = -1;
+            int currIndentation = -1;
+            for (int i = startLine; i <= endLine; i++)
+            {
+                var line = textView.TextBuffer.CurrentSnapshot.GetLineFromLineNumber(i);
+                var lineStr = line.GetText();
+                var lineIndentation = GetIndentation(lineStr, tabSize);
+                if (baseIndentation < 0)
+                {
+                    // get the indentation of the line (this will be our baseline indentation)
+                    baseIndentation = currIndentation = lineIndentation;
+                }
+
+                bool postIncrement = false, preDecrement = false;
+                var trimmed = lineStr.Trim();
+                var words = trimmed.Split(new[] { ' ' });
+                if (words.Length >= 1)
+                {
+                    var tok = Tokens.GetToken(words[0]);
+                    if (tok != null)
+                    {
+                        // check to see if the current line is a valid "block" start. If it is, the indentation should be incremented
+                        if (SubBlockKeywords.ContainsKey(tok.Kind))
+                        {
+                            if (i == startLine)
+                                postIncrement = true;
+                            else
+                                preDecrement = postIncrement = true;
+                        }
+                        else if (BlockKeywords.ContainsKey(tok.Kind))
+                        {
+                            // increase indent on next line
+                            postIncrement = true;
+                        }
+                        else if (tok.Kind == TokenKind.EndKeyword)
+                        {
+                            if (i != startLine)
+                                preDecrement = true;
+                        }
+                    }
+                }
+
+                if (preDecrement)
+                    currIndentation -= tabSize;
+
+                // apply current indentation
+                if (lineIndentation != currIndentation &&
+                    (indentEmptyLines || !string.IsNullOrWhiteSpace(lineStr)))
+                {
+                    int diff = Math.Abs(lineIndentation - currIndentation);
+                    // TODO: need to handle tabs in the string
+                    if (lineIndentation < currIndentation)
+                    {
+                        StringBuilder sb = new StringBuilder();
+                        // add spaces
+                        for (int j = 0; j < diff; j++)
+                            sb.Append(' ');
+                        edit.Insert(line.Start, sb.ToString());
+                    }
+                    else
+                    {
+                        // remove spaces
+                        edit.Delete(line.Start, diff);
+                    }
+                    editsMade = true;
+                }
+
+                if (postIncrement)
+                    currIndentation += tabSize;
+            }
+
+            if (editsMade && applyEdits)
+                edit.Apply();
         }
 
         private struct LineInfo
@@ -386,7 +489,7 @@ namespace VSGenero.EditorExtensions
                         var lastTok = Tokens.GetToken(lastTokText);
                         if (lastTok == null)
                             lastTok = Tokens.GetSymbolToken(lastTokText);
-                        if(lastTok != null)
+                        if (lastTok != null)
                         {
                             switch (lastTok.Kind)
                             {
@@ -465,6 +568,7 @@ namespace VSGenero.EditorExtensions
              }},
              { TokenKind.MainKeyword, null },
              { TokenKind.TryKeyword, null },
+             { TokenKind.CatchKeyword, null}, 
              { TokenKind.SqlKeyword, null },
              { TokenKind.FunctionKeyword, null },
              { TokenKind.IfKeyword, null },

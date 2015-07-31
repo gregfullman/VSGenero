@@ -1,0 +1,34 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<CodeSnippets xmlns="http://schemas.microsoft.com/VisualStudio/2005/CodeSnippet">
+	<CodeSnippet Format="1.0.0">
+		<Header>
+			<Title>case</Title>
+			<Shortcut>case</Shortcut>
+			<Description>Code snippet for case statement</Description>
+			<Author>Greg Fullman</Author>
+			<SnippetTypes>
+				<SnippetType>Expansion</SnippetType>
+			</SnippetTypes>
+		</Header>
+		<Snippet>
+			<Declarations>
+				<Literal>
+					<ID>optional-expression</ID>
+					<ToolTip>Optional case header expression</ToolTip>
+					<Default>optional-expression</Default>
+				</Literal>
+        <Literal>
+          <ID>expression-1</ID>
+          <ToolTip>Expression for first case value</ToolTip>
+          <Default>expression-1</Default>
+        </Literal>
+			</Declarations>
+			<Code Language="genero4gl"><![CDATA[case $optional-expression$
+    when $expression-1$
+        $selected$$end$
+    
+    end case]]>
+			</Code>
+		</Snippet>
+	</CodeSnippet>
+</CodeSnippets>

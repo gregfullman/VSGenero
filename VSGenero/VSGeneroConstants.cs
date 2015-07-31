@@ -44,6 +44,8 @@ namespace VSGenero
         internal const string LibraryManagerGuid = "66973468-8AB4-4410-A8EE-9E36BCC7ED21";
         internal const string ProjectNodeGuid = "6EC824C5-356D-4446-9A42-D80E2D17C14B";
 
+        public const string guidGenero4glLanguageService = "c41c558d-4373-4ae1-8424-fb04873a0e9c";
+
 //#if VS120
 //        internal const string ProjectImageList = "VSGenero.Resources.GeneroImageList.png";
 //#else
@@ -60,6 +62,8 @@ namespace VSGenero
         //These are VS internal constants - don't change them
         public static Guid Std97CmdGroupGuid = typeof(VSConstants.VSStd97CmdID).GUID;
         public static Guid Std2KCmdGroupGuid = typeof(VSConstants.VSStd2KCmdID).GUID;
+
+        public static readonly Guid guidGenero4glLanguageServiceGuid = new Guid(guidGenero4glLanguageService);
 
         internal const int IconIfForSplashScreen = 300;
         internal const int IconIdForAboutBox = 400;

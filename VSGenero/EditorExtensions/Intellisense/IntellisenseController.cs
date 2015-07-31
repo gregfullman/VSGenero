@@ -18,14 +18,18 @@ using System.Windows.Input;
 using VSGenero.Snippets;
 using VSGenero.EditorExtensions;
 using VSGenero.Analysis;
+using IServiceProvider = System.IServiceProvider;
 
 namespace VSGenero.EditorExtensions.Intellisense
 {
-    internal sealed class IntellisenseController : IIntellisenseController, IOleCommandTarget, IVsExpansionClient
+    internal sealed class IntellisenseController : IIntellisenseController, IOleCommandTarget
     {
         private readonly ITextView _textView;
         private IVsTextView _vsTextView;
         private IVsExpansionSession _expansionSession;
+        private readonly IServiceProvider _serviceProvider;
+        private readonly IVsExpansionManager _expansionMgr;
+        private readonly ExpansionClient _expansionClient;
         private readonly IntellisenseControllerProvider _provider;
         private readonly IIncrementalSearch _incSearch;
         private BufferParser _bufferParser;
@@ -34,18 +38,37 @@ namespace VSGenero.EditorExtensions.Intellisense
         private IQuickInfoSession _quickInfoSession;
         private IOleCommandTarget _oldTarget;
         private IEditorOperations _editOps;
+        private static string[] _allStandardSnippetTypes = { ExpansionClient.Expansion, ExpansionClient.SurroundsWith };
+        private static string[] _surroundsWithSnippetTypes = { ExpansionClient.SurroundsWith };
 
         /// <summary>
         /// Attaches events for invoking Statement completion 
         /// </summary>
-        public IntellisenseController(IntellisenseControllerProvider provider, ITextView textView)
+        public IntellisenseController(IntellisenseControllerProvider provider, ITextView textView, IServiceProvider serviceProvider)
         {
+            _serviceProvider = serviceProvider;
             _textView = textView;
             _provider = provider;
             _editOps = provider._EditOperationsFactory.GetEditorOperations(textView);
             _incSearch = provider._IncrementalSearch.GetIncrementalSearch(textView);
             //_textView.MouseHover += TextViewMouseHover;
             textView.Properties.AddProperty(typeof(IntellisenseController), this);  // added so our key processors can get back to us
+
+            if (_textView.TextBuffer.ContentType.IsOfType(VSGeneroConstants.ContentType4GL) ||
+                _textView.TextBuffer.ContentType.IsOfType(VSGeneroConstants.ContentTypeINC))
+            {
+                try
+                {
+                    _expansionClient = new ExpansionClient(textView, provider._adaptersFactory, provider._ServiceProvider);
+                    var textMgr = (IVsTextManager2)_serviceProvider.GetService(typeof(SVsTextManager));
+                    textMgr.GetExpansionManager(out _expansionMgr);
+                }
+                catch (ArgumentException ex)
+                {
+                    // No expansion client for this buffer, but we can continue without it
+                    Debug.Fail(ex.ToString());
+                }
+            }
         }
 
         internal void SetBufferParser(BufferParser bufferParser)
@@ -744,145 +767,134 @@ namespace VSGenero.EditorExtensions.Intellisense
             return parser.GetExpressionRange();
         }
 
+        private IVsTextView GetViewAdapter()
+        {
+            return _provider._adaptersFactory.GetViewAdapter(_textView);
+        }
+
+        private void TriggerSnippet(uint nCmdID)
+        {
+            if (_expansionMgr != null)
+            {
+                string prompt;
+                string[] snippetTypes;
+                if ((VSConstants.VSStd2KCmdID)nCmdID == VSConstants.VSStd2KCmdID.SURROUNDWITH)
+                {
+                    prompt = "SurroundWith";
+                    snippetTypes = _surroundsWithSnippetTypes;
+                }
+                else
+                {
+                    prompt = "InsertSnippet";
+                    snippetTypes = _allStandardSnippetTypes;
+                }
+
+                _expansionMgr.InvokeInsertionUI(
+                    GetViewAdapter(),
+                    _expansionClient,
+                    VSGeneroConstants.guidGenero4glLanguageServiceGuid,
+                    snippetTypes,
+                    snippetTypes.Length,
+                    0,
+                    null,
+                    0,
+                    0,
+                    prompt,
+                    ">"
+                );
+            }
+        }
+
+        private bool TryTriggerExpansion()
+        {
+            if (_expansionMgr != null)
+            {
+                var snapshot = _textView.TextBuffer.CurrentSnapshot;
+                var span = new SnapshotSpan(snapshot, new Span(_textView.Caret.Position.BufferPosition.Position - 1, 1));
+                var classification = _textView.TextBuffer.GetGeneroClassifier().GetClassificationSpans(span);
+                if (classification.Count == 1)
+                {
+                    var clsSpan = classification.First().Span;
+                    var text = classification.First().Span.GetText();
+
+                    TextSpan[] textSpan = new TextSpan[1];
+                    textSpan[0].iStartLine = clsSpan.Start.GetContainingLine().LineNumber;
+                    textSpan[0].iStartIndex = clsSpan.Start.Position - clsSpan.Start.GetContainingLine().Start;
+                    textSpan[0].iEndLine = clsSpan.End.GetContainingLine().LineNumber;
+                    textSpan[0].iEndIndex = clsSpan.End.Position - clsSpan.End.GetContainingLine().Start;
+
+                    string expansionPath, title;
+                    int hr = _expansionMgr.GetExpansionByShortcut(
+                        _expansionClient,
+                        VSGeneroConstants.guidGenero4glLanguageServiceGuid,
+                        text,
+                        GetViewAdapter(),
+                        textSpan,
+                        1,
+                        out expansionPath,
+                        out title
+                    );
+                    if (ErrorHandler.Succeeded(hr))
+                    {
+                        // hr may be S_FALSE if there are multiple expansions,
+                        // so we don't want to InsertNamedExpansion yet. VS will
+                        // pop up a selection dialog in this case.
+                        if (hr == VSConstants.S_OK)
+                        {
+                            return ErrorHandler.Succeeded(_expansionClient.InsertNamedExpansion(title, expansionPath, textSpan[0]));
+                        }
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
         public int Exec(ref Guid pguidCmdGroup, uint nCmdID, uint nCmdexecopt, IntPtr pvaIn, IntPtr pvaOut)
         {
-            if (pguidCmdGroup == VSConstants.VSStd2K)
+            if (pguidCmdGroup == VSConstants.VSStd2K && nCmdID == (int)VSConstants.VSStd2KCmdID.TYPECHAR)
             {
-                if (nCmdID == (uint)VSConstants.VSStd2KCmdID.INSERTSNIPPET || nCmdID == (uint)VSConstants.VSStd2KCmdID.SURROUNDWITH)
+                var ch = (char)(ushort)System.Runtime.InteropServices.Marshal.GetObjectForNativeVariant(pvaIn);
+
+                if (_activeSession != null && !_activeSession.IsDismissed)
                 {
-                    IVsTextManager2 textManager = (IVsTextManager2)VSGeneroPackage.Instance.GetPackageService(typeof(SVsTextManager));
-                    IVsExpansionManager expansionManager;
-                    if (VSConstants.S_OK == textManager.GetExpansionManager(out expansionManager))
+                    if (_activeSession.SelectedCompletionSet.SelectionStatus.IsSelected &&
+                        (VSGeneroPackage.Instance.IntellisenseOptions4GLPage.CompletionCommittedBy.IndexOf(ch) != -1 ||
+                         (ch == ' ' && VSGeneroPackage.Instance.IntellisenseOptions4GLPage.SpaceCommitsIntellisense)))
                     {
-                        expansionManager.InvokeInsertionUI(
-                            _vsTextView,
-                            this,
-                            VSGenero.Snippets.Constants.VSGeneroLanguageServiceGuid,
-                            null,
-                            0,
-                            1,
-                            null,
-                            0,
-                            1,
-                            "Insert Snippet",
-                            string.Empty);
-                    }
+                        // prevent the changed handler from triggering
+                        _blockChangeTrigger = true;
 
-                    return VSConstants.S_OK;
-                }
-
-                if (_expansionSession != null)
-                {
-                    // Handle VS Expansion (Code Snippets) keys
-                    if ((nCmdID == (uint)VSConstants.VSStd2KCmdID.TAB))
-                    {
-                        // ensure the completion session gets committed correctly
-                        if (_activeSession != null && !_activeSession.IsDismissed)
+                        if (_parentSpan == null)
+                            _parentSpan = GetCompletionParentSpan();
+                        _activeSession.Commit();
+                        if (_parentSpan != null)
                         {
-                            // prevent the changed handler from triggering
-                            _blockChangeTrigger = true;
-
-                            _activeSession.Commit();
-                        }
-
-                        if (_expansionSession.GoToNextExpansionField(0) == VSConstants.S_OK)
-                            return VSConstants.S_OK;
-                    }
-                    else if ((nCmdID == (uint)VSConstants.VSStd2KCmdID.BACKTAB))
-                    {
-                        if (_expansionSession.GoToPreviousExpansionField() == VSConstants.S_OK)
-                            return VSConstants.S_OK;
-                    }
-                    else if (nCmdID == (uint)VSConstants.VSStd2KCmdID.RETURN)
-                    {
-                        // ensure the completion session gets committed correctly
-                        if (_activeSession != null)
-                        {
-                            if (VSGeneroPackage.Instance.IntellisenseOptions4GLPage.EnterCommitsIntellisense &&
-                                        !_activeSession.IsDismissed &&
-                                        _activeSession.SelectedCompletionSet.SelectionStatus.IsSelected)
-                            {
-
-                                // If the user has typed all of the characters as the completion and presses
-                                // enter we should dismiss & let the text editor receive the enter.  For example 
-                                // when typing "import sys[ENTER]" completion starts after the space.  After typing
-                                // sys the user wants a new line and doesn't want to type enter twice.
-
-                                bool enterOnComplete = VSGeneroPackage.Instance.IntellisenseOptions4GLPage.AddNewLineAtEndOfFullyTypedWord &&
-                                         EnterOnCompleteText();
-
-                                // prevent the changed handler from triggering
-                                _blockChangeTrigger = true;
-
-                                _activeSession.Commit();
-
-                                return VSConstants.S_OK;
-                            }
-                            else
-                            {
-                                _activeSession.Dismiss();
-                            }
-                        }
-
-                        if (_expansionSession.EndCurrentExpansion(0) == VSConstants.S_OK)
-                        {
-                            _expansionSession = null;
-
-                            return VSConstants.S_OK;
+                            RemoveParentSpan(_parentSpan);
+                            _parentSpan = null;
                         }
                     }
-                    else if (nCmdID == (uint)VSConstants.VSStd2KCmdID.CANCEL)
+                    else if (!IsIdentifierChar(ch))
                     {
-                        if (_expansionSession.EndCurrentExpansion(0) == VSConstants.S_OK)
-                        {
-                            _expansionSession = null;
-
-                            return VSConstants.S_OK;
-                        }
+                        _activeSession.Dismiss();
                     }
                 }
 
-                if (nCmdID == (int)VSConstants.VSStd2KCmdID.TYPECHAR)
+                int res = _oldTarget.Exec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
+
+                HandleChar((char)(ushort)System.Runtime.InteropServices.Marshal.GetObjectForNativeVariant(pvaIn));
+
+                if (_activeSession != null && !_activeSession.IsDismissed)
                 {
-                    var ch = (char)(ushort)System.Runtime.InteropServices.Marshal.GetObjectForNativeVariant(pvaIn);
-
-                    if (_activeSession != null && !_activeSession.IsDismissed)
-                    {
-                        if (_activeSession.SelectedCompletionSet.SelectionStatus.IsSelected &&
-                            (VSGeneroPackage.Instance.IntellisenseOptions4GLPage.CompletionCommittedBy.IndexOf(ch) != -1 ||
-                             (ch == ' ' && VSGeneroPackage.Instance.IntellisenseOptions4GLPage.SpaceCommitsIntellisense)))
-                        {
-                            // prevent the changed handler from triggering
-                            _blockChangeTrigger = true;
-
-                            if(_parentSpan == null)
-                                _parentSpan = GetCompletionParentSpan();
-                            _activeSession.Commit();
-                            if (_parentSpan != null)
-                            {
-                                RemoveParentSpan(_parentSpan);
-                                _parentSpan = null;
-                            }
-                        }
-                        else if (!IsIdentifierChar(ch))
-                        {
-                            _activeSession.Dismiss();
-                        }
-                    }
-
-                    int res = _oldTarget.Exec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
-
-                    HandleChar((char)(ushort)System.Runtime.InteropServices.Marshal.GetObjectForNativeVariant(pvaIn));
-
-                    if (_activeSession != null && !_activeSession.IsDismissed)
-                    {
-                        _activeSession.Filter();
-                    }
-
-                    return res;
+                    _activeSession.Filter();
                 }
 
-                if (_activeSession != null)
+                return res;
+            }
+
+            if(_activeSession != null)
+            {
+                if (pguidCmdGroup == VSConstants.VSStd2K)
                 {
                     switch ((VSConstants.VSStd2KCmdID)nCmdID)
                     {
@@ -903,7 +915,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                                 // prevent the changed handler from triggering
                                 _blockChangeTrigger = true;
 
-                                if(_parentSpan == null)
+                                if (_parentSpan == null)
                                     _parentSpan = GetCompletionParentSpan();
                                 _activeSession.Commit();
                                 if (_parentSpan != null)
@@ -928,7 +940,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                                 // prevent the changed handler from triggering
                                 _blockChangeTrigger = true;
 
-                                if(_parentSpan == null)
+                                if (_parentSpan == null)
                                     _parentSpan = GetCompletionParentSpan();
                                 _activeSession.Commit();
                                 if (_parentSpan != null)
@@ -962,117 +974,128 @@ namespace VSGenero.EditorExtensions.Intellisense
                             return res;
                     }
                 }
-                else
+            }
+            else if(_sigHelpSession != null)
+            {
+                if (pguidCmdGroup == VSConstants.VSStd2K)
                 {
-                    if (nCmdID == (int)VSConstants.VSStd2KCmdID.TAB)
+                    switch ((VSConstants.VSStd2KCmdID)nCmdID)
                     {
-                        // TODO: handle code snippets (whether stored or dynamic)
-                        // Get the current line text until the cursor
-                        //var line = _textView.GetTextViewLineContainingBufferPosition(_textView.Caret.Position.BufferPosition);
-                        //var text = _textView.TextSnapshot.GetText(line.Start.Position, _textView.Caret.Position.BufferPosition - line.Start.Position);
-
-                        // get the token directly behind the cursor (or maybe on it?)
-                        SnapshotSpan? span = GetPrecedingExpression();
-                        //_textView.Caret.Position.BufferPosition.GetCurrentMemberOrMemberAccess(out span);
-
-                        if (!span.HasValue)
-                        {
-                            return _oldTarget.Exec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
-                        }
-
-                        string spanText = span.Value.GetText();
-                        var expansionManager = (IVsTextManager2)VSGeneroPackage.Instance.GetPackageService(typeof(SVsTextManager));
-                        var snippetsEnumerator = new SnippetsEnumerator(expansionManager, VSGenero.Snippets.Constants.VSGeneroLanguageServiceGuid);
-                        // Search a snippet that matched the token text
-                        var expansion = snippetsEnumerator.FirstOrDefault(e => e.title.Equals(spanText, StringComparison.OrdinalIgnoreCase));
-                        if (expansion.title != null)
-                        {
-                            // Set the location where the snippet will be inserted
-                            int startLine, startColumn, endLine, endColumn;
-                            _vsTextView.GetCaretPos(out startLine, out endColumn);
-                            startColumn = endColumn - expansion.title.Length;
-                            endLine = startLine;
-
-                            // Insert the snippet
-                            InsertCodeExpansion(expansion, startLine, startColumn, endLine, endColumn);
-
-                            return VSConstants.S_OK;
-                        }
-                        else
-                        {
-                            DynamicSnippet dynSnippet = null;
-                            // 1) TODO: first do a lookup internally (i.e. within the VSGenero symbols). We're not doing that right now
-
-                            var vars = _textView.TextBuffer.CurrentSnapshot.AnalyzeExpression(
-                                _textView.TextBuffer.CurrentSnapshot.CreateTrackingSpan(span.Value.Span, SpanTrackingMode.EdgeInclusive),
-                                false,
-                                _provider._PublicFunctionProvider,
-                                _provider._DatabaseInfoProvider,
-                                _provider._ProgramFileProvider
-                            );
-                            if(vars != null && 
-                               vars.Value != null &&
-                               vars.Value is IFunctionResult)
+                        case VSConstants.VSStd2KCmdID.BACKSPACE:
+                            bool fDeleted = Backspace();
+                            if (fDeleted)
                             {
-                                dynSnippet = (vars.Value as IFunctionResult).GetSnippet(spanText);
-                            }
-                            if (dynSnippet == null)
-                            {
-                                // 2) Do a lookup using the PublicFunctionSnippetizer
-                                if (_provider._PublicFunctionSnippetizer != null)
-                                    dynSnippet = _provider._PublicFunctionSnippetizer.GetSnippet(spanText, _textView.TextBuffer);
-                            }
-                            if (dynSnippet != null)
-                            {
-                                // Set the location where the snippet will be inserted
-                                int startLine, startColumn, endLine, endColumn;
-                                _vsTextView.GetCaretPos(out startLine, out endColumn);
-                                startColumn = endColumn - spanText.Length;
-                                endLine = startLine;
-
-                                MSXML.DOMDocument domDoc = new MSXML.DOMDocument();
-                                domDoc.loadXML(SnippetGenerator.GenerateSnippetXml(dynSnippet));
-                                MSXML.IXMLDOMNode node = domDoc;
-                                InsertCodeExpansion(node, startLine, startColumn, endLine, endColumn);
                                 return VSConstants.S_OK;
                             }
-                        }
+                            break;
+                        case VSConstants.VSStd2KCmdID.LEFT:
+                            _editOps.MoveToPreviousCharacter(false);
+                            UpdateCurrentParameter();
+                            return VSConstants.S_OK;
+                        case VSConstants.VSStd2KCmdID.RIGHT:
+                            _editOps.MoveToNextCharacter(false);
+                            UpdateCurrentParameter();
+                            return VSConstants.S_OK;
+                        case VSConstants.VSStd2KCmdID.HOME:
+                        case VSConstants.VSStd2KCmdID.BOL:
+                        case VSConstants.VSStd2KCmdID.BOL_EXT:
+                        case VSConstants.VSStd2KCmdID.EOL:
+                        case VSConstants.VSStd2KCmdID.EOL_EXT:
+                        case VSConstants.VSStd2KCmdID.END:
+                        case VSConstants.VSStd2KCmdID.WORDPREV:
+                        case VSConstants.VSStd2KCmdID.WORDPREV_EXT:
+                        case VSConstants.VSStd2KCmdID.DELETEWORDLEFT:
+                            _sigHelpSession.Dismiss();
+                            _sigHelpSession = null;
+                            break;
                     }
-                    else if (_sigHelpSession != null)
+                }
+            }
+            else
+            {
+                if (pguidCmdGroup == VSConstants.VSStd2K)
+                {
+                    switch ((VSConstants.VSStd2KCmdID)nCmdID)
                     {
-                        if (pguidCmdGroup == VSConstants.VSStd2K)
-                        {
-                            switch ((VSConstants.VSStd2KCmdID)nCmdID)
+                        case VSConstants.VSStd2KCmdID.RETURN:
+                            if (_expansionMgr != null && _expansionClient.InSession && ErrorHandler.Succeeded(_expansionClient.EndCurrentExpansion(false)))
                             {
-                                case VSConstants.VSStd2KCmdID.BACKSPACE:
-                                    bool fDeleted = Backspace();
-                                    if (fDeleted)
+                                return VSConstants.S_OK;
+                            }
+                            break;
+                        case VSConstants.VSStd2KCmdID.TAB:
+                            if (_expansionMgr != null && _expansionClient.InSession && ErrorHandler.Succeeded(_expansionClient.NextField()))
+                            {
+                                return VSConstants.S_OK;
+                            }
+                            if (_textView.Selection.IsEmpty && _textView.Caret.Position.BufferPosition > 0)
+                            {
+                                if (TryTriggerExpansion())
+                                {
+                                    return VSConstants.S_OK;
+                                }
+                                else
+                                {
+                                    // get the token directly behind the cursor (or maybe on it?)
+                                    SnapshotSpan? span = GetPrecedingExpression();
+                                    //_textView.Caret.Position.BufferPosition.GetCurrentMemberOrMemberAccess(out span);
+
+                                    if (!span.HasValue)
                                     {
+                                        return _oldTarget.Exec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
+                                    }
+
+                                    string spanText = span.Value.GetText();
+
+                                    DynamicSnippet dynSnippet = null;
+                                    // 1) TODO: first do a lookup internally (i.e. within the VSGenero symbols). We're not doing that right now
+
+                                    var vars = _textView.TextBuffer.CurrentSnapshot.AnalyzeExpression(
+                                        _textView.TextBuffer.CurrentSnapshot.CreateTrackingSpan(span.Value.Span, SpanTrackingMode.EdgeInclusive),
+                                        false,
+                                        _provider._PublicFunctionProvider,
+                                        _provider._DatabaseInfoProvider,
+                                        _provider._ProgramFileProvider
+                                    );
+                                    if (vars != null &&
+                                       vars.Value != null &&
+                                       vars.Value is IFunctionResult)
+                                    {
+                                        dynSnippet = (vars.Value as IFunctionResult).GetSnippet(spanText);
+                                    }
+                                    if (dynSnippet == null)
+                                    {
+                                        // 2) Do a lookup using the PublicFunctionSnippetizer
+                                        if (_provider._PublicFunctionSnippetizer != null)
+                                            dynSnippet = _provider._PublicFunctionSnippetizer.GetSnippet(spanText, _textView.TextBuffer);
+                                    }
+                                    if (dynSnippet != null)
+                                    {
+                                        // Set the location where the snippet will be inserted
+                                        int startLine, startColumn, endLine, endColumn;
+                                        _vsTextView.GetCaretPos(out startLine, out endColumn);
+                                        startColumn = endColumn - spanText.Length;
+                                        endLine = startLine;
+
+                                        MSXML.DOMDocument domDoc = new MSXML.DOMDocument();
+                                        domDoc.loadXML(SnippetGenerator.GenerateSnippetXml(dynSnippet));
+                                        MSXML.IXMLDOMNode node = domDoc;
+                                        InsertCodeExpansion(node, startLine, startColumn, endLine, endColumn);
                                         return VSConstants.S_OK;
                                     }
-                                    break;
-                                case VSConstants.VSStd2KCmdID.LEFT:
-                                    _editOps.MoveToPreviousCharacter(false);
-                                    UpdateCurrentParameter();
-                                    return VSConstants.S_OK;
-                                case VSConstants.VSStd2KCmdID.RIGHT:
-                                    _editOps.MoveToNextCharacter(false);
-                                    UpdateCurrentParameter();
-                                    return VSConstants.S_OK;
-                                case VSConstants.VSStd2KCmdID.HOME:
-                                case VSConstants.VSStd2KCmdID.BOL:
-                                case VSConstants.VSStd2KCmdID.BOL_EXT:
-                                case VSConstants.VSStd2KCmdID.EOL:
-                                case VSConstants.VSStd2KCmdID.EOL_EXT:
-                                case VSConstants.VSStd2KCmdID.END:
-                                case VSConstants.VSStd2KCmdID.WORDPREV:
-                                case VSConstants.VSStd2KCmdID.WORDPREV_EXT:
-                                case VSConstants.VSStd2KCmdID.DELETEWORDLEFT:
-                                    _sigHelpSession.Dismiss();
-                                    _sigHelpSession = null;
-                                    break;
+                                }
                             }
-                        }
+                            break;
+                        case VSConstants.VSStd2KCmdID.BACKTAB:
+                            if (_expansionMgr != null && _expansionClient.InSession && ErrorHandler.Succeeded(_expansionClient.PreviousField()))
+                            {
+                                return VSConstants.S_OK;
+                            }
+                            break;
+                        case VSConstants.VSStd2KCmdID.SURROUNDWITH:
+                        case VSConstants.VSStd2KCmdID.INSERTSNIPPET:
+                            TriggerSnippet(nCmdID);
+                            return VSConstants.S_OK;
                     }
                 }
             }
@@ -1108,50 +1131,24 @@ namespace VSGenero.EditorExtensions.Intellisense
 
         public int QueryStatus(ref Guid pguidCmdGroup, uint cCmds, OLECMD[] prgCmds, IntPtr pCmdText)
         {
+            if (pguidCmdGroup == VSConstants.VSStd2K)
+            {
+                for (int i = 0; i < cCmds; i++)
+                {
+                    switch ((VSConstants.VSStd2KCmdID)prgCmds[i].cmdID)
+                    {
+                        case VSConstants.VSStd2KCmdID.SURROUNDWITH:
+                        case VSConstants.VSStd2KCmdID.INSERTSNIPPET:
+                            if (_expansionMgr != null)
+                            {
+                                prgCmds[i].cmdf = (uint)(OLECMDF.OLECMDF_ENABLED | OLECMDF.OLECMDF_SUPPORTED);
+                                return VSConstants.S_OK;
+                            }
+                            break;
+                    }
+                }
+            }
             return _oldTarget.QueryStatus(ref pguidCmdGroup, cCmds, prgCmds, pCmdText);
-        }
-
-        private void InsertCodeExpansion(VsExpansion expansion)
-        {
-            int startLine, startColumn, endLine, endColumn;
-            if (_activeSession != null)
-            {
-                // if there is an active completion session we need to use the trigger point of that session
-                int position = _activeSession.GetTriggerPoint(_activeSession.TextView.TextBuffer).GetPosition(_textView.TextBuffer.CurrentSnapshot);
-                startLine = _textView.TextBuffer.CurrentSnapshot.GetLineNumberFromPosition(position);
-                startColumn = position - _textView.TextBuffer.CurrentSnapshot.GetLineFromPosition(position).Start.Position;
-
-                _vsTextView.GetCaretPos(out endLine, out endColumn);
-            }
-            else
-            {
-                // there is no active completion session so we would use the caret position of the view instead
-                _vsTextView.GetCaretPos(out startLine, out startColumn);
-                endColumn = startColumn;
-                endLine = startLine;
-            }
-
-            InsertCodeExpansion(expansion, startLine, startColumn, endLine, endColumn);
-        }
-
-        private void InsertCodeExpansion(VsExpansion expansion, int startLine, int startColumn, int endLine, int endColumn)
-        {
-            // Insert the selected code snippet and start an expansion session
-            IVsTextLines buffer;
-            _vsTextView.GetBuffer(out buffer);
-
-            // Get the IVsExpansion from the current IVsTextLines
-            IVsExpansion vsExpansion = (IVsExpansion)buffer;
-
-            // Call the actual method that performs the snippet insertion
-            vsExpansion.InsertNamedExpansion(
-                expansion.title,
-                expansion.path,
-                new TextSpan { iStartIndex = startColumn, iEndIndex = endColumn, iEndLine = endLine, iStartLine = startLine },
-                this,
-                VSGenero.Snippets.Constants.VSGeneroLanguageServiceGuid,
-                0,
-                out _expansionSession);
         }
 
         private void InsertCodeExpansion(MSXML.IXMLDOMNode customSnippet, int startLine, int startColumn, int endLine, int endColumn)
@@ -1166,62 +1163,12 @@ namespace VSGenero.EditorExtensions.Intellisense
             vsExpansion.InsertSpecificExpansion(
                 customSnippet,
                 new TextSpan { iStartIndex = startColumn, iEndIndex = endColumn, iEndLine = endLine, iStartLine = startLine },
-                this,
-                VSGenero.Snippets.Constants.VSGeneroLanguageServiceGuid,
+                _expansionClient,
+                VSGeneroConstants.guidGenero4glLanguageServiceGuid,
                 null,
                 out _expansionSession);
         }
 
         #endregion
-
-        public int EndExpansion()
-        {
-            return VSConstants.S_OK;
-        }
-
-        public int FormatSpan(IVsTextLines pBuffer, TextSpan[] ts)
-        {
-            return VSConstants.S_OK;
-        }
-
-        public int GetExpansionFunction(MSXML.IXMLDOMNode xmlFunctionNode, string bstrFieldName, out IVsExpansionFunction pFunc)
-        {
-            pFunc = null;
-            return VSConstants.S_OK;
-        }
-
-        public int IsValidKind(IVsTextLines pBuffer, TextSpan[] ts, string bstrKind, out int pfIsValidKind)
-        {
-            pfIsValidKind = 1;
-            return VSConstants.S_OK;
-        }
-
-        public int IsValidType(IVsTextLines pBuffer, TextSpan[] ts, string[] rgTypes, int iCountTypes, out int pfIsValidType)
-        {
-            pfIsValidType = 1;
-            return VSConstants.S_OK;
-        }
-
-        public int OnAfterInsertion(IVsExpansionSession pSession)
-        {
-            return VSConstants.S_OK;
-        }
-
-        public int OnBeforeInsertion(IVsExpansionSession pSession)
-        {
-            return VSConstants.S_OK;
-        }
-
-        public int OnItemChosen(string pszTitle, string pszPath)
-        {
-            InsertCodeExpansion(new VsExpansion { path = pszPath, title = pszTitle });
-
-            return VSConstants.S_OK;
-        }
-
-        public int PositionCaretForEditing(IVsTextLines pBuffer, TextSpan[] ts)
-        {
-            return VSConstants.S_OK;
-        }
     }
 }

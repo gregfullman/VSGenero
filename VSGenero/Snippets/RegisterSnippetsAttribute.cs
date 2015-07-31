@@ -139,7 +139,7 @@ namespace VSGenero.Snippets
                 snippetPaths = context.EscapePath(System.IO.Path.GetFullPath(snippetPaths));
 
                 //The following enables VS to look into a user directory for more user-created snippets
-                string myDocumentsPath = @";%MyDocs%\Code Snippets\" + "Python" + @"\My Code Snippets\";
+                string myDocumentsPath = @";%MyDocs%\Code Snippets\" + "VSGenero" + @"\My Code Snippets\";
                 using (Key forceSubKey = childKey.CreateSubkey("ForceCreateDirs"))
                 {
                     forceSubKey.SetValue(LanguageStringId, snippetPaths + myDocumentsPath);

@@ -1,0 +1,38 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<CodeSnippets xmlns="http://schemas.microsoft.com/VisualStudio/2005/CodeSnippet">
+	<CodeSnippet Format="1.0.0">
+		<Header>
+			<Title>for</Title>
+			<Shortcut>for</Shortcut>
+			<Description>Code snippet for for statement</Description>
+			<Author>Greg Fullman</Author>
+			<SnippetTypes>
+				<SnippetType>Expansion</SnippetType>
+				<SnippetType>SurroundsWith</SnippetType>
+			</SnippetTypes>
+		</Header>
+		<Snippet>
+			<Declarations>
+				<Literal>
+					<ID>counter</ID>
+					<ToolTip>For-loop counter variable</ToolTip>
+					<Default>counter</Default>
+				</Literal>
+        <Literal>
+          <ID>start</ID>
+          <ToolTip>Expression for start value</ToolTip>
+          <Default>start</Default>
+        </Literal>
+        <Literal>
+          <ID>finish</ID>
+          <ToolTip>Expression for finish value</ToolTip>
+          <Default>finish</Default>
+        </Literal>
+			</Declarations>
+			<Code Language="genero4gl"><![CDATA[for $counter$ = $start$ to $finish$
+    $selected$$end$
+end for]]>
+			</Code>
+		</Snippet>
+	</CodeSnippet>
+</CodeSnippets>

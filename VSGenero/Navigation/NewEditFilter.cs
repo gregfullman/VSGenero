@@ -786,9 +786,9 @@ namespace VSGenero.Navigation
                     //case VSConstants.VSStd2KCmdID.FORMATDOCUMENT:
                     //    FormatCode(new SnapshotSpan(_textView.TextBuffer.CurrentSnapshot, 0, _textView.TextBuffer.CurrentSnapshot.Length), false);
                     //    return VSConstants.S_OK;
-                    //case VSConstants.VSStd2KCmdID.FORMATSELECTION:
-                    //    FormatCode(_textView.Selection.StreamSelectionSpan.SnapshotSpan, true);
-                    //    return VSConstants.S_OK;
+                    case VSConstants.VSStd2KCmdID.FORMATSELECTION:
+                        FormatCode(_textView.Selection.StreamSelectionSpan.SnapshotSpan, true);
+                        return VSConstants.S_OK;
                     case VSConstants.VSStd2KCmdID.SHOWMEMBERLIST:
                     case VSConstants.VSStd2KCmdID.COMPLETEWORD:
                         var controller = _textView.Properties.GetProperty<IntellisenseController>(typeof(IntellisenseController));
@@ -901,12 +901,14 @@ namespace VSGenero.Navigation
         //    return new MethodExtractor(_textView).ExtractMethod(ExtractMethodUserInput.Instance);
         //}
 
-        //private void FormatCode(SnapshotSpan span, bool selectResult)
-        //{
-        //    var options = VSGeneroPackage.Instance.GetCodeFormattingOptions();
-        //    options.NewLineFormat = _textView.Options.GetNewLineCharacter();
-        //    new CodeFormatter(_textView, options).FormatCode(span, selectResult);
-        //}
+        private void FormatCode(SnapshotSpan span, bool selectResult)
+        {
+            // get the line numbers for the start and end of the span
+            int startLine = _textView.TextBuffer.CurrentSnapshot.GetLineNumberFromPosition(span.Start.Position);
+            int endLine = _textView.TextBuffer.CurrentSnapshot.GetLineNumberFromPosition(span.End.Position);
+
+            AutoIndent.Format(_textView, startLine, endLine);
+        }
 
         //internal void RefactorRename()
         //{
@@ -1009,8 +1011,8 @@ namespace VSGenero.Navigation
                     switch ((VSConstants.VSStd2KCmdID)prgCmds[i].cmdID)
                     {
                         case VSConstants.VSStd2KCmdID.FORMATDOCUMENT:
+                            return VSConstants.S_OK;
                         case VSConstants.VSStd2KCmdID.FORMATSELECTION:
-
                         case VSConstants.VSStd2KCmdID.SHOWMEMBERLIST:
                         case VSConstants.VSStd2KCmdID.COMPLETEWORD:
                         case VSConstants.VSStd2KCmdID.QUICKINFO:

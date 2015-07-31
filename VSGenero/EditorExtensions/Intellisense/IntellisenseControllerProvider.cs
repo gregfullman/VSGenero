@@ -50,6 +50,14 @@ namespace VSGenero.EditorExtensions.Intellisense
         [Import(AllowDefault = true)]
         internal IGeneroTextViewCommandTarget GeneroCommandTarget;
 
+        internal IServiceProvider _ServiceProvider;
+
+        [ImportingConstructor]
+        public IntellisenseControllerProvider([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
+        {
+            _ServiceProvider = serviceProvider;
+        }
+
         internal static IntellisenseControllerProvider Instance { get; private set; }
 
         readonly Dictionary<ITextView, Tuple<BufferParser, GeneroProjectAnalyzer>> _hookedCloseEvents =
@@ -60,7 +68,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             IntellisenseController controller;
             if (!textView.Properties.TryGetProperty<IntellisenseController>(typeof(IntellisenseController), out controller))
             {
-                controller = new IntellisenseController(this, textView);
+                controller = new IntellisenseController(this, textView, _ServiceProvider);
             }
 
             var analyzer = textView.GetAnalyzer();
@@ -113,23 +121,23 @@ namespace VSGenero.EditorExtensions.Intellisense
             }
         }
 
-        internal static IntellisenseController GetOrCreateController(IComponentModel model, ITextView textView)
-        {
-            IntellisenseController controller;
-            if (!textView.Properties.TryGetProperty<IntellisenseController>(typeof(IntellisenseController), out controller))
-            {
-                var intellisenseControllerProvider = (
-                   from export in model.DefaultExportProvider.GetExports<IIntellisenseControllerProvider, IContentTypeMetadata>()
-                   from exportedContentType in export.Metadata.ContentTypes
-                   where (exportedContentType == VSGeneroConstants.ContentType4GL || 
-                          exportedContentType == VSGeneroConstants.ContentTypeINC ||
-                          exportedContentType == VSGeneroConstants.ContentTypePER) && export.Value.GetType() == typeof(IntellisenseControllerProvider)
-                   select export.Value
-                ).First();
-                controller = new IntellisenseController((IntellisenseControllerProvider)intellisenseControllerProvider, textView);
-            }
-            return controller;
-        }
+        //internal static IntellisenseController GetOrCreateController(IComponentModel model, ITextView textView)
+        //{
+        //    IntellisenseController controller;
+        //    if (!textView.Properties.TryGetProperty<IntellisenseController>(typeof(IntellisenseController), out controller))
+        //    {
+        //        var intellisenseControllerProvider = (
+        //           from export in model.DefaultExportProvider.GetExports<IIntellisenseControllerProvider, IContentTypeMetadata>()
+        //           from exportedContentType in export.Metadata.ContentTypes
+        //           where (exportedContentType == VSGeneroConstants.ContentType4GL || 
+        //                  exportedContentType == VSGeneroConstants.ContentTypeINC ||
+        //                  exportedContentType == VSGeneroConstants.ContentTypePER) && export.Value.GetType() == typeof(IntellisenseControllerProvider)
+        //           select export.Value
+        //        ).First();
+        //        controller = new IntellisenseController((IntellisenseControllerProvider)intellisenseControllerProvider, textView);
+        //    }
+        //    return controller;
+        //}
     }
 
     /// <summary>
