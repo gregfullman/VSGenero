@@ -1,6 +1,6 @@
 ﻿///* ****************************************************************************
 // * 
-// * Copyright (c) 2014 Greg Fullman 
+// * Copyright (c) 2015 Greg Fullman 
 // *
 // * This source code is subject to terms and conditions of the Apache License, Version 2.0. A 
 // * copy of the license can be found in the License.html file at the root of this distribution.

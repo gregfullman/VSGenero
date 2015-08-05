@@ -1,6 +1,6 @@
 ﻿/* ****************************************************************************
  * 
- * Copyright (c) 2014 Greg Fullman 
+ * Copyright (c) 2015 Greg Fullman 
  * Copyright (c) 2009 Nito Programs.
  * https://code.google.com/p/jeremi-projects/source/browse/Async+Socket/Async+Socker+Client/Async+Socker+Client/Sources/SynchronizationContextRegister.cs?r=2
  *
