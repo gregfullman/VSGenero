@@ -532,11 +532,11 @@ namespace VSGenero.EditorExtensions
                         {
                             // check to see if the next token after this one is an open paren
                             int endCheck = 50;
-                            if (enumerator.Current.Span.End + endCheck > _snapshot.Length)
+                            if (enumerator.Current.Span.End.Position + endCheck > _snapshot.Length)
                             {
-                                endCheck = _snapshot.Length - enumerator.Current.Span.End;
+                                endCheck = _snapshot.Length - enumerator.Current.Span.End.Position;
                             }
-                            var nextTokens = _classifier.GetTokens(new SnapshotSpan(_snapshot, new Span(enumerator.Current.Span.End - 1, endCheck)))
+                            var nextTokens = _classifier.GetTokens(new SnapshotSpan(_snapshot, new Span(enumerator.Current.Span.End.Position - 1, endCheck)))
                                                         .Where(x => x.SourceSpan.Start.Index > (enumerator.Current.Span.End.Position - 1)).ToList();
                             if (nextTokens.Count > 0 && nextTokens[0].Token.Kind == TokenKind.LeftParenthesis)
                             {

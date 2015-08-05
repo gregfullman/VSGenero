@@ -428,26 +428,8 @@ namespace VSGenero.Analysis.Parsing.AST
                         {
                             for (int i = 0; i < retStmt.Returns.Count; i++)
                             {
-                                string type = null;
                                 var ret = retStmt.Returns[i];
-                                string text = ret.ToString();
-                                if (text != null)
-                                {
-                                    IGeneroProject dummyGenProj;
-                                    IProjectEntry dummyProjEntry;
-                                    var result = GeneroAst.GetValueByIndex(text, ret.StartIndex, this.SyntaxTree, out dummyGenProj, out dummyProjEntry);
-                                    if(result != null)
-                                    {
-                                        type = result.Typename;
-                                    }
-                                }
-
-                                if (string.IsNullOrEmpty(type))
-                                {
-                                    // it's possible that the return expression is an actual expression (i.e. a + b). Need to determine the type from that...
-                                    type = ret.GetExpressionType(SyntaxTree, null, null);
-                                }
-
+                                string type = ret.GetExpressionType(SyntaxTree);
                                 _returns[i] = type;
                             }
                         }

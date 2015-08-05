@@ -56,7 +56,7 @@ namespace VSGenero.Analysis.Parsing.AST
         }
 
         protected abstract string GetStringForm();
-        public abstract string GetExpressionType(GeneroAst ast, IFunctionInformationProvider funcProvider, IDatabaseInformationProvider dbProvider);
+        public abstract string GetExpressionType(GeneroAst ast);
 
         private List<ExpressionNode> _appendedExpressions;
         public List<ExpressionNode> AppendedExpressions
@@ -656,9 +656,16 @@ namespace VSGenero.Analysis.Parsing.AST
             return sb.ToString();
         }
 
-        public override string GetExpressionType(GeneroAst ast, IFunctionInformationProvider funcProvider, IDatabaseInformationProvider dbProvider)
+        public override string GetExpressionType(GeneroAst ast)
         {
-            // TODO: need to determine the return type for the function call
+            // need to determine the return type for the function call
+            IGeneroProject dummyProj;
+            IProjectEntry dummyProjEntry;
+            var result = GeneroAst.GetValueByIndex(Function.Name, Function.IndexSpan.Start, ast, out dummyProj, out dummyProjEntry, true, true);
+            if(result != null)
+            {
+                return result.Typename;
+            }
             return null;
         }
     }
@@ -725,7 +732,7 @@ namespace VSGenero.Analysis.Parsing.AST
             return sb.ToString();
         }
 
-        public override string GetExpressionType(GeneroAst ast, IFunctionInformationProvider funcProvider, IDatabaseInformationProvider dbProvider)
+        public override string GetExpressionType(GeneroAst ast)
         {
             return "[arg-list]";
         }
@@ -824,9 +831,9 @@ namespace VSGenero.Analysis.Parsing.AST
             return null;
         }
 
-        public override string GetExpressionType(GeneroAst ast, IFunctionInformationProvider funcProvider, IDatabaseInformationProvider dbProvider)
+        public override string GetExpressionType(GeneroAst ast)
         {
-            return InnerExpression.GetExpressionType(ast, funcProvider, dbProvider);
+            return InnerExpression.GetExpressionType(ast);
         }
     }
 
@@ -857,7 +864,7 @@ namespace VSGenero.Analysis.Parsing.AST
             return LiteralValue;
         }
 
-        public override string GetExpressionType(GeneroAst ast, IFunctionInformationProvider funcProvider, IDatabaseInformationProvider dbProvider)
+        public override string GetExpressionType(GeneroAst ast)
         {
             return "string";
         }
@@ -897,7 +904,7 @@ namespace VSGenero.Analysis.Parsing.AST
             return sb.ToString();
         }
 
-        public override string GetExpressionType(GeneroAst ast, IFunctionInformationProvider funcProvider, IDatabaseInformationProvider dbProvider)
+        public override string GetExpressionType(GeneroAst ast)
         {
             // TODO: determine the type from the token we have
             return null;
@@ -918,7 +925,7 @@ namespace VSGenero.Analysis.Parsing.AST
             return _statement.ToString();
         }
 
-        public override string GetExpressionType(GeneroAst ast, IFunctionInformationProvider funcProvider, IDatabaseInformationProvider dbProvider)
+        public override string GetExpressionType(GeneroAst ast)
         {
             return null;
         }

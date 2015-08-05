@@ -437,6 +437,9 @@ namespace VSGenero.Analysis.Parsing.AST
                     int remIndex = dotPiece.IndexOf('(');
                     dotPiece = dotPiece.Substring(0, remIndex);
                 }
+
+                bool lookForFunctions = isFunctionCallOrDefinition && (endIndex + 1 == exprText.Length);
+
                 resetStartIndex = true;
 
                 if (res != null)
@@ -470,7 +473,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 else
                 {
                     IFunctionResult funcRes;
-                    if (!isFunctionCallOrDefinition)
+                    if (!lookForFunctions)
                     {
                         if (SystemVariables.TryGetValue(dotPiece, out res) ||
                            SystemConstants.TryGetValue(dotPiece, out res) ||
@@ -496,7 +499,7 @@ namespace VSGenero.Analysis.Parsing.AST
 
                     if (containingNode != null && containingNode is IFunctionResult)
                     {
-                        if (!isFunctionCallOrDefinition)
+                        if (!lookForFunctions)
                         {
                             // Check for local vars, types, and constants
                             IFunctionResult func = containingNode as IFunctionResult;
@@ -512,7 +515,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     if (ast != null && ast.Body is IModuleResult)
                     {
                         IModuleResult mod = ast.Body as IModuleResult;
-                        if (!isFunctionCallOrDefinition)
+                        if (!lookForFunctions)
                         {
                             // check for module vars, types, and constants (and globals defined in this module)
                             if (mod.Variables.TryGetValue(dotPiece, out res) ||
@@ -559,7 +562,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                     IModuleResult modRes = projEntry.Value.Analysis.Body as IModuleResult;
                                     if (modRes != null)
                                     {
-                                        if (!isFunctionCallOrDefinition)
+                                        if (!lookForFunctions)
                                         {
                                             // check global vars, types, and constants
                                             if (modRes.GlobalVariables.TryGetValue(dotPiece, out res) ||
@@ -599,7 +602,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         }
                     }
 
-                    if (isFunctionCallOrDefinition)
+                    if (!lookForFunctions)
                     {
                         // check for classes
                         GeneroPackage package;
@@ -678,7 +681,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         }
                     }
 
-                    if (isFunctionCallOrDefinition)
+                    if (lookForFunctions)
                     {
                         if (searchInFunctionProvider)
                         {
@@ -715,7 +718,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         }
                     }
 
-                    if (!isFunctionCallOrDefinition)
+                    if (!lookForFunctions)
                     {
                         // try include files
                         bool foundInclude = false;

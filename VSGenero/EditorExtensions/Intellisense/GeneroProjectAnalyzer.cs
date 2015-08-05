@@ -1013,6 +1013,19 @@ namespace VSGenero.EditorExtensions.Intellisense
 
         }
 
+        internal GeneroAst ParseSnapshot(ITextSnapshot snapshot)
+        {
+            using (var parser = Parser.CreateParser(
+                new SnapshotSpanSourceCodeReader(
+                    new SnapshotSpan(snapshot, 0, snapshot.Length)
+                ),
+                new ParserOptions() { Verbatim = true, BindReferences = true }
+            ))
+            {
+                return ParseOneFile(null, parser);
+            }
+        }
+
         internal ITextSnapshot GetOpenSnapshot(IProjectEntry entry)
         {
             if (entry == null)

@@ -398,5 +398,11 @@ namespace VSGenero.EditorExtensions.Intellisense
         {
             get { return null; }
         }
+
+
+        public string[] Returns
+        {
+            get { return new string[0]; }
+        }
     }
 }

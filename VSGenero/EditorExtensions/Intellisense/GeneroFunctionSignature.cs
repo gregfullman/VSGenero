@@ -42,6 +42,18 @@ namespace VSGenero.EditorExtensions.Intellisense
 
             var content = new StringBuilder();
             var ppContent = new StringBuilder();
+
+            if(overload.Returns.Length == 0)
+            {
+                content.Append("void ");
+                ppContent.Append("void ");
+            }
+            else if (overload.Returns.Length == 1 && overload.Returns[0] != null)
+            {
+                content.AppendFormat("{0} ", overload.Returns[0]);
+                ppContent.AppendFormat("{0} ", overload.Returns[0]);
+            }
+
             if(!string.IsNullOrWhiteSpace(overload.Namespace))
             {
                 content.AppendFormat("{0}.", overload.Namespace);

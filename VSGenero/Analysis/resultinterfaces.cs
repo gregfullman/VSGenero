@@ -85,6 +85,7 @@ namespace VSGenero.Analysis
     public interface IFunctionResult : IAnalysisResult, IAnalysisResultContainer, IOutlinableResult
     {
         ParameterResult[] Parameters { get; }
+        string[] Returns { get; }
         AccessModifier AccessModifier { get; }
         string FunctionDocumentation { get; }
         IDictionary<string, IAnalysisResult> Variables { get; }

@@ -1056,6 +1056,12 @@ new ParameterResult("width", "", "integer"),
                 return null;
             }
         }
+
+
+        public string[] Returns
+        {
+            get { return _returns.ToArray(); }
+        }
     }
 
     public class SystemClass : IAnalysisResult

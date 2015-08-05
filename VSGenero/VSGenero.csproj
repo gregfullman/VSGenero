@@ -550,10 +550,20 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
+    <Compile Include="Refactoring\ExtractedMethodCreator.cs" />
+    <Compile Include="Refactoring\ExtractMethodDialog.xaml.cs">
+      <DependentUpon>ExtractMethodDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Refactoring\ExtractMethodRequest.cs" />
+    <Compile Include="Refactoring\ExtractMethodRequestView.cs" />
+    <Compile Include="Refactoring\ExtractMethodResult.cs" />
+    <Compile Include="Refactoring\ExtractMethodUserInput.cs" />
     <Compile Include="Refactoring\FilePreviewItem.cs" />
+    <Compile Include="Refactoring\IExtractMethodInput.cs" />
     <Compile Include="Refactoring\IPreviewItem.cs" />
     <Compile Include="Refactoring\IRenameVariableInput.cs" />
     <Compile Include="Refactoring\LocationPreviewItem.cs" />
+    <Compile Include="Refactoring\MethodExtractor.cs" />
     <Compile Include="Refactoring\PreviewChangesEngine.cs" />
     <Compile Include="Refactoring\PreviewList.cs" />
     <Compile Include="Refactoring\RenameVariableDialog.xaml.cs">
@@ -754,6 +764,10 @@
   </ItemGroup>
   <ItemGroup>
     <Page Include="Navigation\WaitForCompleteAnalysisDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Refactoring\ExtractMethodDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

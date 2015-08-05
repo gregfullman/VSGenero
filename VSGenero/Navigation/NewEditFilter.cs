@@ -874,48 +874,22 @@ namespace VSGenero.Navigation
                             return VSConstants.S_OK;
                         }
                         break;
-                    //case VSConstants.VSStd2KCmdID.EXTRACTMETHOD:
-                    //    ExtractMethod();
-                    //    return VSConstants.S_OK;
+                    case VSConstants.VSStd2KCmdID.EXTRACTMETHOD:
+                        ExtractMethod();
+                        return VSConstants.S_OK;
                     case VSConstants.VSStd2KCmdID.RENAME:
                         RefactorRename();
                         return VSConstants.S_OK;
                 }
             }
-            //else if (pguidCmdGroup == GuidList.guidPythonToolsCmdSet)
-            //{
-            //    switch (nCmdID)
-            //    {
-            //        case PkgCmdIDList.cmdidRefactorRenameIntegratedShell:
-            //            RefactorRename();
-            //            return VSConstants.S_OK;
-            //        case PkgCmdIDList.cmdidExtractMethodIntegratedShell:
-            //            ExtractMethod();
-            //            return VSConstants.S_OK;
-            //        default:
-            //            lock (PythonToolsPackage.CommandsLock)
-            //            {
-            //                foreach (var command in PythonToolsPackage.Commands.Keys)
-            //                {
-            //                    if (command.CommandId == nCmdID)
-            //                    {
-            //                        command.DoCommand(this, EventArgs.Empty);
-            //                        return VSConstants.S_OK;
-            //                    }
-            //                }
-            //            }
-            //            break;
-            //    }
-
-            //}
 
             return _next.Exec(pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
         }
 
-        //private bool ExtractMethod()
-        //{
-        //    return new MethodExtractor(_textView).ExtractMethod(ExtractMethodUserInput.Instance);
-        //}
+        private bool ExtractMethod()
+        {
+            return new MethodExtractor(_textView).ExtractMethod(new ExtractMethodUserInput(_serviceProvider));
+        }
 
         private void FormatCode(SnapshotSpan span, bool selectResult)
         {
@@ -968,57 +942,6 @@ namespace VSGenero.Navigation
                     }
                 }
             }
-//            else if (pguidCmdGroup == GuidList.guidPythonToolsCmdSet)
-//            {
-//                for (int i = 0; i < cCmds; i++)
-//                {
-//                    switch (prgCmds[i].cmdID)
-//                    {
-//                        case PkgCmdIDList.cmdidRefactorRenameIntegratedShell:
-//                            // C# provides the refactor context menu for the main VS command outside
-//                            // of the integrated shell.  In the integrated shell we provide our own
-//                            // command for it so these still show up.
-//#if DEV10
-//                            if (!IsCSharpInstalled()) {
-//                                QueryStatusRename(prgCmds, i);
-//                            } else 
-//#endif
-//                            {
-//                                prgCmds[i].cmdf = CommandDisabledAndHidden;
-//                            }
-//                            return VSConstants.S_OK;
-//                        case PkgCmdIDList.cmdidExtractMethodIntegratedShell:
-//                            // C# provides the refactor context menu for the main VS command outside
-//                            // of the integrated shell.  In the integrated shell we provide our own
-//                            // command for it so these still show up.
-//#if DEV10
-//                            if (!IsCSharpInstalled()) {
-//                                QueryStatusExtractMethod(prgCmds, i);
-//                            } else 
-//#endif
-//                            {
-//                                prgCmds[i].cmdf = CommandDisabledAndHidden;
-//                            }
-//                            return VSConstants.S_OK;
-//                        default:
-//                            lock (PythonToolsPackage.CommandsLock)
-//                            {
-//                                foreach (var command in PythonToolsPackage.Commands.Keys)
-//                                {
-//                                    if (command.CommandId == prgCmds[i].cmdID)
-//                                    {
-//                                        int? res = command.EditFilterQueryStatus(ref prgCmds[i], pCmdText);
-//                                        if (res != null)
-//                                        {
-//                                            return res.Value;
-//                                        }
-//                                    }
-//                                }
-//                            }
-//                            break;
-//                    }
-//                }
-//            }
             else if (pguidCmdGroup == VSGeneroConstants.Std2KCmdGroupGuid)
             {
                 OutliningTaggerProvider.OutliningTagger tagger;
@@ -1069,18 +992,6 @@ namespace VSGenero.Navigation
             }
             return _next.QueryStatus(ref pguidCmdGroup, cCmds, prgCmds, pCmdText);
         }
-
-#if DEV10
-        internal static bool IsCSharpInstalled() {
-            IVsShell shell = (IVsShell)PythonToolsPackage.GetGlobalService(typeof(IVsShell));
-            Guid csharpPacakge = GuidList.guidCSharpProjectPacakge;
-            int installed;
-            ErrorHandler.ThrowOnFailure(
-                shell.IsPackageInstalled(ref csharpPacakge, out installed)
-            );
-            return installed != 0;
-        }
-#endif
 
         private void QueryStatusExtractMethod(OLECMD[] prgCmds, int i)
         {

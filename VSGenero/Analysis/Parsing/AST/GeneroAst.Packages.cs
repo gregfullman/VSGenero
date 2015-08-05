@@ -3612,5 +3612,11 @@ namespace VSGenero.Analysis.Parsing.AST
                 return null;
             }
         }
+
+
+        public string[] Returns
+        {
+            get { return _returns.ToArray(); }
+        }
     }
 }
