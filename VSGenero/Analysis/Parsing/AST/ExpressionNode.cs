@@ -44,7 +44,7 @@ namespace VSGenero.Analysis.Parsing.AST
         }
 
         protected abstract string GetStringForm();
-        public abstract string GetExpressionType();
+        public abstract string GetExpressionType(GeneroAst ast, IFunctionInformationProvider funcProvider, IDatabaseInformationProvider dbProvider);
 
         private List<ExpressionNode> _appendedExpressions;
         public List<ExpressionNode> AppendedExpressions
@@ -644,7 +644,7 @@ namespace VSGenero.Analysis.Parsing.AST
             return sb.ToString();
         }
 
-        public override string GetExpressionType()
+        public override string GetExpressionType(GeneroAst ast, IFunctionInformationProvider funcProvider, IDatabaseInformationProvider dbProvider)
         {
             // TODO: need to determine the return type for the function call
             return null;
@@ -713,9 +713,9 @@ namespace VSGenero.Analysis.Parsing.AST
             return sb.ToString();
         }
 
-        public override string GetExpressionType()
+        public override string GetExpressionType(GeneroAst ast, IFunctionInformationProvider funcProvider, IDatabaseInformationProvider dbProvider)
         {
-            return null;
+            return "[arg-list]";
         }
     }
 
@@ -812,9 +812,9 @@ namespace VSGenero.Analysis.Parsing.AST
             return null;
         }
 
-        public override string GetExpressionType()
+        public override string GetExpressionType(GeneroAst ast, IFunctionInformationProvider funcProvider, IDatabaseInformationProvider dbProvider)
         {
-            return null;
+            return InnerExpression.GetExpressionType(ast, funcProvider, dbProvider);
         }
     }
 
@@ -844,12 +844,12 @@ namespace VSGenero.Analysis.Parsing.AST
         {
             return LiteralValue;
         }
+
+        public override string GetExpressionType(GeneroAst ast, IFunctionInformationProvider funcProvider, IDatabaseInformationProvider dbProvider)
+        {
+            return "string";
+        }
     }
-
-    //public class IntegerExpressionNode : TokenExpressionNode
-    //{
-
-    //}
 
     /// <summary>
     /// Base class for token-based expresssions
@@ -885,8 +885,9 @@ namespace VSGenero.Analysis.Parsing.AST
             return sb.ToString();
         }
 
-        public override string GetExpressionType()
+        public override string GetExpressionType(GeneroAst ast, IFunctionInformationProvider funcProvider, IDatabaseInformationProvider dbProvider)
         {
+            // TODO: determine the type from the token we have
             return null;
         }
     }
@@ -905,7 +906,7 @@ namespace VSGenero.Analysis.Parsing.AST
             return _statement.ToString();
         }
 
-        public override string GetExpressionType()
+        public override string GetExpressionType(GeneroAst ast, IFunctionInformationProvider funcProvider, IDatabaseInformationProvider dbProvider)
         {
             return null;
         }

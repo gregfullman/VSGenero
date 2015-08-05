@@ -82,7 +82,7 @@ namespace VSGenero.EditorExtensions
             public IEnumerable<ITagSpan<IOutliningRegionTag>> GetTags(NormalizedSnapshotSpanCollection spans)
             {
                 IGeneroProjectEntry classifier;
-                if (_enabled && _buffer.TryGetPythonAnalysis(out classifier))
+                if (_enabled && _buffer.TryGetAnalysis(out classifier))
                 {
                     if (!_eventHooked)
                     {
@@ -108,7 +108,7 @@ namespace VSGenero.EditorExtensions
             private void OnNewParseTree(object sender, EventArgs e)
             {
                 IGeneroProjectEntry classifier;
-                if (_buffer.TryGetPythonAnalysis(out classifier))
+                if (_buffer.TryGetAnalysis(out classifier))
                 {
                     _timer.Change(300, Timeout.Infinite);
                 }

@@ -17,6 +17,7 @@ using Microsoft.VisualStudio.VSCommon;
 using VSGenero.Analysis.Parsing;
 using VSGenero.Snippets;
 using System.Net;
+using Microsoft.VisualStudio.ComponentModelHost;
 
 namespace VSGenero.EditorExtensions
 {
@@ -136,7 +137,7 @@ namespace VSGenero.EditorExtensions
             return buffer.Properties.TryGetProperty<IProjectEntry>(typeof(IProjectEntry), out analysis);
         }
 
-        internal static bool TryGetPythonAnalysis(this ITextBuffer buffer, out IGeneroProjectEntry analysis)
+        internal static bool TryGetAnalysis(this ITextBuffer buffer, out IGeneroProjectEntry analysis)
         {
             IProjectEntry entry;
             if (buffer.TryGetAnalysis(out entry) && (analysis = entry as IGeneroProjectEntry) != null)
@@ -398,6 +399,16 @@ namespace VSGenero.EditorExtensions
             return buffer.CurrentSnapshot.CreateTrackingSpan(position, 1, SpanTrackingMode.EdgeInclusive);
         }
 
+        internal static ITrackingSpan CreateTrackingSpan(this CaretPosition position, ITextBuffer buffer)
+        {
+            //if (position.BufferPosition.Position == buffer.CurrentSnapshot.Length)
+            //{
+            //    return session.GetApplicableSpan(buffer);
+            //}
+
+            return buffer.CurrentSnapshot.CreateTrackingSpan(position.BufferPosition.Position, 1, SpanTrackingMode.EdgeInclusive);
+        }
+
         public static StandardGlyphGroup ToGlyphGroup(this GeneroMemberType objectType)
         {
             StandardGlyphGroup group;
@@ -476,6 +487,20 @@ namespace VSGenero.EditorExtensions
             DynamicSnippet snippet = new DynamicSnippet(name, name, desc, "VSGenero", codeBuilder.ToString());
             snippet.Replacements.AddRange(replacements);
             return snippet;
+        }
+
+        internal static SnapshotSpan ToSnapshotSpan(this IndexSpan indexSpan, ITextSnapshot snapshot)
+        {
+            return new SnapshotSpan(snapshot, indexSpan.Start, indexSpan.Length);
+        }
+
+        internal static IComponentModel GetComponentModel(this IServiceProvider serviceProvider)
+        {
+            if (serviceProvider == null)
+            {
+                return null;
+            }
+            return (IComponentModel)serviceProvider.GetService(typeof(SComponentModel));
         }
     }
 }

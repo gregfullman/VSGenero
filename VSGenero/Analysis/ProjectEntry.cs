@@ -281,8 +281,16 @@ namespace VSGenero.Analysis
                         if (impProj != null)
                         {
                             _lastImportedModules.Add(mod);
-                            if (!impProj.ReferencingProjectEntries.Contains(this))
-                                impProj.ReferencingProjectEntries.Add(this);
+                            try
+                            {
+                                if (!impProj.ReferencingProjectEntries.Contains(this))
+                                    // TODO: for some reason a NRE got thrown here, but nothing was apparently wrong
+                                    impProj.ReferencingProjectEntries.Add(this);
+                            }
+                            catch(Exception)
+                            {
+                                int i = 0;
+                            }
                         }
                     }
                     else

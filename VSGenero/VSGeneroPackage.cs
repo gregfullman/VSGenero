@@ -396,5 +396,19 @@ namespace VSGenero
                 return _programCodeContentTypes;
             }
         }
+
+        internal static ITextBuffer GetBufferForDocument(System.IServiceProvider serviceProvider, string filename)
+        {
+            IVsTextView viewAdapter;
+            IVsWindowFrame frame;
+            VsUtilities.OpenDocument(serviceProvider, filename, out viewAdapter, out frame);
+
+            IVsTextLines lines;
+            ErrorHandler.ThrowOnFailure(viewAdapter.GetBuffer(out lines));
+
+            var adapter = serviceProvider.GetComponentModel().GetService<IVsEditorAdaptersFactoryService>();
+
+            return adapter.GetDocumentBuffer(lines);
+        }
     }
 }

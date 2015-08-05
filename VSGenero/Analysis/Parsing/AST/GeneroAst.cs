@@ -152,7 +152,7 @@ namespace VSGenero.Analysis.Parsing.AST
             {
                 var locIndex = result.LocationIndex;
                 var loc = IndexToLocation(locIndex);
-                return new LocationInfo(project, loc.Line, loc.Column);
+                return new LocationInfo(project, loc.Line, loc.Column, locIndex);
             }
             return null;
         }
@@ -177,7 +177,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     var ast = (projEntry as IGeneroProjectEntry).Analysis;
                     var locIndex = trueRes.LocationIndex;
                     var loc = ast.IndexToLocation(locIndex);
-                    return new LocationInfo(projEntry, loc.Line, loc.Column);
+                    return new LocationInfo(projEntry, loc.Line, loc.Column, locIndex);
                 }
             }
             return null;
@@ -196,7 +196,9 @@ namespace VSGenero.Analysis.Parsing.AST
                 {
                     var locIndex = result.LocationIndex;
                     var loc = IndexToLocation(locIndex);
-                    return _projEntry == null ? new LocationInfo(_filename, loc.Line, loc.Column) : new LocationInfo(_projEntry, loc.Line, loc.Column);
+                    return _projEntry == null ? 
+                        new LocationInfo(_filename, loc.Line, loc.Column, locIndex) : 
+                        new LocationInfo(_projEntry, loc.Line, loc.Column, locIndex);
                 }
             }
             return null;
@@ -312,7 +314,7 @@ namespace VSGenero.Analysis.Parsing.AST
             // Check for class methods
             IGeneroProject dummyProj;
             IProjectEntry dummyProjEntry;
-            IAnalysisResult member = GetValueByIndex(exprText, index, _functionProvider, _databaseProvider, _programFileProvider, out dummyProj, out dummyProjEntry);
+            IAnalysisResult member = GetValueByIndex(exprText, index, _functionProvider, _databaseProvider, _programFileProvider, true, out dummyProj, out dummyProjEntry);
             if (member is IFunctionResult)
             {
                 return new IFunctionResult[1] { member as IFunctionResult };
@@ -332,7 +334,7 @@ namespace VSGenero.Analysis.Parsing.AST
         }
 
         public static IAnalysisResult GetValueByIndex(string exprText, int index, GeneroAst ast, out IGeneroProject definingProject, out IProjectEntry projectEntry, 
-                                                      bool searchInFunctionProvider = false)
+                                                      bool searchInFunctionProvider = false, bool isFunctionCallOrDefinition = false)
         {
             definingProject = null;
             projectEntry = null;
@@ -340,7 +342,9 @@ namespace VSGenero.Analysis.Parsing.AST
             //_databaseProvider = databaseProvider;
             //_programFileProvider = programFileProvider;
 
-            AstNode containingNode = GetContainingNode(ast.Body, index);
+            AstNode containingNode = null;
+            if(ast != null)
+                containingNode = GetContainingNode(ast.Body, index);
 
             IAnalysisResult res = null;
             int tmpIndex = 0;
@@ -452,70 +456,83 @@ namespace VSGenero.Analysis.Parsing.AST
                 }
                 else
                 {
-                    if (SystemVariables.TryGetValue(dotPiece, out res) ||
-                       SystemConstants.TryGetValue(dotPiece, out res) ||
-                        SystemMacros.TryGetValue(dotPiece, out res))
-                    {
-                        continue;
-                    }
-
                     IFunctionResult funcRes;
-                    if (SystemFunctions.TryGetValue(dotPiece, out funcRes))
+                    if (!isFunctionCallOrDefinition)
                     {
-                        res = funcRes;
-                        continue;
+                        if (SystemVariables.TryGetValue(dotPiece, out res) ||
+                           SystemConstants.TryGetValue(dotPiece, out res) ||
+                            SystemMacros.TryGetValue(dotPiece, out res))
+                        {
+                            continue;
+                        }
                     }
-
-                    if (ast._functionProvider != null && ast._functionProvider.Name.Equals(dotPiece, StringComparison.OrdinalIgnoreCase))
+                    else
                     {
-                        res = ast._functionProvider;
-                        continue;
+                        if (SystemFunctions.TryGetValue(dotPiece, out funcRes))
+                        {
+                            res = funcRes;
+                            continue;
+                        }
+
+                        if (ast != null && ast._functionProvider != null && ast._functionProvider.Name.Equals(dotPiece, StringComparison.OrdinalIgnoreCase))
+                        {
+                            res = ast._functionProvider;
+                            continue;
+                        }
                     }
 
                     if (containingNode != null && containingNode is IFunctionResult)
                     {
-                        // Check for local vars, types, and constants
-                        IFunctionResult func = containingNode as IFunctionResult;
-                        if (func.Variables.TryGetValue(dotPiece, out res) ||
-                           func.Types.TryGetValue(dotPiece, out res) ||
-                           func.Constants.TryGetValue(dotPiece, out res))
+                        if (!isFunctionCallOrDefinition)
                         {
-                            continue;
+                            // Check for local vars, types, and constants
+                            IFunctionResult func = containingNode as IFunctionResult;
+                            if (func.Variables.TryGetValue(dotPiece, out res) ||
+                               func.Types.TryGetValue(dotPiece, out res) ||
+                               func.Constants.TryGetValue(dotPiece, out res))
+                            {
+                                continue;
+                            }
                         }
                     }
 
-                    if (ast.Body is IModuleResult)
+                    if (ast != null && ast.Body is IModuleResult)
                     {
-                        // check for module vars, types, and constants (and globals defined in this module)
                         IModuleResult mod = ast.Body as IModuleResult;
-                        if (mod.Variables.TryGetValue(dotPiece, out res) ||
-                           mod.Types.TryGetValue(dotPiece, out res) ||
-                           mod.Constants.TryGetValue(dotPiece, out res) ||
-                           mod.GlobalVariables.TryGetValue(dotPiece, out res) ||
-                           mod.GlobalTypes.TryGetValue(dotPiece, out res) ||
-                           mod.GlobalConstants.TryGetValue(dotPiece, out res))
+                        if (!isFunctionCallOrDefinition)
                         {
-                            continue;
-                        }
+                            // check for module vars, types, and constants (and globals defined in this module)
+                            if (mod.Variables.TryGetValue(dotPiece, out res) ||
+                               mod.Types.TryGetValue(dotPiece, out res) ||
+                               mod.Constants.TryGetValue(dotPiece, out res) ||
+                               mod.GlobalVariables.TryGetValue(dotPiece, out res) ||
+                               mod.GlobalTypes.TryGetValue(dotPiece, out res) ||
+                               mod.GlobalConstants.TryGetValue(dotPiece, out res))
+                            {
+                                continue;
+                            }
 
-                        // check for cursors in this module
-                        if (mod.Cursors.TryGetValue(dotPiece, out res))
-                        {
-                            continue;
+                            // check for cursors in this module
+                            if (mod.Cursors.TryGetValue(dotPiece, out res))
+                            {
+                                continue;
+                            }
                         }
-
-                        // check for module functions
-                        if (mod.Functions.TryGetValue(dotPiece, out funcRes))
+                        else
                         {
-                            res = funcRes;
-                            continue;
+                            // check for module functions
+                            if (mod.Functions.TryGetValue(dotPiece, out funcRes))
+                            {
+                                res = funcRes;
+                                continue;
+                            }
                         }
                     }
 
                     // TODO: this could probably be done more efficiently by having each GeneroAst load globals and functions into
                     // dictionaries stored on the IGeneroProject, instead of in each project entry.
                     // However, this does required more upkeep when changes occur. Will look into it...
-                    if (ast.ProjectEntry != null && ast.ProjectEntry is IGeneroProjectEntry)
+                    if (ast != null && ast.ProjectEntry != null && ast.ProjectEntry is IGeneroProjectEntry)
                     {
                         IGeneroProjectEntry genProj = ast.ProjectEntry as IGeneroProjectEntry;
                         if (genProj.ParentProject != null)
@@ -529,31 +546,36 @@ namespace VSGenero.Analysis.Parsing.AST
                                     IModuleResult modRes = projEntry.Value.Analysis.Body as IModuleResult;
                                     if (modRes != null)
                                     {
-                                        // check global vars, types, and constants
-                                        if (modRes.GlobalVariables.TryGetValue(dotPiece, out res) ||
-                                           modRes.GlobalTypes.TryGetValue(dotPiece, out res) ||
-                                           modRes.GlobalConstants.TryGetValue(dotPiece, out res))
+                                        if (!isFunctionCallOrDefinition)
                                         {
-                                            found = true;
-                                            break;
-                                        }
-
-                                        // check project functions
-                                        if (modRes.Functions.TryGetValue(dotPiece, out funcRes))
-                                        {
-                                            if (funcRes.AccessModifier == AccessModifier.Public)
+                                            // check global vars, types, and constants
+                                            if (modRes.GlobalVariables.TryGetValue(dotPiece, out res) ||
+                                               modRes.GlobalTypes.TryGetValue(dotPiece, out res) ||
+                                               modRes.GlobalConstants.TryGetValue(dotPiece, out res))
                                             {
-                                                res = funcRes;
+                                                found = true;
+                                                break;
+                                            }
+
+                                            // check for cursors in this module
+                                            if (modRes.Cursors.TryGetValue(dotPiece, out res))
+                                            {
                                                 found = true;
                                                 break;
                                             }
                                         }
-
-                                        // check for cursors in this module
-                                        if (modRes.Cursors.TryGetValue(dotPiece, out res))
+                                        else
                                         {
-                                            found = true;
-                                            break;
+                                            // check project functions
+                                            if (modRes.Functions.TryGetValue(dotPiece, out funcRes))
+                                            {
+                                                if (funcRes.AccessModifier == AccessModifier.Public)
+                                                {
+                                                    res = funcRes;
+                                                    found = true;
+                                                    break;
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -564,12 +586,15 @@ namespace VSGenero.Analysis.Parsing.AST
                         }
                     }
 
-                    // check for classes
-                    GeneroPackage package;
-                    if (Packages.TryGetValue(dotPiece, out package))
+                    if (isFunctionCallOrDefinition)
                     {
-                        res = package;
-                        continue;
+                        // check for classes
+                        GeneroPackage package;
+                        if (Packages.TryGetValue(dotPiece, out package))
+                        {
+                            res = package;
+                            continue;
+                        }
                     }
 
                     /* TODO:
@@ -640,25 +665,28 @@ namespace VSGenero.Analysis.Parsing.AST
                         }
                     }
 
-                    if (searchInFunctionProvider)
+                    if (isFunctionCallOrDefinition)
                     {
-                        if (res == null && ast._functionProvider != null)
+                        if (searchInFunctionProvider)
                         {
-                            // check for the function name in the function provider
-                            var funcs = ast._functionProvider.GetFunction(dotPiece);
-                            if (funcs != null)
+                            if (res == null && ast != null && ast._functionProvider != null)
                             {
-                                res = funcs.FirstOrDefault();
-                                if (res != null)
+                                // check for the function name in the function provider
+                                var funcs = ast._functionProvider.GetFunction(dotPiece);
+                                if (funcs != null)
                                 {
-                                    continue;
+                                    res = funcs.FirstOrDefault();
+                                    if (res != null)
+                                    {
+                                        continue;
+                                    }
                                 }
                             }
                         }
                     }
 
                     // try an imported module
-                    if (ast.Body is IModuleResult &&
+                    if (ast != null && ast.Body is IModuleResult &&
                        ast.ProjectEntry is IGeneroProjectEntry)
                     {
                         if ((ast.Body as IModuleResult).FglImports.Contains(dotPiece))
@@ -674,35 +702,38 @@ namespace VSGenero.Analysis.Parsing.AST
                         }
                     }
 
-                    // try include files
-                    bool foundInclude = false;
-                    if (ast != null)
+                    if (!isFunctionCallOrDefinition)
                     {
-                        foreach (var includeFile in ast.ProjectEntry.GetIncludedFiles())
+                        // try include files
+                        bool foundInclude = false;
+                        if (ast != null)
                         {
-                            if (includeFile.Analysis != null &&
-                                includeFile.Analysis.Body is IModuleResult)
+                            foreach (var includeFile in ast.ProjectEntry.GetIncludedFiles())
                             {
-                                var mod = includeFile.Analysis.Body as IModuleResult;
-                                if (mod.Types.TryGetValue(dotPiece, out res) ||
-                                   mod.Constants.TryGetValue(dotPiece, out res) ||
-                                   mod.GlobalTypes.TryGetValue(dotPiece, out res) ||
-                                   mod.GlobalConstants.TryGetValue(dotPiece, out res))
+                                if (includeFile.Analysis != null &&
+                                    includeFile.Analysis.Body is IModuleResult)
                                 {
-                                    foundInclude = true;
-                                    break;
+                                    var mod = includeFile.Analysis.Body as IModuleResult;
+                                    if (mod.Types.TryGetValue(dotPiece, out res) ||
+                                       mod.Constants.TryGetValue(dotPiece, out res) ||
+                                       mod.GlobalTypes.TryGetValue(dotPiece, out res) ||
+                                       mod.GlobalConstants.TryGetValue(dotPiece, out res))
+                                    {
+                                        foundInclude = true;
+                                        break;
+                                    }
                                 }
                             }
                         }
-                    }
-                    if (foundInclude)
-                        continue;
-
-                    if (ast._databaseProvider != null)
-                    {
-                        res = ast._databaseProvider.GetTable(dotPiece);
-                        if (res != null)
+                        if (foundInclude)
                             continue;
+
+                        if (ast != null && ast._databaseProvider != null)
+                        {
+                            res = ast._databaseProvider.GetTable(dotPiece);
+                            if (res != null)
+                                continue;
+                        }
                     }
 
                     if (res == null)
@@ -720,14 +751,15 @@ namespace VSGenero.Analysis.Parsing.AST
         /// <param name="exprText">The expression to determine the result of.</param>
         /// <param name="index">The 0-based absolute index into the file where the expression should be evaluated within the module.</param>
         public IAnalysisResult GetValueByIndex(string exprText, int index, IFunctionInformationProvider functionProvider, 
-                                               IDatabaseInformationProvider databaseProvider, IProgramFileProvider programFileProvider, 
+                                               IDatabaseInformationProvider databaseProvider, IProgramFileProvider programFileProvider,
+                                               bool isFunctionCallOrDefinition,
                                                out IGeneroProject definingProject, out IProjectEntry projectEntry, bool searchInFunctionProvider = false)
         {
             _functionProvider = functionProvider;
             _databaseProvider = databaseProvider;
             _programFileProvider = programFileProvider;
 
-            return GetValueByIndex(exprText, index, this, out definingProject, out projectEntry, searchInFunctionProvider);
+            return GetValueByIndex(exprText, index, this, out definingProject, out projectEntry, searchInFunctionProvider, isFunctionCallOrDefinition);
         }
 
         /// <summary>
@@ -739,7 +771,8 @@ namespace VSGenero.Analysis.Parsing.AST
         /// index is a 0-based absolute index into the file.
         /// </summary>
         public IEnumerable<IAnalysisVariable> GetVariablesByIndex(string exprText, int index, IFunctionInformationProvider functionProvider, 
-                                                                  IDatabaseInformationProvider databaseProvider, IProgramFileProvider programFileProvider)
+                                                                  IDatabaseInformationProvider databaseProvider, IProgramFileProvider programFileProvider,
+                                                                  bool isFunctionCallOrDefinition)
         {
             _functionProvider = functionProvider;
             _databaseProvider = databaseProvider;
@@ -762,25 +795,28 @@ namespace VSGenero.Analysis.Parsing.AST
             AstNode containingNode = _body.Children[key];
             if (containingNode != null)
             {
-                if (containingNode is IFunctionResult)
+                if (!isFunctionCallOrDefinition)
                 {
-                    // Check for local vars, types, and constants
-                    IFunctionResult func = containingNode as IFunctionResult;
-                    IAnalysisResult res;
-
-                    if (func.Variables.TryGetValue(exprText, out res))
+                    if (containingNode is IFunctionResult)
                     {
-                        vars.Add(new AnalysisVariable(this.ResolveLocation(res), VariableType.Definition));
-                    }
+                        // Check for local vars, types, and constants
+                        IFunctionResult func = containingNode as IFunctionResult;
+                        IAnalysisResult res;
 
-                    if (func.Types.TryGetValue(exprText, out res))
-                    {
-                        vars.Add(new AnalysisVariable(this.ResolveLocation(res), VariableType.Definition));
-                    }
+                        if (func.Variables.TryGetValue(exprText, out res))
+                        {
+                            vars.Add(new AnalysisVariable(this.ResolveLocation(res), VariableType.Definition));
+                        }
 
-                    if (func.Constants.TryGetValue(exprText, out res))
-                    {
-                        vars.Add(new AnalysisVariable(this.ResolveLocation(res), VariableType.Definition));
+                        if (func.Types.TryGetValue(exprText, out res))
+                        {
+                            vars.Add(new AnalysisVariable(this.ResolveLocation(res), VariableType.Definition));
+                        }
+
+                        if (func.Constants.TryGetValue(exprText, out res))
+                        {
+                            vars.Add(new AnalysisVariable(this.ResolveLocation(res), VariableType.Definition));
+                        }
                     }
                 }
 
@@ -790,47 +826,52 @@ namespace VSGenero.Analysis.Parsing.AST
                     IModuleResult mod = _body as IModuleResult;
                     IAnalysisResult res;
 
-                    if (mod.Variables.TryGetValue(exprText, out res))
+                    if (!isFunctionCallOrDefinition)
                     {
-                        vars.Add(new AnalysisVariable(this.ResolveLocation(res), VariableType.Definition));
-                    }
+                        if (mod.Variables.TryGetValue(exprText, out res))
+                        {
+                            vars.Add(new AnalysisVariable(this.ResolveLocation(res), VariableType.Definition));
+                        }
 
-                    if (mod.Types.TryGetValue(exprText, out res))
-                    {
-                        vars.Add(new AnalysisVariable(this.ResolveLocation(res), VariableType.Definition));
-                    }
+                        if (mod.Types.TryGetValue(exprText, out res))
+                        {
+                            vars.Add(new AnalysisVariable(this.ResolveLocation(res), VariableType.Definition));
+                        }
 
-                    if (mod.Constants.TryGetValue(exprText, out res))
-                    {
-                        vars.Add(new AnalysisVariable(this.ResolveLocation(res), VariableType.Definition));
-                    }
+                        if (mod.Constants.TryGetValue(exprText, out res))
+                        {
+                            vars.Add(new AnalysisVariable(this.ResolveLocation(res), VariableType.Definition));
+                        }
 
-                    if (mod.GlobalVariables.TryGetValue(exprText, out res))
-                    {
-                        vars.Add(new AnalysisVariable(this.ResolveLocation(res), VariableType.Definition));
-                    }
+                        if (mod.GlobalVariables.TryGetValue(exprText, out res))
+                        {
+                            vars.Add(new AnalysisVariable(this.ResolveLocation(res), VariableType.Definition));
+                        }
 
-                    if (mod.GlobalTypes.TryGetValue(exprText, out res))
-                    {
-                        vars.Add(new AnalysisVariable(this.ResolveLocation(res), VariableType.Definition));
-                    }
+                        if (mod.GlobalTypes.TryGetValue(exprText, out res))
+                        {
+                            vars.Add(new AnalysisVariable(this.ResolveLocation(res), VariableType.Definition));
+                        }
 
-                    if (mod.GlobalConstants.TryGetValue(exprText, out res))
-                    {
-                        vars.Add(new AnalysisVariable(this.ResolveLocation(res), VariableType.Definition));
-                    }
+                        if (mod.GlobalConstants.TryGetValue(exprText, out res))
+                        {
+                            vars.Add(new AnalysisVariable(this.ResolveLocation(res), VariableType.Definition));
+                        }
 
-                    // check for cursors in this module
-                    if (mod.Cursors.TryGetValue(exprText, out res))
-                    {
-                        vars.Add(new AnalysisVariable(this.ResolveLocation(res), VariableType.Definition));
+                        // check for cursors in this module
+                        if (mod.Cursors.TryGetValue(exprText, out res))
+                        {
+                            vars.Add(new AnalysisVariable(this.ResolveLocation(res), VariableType.Definition));
+                        }
                     }
-
-                    // check for module functions
-                    IFunctionResult funcRes;
-                    if (mod.Functions.TryGetValue(exprText, out funcRes))
+                    else
                     {
-                        vars.Add(new AnalysisVariable(this.ResolveLocation(funcRes), VariableType.Definition));
+                        // check for module functions
+                        IFunctionResult funcRes;
+                        if (mod.Functions.TryGetValue(exprText, out funcRes))
+                        {
+                            vars.Add(new AnalysisVariable(this.ResolveLocation(funcRes), VariableType.Definition));
+                        }
                     }
                 }
             }
@@ -851,34 +892,39 @@ namespace VSGenero.Analysis.Parsing.AST
                             IModuleResult modRes = projEntry.Value.Analysis.Body as IModuleResult;
                             if (modRes != null)
                             {
-                                // check global vars, types, and constants
-                                IAnalysisResult res;
-                                if (modRes.GlobalVariables.TryGetValue(exprText, out res))
+                                if (!isFunctionCallOrDefinition)
                                 {
-                                    vars.Add(new AnalysisVariable(projEntry.Value.Analysis.ResolveLocation(res), VariableType.Definition));
-                                }
+                                    // check global vars, types, and constants
+                                    IAnalysisResult res;
+                                    if (modRes.GlobalVariables.TryGetValue(exprText, out res))
+                                    {
+                                        vars.Add(new AnalysisVariable(projEntry.Value.Analysis.ResolveLocation(res), VariableType.Definition));
+                                    }
 
-                                if (modRes.GlobalTypes.TryGetValue(exprText, out res))
-                                {
-                                    vars.Add(new AnalysisVariable(projEntry.Value.Analysis.ResolveLocation(res), VariableType.Definition));
-                                }
+                                    if (modRes.GlobalTypes.TryGetValue(exprText, out res))
+                                    {
+                                        vars.Add(new AnalysisVariable(projEntry.Value.Analysis.ResolveLocation(res), VariableType.Definition));
+                                    }
 
-                                if (modRes.GlobalConstants.TryGetValue(exprText, out res))
-                                {
-                                    vars.Add(new AnalysisVariable(projEntry.Value.Analysis.ResolveLocation(res), VariableType.Definition));
-                                }
+                                    if (modRes.GlobalConstants.TryGetValue(exprText, out res))
+                                    {
+                                        vars.Add(new AnalysisVariable(projEntry.Value.Analysis.ResolveLocation(res), VariableType.Definition));
+                                    }
 
-                                // check for cursors in this module
-                                if (modRes.Cursors.TryGetValue(exprText, out res))
-                                {
-                                    vars.Add(new AnalysisVariable(projEntry.Value.Analysis.ResolveLocation(res), VariableType.Definition));
+                                    // check for cursors in this module
+                                    if (modRes.Cursors.TryGetValue(exprText, out res))
+                                    {
+                                        vars.Add(new AnalysisVariable(projEntry.Value.Analysis.ResolveLocation(res), VariableType.Definition));
+                                    }
                                 }
-
-                                // check for module functions
-                                IFunctionResult funcRes;
-                                if (modRes.Functions.TryGetValue(exprText, out funcRes))
+                                else
                                 {
-                                    vars.Add(new AnalysisVariable(projEntry.Value.Analysis.ResolveLocation(funcRes), VariableType.Definition));
+                                    // check for module functions
+                                    IFunctionResult funcRes;
+                                    if (modRes.Functions.TryGetValue(exprText, out funcRes))
+                                    {
+                                        vars.Add(new AnalysisVariable(projEntry.Value.Analysis.ResolveLocation(funcRes), VariableType.Definition));
+                                    }
                                 }
                             }
                         }
@@ -893,7 +939,7 @@ namespace VSGenero.Analysis.Parsing.AST
              * 3) Record fields
              */
 
-            if(_functionProvider != null)
+            if(isFunctionCallOrDefinition && _functionProvider != null)
             {
                 var funcRes = _functionProvider.GetFunction(exprText);
                 if(funcRes != null)
@@ -906,7 +952,7 @@ namespace VSGenero.Analysis.Parsing.AST
             {
                 IGeneroProject definingProj;
                 IProjectEntry projEntry;
-                IAnalysisResult res = GetValueByIndex(exprText, index, functionProvider, databaseProvider, _programFileProvider, out definingProj, out projEntry);
+                IAnalysisResult res = GetValueByIndex(exprText, index, functionProvider, databaseProvider, _programFileProvider, isFunctionCallOrDefinition, out definingProj, out projEntry);
                 if(res != null)
                 {
                     LocationInfo locInfo = null;
@@ -935,7 +981,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     if (refProjKVP != null && refProjKVP is IAnalysisResult)
                     {
                         IProjectEntry dummyEntry;
-                        IAnalysisResult res = GetValueByIndex(exprText, index, functionProvider, databaseProvider, _programFileProvider, out refProjKVP, out dummyEntry);
+                        IAnalysisResult res = GetValueByIndex(exprText, index, functionProvider, databaseProvider, _programFileProvider, isFunctionCallOrDefinition, out refProjKVP, out dummyEntry);
                         if (res != null)
                         {
                             LocationInfo locInfo = null;
@@ -952,25 +998,55 @@ namespace VSGenero.Analysis.Parsing.AST
                 }
             }
 
-            foreach(var includeFile in this.ProjectEntry.GetIncludedFiles())
+            if (!isFunctionCallOrDefinition)
             {
-                IAnalysisResult res;
-                if(includeFile.Analysis != null &&
-                   includeFile.Analysis.Body is IModuleResult)
+                foreach (var includeFile in this.ProjectEntry.GetIncludedFiles())
                 {
-                    var mod = includeFile.Analysis.Body as IModuleResult;
-                    if (mod.Types.TryGetValue(exprText, out res))
+                    IAnalysisResult res;
+                    if (includeFile.Analysis != null &&
+                       includeFile.Analysis.Body is IModuleResult)
                     {
-                        vars.Add(new AnalysisVariable(ResolveLocationInternal(null, includeFile, res), VariableType.Definition));
-                    }
-                    if (mod.Constants.TryGetValue(exprText, out res))
-                    {
-                        vars.Add(new AnalysisVariable(ResolveLocationInternal(null, includeFile, res), VariableType.Definition));
+                        var mod = includeFile.Analysis.Body as IModuleResult;
+                        if (mod.Types.TryGetValue(exprText, out res))
+                        {
+                            vars.Add(new AnalysisVariable(ResolveLocationInternal(null, includeFile, res), VariableType.Definition));
+                        }
+                        if (mod.Constants.TryGetValue(exprText, out res))
+                        {
+                            vars.Add(new AnalysisVariable(ResolveLocationInternal(null, includeFile, res), VariableType.Definition));
+                        }
                     }
                 }
             }
 
             return vars;
         }
+
+        //public IEnumerable<IndexSpan> FindAllReferences(IAnalysisResult item)
+        //{
+        //    List<IndexSpan> references = new List<IndexSpan>();
+
+        //    if (item.LocationIndex >= 0)
+        //    {
+        //        if ((item is AstNode && (item as AstNode).SyntaxTree == this) ||
+        //            (item.Location.ProjectEntry != null && item.Location.ProjectEntry == this.ProjectEntry) ||
+        //            (!string.IsNullOrWhiteSpace(item.Location.FilePath) && item.Location.FilePath == this._filename))
+        //        {
+        //            references.Add(new IndexSpan(item.LocationIndex, item.Name.Length));
+
+        //            // TODO: traverse the entire children tree of the the module node (body)
+        //            var containingNode = GetContainingNode(Body, item.LocationIndex);
+        //            if (containingNode != null && containingNode != Body && containingNode is IFunctionResult)
+        //            {
+        //                containingNode.FindAllReferences(item, references);
+        //            }
+        //            else
+        //            {
+        //                Body.FindAllReferences(item, references);
+        //            }
+        //        }
+        //    }
+        //    return references;
+        //}
     }
 }

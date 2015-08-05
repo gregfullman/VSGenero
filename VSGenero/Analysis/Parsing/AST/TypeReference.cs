@@ -327,7 +327,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     {
                         if(includedFile.Analysis != null)
                         {
-                            var res = includedFile.Analysis.GetValueByIndex(_typeNameString, 1, null, null, null, out definingProject, out projectEntry);
+                            var res = includedFile.Analysis.GetValueByIndex(_typeNameString, 1, null, null, null, false, out definingProject, out projectEntry);
                             if(res != null)
                             {
                                 return res.GetMembers(ast, memberType).Select(x => x.Var).Where(y => y != null);
@@ -355,7 +355,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     }
 
                     // check for package class
-                    udt = ast.GetValueByIndex(_typeNameString, LocationIndex, ast._functionProvider, ast._databaseProvider, ast._programFileProvider, out definingProject, out projectEntry);
+                    udt = ast.GetValueByIndex(_typeNameString, LocationIndex, ast._functionProvider, ast._databaseProvider, ast._programFileProvider, false, out definingProject, out projectEntry);
                     if (udt != null)
                     {
                         return udt.GetMembers(ast, memberType).Select(x => x.Var).Where(y => y != null);
@@ -438,7 +438,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         {
                             IGeneroProject dummyProj;
                             IProjectEntry dummyProjEntry;
-                            var res = includedFile.Analysis.GetValueByIndex(_typeNameString, 1, null, null, null, out dummyProj, out dummyProjEntry);
+                            var res = includedFile.Analysis.GetValueByIndex(_typeNameString, 1, null, null, null, false, out dummyProj, out dummyProjEntry);
                             if (res != null)
                             {
                                 return res.GetMembers(ast, memberType);
@@ -465,7 +465,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     // check for package class
                     IGeneroProject dummyProject;
                     IProjectEntry projEntry;
-                    udt = ast.GetValueByIndex(_typeNameString, LocationIndex, ast._functionProvider, ast._databaseProvider, ast._programFileProvider, out dummyProject, out projEntry);
+                    udt = ast.GetValueByIndex(_typeNameString, LocationIndex, ast._functionProvider, ast._databaseProvider, ast._programFileProvider, false, out dummyProject, out projEntry);
                     if (udt != null)
                     {
                         return udt.GetMembers(ast, memberType);
@@ -510,7 +510,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         // check for package class
                         IGeneroProject dummyProj;
                         IProjectEntry projEntry;
-                        udt = ast.GetValueByIndex(_typeNameString, LocationIndex, ast._functionProvider, ast._databaseProvider, ast._programFileProvider, out dummyProj, out projEntry);
+                        udt = ast.GetValueByIndex(_typeNameString, LocationIndex, ast._functionProvider, ast._databaseProvider, ast._programFileProvider, false, out dummyProj, out projEntry);
                         if(udt != null)
                         {
                             return udt.HasChildFunctions(ast);

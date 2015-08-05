@@ -18,7 +18,7 @@ namespace VSGenero.Analysis.Parsing.AST
         public IndexSpan _span;
         public bool IsComplete { get; protected set; }
 
-        protected GeneroAst SyntaxTree { get; set; }
+        internal GeneroAst SyntaxTree { get; set; }
 
         public virtual GeneroMemberType MemberType
         {
@@ -96,7 +96,7 @@ namespace VSGenero.Analysis.Parsing.AST
         //    return res.ToString();
         //}
 
-        public void PropagateSyntaxTree(GeneroAst ast)
+        public virtual void PropagateSyntaxTree(GeneroAst ast)
         {
             SyntaxTree = ast;
             foreach (var child in Children)
@@ -236,6 +236,10 @@ namespace VSGenero.Analysis.Parsing.AST
                     _children = new SortedList<int, AstNode>();
                 return _children;
             }
+        }
+
+        public virtual void FindAllReferences(IAnalysisResult item, List<IndexSpan> referenceList)
+        {
         }
     }
 

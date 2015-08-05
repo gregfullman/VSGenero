@@ -21,6 +21,7 @@ using VSGenero.Analysis;
 using VSGenero.EditorExtensions;
 using VSGenero.EditorExtensions.Intellisense;
 using Microsoft.VisualStudio.VSCommon;
+using VSGenero.Refactoring;
 
 namespace VSGenero.Navigation
 {
@@ -28,13 +29,15 @@ namespace VSGenero.Navigation
     {
         private readonly ITextView _textView;
         private readonly IEditorOperations _editorOps;
+        private readonly System.IServiceProvider _serviceProvider;
         private IFunctionInformationProvider _functionProvider;
         private IDatabaseInformationProvider _databaseProvider;
         private IProgramFileProvider _programFileProvider;
         private IOleCommandTarget _next;
 
-        public EditFilter(ITextView textView, IEditorOperations editorOps)
+        public EditFilter(ITextView textView, IEditorOperations editorOps, System.IServiceProvider serviceProvider)
         {
+            _serviceProvider = serviceProvider;
             _textView = textView;
             _textView.Properties[typeof(EditFilter)] = this;
             _editorOps = editorOps;
@@ -861,9 +864,9 @@ namespace VSGenero.Navigation
                     //case VSConstants.VSStd2KCmdID.EXTRACTMETHOD:
                     //    ExtractMethod();
                     //    return VSConstants.S_OK;
-                    //case VSConstants.VSStd2KCmdID.RENAME:
-                    //    RefactorRename();
-                    //    return VSConstants.S_OK;
+                    case VSConstants.VSStd2KCmdID.RENAME:
+                        RefactorRename();
+                        return VSConstants.S_OK;
                 }
             }
             //else if (pguidCmdGroup == GuidList.guidPythonToolsCmdSet)
@@ -910,26 +913,26 @@ namespace VSGenero.Navigation
             AutoIndent.Format(_textView, startLine, endLine);
         }
 
-        //internal void RefactorRename()
-        //{
-        //    var analyzer = _textView.GetAnalyzer();
-        //    if (analyzer.IsAnalyzing)
-        //    {
-        //        var dialog = new WaitForCompleteAnalysisDialog(analyzer);
+        internal void RefactorRename()
+        {
+            var analyzer = _textView.GetAnalyzer();
+            if (analyzer.IsAnalyzing)
+            {
+                var dialog = new WaitForCompleteAnalysisDialog(analyzer);
 
-        //        var res = dialog.ShowModal();
-        //        if (res != true)
-        //        {
-        //            // user cancelled dialog before analysis completed...
-        //            return;
-        //        }
-        //    }
+                var res = dialog.ShowModal();
+                if (res != true)
+                {
+                    // user cancelled dialog before analysis completed...
+                    return;
+                }
+            }
 
-        //    new VariableRenamer(_textView).RenameVariable(
-        //        RenameVariableUserInput.Instance,
-        //        (IVsPreviewChangesService)PythonToolsPackage.GetGlobalService(typeof(SVsPreviewChangesService))
-        //    );
-        //}
+            new VariableRenamer(_textView, _functionProvider, _databaseProvider, _programFileProvider, _serviceProvider).RenameVariable(
+                new RenameVariableUserInput(_serviceProvider),
+                (IVsPreviewChangesService)VSGeneroPackage.GetGlobalService(typeof(SVsPreviewChangesService))
+            );
+        }
 
         private const uint CommandDisabledAndHidden = (uint)(OLECMDF.OLECMDF_INVISIBLE | OLECMDF.OLECMDF_SUPPORTED | OLECMDF.OLECMDF_DEFHIDEONCTXTMENU);
         /// <summary>

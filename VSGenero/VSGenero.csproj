@@ -428,6 +428,9 @@
     <Compile Include="Analysis\Parsing\IndexSpan.cs" />
     <Compile Include="Analysis\Parsing\LiteralParser.cs" />
     <Compile Include="Analysis\LocationInfo.cs" />
+    <Compile Include="EditorExtensions\Intellisense\HighlightReferencesTag.cs" />
+    <Compile Include="EditorExtensions\Intellisense\HighlightReferencesTagger.cs" />
+    <Compile Include="EditorExtensions\Intellisense\HighlightReferencesTaggerProvider.cs" />
     <Compile Include="EditorExtensions\Intellisense\IntellisenseController.cs" />
     <Compile Include="EditorExtensions\Intellisense\IntellisenseControllerProvider.cs" />
     <Compile Include="EditorExtensions\Intellisense\NormalCompletionAnalysis.cs" />
@@ -502,6 +505,9 @@
     <Compile Include="Genero4GLLanguagePreferences.cs" />
     <Compile Include="Navigation\GeneroLibraryManager.cs" />
     <Compile Include="Navigation\NewEditFilter.cs" />
+    <Compile Include="Navigation\WaitForCompleteAnalysisDialog.xaml.cs">
+      <DependentUpon>WaitForCompleteAnalysisDialog.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Options\Genero4GLAdvancedOptionsControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -544,6 +550,19 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
+    <Compile Include="Refactoring\FilePreviewItem.cs" />
+    <Compile Include="Refactoring\IPreviewItem.cs" />
+    <Compile Include="Refactoring\IRenameVariableInput.cs" />
+    <Compile Include="Refactoring\LocationPreviewItem.cs" />
+    <Compile Include="Refactoring\PreviewChangesEngine.cs" />
+    <Compile Include="Refactoring\PreviewList.cs" />
+    <Compile Include="Refactoring\RenameVariableDialog.xaml.cs">
+      <DependentUpon>RenameVariableDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Refactoring\RenameVariableRequest.cs" />
+    <Compile Include="Refactoring\RenameVariableRequestView.cs" />
+    <Compile Include="Refactoring\RenameVariableUserInput.cs" />
+    <Compile Include="Refactoring\VariableRenamer.cs" />
     <Compile Include="Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -732,6 +751,16 @@
       <Project>{F68C18BD-A5FE-4CF5-A06F-AD1A0A80C7FB}</Project>
       <Name>VSCommon</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="Navigation\WaitForCompleteAnalysisDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Refactoring\RenameVariableDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <PropertyGroup>
     <UseCodebase>true</UseCodebase>

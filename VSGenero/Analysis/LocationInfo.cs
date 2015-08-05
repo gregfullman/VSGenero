@@ -14,11 +14,12 @@ namespace VSGenero.Analysis
 
         private static readonly IEqualityComparer<LocationInfo> _fullComparer = new FullLocationComparer();
 
-        public LocationInfo(string filename, int line, int column)
+        public LocationInfo(string filename, int line, int column, int index)
         {
             _filename = filename;
             _line = line;
             _column = column;
+            _index = index;
         }
 
         public LocationInfo(string filename, int index)
@@ -27,10 +28,11 @@ namespace VSGenero.Analysis
             _index = index;
         }
 
-        internal LocationInfo(IProjectEntry entry, int line, int column) {
+        internal LocationInfo(IProjectEntry entry, int line, int column, int index) {
             _entry = entry;
             _line = line;
             _column = column;
+            _index = index;
         }
 
         public IProjectEntry ProjectEntry {

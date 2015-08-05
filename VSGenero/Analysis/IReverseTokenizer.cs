@@ -10,6 +10,6 @@ namespace VSGenero.Analysis
     public interface IReverseTokenizer
     {
         IEnumerable<TokenInfo> GetReversedTokens();
-        string GetExpressionText(out int startIndex, out int endIndex);
+        string GetExpressionText(out int startIndex, out int endIndex, out bool isFunctionCallOrDefinition);
     }
 }

@@ -211,6 +211,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 {
                     parser.NextToken();
                     defNode.Name = parser.Token.Token.Value.ToString();
+                    defNode.LocationIndex = parser.Token.Span.Start;
                     if (containingModule != null)
                         defNode.Namespace = containingModule.ProgramName;
                     defNode.DecoratorEnd = parser.Token.Span.End;
@@ -432,7 +433,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                 if (string.IsNullOrEmpty(type))
                                 {
                                     // it's possible that the return expression is an actual expression (i.e. a + b). Need to determine the type from that...
-                                    type = ret.GetExpressionType();
+                                    type = ret.GetExpressionType(SyntaxTree, null, null);
                                 }
 
                                 _returns[i] = type;
@@ -540,13 +541,15 @@ namespace VSGenero.Analysis.Parsing.AST
             get { return ""; }  // TODO: Provide source doc documentation
         }
 
-
+        private int _locationIndex;
         public int LocationIndex
         {
-            get { return StartIndex; }
+            get { return _locationIndex; }
+            protected set { _locationIndex = value; }
         }
 
-        public LocationInfo Location { get { return null; } }
+        private LocationInfo _location = null;
+        public LocationInfo Location { get { return _location; } }
 
         public IAnalysisResult GetMember(string name, GeneroAst ast, out IGeneroProject definingProject, out IProjectEntry projEntry)
         {
@@ -611,6 +614,14 @@ namespace VSGenero.Analysis.Parsing.AST
                 
                 return _typename;
             }
+        }
+
+        public override void PropagateSyntaxTree(GeneroAst ast)
+        {
+            // set location
+            _location = ast.ResolveLocation(this);
+
+            base.PropagateSyntaxTree(ast);
         }
     }
 }

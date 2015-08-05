@@ -71,6 +71,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 {
                     parser.NextToken();
                     defNode.Name = parser.Token.Token.Value.ToString();
+                    defNode.LocationIndex = parser.Token.Span.Start;
                     if (containingModule != null)
                         defNode.Namespace = containingModule.ProgramName;
                     defNode.DecoratorEnd = parser.Token.Span.End;

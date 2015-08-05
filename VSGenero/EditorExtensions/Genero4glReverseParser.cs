@@ -40,13 +40,13 @@ namespace VSGenero.EditorExtensions
             _tokenInfos = Classifier.GetTokens(snapSpan);
         }
 
-        public SnapshotSpan? GetExpressionRange(bool forCompletion = true, int nesting = 0)
+        public SnapshotSpan? GetExpressionRange(out bool isFunctionCallOrDefinition, bool forCompletion = true, int nesting = 0)
         {
             int dummy;
             SnapshotPoint? dummyPoint;
             string lastKeywordArg;
             bool isParameterName;
-            return GetExpressionRange(nesting, out dummy, out dummyPoint, out lastKeywordArg, out isParameterName, forCompletion);
+            return GetExpressionRange(nesting, out dummy, out dummyPoint, out lastKeywordArg, out isParameterName, out isFunctionCallOrDefinition, forCompletion);
         }
 
         internal static IEnumerable<TokenInfo> ReverseTokenInfoEnumerable(Genero4glClassifier classifier, SnapshotPoint startPoint)
@@ -197,8 +197,9 @@ namespace VSGenero.EditorExtensions
         /// <param name="nesting">1 if we have an opening parenthesis for sig completion</param>
         /// <param name="paramIndex">The current parameter index.</param>
         /// <returns></returns>
-        public SnapshotSpan? GetExpressionRange(int nesting, out int paramIndex, out SnapshotPoint? sigStart, out string lastKeywordArg, out bool isParameterName, bool forCompletion = true)
+        public SnapshotSpan? GetExpressionRange(int nesting, out int paramIndex, out SnapshotPoint? sigStart, out string lastKeywordArg, out bool isParameterName, out bool isFunctionCallOrDefinition, bool forCompletion = true)
         {
+            isFunctionCallOrDefinition = false;
             SnapshotSpan? start = null;
             paramIndex = 0;
             sigStart = null;
@@ -209,7 +210,9 @@ namespace VSGenero.EditorExtensions
             lastKeywordArg = null;
 
             ClassificationSpan lastToken = null;
+            bool firstToken = true;
             // Walks backwards over all the lines
+
             var enumerator = ReverseClassificationSpanEnumerator(_classifier, _span.GetSpan(_snapshot).End);
             if (enumerator.MoveNext())
             {
@@ -512,11 +515,29 @@ namespace VSGenero.EditorExtensions
                                 lastKeywordArg = "";
                             }
                         }
+                        if (firstToken)
+                        {
+                            // check to see if the next token after this one is an open paren
+                            int endCheck = 50;
+                            if (enumerator.Current.Span.End + endCheck > _snapshot.Length)
+                            {
+                                endCheck = _snapshot.Length - enumerator.Current.Span.End;
+                            }
+                            var nextTokens = _classifier.GetTokens(new SnapshotSpan(_snapshot, new Span(enumerator.Current.Span.End - 1, endCheck)))
+                                                        .Where(x => x.SourceSpan.Start.Index > (enumerator.Current.Span.End.Position - 1)).ToList();
+                            if (nextTokens.Count > 0 && nextTokens[0].Token.Kind == TokenKind.LeftParenthesis)
+                            {
+                                // we might have a function call or function name
+                                isFunctionCallOrDefinition = true;
+                            }
+                        }
                         lastTokenWasCommaOrOperator = false;
                         lastTokenWasDot = false;
                     }
 
                     start = token.Span;
+                    if (firstToken)
+                        firstToken = false;
                 } while (enumerator.MoveNext());
             }
 
@@ -644,10 +665,10 @@ namespace VSGenero.EditorExtensions
         }
 
 
-        public string GetExpressionText(out int startIndex, out int endIndex)
+        public string GetExpressionText(out int startIndex, out int endIndex, out bool isFunctionCallOrDefinition)
         {
             startIndex = -1; endIndex = -1;
-            var span = GetExpressionRange();
+            var span = GetExpressionRange(out isFunctionCallOrDefinition);
             if (span.HasValue)
             {
                 startIndex = span.Value.Start.Position;

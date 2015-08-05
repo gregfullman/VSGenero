@@ -803,7 +803,8 @@ namespace VSGenero.EditorExtensions.Intellisense
             Genero4glReverseParser parser = new Genero4glReverseParser(snapshot, buffer, span);
 
             var loc = parser.Span.GetSpan(parser.Snapshot.Version);
-            var exprRange = parser.GetExpressionRange(forCompletion);
+            bool isFunctionCallOrDefinition;
+            var exprRange = parser.GetExpressionRange(out isFunctionCallOrDefinition, forCompletion);
 
             if (exprRange == null)
             {
@@ -840,7 +841,8 @@ namespace VSGenero.EditorExtensions.Intellisense
                         parser.Snapshot,
                         functionProvider,
                         databaseProvider,
-                        programFileProvider);
+                        programFileProvider,
+                        isFunctionCallOrDefinition);
                 }
             }
 
@@ -872,7 +874,8 @@ namespace VSGenero.EditorExtensions.Intellisense
             SnapshotPoint? sigStart;
             string lastKeywordArg;
             bool isParameterName;
-            var exprRange = parser.GetExpressionRange(1, out paramIndex, out sigStart, out lastKeywordArg, out isParameterName);
+            bool isFunctionCallOrDefinition;
+            var exprRange = parser.GetExpressionRange(1, out paramIndex, out sigStart, out lastKeywordArg, out isParameterName, out isFunctionCallOrDefinition);
             if (exprRange == null || sigStart == null)
             {
                 return new SignatureAnalysis("", 0, new ISignature[0]);

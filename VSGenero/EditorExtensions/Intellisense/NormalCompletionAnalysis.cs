@@ -54,7 +54,8 @@ namespace VSGenero.EditorExtensions.Intellisense
             {
                 var startSpan = _snapshot.CreateTrackingSpan(Span.GetSpan(_snapshot).Start.Position, 0, SpanTrackingMode.EdgeInclusive);
                 var parser = new Genero4glReverseParser(_snapshot, _snapshot.TextBuffer, startSpan);
-                var sourceSpan = parser.GetExpressionRange();
+                bool isFunctionCallOrDefinition;
+                var sourceSpan = parser.GetExpressionRange(out isFunctionCallOrDefinition);
                 if (sourceSpan.HasValue && sourceSpan.Value.Length > 0)
                 {
                     return sourceSpan.Value.GetText();

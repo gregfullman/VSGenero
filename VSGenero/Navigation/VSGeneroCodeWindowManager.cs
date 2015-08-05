@@ -199,7 +199,7 @@ namespace VSGenero.Navigation
             if (wpfTextView != null)
             {
                 var factory = VSGeneroPackage.ComponentModel.GetService<IEditorOperationsFactoryService>();
-                var editFilter = new EditFilter(wpfTextView, factory.GetEditorOperations(wpfTextView));
+                var editFilter = new EditFilter(wpfTextView, factory.GetEditorOperations(wpfTextView), _serviceProvider);
                 editFilter.AttachKeyboardFilter(vsTextView);
                 //new TextViewFilter(_serviceProvider, vsTextView);
                 wpfTextView.GotAggregateFocus += OnTextViewGotAggregateFocus;

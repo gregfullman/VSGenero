@@ -548,5 +548,10 @@ namespace VSGenero.Analysis.Parsing.AST
         }
 
         public string ProgramName { get; private set; }
+
+        public override void FindAllReferences(IAnalysisResult item, List<IndexSpan> referenceList)
+        {
+            
+        }
     }
 }

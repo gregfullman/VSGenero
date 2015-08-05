@@ -414,7 +414,8 @@ namespace VSGenero.Analysis.Parsing.AST
                 {
                     // now we need to analyze the variable reference to get its members
                     int startIndex, endIndex;
-                    string var = revTokenizer.GetExpressionText(out startIndex, out endIndex);
+                    bool isFunctionCallOrDefinition;
+                    string var = revTokenizer.GetExpressionText(out startIndex, out endIndex, out isFunctionCallOrDefinition);
                     if (var != null)
                     {
                         int dotDiff = endIndex - tokInfo.SourceSpan.End.Index;
@@ -424,7 +425,7 @@ namespace VSGenero.Analysis.Parsing.AST
                             var = var.Substring(0, var.Length - 1);
                             IGeneroProject dummyProj;
                             IProjectEntry projEntry;
-                            var analysisRes = GetValueByIndex(var, index, _functionProvider, _databaseProvider, _programFileProvider, out dummyProj, out projEntry);
+                            var analysisRes = GetValueByIndex(var, index, _functionProvider, _databaseProvider, _programFileProvider, false, out dummyProj, out projEntry);
                             if (analysisRes != null)
                             {
                                 if ((analysisRes is VariableDef && (analysisRes as VariableDef).Type.IsArray) && !var[var.Length - 1].Equals(']'))

@@ -65,9 +65,13 @@ namespace VSGenero.Analysis.Parsing.AST
             return Name;
         }
 
-        public override string GetExpressionType()
+        public override string GetExpressionType(GeneroAst ast, IFunctionInformationProvider funcProvider, IDatabaseInformationProvider dbProvider)
         {
             // TODO: need to determine the type from the variables available
+            IAnalysisResult res;
+            if(GeneroAst.SystemVariables.TryGetValue(Name, out res) ||
+               GeneroAst.SystemConstants.TryGetValue(Name, out res))
+                return res.Typename;
             return null;
         }
     }

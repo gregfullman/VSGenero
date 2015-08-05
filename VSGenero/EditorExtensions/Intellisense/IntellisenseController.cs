@@ -764,7 +764,8 @@ namespace VSGenero.EditorExtensions.Intellisense
                 startSpan = _textView.TextSnapshot.CreateTrackingSpan(_textView.Caret.Position.BufferPosition.Position, 0, SpanTrackingMode.EdgeInclusive);
             }
             var parser = new Genero4glReverseParser(_textView.TextSnapshot, _textView.TextBuffer, startSpan);
-            return parser.GetExpressionRange();
+            bool isFunctionCallOrDefinition;
+            return parser.GetExpressionRange(out isFunctionCallOrDefinition);
         }
 
         private IVsTextView GetViewAdapter()

@@ -53,7 +53,9 @@ namespace VSGenero.EditorExtensions
         void TextBuffer_Changed(object sender, Microsoft.VisualStudio.Text.TextContentChangedEventArgs e)
         {
             string filename = e.After.TextBuffer.GetFilePath();
-            if (_ignoreNextChange != _textView.Caret.Position.BufferPosition.Position &&
+            if (_textView.Caret.Position.BufferPosition.Position >= 0 &&
+                _textView.Caret.Position.BufferPosition.Position <= e.After.Length &&
+                _ignoreNextChange != _textView.Caret.Position.BufferPosition.Position &&
                 !string.IsNullOrWhiteSpace(e.Changes[0].NewText))
             {
                 var line = e.After.GetLineFromPosition(_textView.Caret.Position.BufferPosition.Position);
