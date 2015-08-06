@@ -277,9 +277,7 @@ namespace VSGenero.EditorExtensions
 
                 for (int i = 0; i < tokenStack.Count; i++)
                 {
-                    //while (tokenStack.Count > 0)
-                    //{
-                    var token = tokenStack[i];//tokenStack.Pop();
+                    var token = tokenStack[i];
                     if (token == null)
                     {
                         current.NeedsUpdate = true;
@@ -289,21 +287,10 @@ namespace VSGenero.EditorExtensions
                         indentStack.Push(current);
                         var start = token.Span.Start;
                         var line2 = start.GetContainingLine();
-                        var next = tokenStack.Count > 0 ? tokenStack.Peek() : null;
-                        if (next != null && next.Span.End <= line2.End)
+                        current = new LineInfo
                         {
-                            current = new LineInfo
-                            {
-                                Indentation = start.Position - line2.Start.Position + 1
-                            };
-                        }
-                        else
-                        {
-                            current = new LineInfo
-                            {
-                                Indentation = GetIndentation(line2.GetText(), tabSize) + tabSize
-                            };
-                        }
+                            Indentation = start.Position - line2.Start.Position + 1
+                        };
                     }
                     else if (token.IsCloseGrouping())
                     {
@@ -318,10 +305,10 @@ namespace VSGenero.EditorExtensions
                     }
                     else if (Genero4glReverseParser.IsExplicitLineJoin(token))
                     {
-                        while (token != null && i + 1 < tokenStack.Count /* tokenStack.Count > 0*/)
+                        while (token != null && i + 1 < tokenStack.Count)
                         {
                             i++;
-                            token = tokenStack[i];//.Pop();
+                            token = tokenStack[i];
                         }
                     }
                     else if (current.NeedsUpdate == true)
@@ -454,7 +441,6 @@ namespace VSGenero.EditorExtensions
             { TokenKind.TypeKeyword, DefineStatementIndenting},
             { TokenKind.ConstantKeyword, DefineStatementIndenting},
             { TokenKind.RecordKeyword, RecordBlockIndenting},
-            { TokenKind.CallKeyword, CallStatementIndenting}
         };
 
         private static int RecordBlockIndenting(List<ClassificationSpan> tokenList, int defaultTabSize)
@@ -468,26 +454,6 @@ namespace VSGenero.EditorExtensions
                     {
                         var line = tokenList[tokenList.Count - 2].Span.Start.GetContainingLine();
                         return GetIndentation(line.GetText(), defaultTabSize);
-                    }
-                }
-            }
-            return 0;
-        }
-
-        private static int CallStatementIndenting(List<ClassificationSpan> tokenList, int defaultTabSize)
-        {
-            if (tokenList[0] == null && tokenList[tokenList.Count - 1] == null)
-            {
-                if (tokenList.Count > 3)
-                {
-                    var lastTokText = tokenList[tokenList.Count - 2].Span.GetText();
-                    if (lastTokText == ",")
-                    {
-                        int lastIndex = tokenList.Count - 3;
-                        while (tokenList[lastIndex] == null)
-                            lastIndex--;
-                        var line = tokenList[tokenList.Count - 2].Span.Start.GetContainingLine();
-                        return tokenList[lastIndex].Span.Start - line.Start;
                     }
                 }
             }
