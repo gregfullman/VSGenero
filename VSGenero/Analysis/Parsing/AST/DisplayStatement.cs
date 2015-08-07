@@ -33,6 +33,7 @@ namespace VSGenero.Analysis.Parsing.AST
         public static bool TryParseNode(Parser parser, out DisplayBlock node,
                                  IModuleResult containingModule,
                                  Action<PrepareStatement> prepStatementBinder = null,
+                                 Func<ReturnStatement, ParserResult> returnStatementBinder = null,
                                  List<TokenKind> validExitKeywords = null,
                                  IEnumerable<ContextStatementFactory> contextStatementFactories = null)
         {
@@ -163,7 +164,7 @@ namespace VSGenero.Analysis.Parsing.AST
 
                         bool hasControlBlocks = false;
                         DisplayControlBlock icb;
-                        while (DisplayControlBlock.TryParseNode(parser, out icb, containingModule, hasControlBlocks, node.IsArray, prepStatementBinder, validExits, contextStatementFactories) && icb != null)
+                        while (DisplayControlBlock.TryParseNode(parser, out icb, containingModule, hasControlBlocks, node.IsArray, prepStatementBinder, returnStatementBinder, validExits, contextStatementFactories) && icb != null)
                         {
                             // check for include file sign
                             if (icb.StartIndex < 0)
@@ -432,6 +433,7 @@ namespace VSGenero.Analysis.Parsing.AST
         public static bool TryParseNode(Parser parser, out DisplayControlBlock node, IModuleResult containingModule, bool allowNonControlBlocks,
                                  bool isArray = false,
                                  Action<PrepareStatement> prepStatementBinder = null,
+                                 Func<ReturnStatement, ParserResult> returnStatementBinder = null,
                                  List<TokenKind> validExitKeywords = null,
                                  IEnumerable<ContextStatementFactory> contextStatementFactories = null)
         {
@@ -642,7 +644,7 @@ namespace VSGenero.Analysis.Parsing.AST
 
                 // get the dialog statements
                 FglStatement dispStmt;
-                while (DisplayStatementFactory.TryGetStatement(parser, out dispStmt, isArray, containingModule, prepStatementBinder, validExitKeywords, contextStatementFactories) && dispStmt != null)
+                while (DisplayStatementFactory.TryGetStatement(parser, out dispStmt, isArray, containingModule, prepStatementBinder, returnStatementBinder, validExitKeywords, contextStatementFactories) && dispStmt != null)
                 {
                     node.Children.Add(dispStmt.StartIndex, dispStmt);
                     node.EndIndex = dispStmt.EndIndex;
@@ -693,6 +695,7 @@ namespace VSGenero.Analysis.Parsing.AST
         public static bool TryGetStatement(Parser parser, out FglStatement node, bool isArray,
                                  IModuleResult containingModule,
                                  Action<PrepareStatement> prepStatementBinder = null,
+                                 Func<ReturnStatement, ParserResult> returnStatementBinder = null,
                                  List<TokenKind> validExitKeywords = null,
                                  IEnumerable<ContextStatementFactory> contextStatementFactories = null)
         {
@@ -715,7 +718,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     TryGetDisplayStatement(x, out testNode, isArray, true);
                     return testNode;
                 });
-                result = parser.StatementFactory.TryParseNode(parser, out node, containingModule, prepStatementBinder, false, validExitKeywords, csfs);
+                result = parser.StatementFactory.TryParseNode(parser, out node, containingModule, prepStatementBinder, returnStatementBinder, false, validExitKeywords, csfs);
             }
 
             return result;

@@ -235,14 +235,12 @@ namespace VSGenero.EditorExtensions
                         )
                     );
 
-                var tokenStack = new List<ClassificationSpan>();// new System.Collections.Generic.Stack<ClassificationSpan>();
-                //tokenStack.Push(null);  // end with an implicit newline
+                var tokenStack = new List<ClassificationSpan>();
                 tokenStack.Insert(0, null);
                 bool endAtNextNull = false;
 
                 foreach (var token in revParser)
                 {
-                    //tokenStack.Push(token);
                     tokenStack.Insert(0, token);
                     if (token == null && endAtNextNull)
                     {
@@ -258,7 +256,6 @@ namespace VSGenero.EditorExtensions
                             {
                                 // Handle any tokens that are valid statement keywords in the autocomplete context but not in the "statement start" context
                                 case TokenKind.EndKeyword:
-                                    //endAtNextNull = false;
                                     continue;
                                 default:
                                     endAtNextNull = true;

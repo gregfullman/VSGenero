@@ -50,7 +50,6 @@ namespace VSGenero.Navigation
         private static readonly ReadOnlyCollection<DropDownEntryInfo> EmptyEntries = new ReadOnlyCollection<DropDownEntryInfo>(new DropDownEntryInfo[0]);
 
         private const int TopLevelComboBoxId = 0;
-        //private const int NestedComboBoxId = 1;
         public DropDownBarClient(IWpfTextView textView, IGeneroProjectEntry pythonProjectEntry)
         {
             _projectEntry = pythonProjectEntry;
@@ -70,12 +69,7 @@ namespace VSGenero.Navigation
 
             if (curTopLevel != -1 && curTopLevel < topLevel.Count)
             {
-                // TODO: need to mark the end of the functions too
-                if (newPosition >= topLevel[curTopLevel].Start && newPosition <= topLevel[curTopLevel].End)
-                {
-                    //UpdateNestedComboSelection(newPosition);
-                }
-                else
+                if (newPosition < topLevel[curTopLevel].Start || newPosition > topLevel[curTopLevel].End)
                 {
                     FindActiveTopLevelComboSelection(newPosition, topLevel);
                 }
@@ -85,73 +79,6 @@ namespace VSGenero.Navigation
                 FindActiveTopLevelComboSelection(newPosition, topLevel);
             }
         }
-
-        //private void UpdateNestedComboSelection(int newPosition)
-        //{
-        //    // left side has not changed, check rhs
-        //    int curNested = _curNestedIndex;
-        //    var nested = _nestedEntries;
-
-        //    if (curNested != -1 && curNested < nested.Count)
-        //    {
-        //        if (newPosition < nested[curNested].Start || newPosition > nested[curNested].End)
-        //        {
-        //            // right hand side has changed
-        //            FindActiveNestedSelection(newPosition, nested);
-        //        }
-        //    }
-        //    else
-        //    {
-        //        FindActiveNestedSelection(newPosition, nested);
-        //    }
-        //}
-
-        //private void FindActiveNestedSelection(int newPosition, ReadOnlyCollection<DropDownEntryInfo> nested)
-        //{
-        //    if (_dropDownBar == null)
-        //    {
-        //        return;
-        //    }
-
-        //    int oldNested = _curNestedIndex;
-
-        //    bool found = false;
-
-        //    if (_curTopLevelIndex != -1)
-        //    {
-        //        for (int i = 0; i < nested.Count; i++)
-        //        {
-        //            if (newPosition >= nested[i].Start && newPosition <= nested[i].End)
-        //            {
-        //                _curNestedIndex = i;
-
-        //                if (oldNested == -1)
-        //                {
-        //                    // we've selected something new, we need to refresh the combo to
-        //                    // to remove the grayed out entry
-        //                    _dropDownBar.RefreshCombo(NestedComboBoxId, i);
-        //                }
-        //                else
-        //                {
-        //                    // changing from one nested to another, just update the selection
-        //                    _dropDownBar.SetCurrentSelection(NestedComboBoxId, i);
-        //                }
-
-        //                found = true;
-        //                break;
-        //            }
-        //        }
-        //    }
-
-        //    if (!found)
-        //    {
-        //        // there's no associated entry, we should disable the bar
-        //        _curNestedIndex = -1;
-
-        //        // we need to refresh to clear the nested combo box since there is no associated nested entry
-        //        _dropDownBar.RefreshCombo(NestedComboBoxId, -1);
-        //    }
-        //}
 
         private void ForceTopLevelRefresh()
         {
@@ -177,7 +104,9 @@ namespace VSGenero.Navigation
             bool found = false;
             for (int i = 0; i < topLevel.Count; i++)
             {
-                if (newPosition >= topLevel[i].Start && newPosition <= topLevel[i].End)
+                if (topLevel[i].ProjectEntry == _projectEntry && 
+                    newPosition >= topLevel[i].Start && 
+                    newPosition <= topLevel[i].End)
                 {
                     _curTopLevelIndex = i;
 
@@ -194,10 +123,6 @@ namespace VSGenero.Navigation
                         _dropDownBar.SetCurrentSelection(TopLevelComboBoxId, i);
                     }
 
-                    // update the nested entries
-                    //CalculateNestedEntries();
-                    //_dropDownBar.RefreshCombo(NestedComboBoxId, 0);
-                    //UpdateNestedComboSelection(newPosition);
                     found = true;
                     break;
                 }
@@ -207,18 +132,8 @@ namespace VSGenero.Navigation
             {
                 // there's no associated entry, we should disable the bar
                 _curTopLevelIndex = -1;
-                //_curNestedIndex = -1;
-
-                // Commented this out because it was preventing the function list from populating when the document first displayed
-                //if (oldTopLevel != -1)
-                //{
-                    // we need to refresh to clear both combo boxes since there is no associated entry
-                    _dropDownBar.RefreshCombo(TopLevelComboBoxId, -1);
-                    //_dropDownBar.RefreshCombo(NestedComboBoxId, -1);
-                //}
+                _dropDownBar.RefreshCombo(TopLevelComboBoxId, -1);
             }
-
-            //UpdateNestedComboSelection(newPosition);
         }
 
         public int GetComboAttributes(int iCombo, out uint pcEntries, out uint puEntryType, out IntPtr phImageList)
@@ -231,10 +146,6 @@ namespace VSGenero.Navigation
                     CalculateTopLevelEntries();
                     count = (uint)_topLevelEntries.Count;
                     break;
-                //case NestedComboBoxId:
-                //    CalculateNestedEntries();
-                //    count = (uint)_nestedEntries.Count;
-                //    break;
             }
 
             pcEntries = count;
@@ -265,22 +176,7 @@ namespace VSGenero.Navigation
 
         private void CalculateTopLevelEntries()
         {
-            //bool forceRefresh = false;
-            //// intialize the top level entries with a transform from function defs to drop down entries
-            //if (_moduleContents != null)
-            //{
-            //    string bufferFilename = _textView.TextBuffer.GetFilePath();
-            //    var list = _moduleContents.FunctionDefinitions.Where(y => y.Value.ContainingFile == bufferFilename).Select(x => new DropDownEntryInfo(x.Value)).ToList();
-            //    list.Sort(DropDownEntryInfo.CompareEntryInfo);
-            //    forceRefresh = DifferencesExist(_topLevelEntries, list);
-            //    _topLevelEntries = new ReadOnlyCollection<DropDownEntryInfo>(list);
-            //}
-            //return forceRefresh;
-            GeneroAst ast = _projectEntry.Analysis;
-            if (ast != null)
-            {
-                _topLevelEntries = CalculateEntries(ast.Body as ModuleNode);
-            }
+            _topLevelEntries = CalculateEntries();
         }
 
         /// <summary>
@@ -288,17 +184,44 @@ namespace VSGenero.Navigation
         /// in the given suite statement.  Called to calculate both the members of top-level
         /// code and class bodies.
         /// </summary>
-        private static ReadOnlyCollection<DropDownEntryInfo> CalculateEntries(ModuleNode moduleNode)
+        private ReadOnlyCollection<DropDownEntryInfo> CalculateEntries()
         {
             List<DropDownEntryInfo> newEntries = new List<DropDownEntryInfo>();
 
-            if (moduleNode != null)
+            if (_projectEntry.Analysis != null &&
+                _projectEntry.Analysis.Body is ModuleNode)
             {
+
+                var moduleNode = _projectEntry.Analysis.Body as ModuleNode;
                 foreach (var node in moduleNode.Children)
                 {
-                    if (node.Value is FunctionBlockNode || node.Value is MainBlockNode)
+                    if (node.Value is FunctionBlockNode)
                     {
-                        newEntries.Add(new DropDownEntryInfo(node.Value));
+                        newEntries.Add(new DropDownEntryInfo(node.Value as FunctionBlockNode, _projectEntry));
+                    }
+                }
+
+                // go through the other project entries in the ast.Project, and get those functions too
+                if (_projectEntry.ParentProject != null)
+                {
+                    foreach (var otherEntry in _projectEntry.ParentProject.ProjectEntries.Values.Where(x => x != _projectEntry))
+                    {
+                        if (!otherEntry.IsAnalyzed)
+                        {
+                            // sign up for analysis complete event?
+                        }
+                        else if (otherEntry.Analysis != null &&
+                                otherEntry.Analysis.Body is ModuleNode)
+                        {
+                            var modNode = otherEntry.Analysis.Body as ModuleNode;
+                            foreach (var node in modNode.Children)
+                            {
+                                if (node.Value is FunctionBlockNode)
+                                {
+                                    newEntries.Add(new DropDownEntryInfo(node.Value as FunctionBlockNode, otherEntry));
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -312,30 +235,6 @@ namespace VSGenero.Navigation
             return CompletionComparer.UnderscoresLast.Compare(x.Name, y.Name);
         }
 
-        //private void CalculateNestedEntries()
-        //{
-        //    //var entries = _topLevelEntries;
-        //    //int topLevelIndex = _curTopLevelIndex;
-        //    //if (entries.Count == 0)
-        //    //{
-        //     //   _nestedEntries = EmptyEntries;
-        //    //}
-        //    //else if (topLevelIndex < entries.Count)
-        //    //{
-        //    //    var info = entries[topLevelIndex == -1 ? 0 : topLevelIndex];
-
-        //    //    ClassDefinition klass = info.Body as ClassDefinition;
-        //    //    if (klass != null)
-        //    //    {
-        //    //        _nestedEntries = CalculateEntries(klass.Body as SuiteStatement);
-        //    //    }
-        //    //    else
-        //    //    {
-        //    //        _nestedEntries = EmptyEntries;
-        //    //    }
-        //    //}
-        //}
-
         public int GetComboTipText(int iCombo, out string pbstrText)
         {
             pbstrText = null;
@@ -344,27 +243,14 @@ namespace VSGenero.Navigation
 
         public int GetEntryAttributes(int iCombo, int iIndex, out uint pAttr)
         {
-            pAttr = (uint)DROPDOWNFONTATTR.FONTATTR_PLAIN;
-
-            if (iIndex == 0)
+            if (_topLevelEntries[iIndex].ProjectEntry != _projectEntry)
             {
-                switch (iCombo)
-                {
-                    case TopLevelComboBoxId:
-                        if (_curTopLevelIndex == -1)
-                        {
-                            pAttr = (uint)DROPDOWNFONTATTR.FONTATTR_GRAY;
-                        }
-                        break;
-                    //case NestedComboBoxId:
-                    //    if (_curNestedIndex == -1)
-                    //    {
-                    //        pAttr = (uint)DROPDOWNFONTATTR.FONTATTR_GRAY;
-                    //    }
-                    //    break;
-                }
+                pAttr = (uint)DROPDOWNFONTATTR.FONTATTR_GRAY;
             }
-
+            else
+            {
+                pAttr = (uint)DROPDOWNFONTATTR.FONTATTR_PLAIN;
+            }
             return VSConstants.S_OK;
         }
 
@@ -381,13 +267,6 @@ namespace VSGenero.Navigation
                         piImageIndex = topLevel[iIndex].ImageListIndex;
                     }
                     break;
-                //case NestedComboBoxId:
-                //    var nested = _nestedEntries;
-                //    if (iIndex < nested.Count)
-                //    {
-                //        piImageIndex = nested[iIndex].ImageListIndex;
-                //    }
-                //    break;
             }
 
             return VSConstants.S_OK;
@@ -427,7 +306,6 @@ namespace VSGenero.Navigation
             switch (iCombo)
             {
                 case TopLevelComboBoxId:
-                    //_dropDownBar.RefreshCombo(NestedComboBoxId, 0);
                     var topLevel = _topLevelEntries;
                     if (iIndex < topLevel.Count)
                     {
@@ -437,36 +315,30 @@ namespace VSGenero.Navigation
                         {
                             _dropDownBar.RefreshCombo(TopLevelComboBoxId, iIndex);
                         }
-                        CenterAndFocus(topLevel[iIndex].Start);
+                        CenterAndFocus(topLevel[iIndex]);
                     }
                     break;
-                //case NestedComboBoxId:
-                //    var nested = _nestedEntries;
-                //    if (iIndex < nested.Count)
-                //    {
-                //        int oldIndex = _curNestedIndex;
-                //        _curNestedIndex = iIndex;
-                //        if (oldIndex == -1)
-                //        {
-                //            _dropDownBar.RefreshCombo(NestedComboBoxId, iIndex);
-                //        }
-                //        CenterAndFocus(nested[iIndex].Start);
-                //    }
-                //    break;
             }
             return VSConstants.S_OK;
         }
 
-        private void CenterAndFocus(int index)
+        private void CenterAndFocus(DropDownEntryInfo entry)
         {
-            _textView.Caret.MoveTo(new SnapshotPoint(_textView.TextBuffer.CurrentSnapshot, index));
+            if (entry.ProjectEntry == _projectEntry)
+            {
+                _textView.Caret.MoveTo(new SnapshotPoint(_textView.TextBuffer.CurrentSnapshot, entry.Start));
 
-            _textView.ViewScroller.EnsureSpanVisible(
-                new SnapshotSpan(_textView.TextBuffer.CurrentSnapshot, index, 1),
-                EnsureSpanVisibleOptions.AlwaysCenter
-            );
+                _textView.ViewScroller.EnsureSpanVisible(
+                    new SnapshotSpan(_textView.TextBuffer.CurrentSnapshot, entry.Start, 1),
+                    EnsureSpanVisibleOptions.AlwaysCenter
+                );
 
-            ((System.Windows.Controls.Control)_textView).Focus();
+                ((System.Windows.Controls.Control)_textView).Focus();
+            }
+            else if(entry.FunctionDefinition.Location != null)
+            {
+                entry.FunctionDefinition.Location.GotoSource();
+            }
         }
 
         public int OnItemSelected(int iCombo, int iIndex)
@@ -501,34 +373,6 @@ namespace VSGenero.Navigation
                 CaretPositionChanged(this, new CaretPositionChangedEventArgs(null, _textView.Caret.Position, _textView.Caret.Position));
             }
         }
-
-        //private void UpdateFunctionList(object sender, ParseCompleteEventArgs e)
-        //{
-        //    if (!_synchObj.InvokeRequired)
-        //    {
-        //        ForceFunctionListUpdate(sender as GeneroFileParserManager);
-        //    }
-        //    else
-        //    {
-        //        _synchObj.Invoke(new Action<GeneroFileParserManager>(ForceFunctionListUpdate), new object[] { sender as GeneroFileParserManager });
-        //    }
-        //}
-
-        //private void ForceFunctionListUpdate(GeneroFileParserManager fpm)
-        //{
-        //    if (fpm != null)
-        //    {
-        //        _moduleContents = fpm.ModuleContents;
-        //    }
-        //    if (CalculateTopLevelEntries())
-        //        ForceTopLevelRefresh();
-        //    CaretPositionChanged(this, new CaretPositionChangedEventArgs(null, _textView.Caret.Position, _textView.Caret.Position));
-        //}
-
-        //public void ForceRefresh()
-        //{
-        //    ForceFunctionListUpdate(null);
-        //}
 
         /// <summary>
         /// An enum which is synchronized with our image list for the various
@@ -636,42 +480,42 @@ namespace VSGenero.Navigation
             ForceTopLevelRefresh();
         }
 
-        struct DropDownEntryInfo
+        class DropDownEntryInfo
         {
-            private FunctionBlockNode _funcDef;
-            private MainBlockNode _mainDef;
+            private readonly FunctionBlockNode _funcDef;
+            private readonly IProjectEntry _containingEntry;
 
             public static int CompareEntryInfo(DropDownEntryInfo x, DropDownEntryInfo y)
             {
                 return string.Compare(x.Name, y.Name);
             }
 
-            public DropDownEntryInfo(AstNode def)
+            public DropDownEntryInfo(FunctionBlockNode funcDef, IProjectEntry projEntry)
             {
-                _start = def.StartIndex;
-                _end = def.EndIndex;
-                if(def is FunctionBlockNode)
+                _containingEntry = projEntry;
+                _start = funcDef.StartIndex;
+                _end = funcDef.EndIndex;
+                _funcDef = funcDef;
+                if (_funcDef is MainBlockNode)
                 {
-                    _mainDef = null;
-                    _funcDef = def as FunctionBlockNode;
-                    _name = _funcDef.Name;
-                    _descName = _funcDef.DescriptiveName;
-                }
-                else if(def is MainBlockNode)
-                {
-                    _funcDef = null;
-                    _mainDef = def as MainBlockNode;
                     _name = "main";
                     _descName = "main";
                 }
                 else
                 {
-                    _mainDef = null;
-                    _funcDef = null;
-                    _name = null;
-                    _descName = null;
-                    throw new ArgumentException("Invalid AstNode for DropDownEntry");
+                    _name = _funcDef.Name;
+                    _descName = _funcDef.DescriptiveName;
                 }
+            }
+
+            public IProjectEntry ProjectEntry
+            {
+                get { return _containingEntry; }
+            }
+
+            public FunctionBlockNode FunctionDefinition
+            {
+                get { return _funcDef; }
             }
 
             private string _name;
@@ -713,19 +557,12 @@ namespace VSGenero.Navigation
                         overlay = ImageListOverlay.ImageListOverlayPrivate;
                     }
 
-                    if (_funcDef != null)
+                    if (_funcDef.AccessModifier == AccessModifier.Private)
                     {
-                        if (_funcDef.AccessModifier == AccessModifier.Private)
-                        {
-                            overlay = ImageListOverlay.ImageListOverlayPrivate;
-                        }
+                        overlay = ImageListOverlay.ImageListOverlayPrivate;
+                    }
 
-                        return GetImageListIndex(GetImageListKind(_funcDef), overlay);
-                    }
-                    else
-                    {
-                        return GetImageListIndex(GetImageListKind(_mainDef), overlay);
-                    }
+                    return GetImageListIndex(GetImageListKind(_funcDef), overlay);
                 }
             }
 

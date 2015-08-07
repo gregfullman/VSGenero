@@ -20,6 +20,12 @@ using System.Threading.Tasks;
 
 namespace VSGenero.Analysis.Parsing
 {
+    public class ParserResult
+    {
+        public bool Success { get; set; }
+        public string ErrorMessage { get; set; }
+    }
+
     public enum ParseResult
     {
         /// <summary>

@@ -118,6 +118,29 @@ namespace VSGenero.Analysis.Parsing.AST
             }
         }
 
+        protected ParserResult StoreReturnStatement(ReturnStatement retStmt)
+        {
+            ParserResult result = new ParserResult { Success = true };
+            // TODO: resolve any variables in the return statement, and verify that if there are multiple return statements, they all have the same number of return values.
+            if (_internalReturns == null)
+                _internalReturns = new List<ReturnStatement>();
+            bool valid = true;
+            foreach (var ret in _internalReturns)
+            {
+                if (ret.Returns.Count != retStmt.Returns.Count)
+                {
+                    valid = false;
+                    break;
+                }
+            }
+            if (valid)
+                _internalReturns.Add(retStmt);
+            else
+                result.ErrorMessage = "Return statement does not return the same number of values as other return statements in this function.";
+
+            return result;
+        }
+
         protected void BindPrepareCursorFromIdentifier(PrepareStatement prepStmt)
         {
             // If the prepare statement uses a variable from prepare from, that variable should have been encountered
@@ -328,7 +351,7 @@ namespace VSGenero.Analysis.Parsing.AST
                             {
                                 List<TokenKind> validExits = new List<TokenKind> { TokenKind.ProgramKeyword };
                                 FglStatement statement;
-                                if (parser.StatementFactory.TryParseNode(parser, out statement, containingModule, defNode.BindPrepareCursorFromIdentifier, abbreviatedParse, validExits))
+                                if (parser.StatementFactory.TryParseNode(parser, out statement, containingModule, defNode.BindPrepareCursorFromIdentifier, defNode.StoreReturnStatement, abbreviatedParse, validExits))
                                 {
                                     AstNode stmtNode = statement as AstNode;
                                     if (stmtNode != null && !defNode.Children.ContainsKey(stmtNode.StartIndex))
@@ -337,23 +360,7 @@ namespace VSGenero.Analysis.Parsing.AST
 
                                         if (statement is ReturnStatement)
                                         {
-                                            // TODO: resolve any variables in the return statement, and verify that if there are multiple return statements, they all have the same number of return values.
-                                            if (defNode._internalReturns == null)
-                                                defNode._internalReturns = new List<ReturnStatement>();
-                                            var retStmt = statement as ReturnStatement;
-                                            bool valid = true;
-                                            foreach (var ret in defNode._internalReturns)
-                                            {
-                                                if (ret.Returns.Count != retStmt.Returns.Count)
-                                                {
-                                                    valid = false;
-                                                    break;
-                                                }
-                                            }
-                                            if (valid)
-                                                defNode._internalReturns.Add(retStmt);
-                                            else
-                                                parser.ReportSyntaxError("Return statement does not return the same number of values as other return statements in this function.");
+
                                         }
                                     }
 

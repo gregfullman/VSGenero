@@ -29,6 +29,7 @@ namespace VSGenero.Analysis.Parsing.AST
         public static bool TryParseNode(Parser parser, out PromptStatement node,
                                  IModuleResult containingModule,
                                  Action<PrepareStatement> prepStatementBinder = null,
+                                 Func<ReturnStatement, ParserResult> returnStatementBinder = null,
                                  List<TokenKind> validExitKeywords = null,
                                  IEnumerable<ContextStatementFactory> contextStatementFactories = null)
         {
@@ -134,7 +135,7 @@ namespace VSGenero.Analysis.Parsing.AST
 
                 bool hasControlBlocks = false;
                 PromptControlBlock controlBlock;
-                while(PromptControlBlock.TryParseNode(parser, out controlBlock, containingModule, prepStatementBinder, validExitKeywords, contextStatementFactories) && controlBlock != null)
+                while(PromptControlBlock.TryParseNode(parser, out controlBlock, containingModule, prepStatementBinder, returnStatementBinder, validExitKeywords, contextStatementFactories) && controlBlock != null)
                 {
                     node.Children.Add(controlBlock.StartIndex, controlBlock);
                     hasControlBlocks = true;
@@ -311,6 +312,7 @@ namespace VSGenero.Analysis.Parsing.AST
 
         public static bool TryParseNode(Parser parser, out PromptControlBlock node, IModuleResult containingModule,
                                 Action<PrepareStatement> prepStatementBinder = null,
+                                Func<ReturnStatement, ParserResult> returnStatementBinder = null,
                                 List<TokenKind> validExitKeywords = null,
                                  IEnumerable<ContextStatementFactory> contextStatementFactories = null)
         {
@@ -385,7 +387,7 @@ namespace VSGenero.Analysis.Parsing.AST
             {
                 // get the dialog statements
                 FglStatement dispStmt;
-                while (parser.StatementFactory.TryParseNode(parser, out dispStmt, containingModule, prepStatementBinder, false, validExitKeywords, contextStatementFactories) && dispStmt != null)
+                while (parser.StatementFactory.TryParseNode(parser, out dispStmt, containingModule, prepStatementBinder, returnStatementBinder, false, validExitKeywords, contextStatementFactories) && dispStmt != null)
                 {
                     node.Children.Add(dispStmt.StartIndex, dispStmt);
                     node.EndIndex = dispStmt.EndIndex;

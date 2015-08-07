@@ -130,7 +130,7 @@ namespace VSGenero.Analysis.Parsing.AST
                             {
                                 List<TokenKind> validExits = new List<TokenKind> { TokenKind.ProgramKeyword };
                                 FglStatement statement;
-                                if (parser.StatementFactory.TryParseNode(parser, out statement, containingModule, defNode.BindPrepareCursorFromIdentifier, false, validExits) && statement != null)
+                                if (parser.StatementFactory.TryParseNode(parser, out statement, containingModule, defNode.BindPrepareCursorFromIdentifier, defNode.StoreReturnStatement, false, validExits) && statement != null)
                                 {
                                     AstNode stmtNode = statement as AstNode;
                                     defNode.Children.Add(stmtNode.StartIndex, stmtNode);

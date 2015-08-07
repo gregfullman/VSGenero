@@ -376,7 +376,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 List<TokenKind> validExits = new List<TokenKind> { TokenKind.ProgramKeyword, TokenKind.ReportKeyword };
 
                 ReportFormatSection rfs;
-                while (ReportFormatSection.TryParseNode(parser, out rfs, containingModule, defNode, null, validExits) && rfs != null)
+                while (ReportFormatSection.TryParseNode(parser, out rfs, containingModule, defNode, null, defNode.StoreReturnStatement, validExits) && rfs != null)
                 {
                     defNode.Children.Add(rfs.StartIndex, rfs);
                     if (parser.PeekToken(TokenKind.EndOfFile) ||
@@ -418,6 +418,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                  IModuleResult containingModule,
                                  ReportBlockNode reportNode,
                                  Action<PrepareStatement> prepStatementBinder = null,
+                                 Func<ReturnStatement, ParserResult> returnStatementBinder = null,
                                  List<TokenKind> validExitKeywords = null,
                                  IEnumerable<ContextStatementFactory> contextStatementFactories = null)
         {
@@ -516,7 +517,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         {
                             // collect statements
                             FglStatement rptStmt;
-                            while (ReportStatementFactory.TryGetStatement(parser, out rptStmt, containingModule, reportNode, null, validExitKeywords) && rptStmt != null)
+                            while (ReportStatementFactory.TryGetStatement(parser, out rptStmt, containingModule, reportNode, null, returnStatementBinder, validExitKeywords) && rptStmt != null)
                             {
                                 if (rptStmt.StartIndex < 0)
                                     continue;
@@ -611,6 +612,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                  IModuleResult containingModule,
                                  ReportBlockNode reportNode,
                                  Action<PrepareStatement> prepStatementBinder = null,
+                                 Func<ReturnStatement, ParserResult> returnStatementBinder = null,
                                  List<TokenKind> validExitKeywords = null,
                                  IEnumerable<ContextStatementFactory> contextStatementFactories = null)
         {
@@ -628,7 +630,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     TryGetReportStatement(x, out testNode, reportNode, true);
                     return testNode;
                 });
-                result = parser.StatementFactory.TryParseNode(parser, out node, containingModule, prepStatementBinder, false, validExitKeywords, csfs,
+                result = parser.StatementFactory.TryParseNode(parser, out node, containingModule, prepStatementBinder, returnStatementBinder, false, validExitKeywords, csfs,
                     new ExpressionParsingOptions
                     {
                         AllowStarParam = true,
