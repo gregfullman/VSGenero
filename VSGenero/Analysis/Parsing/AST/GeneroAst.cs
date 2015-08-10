@@ -80,7 +80,7 @@ namespace VSGenero.Analysis.Parsing.AST
 
         public IEnumerable<string> GetImportedModules()
         {
-            if(Body is ModuleNode)
+            if (Body is ModuleNode)
             {
                 return (Body as ModuleNode).FglImports;
             }
@@ -89,7 +89,7 @@ namespace VSGenero.Analysis.Parsing.AST
 
         public IEnumerable<string> GetIncludedFiles()
         {
-            if(Body is ModuleNode)
+            if (Body is ModuleNode)
             {
                 return (Body as ModuleNode).IncludeFiles.Keys;
             }
@@ -209,8 +209,8 @@ namespace VSGenero.Analysis.Parsing.AST
                 {
                     var locIndex = result.LocationIndex;
                     var loc = IndexToLocation(locIndex);
-                    return _projEntry == null ? 
-                        new LocationInfo(_filename, loc.Line, loc.Column, locIndex) : 
+                    return _projEntry == null ?
+                        new LocationInfo(_filename, loc.Line, loc.Column, locIndex) :
                         new LocationInfo(_projEntry, loc.Line, loc.Column, locIndex);
                 }
             }
@@ -346,7 +346,7 @@ namespace VSGenero.Analysis.Parsing.AST
             return null;
         }
 
-        public static IAnalysisResult GetValueByIndex(string exprText, int index, GeneroAst ast, out IGeneroProject definingProject, out IProjectEntry projectEntry, 
+        public static IAnalysisResult GetValueByIndex(string exprText, int index, GeneroAst ast, out IGeneroProject definingProject, out IProjectEntry projectEntry,
                                                       bool searchInFunctionProvider = false, bool isFunctionCallOrDefinition = false)
         {
             definingProject = null;
@@ -356,7 +356,7 @@ namespace VSGenero.Analysis.Parsing.AST
             //_programFileProvider = programFileProvider;
 
             AstNode containingNode = null;
-            if(ast != null)
+            if (ast != null)
                 containingNode = GetContainingNode(ast.Body, index);
 
             IAnalysisResult res = null;
@@ -431,7 +431,7 @@ namespace VSGenero.Analysis.Parsing.AST
 
                 // we can do our search
                 var dotPiece = exprText.Substring(startIndex, (endIndex - startIndex) + 1);
-                if(dotPiece.Contains('('))
+                if (dotPiece.Contains('('))
                 {
                     // remove the params piece
                     int remIndex = dotPiece.IndexOf('(');
@@ -508,6 +508,21 @@ namespace VSGenero.Analysis.Parsing.AST
                                func.Constants.TryGetValue(dotPiece, out res))
                             {
                                 continue;
+                            }
+
+                            List<Tuple<IAnalysisResult, IndexSpan>> limitedScopeVars;
+                            if(func.LimitedScopeVariables.TryGetValue(dotPiece, out limitedScopeVars))
+                            {
+                                foreach(var item in limitedScopeVars)
+                                {
+                                    if(item.Item2.IsInSpan(index))
+                                    {
+                                        res = item.Item1;
+                                        break;
+                                    }
+                                }
+                                if (res != null)
+                                    continue;
                             }
                         }
                     }
@@ -602,15 +617,12 @@ namespace VSGenero.Analysis.Parsing.AST
                         }
                     }
 
-                    if (!lookForFunctions)
+                    // check for classes
+                    GeneroPackage package;
+                    if (Packages.TryGetValue(dotPiece, out package))
                     {
-                        // check for classes
-                        GeneroPackage package;
-                        if (Packages.TryGetValue(dotPiece, out package))
-                        {
-                            res = package;
-                            continue;
-                        }
+                        res = package;
+                        continue;
                     }
 
                     /* TODO:
@@ -766,7 +778,7 @@ namespace VSGenero.Analysis.Parsing.AST
         /// </summary>
         /// <param name="exprText">The expression to determine the result of.</param>
         /// <param name="index">The 0-based absolute index into the file where the expression should be evaluated within the module.</param>
-        public IAnalysisResult GetValueByIndex(string exprText, int index, IFunctionInformationProvider functionProvider, 
+        public IAnalysisResult GetValueByIndex(string exprText, int index, IFunctionInformationProvider functionProvider,
                                                IDatabaseInformationProvider databaseProvider, IProgramFileProvider programFileProvider,
                                                bool isFunctionCallOrDefinition,
                                                out IGeneroProject definingProject, out IProjectEntry projectEntry, bool searchInFunctionProvider = false)
@@ -786,7 +798,7 @@ namespace VSGenero.Analysis.Parsing.AST
         /// 
         /// index is a 0-based absolute index into the file.
         /// </summary>
-        public IEnumerable<IAnalysisVariable> GetVariablesByIndex(string exprText, int index, IFunctionInformationProvider functionProvider, 
+        public IEnumerable<IAnalysisVariable> GetVariablesByIndex(string exprText, int index, IFunctionInformationProvider functionProvider,
                                                                   IDatabaseInformationProvider databaseProvider, IProgramFileProvider programFileProvider,
                                                                   bool isFunctionCallOrDefinition)
         {
@@ -832,6 +844,18 @@ namespace VSGenero.Analysis.Parsing.AST
                         if (func.Constants.TryGetValue(exprText, out res))
                         {
                             vars.Add(new AnalysisVariable(this.ResolveLocation(res), VariableType.Definition));
+                        }
+
+                        List<Tuple<IAnalysisResult, IndexSpan>> limitedScopeVars;
+                        if(func.LimitedScopeVariables.TryGetValue(exprText, out limitedScopeVars))
+                        {
+                            foreach(var item in limitedScopeVars)
+                            {
+                                if(item.Item2.IsInSpan(index))
+                                {
+                                    vars.Add(new AnalysisVariable(this.ResolveLocation(res), VariableType.Reference));
+                                }
+                            }
                         }
                     }
                 }
@@ -955,21 +979,21 @@ namespace VSGenero.Analysis.Parsing.AST
              * 3) Record fields
              */
 
-            if(isFunctionCallOrDefinition && _functionProvider != null)
+            if (isFunctionCallOrDefinition && _functionProvider != null)
             {
                 var funcRes = _functionProvider.GetFunction(exprText);
-                if(funcRes != null)
+                if (funcRes != null)
                 {
                     vars.AddRange(funcRes.Select(x => new AnalysisVariable(x.Location, VariableType.Definition)));
                 }
             }
 
-            if(exprText.Contains('.') && vars.Count == 0)
+            if (exprText.Contains('.') && vars.Count == 0)
             {
                 IGeneroProject definingProj;
                 IProjectEntry projEntry;
                 IAnalysisResult res = GetValueByIndex(exprText, index, functionProvider, databaseProvider, _programFileProvider, isFunctionCallOrDefinition, out definingProj, out projEntry);
-                if(res != null)
+                if (res != null)
                 {
                     LocationInfo locInfo = null;
                     if (definingProj != null || projEntry != null)

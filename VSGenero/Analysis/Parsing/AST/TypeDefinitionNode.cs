@@ -164,7 +164,10 @@ namespace VSGenero.Analysis.Parsing.AST
 
         public string Typename
         {
-            get { return null; }
+            get 
+            { 
+                return Name; 
+            }
         }
     }
 }

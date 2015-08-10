@@ -709,6 +709,7 @@
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Compile Include="Analysis\Parsing\AST\GeneroAst.ContextMembers.cs" />
+    <Compile Include="Analysis\Parsing\AST\GeneroAst.ErrorChecking.cs" />
     <None Include="app.config" />
     <None Include="Genero4GL.xsd">
       <SubType>Designer</SubType>

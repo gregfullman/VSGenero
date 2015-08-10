@@ -3508,7 +3508,7 @@
       </Package>
       <Package name="com" type="extension">
         <Classes>
-          <Class name="WebServices" isStatic="false">
+          <Class name="WebService" isStatic="false">
             <Methods>
               <Method name="CreateWebService" desc="Creates a new object to implement a Web Service." scope="static">
                 <Parameters>

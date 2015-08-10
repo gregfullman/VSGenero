@@ -351,17 +351,14 @@ namespace VSGenero.Analysis.Parsing.AST
                             {
                                 List<TokenKind> validExits = new List<TokenKind> { TokenKind.ProgramKeyword };
                                 FglStatement statement;
-                                if (parser.StatementFactory.TryParseNode(parser, out statement, containingModule, defNode.BindPrepareCursorFromIdentifier, defNode.StoreReturnStatement, abbreviatedParse, validExits))
+                                if (parser.StatementFactory.TryParseNode(parser, out statement, containingModule, 
+                                                                         defNode.BindPrepareCursorFromIdentifier, defNode.StoreReturnStatement, defNode.AddLimitedScopeVariable,
+                                                                         abbreviatedParse, validExits))
                                 {
                                     AstNode stmtNode = statement as AstNode;
                                     if (stmtNode != null && !defNode.Children.ContainsKey(stmtNode.StartIndex))
                                     {
                                         defNode.Children.Add(stmtNode.StartIndex, stmtNode);
-
-                                        if (statement is ReturnStatement)
-                                        {
-
-                                        }
                                     }
 
                                     continue;
@@ -447,6 +444,29 @@ namespace VSGenero.Analysis.Parsing.AST
                     }
                 }
                 return _returns;
+            }
+        }
+
+        protected void AddLimitedScopeVariable(IAnalysisResult res, int start, int end)
+        {
+            if(LimitedScopeVariables.ContainsKey(res.Name))
+            {
+                LimitedScopeVariables[res.Name].Add(new Tuple<IAnalysisResult, IndexSpan>(res, new IndexSpan(start, end - start)));
+            }
+            else
+            {
+                LimitedScopeVariables.Add(res.Name, new List<Tuple<IAnalysisResult, IndexSpan>> { new Tuple<IAnalysisResult, IndexSpan>(res, new IndexSpan(start, end - start)) });
+            }
+        }
+
+        private Dictionary<string, List<Tuple<IAnalysisResult, IndexSpan>>> _limitedScopeVariables;
+        public IDictionary<string, List<Tuple<IAnalysisResult, IndexSpan>>> LimitedScopeVariables
+        {
+            get
+            {
+                if (_limitedScopeVariables == null)
+                    _limitedScopeVariables = new Dictionary<string, List<Tuple<IAnalysisResult, IndexSpan>>>(StringComparer.OrdinalIgnoreCase);
+                return _limitedScopeVariables;
             }
         }
 
@@ -623,6 +643,24 @@ namespace VSGenero.Analysis.Parsing.AST
             _location = ast.ResolveLocation(this);
 
             base.PropagateSyntaxTree(ast);
+        }
+
+        public override void CheckForErrors(GeneroAst ast, Action<string, int, int> errorFunc, bool searchInFunctionProvider = false, bool isFunctionCallOrDefinition = false)
+        {
+            // 1) check to make sure arguments have corresponding defined variables
+            foreach (var undefinedArg in _arguments.Where(x => x.Value == null))
+            {
+                errorFunc(string.Format("No definition found for parameter {0}", undefinedArg.Key.Token.Value.ToString()), 
+                            undefinedArg.Key.Span.Start, undefinedArg.Key.Span.End);
+            }
+
+            // TODO: 2) Check to make sure the types in return statements match up across multiple return statements.
+            if(_internalReturns.Count > 1)
+            {
+
+            }
+
+            base.CheckForErrors(ast, errorFunc);
         }
     }
 }

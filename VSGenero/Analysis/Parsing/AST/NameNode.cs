@@ -21,6 +21,7 @@ namespace VSGenero.Analysis.Parsing.AST
     public class NameExpression : ExpressionNode
     {
         public string Name { get; private set; }
+        private string _firstPiece;
 
         public static bool TryParseNode(IParser parser, out NameExpression node, TokenKind breakToken = TokenKind.EndOfFile)
         {
@@ -34,7 +35,8 @@ namespace VSGenero.Analysis.Parsing.AST
                 parser.NextToken();
                 node.StartIndex = parser.Token.Span.Start;
 
-                StringBuilder sb = new StringBuilder(parser.Token.Token.Value.ToString());
+                node._firstPiece = parser.Token.Token.Value.ToString();
+                StringBuilder sb = new StringBuilder(node._firstPiece);
                 node.EndIndex = parser.Token.Span.End;
                 while(true)
                 {
@@ -88,6 +90,23 @@ namespace VSGenero.Analysis.Parsing.AST
                 return res.Typename;
             }
             return null;
+        }
+
+        public override void CheckForErrors(GeneroAst ast, Action<string, int, int> errorFunc, bool searchInFunctionProvider = false, bool isFunctionCallOrDefinition = false)
+        {
+            // Check to see if the _firstPiece exists
+            IGeneroProject proj;
+            IProjectEntry projEntry;
+            string searchStr = _firstPiece;
+            if (searchInFunctionProvider || isFunctionCallOrDefinition)
+                searchStr = Name;
+            var res = GeneroAst.GetValueByIndex(searchStr, StartIndex, ast, out proj, out projEntry, searchInFunctionProvider, isFunctionCallOrDefinition);
+            if(res == null)
+            {
+                errorFunc(string.Format("No definition found for {0}", searchStr), StartIndex, StartIndex + searchStr.Length);
+            }
+
+            base.CheckForErrors(ast, errorFunc, searchInFunctionProvider, isFunctionCallOrDefinition);
         }
     }
 

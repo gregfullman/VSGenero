@@ -120,5 +120,13 @@ namespace VSGenero.Analysis.Parsing.AST
 
             return result;
         }
+
+        public override void CheckForErrors(GeneroAst ast, Action<string, int, int> errorFunc, bool searchInFunctionProvider = false, bool isFunctionCallOrDefinition = false)
+        {
+            // check the variable
+            Variable.CheckForErrors(ast, errorFunc);
+            // check the expression
+            base.CheckForErrors(ast, errorFunc, searchInFunctionProvider, isFunctionCallOrDefinition);
+        }
     }
 }

@@ -279,7 +279,20 @@ namespace VSGenero.Analysis.Parsing.AST
                     if (containingNode is IFunctionResult)
                     {
                         if (vars)
+                        {
                             members.AddRange((containingNode as IFunctionResult).Variables.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Variable, this)));
+                            foreach(var varList in (containingNode as IFunctionResult).LimitedScopeVariables)
+                            {
+                                foreach(var item in varList.Value)
+                                {
+                                    if(item.Item2.IsInSpan(index))
+                                    {
+                                        members.Add(new MemberResult(item.Item1.Name, item.Item1, GeneroMemberType.Instance, this));
+                                        break;
+                                    }
+                                }
+                            }
+                        }
                         if (types)
                             members.AddRange((containingNode as IFunctionResult).Types.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Class, this)));
                         if (consts)
@@ -290,6 +303,18 @@ namespace VSGenero.Analysis.Parsing.AST
                                                                                             */.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Variable, this)))
                                 if (!members.Contains(res))
                                     members.Add(res);
+
+                            foreach (var varList in (containingNode as IFunctionResult).LimitedScopeVariables)
+                            {
+                                foreach (var item in varList.Value)
+                                {
+                                    if (item.Item2.IsInSpan(index))
+                                    {
+                                        members.Add(new MemberResult(item.Item1.Name, item.Item1, GeneroMemberType.Instance, this));
+                                        break;
+                                    }
+                                }
+                            }
                         }
                     }
 

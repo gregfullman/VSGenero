@@ -31,6 +31,11 @@ namespace VSGenero.Analysis.Parsing
             _length = length;
         }
 
+        public bool IsInSpan(int position)
+        {
+            return position >= Start && position <= End;
+        }
+
         public int Start
         {
             get

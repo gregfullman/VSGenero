@@ -39,6 +39,7 @@ namespace VSGenero.Analysis.Parsing.AST
         public void AppendExpression(ExpressionNode node)
         {
             AppendedExpressions.Add(node);
+            Children.Add(node.StartIndex, node);
         }
 
         public override string ToString()
@@ -667,6 +668,46 @@ namespace VSGenero.Analysis.Parsing.AST
                 return result.Typename;
             }
             return null;
+        }
+
+        // For right now, there are certain "functions" that don't really behave like functions (specifically, in the parameters they take).
+        // We don't want to error check those yet.
+        private static HashSet<string> _skipValidationFunctionNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "cast"
+        };
+
+        public override void CheckForErrors(GeneroAst ast, Action<string, int, int> errorFunc, bool searchInFunctionProvider = false, bool isFunctionCallOrDefinition = false)
+        {
+            // 1) Check parameters for errors
+            //      - undefined identifier
+            //      - record without .*
+            if (_skipValidationFunctionNames.Contains(Function.Name))
+                return;
+
+            // Check for the function name
+            Function.CheckForErrors(ast, errorFunc, true, true);
+
+            foreach (var param in Parameters)
+            {
+                if(param is NameExpression)
+                {
+                    string typeName = (param as NameExpression).GetExpressionType(ast);
+                    if (!string.IsNullOrWhiteSpace(typeName))
+                    {
+                        if (!typeName.Contains("array") && typeName.Contains("record") && !(param as NameExpression).Name.EndsWith(".*"))
+                        {
+                            errorFunc("Records must be specified with a '.*' ending when passed as a function parameter.", param.StartIndex, param.EndIndex);
+                            continue;
+                        }
+                    }
+                }
+                param.CheckForErrors(ast, errorFunc);
+            }
+
+            // TODO: should we do something with the anything parameters
+
+            base.CheckForErrors(ast, errorFunc);
         }
     }
 

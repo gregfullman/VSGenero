@@ -254,6 +254,18 @@ namespace VSGenero.Analysis.Parsing.AST
         public virtual void FindAllReferences(IAnalysisResult item, List<IndexSpan> referenceList)
         {
         }
+        
+        /// <summary>
+        /// The default method calls CheckForErrors on all AstNode children of this node.
+        /// To do specific error checking, override this method and call the base method at the end.
+        /// </summary>
+        /// <param name="ast"></param>
+        /// <param name="errors"></param>
+        public virtual void CheckForErrors(GeneroAst ast, Action<string, int, int> errorFunc, bool searchInFunctionProvider = false, bool isFunctionCallOrDefinition = false)
+        {
+            foreach (var child in Children)
+                child.Value.CheckForErrors(ast, errorFunc, searchInFunctionProvider, isFunctionCallOrDefinition);
+        }
     }
 
     public class IndexSpanComparer : IComparer<IndexSpan>

@@ -19,6 +19,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using VSGenero.Analysis;
+using VSGenero.Analysis.Parsing;
 using VSGenero.Analysis.Parsing.AST;
 
 namespace VSGenero.EditorExtensions.Intellisense
@@ -403,6 +404,12 @@ namespace VSGenero.EditorExtensions.Intellisense
         public string[] Returns
         {
             get { return new string[0]; }
+        }
+
+        private Dictionary<string, List<Tuple<IAnalysisResult, IndexSpan>>> _dummyLimitDict = new Dictionary<string, List<Tuple<IAnalysisResult, IndexSpan>>>();
+        public IDictionary<string, List<Tuple<IAnalysisResult, IndexSpan>>> LimitedScopeVariables
+        {
+            get { return _dummyLimitDict; }
         }
     }
 }

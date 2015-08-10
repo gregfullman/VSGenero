@@ -82,12 +82,15 @@ namespace VSGenero.EditorExtensions.Intellisense
         void UpdateAtCaretPosition(object state)
         {
             string filename = buffer.GetFilePath();
-            if (_provider._PublicFunctionProvider != null)
-                _provider._PublicFunctionProvider.SetFilename(filename);
-            if (_provider._DatabaseInfoProvider != null)
-                _provider._DatabaseInfoProvider.SetFilename(filename);
-            if (_provider._ProgramFileProvider != null)
-                _provider._ProgramFileProvider.SetFilename(filename);
+            if (filename != null)
+            {
+                if (_provider._PublicFunctionProvider != null)
+                    _provider._PublicFunctionProvider.SetFilename(filename);
+                if (_provider._DatabaseInfoProvider != null)
+                    _provider._DatabaseInfoProvider.SetFilename(filename);
+                if (_provider._ProgramFileProvider != null)
+                    _provider._ProgramFileProvider.SetFilename(filename);
+            }
 
             IGeneroProjectEntry analysisItem;
             if (buffer.TryGetAnalysis(out analysisItem))

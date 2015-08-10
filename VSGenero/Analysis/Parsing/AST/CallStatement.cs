@@ -76,5 +76,17 @@ namespace VSGenero.Analysis.Parsing.AST
 
             return result;
         }
+
+        public override void CheckForErrors(GeneroAst ast, Action<string, int, int> errorFunc, bool searchInFunctionProvider = false, bool isFunctionCallOrDefinition = false)
+        {
+            // 1) Check to make sure the function call is valid
+            Function.CheckForErrors(ast, errorFunc);
+
+            // 2) Check the return values
+            foreach (var ret in Returns)
+                ret.CheckForErrors(ast, errorFunc);
+
+            base.CheckForErrors(ast, errorFunc);
+        }
     }
 }

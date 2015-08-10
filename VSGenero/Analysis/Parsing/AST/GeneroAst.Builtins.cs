@@ -21,6 +21,8 @@ namespace VSGenero.Analysis.Parsing.AST
 {
     public partial class GeneroAst
     {
+        internal static VariableDef DialogVariable = new VariableDef("Dialog", new TypeReference("ui.Dialog"), -1);
+
         private static bool _builtinsInitialized = false;
         private static object _builtinsInitLock = new object();
 
@@ -599,6 +601,10 @@ new ParameterResult("width", "", "integer"),
             {
                 _childRegisters.TryGetValue(name, out progReg);
             }
+            else
+            {
+                
+            }
             return progReg;
         }
 
@@ -1061,6 +1067,12 @@ new ParameterResult("width", "", "integer"),
         public string[] Returns
         {
             get { return _returns.ToArray(); }
+        }
+
+        private Dictionary<string, List<Tuple<IAnalysisResult, IndexSpan>>> _dummyLimitDict = new Dictionary<string, List<Tuple<IAnalysisResult, IndexSpan>>>();
+        public IDictionary<string, List<Tuple<IAnalysisResult, IndexSpan>>> LimitedScopeVariables
+        {
+            get { return _dummyLimitDict; }
         }
     }
 

@@ -516,7 +516,7 @@ namespace VSGenero.Analysis.Parsing.AST
             }
         }
 
-        private Dictionary<string, IFunctionResult> _functions = new Dictionary<string, IFunctionResult>();
+        private Dictionary<string, IFunctionResult> _functions;
         public IDictionary<string, IFunctionResult> Functions
         {
             get

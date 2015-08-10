@@ -32,6 +32,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                  IModuleResult containingModule,
                                  Action<PrepareStatement> prepStatementBinder = null,
                                  Func<ReturnStatement, ParserResult> returnStatementBinder = null,
+                                 Action<IAnalysisResult, int, int> limitedScopeVariableAdder = null,
                                  List<TokenKind> validExitKeywords = null,
                                  IEnumerable<ContextStatementFactory> contextStatementFactories = null)
         {
@@ -149,7 +150,8 @@ namespace VSGenero.Analysis.Parsing.AST
 
                 bool hasControlBlocks = false;
                 ConstructControlBlock icb;
-                while(ConstructControlBlock.TryParseNode(parser, out icb, containingModule, prepStatementBinder, returnStatementBinder, validExits, contextStatementFactories) && icb != null)
+                while(ConstructControlBlock.TryParseNode(parser, out icb, containingModule, prepStatementBinder, returnStatementBinder, 
+                                                         limitedScopeVariableAdder, validExits, contextStatementFactories) && icb != null)
                 {
                     if (icb.StartIndex < 0)
                         continue;
@@ -226,6 +228,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                  IModuleResult containingModule,
                                  Action<PrepareStatement> prepStatementBinder = null,
                                  Func<ReturnStatement, ParserResult> returnStatementBinder = null,
+                                 Action<IAnalysisResult, int, int> limitedScopeVariableAdder = null,
                                  List<TokenKind> validExitKeywords = null,
                                  IEnumerable<ContextStatementFactory> contextStatementFactories = null)
         {
@@ -348,7 +351,8 @@ namespace VSGenero.Analysis.Parsing.AST
             {
                 // get the dialog statements
                 FglStatement inputStmt;
-                while (ConstructDialogStatementFactory.TryGetStatement(parser, out inputStmt, containingModule, prepStatementBinder, returnStatementBinder, validExitKeywords, contextStatementFactories) && inputStmt != null)
+                while (ConstructDialogStatementFactory.TryGetStatement(parser, out inputStmt, containingModule, prepStatementBinder, returnStatementBinder, 
+                                                                       limitedScopeVariableAdder, validExitKeywords, contextStatementFactories) && inputStmt != null)
                     node.Children.Add(inputStmt.StartIndex, inputStmt);
 
                 if (node.Type == ConstructControlBlockType.None && node.Children.Count == 0)
@@ -379,6 +383,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                  IModuleResult containingModule,
                                  Action<PrepareStatement> prepStatementBinder = null,
                                  Func<ReturnStatement, ParserResult> returnStatementBinder = null,
+                                 Action<IAnalysisResult, int, int> limitedScopeVariableAdder = null,
                                  List<TokenKind> validExitKeywords = null,
                                  IEnumerable<ContextStatementFactory> contextStatementFactories = null)
         {
@@ -401,7 +406,8 @@ namespace VSGenero.Analysis.Parsing.AST
                     TryGetConstructStatement(x, out testNode, true);
                     return testNode;
                 });
-                result = parser.StatementFactory.TryParseNode(parser, out node, containingModule, prepStatementBinder, returnStatementBinder, false, validExitKeywords, csfs);
+                result = parser.StatementFactory.TryParseNode(parser, out node, containingModule, prepStatementBinder, 
+                                                              returnStatementBinder, limitedScopeVariableAdder, false, validExitKeywords, csfs);
             }
 
             return result;

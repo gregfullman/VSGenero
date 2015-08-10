@@ -458,7 +458,7 @@ namespace VSGenero.EditorExtensions.Intellisense
 
             if (refill && includingProjectEntries != null)
             {
-                foreach(var includer in includingProjectEntries)
+                foreach (var includer in includingProjectEntries)
                 {
                     AddIncludedFile(newLocation, includer);
                 }
@@ -499,15 +499,17 @@ namespace VSGenero.EditorExtensions.Intellisense
             }
         }
 
-        internal IGeneroProject AddImportedProject(string projectPath)
+        internal IGeneroProject AddImportedProject(string projectPath, IGeneroProjectEntry importer = null)
         {
             IGeneroProject projEntry;
             if (!_projects.TryGetValue(projectPath, out projEntry))
             {
                 GeneroProject proj = new GeneroProject(projectPath);
                 _projects.AddOrUpdate(projectPath, proj, (x, y) => y);
-                QueueDirectoryAnalysis(projectPath);
+                var files = QueueDirectoryAnalysis(projectPath);
                 projEntry = proj;
+                foreach (var file in files)
+                    projEntry.ProjectEntries.AddOrUpdate(file, new GeneroProjectEntry(null, file, importer.Cookie, true), (x, y) => y);
             }
             return projEntry;
         }
@@ -531,7 +533,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                     foreach (var refProj in proj.ReferencingProjectEntries)
                     {
                         refProj.ParentProject.RemoveImportedModule(key);
-                        refProj.ParentProject.AddImportedModule(newProjectPath);
+                        refProj.ParentProject.AddImportedModule(newProjectPath, refProj);
                         newProj.ReferencingProjectEntries.Add(refProj);
                     }
                 }
@@ -687,9 +689,13 @@ namespace VSGenero.EditorExtensions.Intellisense
             }
         }
 
-        private void QueueDirectoryAnalysis(string path, string excludeFile = null)
+        private List<string> QueueDirectoryAnalysis(string path, string excludeFile = null)
         {
-            ThreadPool.QueueUserWorkItem(x => { lock (_contentsLock) { AnalyzeDirectory(CommonUtils.NormalizeDirectoryPath(path), excludeFile, ProjectEntryAnalyzed); } });
+            string normalizedPath = CommonUtils.NormalizeDirectoryPath(path);
+            List<string> files = new List<string>();
+            files.AddRange(Directory.GetFiles(normalizedPath, "*.4gl").Where(x => string.IsNullOrWhiteSpace(excludeFile) ? true : !x.Equals(excludeFile, StringComparison.OrdinalIgnoreCase)));
+            ThreadPool.QueueUserWorkItem(x => { lock (_contentsLock) { AnalyzeDirectory(normalizedPath, excludeFile, ProjectEntryAnalyzed); } });
+            return files;
         }
 
         private void QueueFileAnalysis(string filename)
@@ -870,7 +876,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                                                           IProgramFileProvider programFileProvider)
         {
             return TrySpecialCompletions(snapshot, span, point, options, functionProvider, databaseProvider, programFileProvider);
-                   //GetNormalCompletionContext(snapshot, span, point, options);
+            //GetNormalCompletionContext(snapshot, span, point, options);
         }
 
         /// <summary>
@@ -1081,6 +1087,48 @@ namespace VSGenero.EditorExtensions.Intellisense
                 {
                     _analysisQueue.Enqueue(pyEntry, AnalysisPriority.Normal);
                     pyEntry.UpdateIncludesAndImports(filename, ast);
+
+                    List<IGeneroProjectEntry> unanalyzed = new List<IGeneroProjectEntry>();
+                    unanalyzed.AddRange(pyEntry.ParentProject.GetUnanalyzedEntries());
+                    unanalyzed.AddRange(pyEntry.GetIncludedFiles().Where(x => !x.IsAnalyzed));
+                    if (unanalyzed.Count > 0)
+                    {
+                        // postpone error checking until the unanalyzed entries are analyzed
+                        lock (_pendingWaitingLock)
+                        {
+                            // set up a map of the unanalyzed project entry to the dependent entry for which we're doing error checking.
+                            // When there are no more unanalyzed project entries for the dependent entry, we can do the error checking.
+                            foreach (var item in unanalyzed)
+                            {
+                                lock (item)
+                                {
+                                    if (_waitingToPendingMap.ContainsKey(pyEntry))
+                                    {
+                                        _waitingToPendingMap[pyEntry].Add(item);
+                                    }
+                                    else
+                                    {
+                                        _waitingToPendingMap.Add(pyEntry, new HashSet<IGeneroProjectEntry> { item });
+                                    }
+
+                                    if (_pendingToWaitingMap.ContainsKey(item))
+                                    {
+                                        _pendingToWaitingMap[item].Add(pyEntry);
+                                    }
+                                    else
+                                    {
+                                        _pendingToWaitingMap.Add(item, new List<IGeneroProjectEntry> { pyEntry });
+                                        // and register for the event (no need to register for the event if the item is already in the pendingToWaiting map
+                                        item.OnNewAnalysis += item_OnNewAnalysis;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        CheckForErrors(pyEntry);
+                    }
                 }
             }
         }
@@ -1137,6 +1185,147 @@ namespace VSGenero.EditorExtensions.Intellisense
                     pyProjEntry.GetTreeAndCookie(out prevTree, out prevCookie);
                     pyProjEntry.UpdateTree(prevTree, prevCookie);
                 }
+
+                List<IGeneroProjectEntry> unanalyzed = new List<IGeneroProjectEntry>();
+                unanalyzed.AddRange(pyProjEntry.ParentProject.GetUnanalyzedEntries());
+                unanalyzed.AddRange(pyProjEntry.GetIncludedFiles().Where(x => !x.IsAnalyzed));
+                if (unanalyzed.Count > 0)
+                {
+                    // postpone error checking until the unanalyzed entries are analyzed
+                    lock (_pendingWaitingLock)
+                    {
+                        // set up a map of the unanalyzed project entry to the dependent entry for which we're doing error checking.
+                        // When there are no more unanalyzed project entries for the dependent entry, we can do the error checking.
+                        foreach (var item in unanalyzed)
+                        {
+                            lock (item)
+                            {
+                                if (_waitingToPendingMap.ContainsKey(pyProjEntry))
+                                {
+                                    _waitingToPendingMap[pyProjEntry].Add(item);
+                                }
+                                else
+                                {
+                                    _waitingToPendingMap.Add(pyProjEntry, new HashSet<IGeneroProjectEntry> { item });
+                                }
+
+                                if (_pendingToWaitingMap.ContainsKey(item))
+                                {
+                                    _pendingToWaitingMap[item].Add(pyProjEntry);
+                                }
+                                else
+                                {
+                                    _pendingToWaitingMap.Add(item, new List<IGeneroProjectEntry> { pyProjEntry });
+                                    // and register for the event (no need to register for the event if the item is already in the pendingToWaiting map
+                                    item.OnNewAnalysis += item_OnNewAnalysis;
+                                }
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    CheckForErrors(pyProjEntry);
+                }
+            }
+        }
+
+        private void CheckForErrors(IGeneroProjectEntry projEntry)
+        {
+            ITextSnapshot snapshot = GetOpenSnapshot(projEntry);
+
+            // check for errors in the syntax tree
+            CollectingErrorSink astErrors = new CollectingErrorSink();
+            if (projEntry.Analysis._functionProvider == null && VSGeneroPackage.Instance.GlobalFunctionProvider != null)
+            {
+                projEntry.Analysis._functionProvider = VSGeneroPackage.Instance.GlobalFunctionProvider;
+                projEntry.Analysis._functionProvider.SetFilename(projEntry.FilePath);
+            }
+            if (projEntry.Analysis._databaseProvider == null && VSGeneroPackage.Instance.GlobalDatabaseProvider != null)
+            {
+                projEntry.Analysis._databaseProvider = VSGeneroPackage.Instance.GlobalDatabaseProvider;
+                projEntry.Analysis._databaseProvider.SetFilename(projEntry.FilePath);
+            }
+            projEntry.Analysis.CheckForErrors((msg, start, end) =>
+            {
+                astErrors.Add(msg, projEntry.Analysis._lineLocations, start, end, ErrorCodes.SyntaxError, Severity.Error);
+            });
+
+            // update any errors found
+            if (astErrors.Errors.Count > 0 || astErrors.Warnings.Count > 0)
+            {
+                AddErrorsAndWarnings(projEntry, snapshot, astErrors);
+            }
+        }
+
+        void item_OnNewAnalysis(object sender, EventArgs e)
+        {
+            lock (_pendingWaitingLock)
+            {
+                IGeneroProjectEntry pendingItem = sender as IGeneroProjectEntry;
+                List<IGeneroProjectEntry> waitingItems;
+                if (_pendingToWaitingMap.TryGetValue(pendingItem, out waitingItems))
+                {
+                    lock (pendingItem)
+                    {
+                        foreach (var waiting in waitingItems.ToArray())
+                        {
+                            // remove pendingItem from the waiting item's pending items
+                            if (_waitingToPendingMap.ContainsKey(waiting))
+                            {
+                                if (_waitingToPendingMap[waiting].Contains(pendingItem))
+                                {
+                                    _waitingToPendingMap[waiting].Remove(pendingItem);
+                                }
+
+                                if (_waitingToPendingMap[waiting].Count == 0)
+                                {
+                                    // the waiting item is no longer waiting for any other pending items
+                                    // so we can trigger the error checking
+
+                                    
+                                    // TODO: do this on a thread
+                                    CheckForErrors(waiting);
+
+                                    waitingItems.Remove(waiting);
+                                }
+                            }
+                        }
+
+                        if (waitingItems.Count == 0)
+                        {
+                            // the pending item has no more items awaiting it.
+                            // so we can unregister from this item's event
+                            pendingItem.OnNewAnalysis -= item_OnNewAnalysis;
+                            _pendingToWaitingMap.Remove(pendingItem);
+                        }
+                    }
+                }
+            }
+        }
+
+        private Dictionary<IGeneroProjectEntry, HashSet<IGeneroProjectEntry>> _waitingToPendingMap = new Dictionary<IGeneroProjectEntry, HashSet<IGeneroProjectEntry>>();
+        private Dictionary<IGeneroProjectEntry, List<IGeneroProjectEntry>> _pendingToWaitingMap = new Dictionary<IGeneroProjectEntry, List<IGeneroProjectEntry>>();
+        private object _pendingWaitingLock = new object();
+
+
+        private void AddErrorsAndWarnings(IProjectEntry entry, ITextSnapshot snapshot,
+                                          CollectingErrorSink errorSink)
+        {
+            // Update the parser warnings/errors.
+            var factory = new TaskProviderItemFactory(snapshot);
+            if (errorSink.Warnings.Any() || errorSink.Errors.Any())
+            {
+                if (!_errorProvider.HasErrorSource(entry, ParserTaskMoniker))
+                    _errorProvider.AddBufferForErrorSource(entry, ParserTaskMoniker, null);
+                _errorProvider.AddItems(
+                    entry,
+                    ParserTaskMoniker,
+                    errorSink.Warnings
+                        .Select(er => factory.FromErrorResult(_serviceProvider, er, VSTASKPRIORITY.TP_NORMAL, VSTASKCATEGORY.CAT_BUILDCOMPILE))
+                        .Concat(errorSink.Errors.Select(er => factory.FromErrorResult(_serviceProvider, er, VSTASKPRIORITY.TP_HIGH, VSTASKCATEGORY.CAT_BUILDCOMPILE)))
+                        .ToList()
+                );
             }
         }
 
@@ -1177,16 +1366,6 @@ namespace VSGenero.EditorExtensions.Intellisense
             {
                 _errorProvider.Clear(entry, ParserTaskMoniker);
             }
-
-            // Update comment tasks.
-            //if (commentTasks.Count != 0)
-            //{
-            //    _commentTaskProvider.ReplaceItems(entry, ParserTaskMoniker, commentTasks);
-            //}
-            //else
-            //{
-            //    _commentTaskProvider.Clear(entry, ParserTaskMoniker);
-            //}
         }
 
         internal void ClearParserTasks(IProjectEntry entry)
@@ -1494,6 +1673,7 @@ namespace VSGenero.EditorExtensions.Intellisense
 
             try
             {
+                // TODO: need to handle .per and .inc files as well.
                 foreach (string filename in Directory.GetFiles(dir, "*.4gl"))
                 {
                     if (_excludeFile != null && filename.Equals(_excludeFile, StringComparison.OrdinalIgnoreCase))
@@ -1518,29 +1698,6 @@ namespace VSGenero.EditorExtensions.Intellisense
             catch (UnauthorizedAccessException)
             {
             }
-
-            //try
-            //{
-            //    foreach (string filename in Directory.GetFiles(dir, "*.per"))
-            //    {
-            //        if (cancel.IsCancellationRequested)
-            //        {
-            //            break;
-            //        }
-            //        IProjectEntry entry = AnalyzeFile(filename);
-            //        if (onFileAnalyzed != null)
-            //        {
-            //            onFileAnalyzed(entry);
-            //        }
-            //    }
-            //}
-            //catch (IOException)
-            //{
-            //    // We want to handle DirectoryNotFound, DriveNotFound, PathTooLong
-            //}
-            //catch (UnauthorizedAccessException)
-            //{
-            //}
         }
 
         internal void Cancel()

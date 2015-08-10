@@ -91,6 +91,7 @@ namespace VSGenero.Analysis
         IDictionary<string, IAnalysisResult> Variables { get; }
         IDictionary<string, IAnalysisResult> Types { get; }
         IDictionary<string, IAnalysisResult> Constants { get; }
+        IDictionary<string, List<Tuple<IAnalysisResult, IndexSpan>>> LimitedScopeVariables { get; }
         string CompletionParentName { get; }
         string Namespace { get; }
     }

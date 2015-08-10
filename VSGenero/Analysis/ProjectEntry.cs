@@ -290,7 +290,7 @@ namespace VSGenero.Analysis
                 {
                     if (!_lastImportedModules.Contains(mod))
                     {
-                        var impProj = ParentProject.AddImportedModule(mod);
+                        var impProj = ParentProject.AddImportedModule(mod, this);
                         if (impProj != null)
                         {
                             _lastImportedModules.Add(mod);
@@ -363,13 +363,13 @@ namespace VSGenero.Analysis
             _directory = directory;
         }
 
-        public IGeneroProject AddImportedModule(string path)
+        public IGeneroProject AddImportedModule(string path, IGeneroProjectEntry importer)
         {
             IGeneroProject refProj = null;
             if (!ReferencedProjects.TryGetValue(path, out refProj))
             {
                 // need to tell the genero project analyzer to add a directory to the project
-                refProj = VSGeneroPackage.Instance.DefaultAnalyzer.AddImportedProject(path);
+                refProj = VSGeneroPackage.Instance.DefaultAnalyzer.AddImportedProject(path, importer);
                 if (refProj == null)
                 {
                     // TODO: need to report that the project is invalid?
@@ -617,6 +617,13 @@ namespace VSGenero.Analysis
         public void SetOneTimeNamespace(string nameSpace)
         {
         }
+
+
+        public IEnumerable<IGeneroProjectEntry> GetUnanalyzedEntries()
+        {
+            return ProjectEntries.Select(x => x.Value).Where(y => !y.IsAnalyzed)
+                                 .Union(ReferencedProjects.Select(a => a.Value).SelectMany(b => b.GetUnanalyzedEntries()));
+        }
     }
 
     /// <summary>
@@ -686,7 +693,7 @@ namespace VSGenero.Analysis
     /// </summary>
     public interface IGeneroProject
     {
-        IGeneroProject AddImportedModule(string path);
+        IGeneroProject AddImportedModule(string path, IGeneroProjectEntry importer);
         void RemoveImportedModule(string path);
 
         string Directory { get; }
@@ -701,6 +708,8 @@ namespace VSGenero.Analysis
         ConcurrentDictionary<string, IGeneroProject> ReferencedProjects { get; }
 
         HashSet<IGeneroProjectEntry> ReferencingProjectEntries { get; }
+
+        IEnumerable<IGeneroProjectEntry> GetUnanalyzedEntries();
     }
 
     public interface IGeneroProjectEntry : IProjectEntry
@@ -746,5 +755,7 @@ namespace VSGenero.Analysis
         GeneroAst WaitForCurrentTree(int timeout = -1);
 
         void SetProject(IGeneroProject project);
+
+        IAnalysisCookie Cookie { get; }
     }
 }

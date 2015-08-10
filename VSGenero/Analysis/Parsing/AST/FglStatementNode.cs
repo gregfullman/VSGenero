@@ -31,6 +31,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                  IModuleResult containingModule,
                                  Action<PrepareStatement> prepStatementBinder = null,
                                  Func<ReturnStatement, ParserResult> returnStatementBinder = null,
+                                 Action<IAnalysisResult, int, int> limitedScopeVariableAdder = null,
                                  bool returnStatementsOnly = false,
                                  List<TokenKind> validExitKeywords = null,
                                  IEnumerable<ContextStatementFactory> contextStatementFactories = null,
@@ -148,7 +149,8 @@ namespace VSGenero.Analysis.Parsing.AST
                 case TokenKind.IfKeyword:
                     {
                         IfStatement ifStmt;
-                        if ((result = IfStatement.TryParseNode(parser, out ifStmt, containingModule, prepStatementBinder, returnStatementBinder, validExitKeywords, contextStatementFactories, expressionOptions)))
+                        if ((result = IfStatement.TryParseNode(parser, out ifStmt, containingModule, prepStatementBinder, returnStatementBinder, 
+                                                               limitedScopeVariableAdder, validExitKeywords, contextStatementFactories, expressionOptions)))
                         {
                             node = ifStmt;
                         }
@@ -157,7 +159,8 @@ namespace VSGenero.Analysis.Parsing.AST
                 case TokenKind.WhileKeyword:
                     {
                         WhileStatement whileStmt;
-                        if ((result = WhileStatement.TryParseNode(parser, out whileStmt, containingModule, prepStatementBinder, returnStatementBinder, validExitKeywords, contextStatementFactories, expressionOptions)))
+                        if ((result = WhileStatement.TryParseNode(parser, out whileStmt, containingModule, prepStatementBinder, returnStatementBinder, 
+                                                                  limitedScopeVariableAdder, validExitKeywords, contextStatementFactories, expressionOptions)))
                         {
                             node = whileStmt;
                         }
@@ -193,7 +196,8 @@ namespace VSGenero.Analysis.Parsing.AST
                 case TokenKind.ForKeyword:
                     {
                         ForStatement forStmt;
-                        if ((result = ForStatement.TryParserNode(parser, out forStmt, containingModule, prepStatementBinder, returnStatementBinder, validExitKeywords, contextStatementFactories, expressionOptions)))
+                        if ((result = ForStatement.TryParserNode(parser, out forStmt, containingModule, prepStatementBinder, returnStatementBinder, 
+                                                                 limitedScopeVariableAdder, validExitKeywords, contextStatementFactories, expressionOptions)))
                         {
                             node = forStmt;
                         }
@@ -202,7 +206,8 @@ namespace VSGenero.Analysis.Parsing.AST
                 case TokenKind.CaseKeyword:
                     {
                         CaseStatement caseStmt;
-                        if ((result = CaseStatement.TryParseNode(parser, out caseStmt, containingModule, prepStatementBinder, returnStatementBinder, validExitKeywords, contextStatementFactories, expressionOptions)))
+                        if ((result = CaseStatement.TryParseNode(parser, out caseStmt, containingModule, prepStatementBinder, returnStatementBinder, 
+                                                                 limitedScopeVariableAdder, validExitKeywords, contextStatementFactories, expressionOptions)))
                         {
                             node = caseStmt;
                         }
@@ -265,7 +270,8 @@ namespace VSGenero.Analysis.Parsing.AST
                 case TokenKind.TryKeyword:
                     {
                         TryCatchStatement tryStmt;
-                        if ((result = TryCatchStatement.TryParseNode(parser, out tryStmt, containingModule, prepStatementBinder, returnStatementBinder, validExitKeywords, contextStatementFactories)))
+                        if ((result = TryCatchStatement.TryParseNode(parser, out tryStmt, containingModule, prepStatementBinder, returnStatementBinder, 
+                                                                     limitedScopeVariableAdder, validExitKeywords, contextStatementFactories)))
                         {
                             node = tryStmt;
                         }
@@ -328,7 +334,8 @@ namespace VSGenero.Analysis.Parsing.AST
                 case TokenKind.ForeachKeyword:
                     {
                         ForeachStatement foreachStmt;
-                        if ((result = ForeachStatement.TryParseNode(parser, out foreachStmt, containingModule, prepStatementBinder, returnStatementBinder, validExitKeywords, contextStatementFactories)))
+                        if ((result = ForeachStatement.TryParseNode(parser, out foreachStmt, containingModule, prepStatementBinder, returnStatementBinder, 
+                                                                    limitedScopeVariableAdder, validExitKeywords, contextStatementFactories)))
                         {
                             node = foreachStmt;
                         }
@@ -346,27 +353,33 @@ namespace VSGenero.Analysis.Parsing.AST
                 case TokenKind.MenuKeyword:
                     {
                         MenuBlock menuStmt;
-                        if ((result = MenuBlock.TryParseNode(parser, out menuStmt, containingModule, prepStatementBinder, returnStatementBinder, validExitKeywords, contextStatementFactories)))
+                        if ((result = MenuBlock.TryParseNode(parser, out menuStmt, containingModule, prepStatementBinder, returnStatementBinder, 
+                                                             limitedScopeVariableAdder, validExitKeywords, contextStatementFactories)))
                         {
                             node = menuStmt;
+                            limitedScopeVariableAdder(GeneroAst.DialogVariable, node.StartIndex, node.EndIndex);
                         }
                         break;
                     }
                 case TokenKind.InputKeyword:
                     {
                         InputBlock inputStmt;
-                        if ((result = InputBlock.TryParseNode(parser, out inputStmt, containingModule, prepStatementBinder, returnStatementBinder, validExitKeywords, contextStatementFactories)))
+                        if ((result = InputBlock.TryParseNode(parser, out inputStmt, containingModule, prepStatementBinder, returnStatementBinder, 
+                                                              limitedScopeVariableAdder, validExitKeywords, contextStatementFactories)))
                         {
                             node = inputStmt;
+                            limitedScopeVariableAdder(GeneroAst.DialogVariable, node.StartIndex, node.EndIndex);
                         }
                         break;
                     }
                 case TokenKind.ConstructKeyword:
                     {
                         ConstructBlock constructStmt;
-                        if ((result = ConstructBlock.TryParseNode(parser, out constructStmt, containingModule, prepStatementBinder, returnStatementBinder, validExitKeywords, contextStatementFactories)))
+                        if ((result = ConstructBlock.TryParseNode(parser, out constructStmt, containingModule, prepStatementBinder, returnStatementBinder, 
+                                                                  limitedScopeVariableAdder, validExitKeywords, contextStatementFactories)))
                         {
                             node = constructStmt;
+                            limitedScopeVariableAdder(GeneroAst.DialogVariable, node.StartIndex, node.EndIndex);
                         }
                         break;
                     }
@@ -382,27 +395,33 @@ namespace VSGenero.Analysis.Parsing.AST
                 case TokenKind.DisplayKeyword:
                     {
                         DisplayBlock dispStmt;
-                        if ((result = DisplayBlock.TryParseNode(parser, out dispStmt, containingModule, prepStatementBinder, returnStatementBinder, validExitKeywords, contextStatementFactories)))
+                        if ((result = DisplayBlock.TryParseNode(parser, out dispStmt, containingModule, prepStatementBinder, returnStatementBinder, 
+                                                                limitedScopeVariableAdder, validExitKeywords, contextStatementFactories)))
                         {
                             node = dispStmt;
+                            limitedScopeVariableAdder(GeneroAst.DialogVariable, node.StartIndex, node.EndIndex);
                         }
                         break;
                     }
                 case TokenKind.PromptKeyword:
                     {
                         PromptStatement promptStmt;
-                        if((result = PromptStatement.TryParseNode(parser, out promptStmt, containingModule, prepStatementBinder, returnStatementBinder, validExitKeywords, contextStatementFactories)))
+                        if((result = PromptStatement.TryParseNode(parser, out promptStmt, containingModule, prepStatementBinder, returnStatementBinder, 
+                                                                  limitedScopeVariableAdder, validExitKeywords, contextStatementFactories)))
                         {
                             node = promptStmt;
+                            limitedScopeVariableAdder(GeneroAst.DialogVariable, node.StartIndex, node.EndIndex);
                         }
                         break;
                     }
                 case TokenKind.DialogKeyword:
                     {
                         DialogBlock dialogBlock;
-                        if ((result = DialogBlock.TryParseNode(parser, out dialogBlock, containingModule, prepStatementBinder, returnStatementBinder, validExitKeywords, contextStatementFactories)))
+                        if ((result = DialogBlock.TryParseNode(parser, out dialogBlock, containingModule, prepStatementBinder, returnStatementBinder, 
+                                                               limitedScopeVariableAdder, validExitKeywords, contextStatementFactories)))
                         {
                             node = dialogBlock;
+                            limitedScopeVariableAdder(GeneroAst.DialogVariable, node.StartIndex, node.EndIndex);
                         }
                         break;
                     }

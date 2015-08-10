@@ -1325,66 +1325,66 @@ namespace VSGenero.Analysis.Parsing.AST
 }));
                     Packages.Add("com", new GeneroPackage("com", true, new List<GeneroPackageClass>
 {
-	new GeneroPackageClass("WebServices", "com", false, new List<GeneroPackageClassMethod>
+	new GeneroPackageClass("WebService", "com", false, new List<GeneroPackageClassMethod>
 	{
-		new GeneroPackageClassMethod("CreateWebService", "com.WebServices", true, "Creates a new object to implement a Web Service.", new List<ParameterResult>
+		new GeneroPackageClassMethod("CreateWebService", "com.WebService", true, "Creates a new object to implement a Web Service.", new List<ParameterResult>
 		{
 			new ParameterResult("name", "", "string"),
 			new ParameterResult("namespace", "", "string")
 		}, new List<string> {"com.WebService"}),
-		new GeneroPackageClassMethod("CreateStatefulWebService", "com.WebServices", true, "Creates a new object to implement a stateful Web Service.", new List<ParameterResult>
+		new GeneroPackageClassMethod("CreateStatefulWebService", "com.WebService", true, "Creates a new object to implement a stateful Web Service.", new List<ParameterResult>
 		{
 			new ParameterResult("name", "", "string"),
 			new ParameterResult("namespace", "", "string"),
 			new ParameterResult("state", "", "state-type")
 		}, new List<string> {"com.WebService"}),
-		new GeneroPackageClassMethod("setComment", "com.WebServices", false, "Defines the comment for the Web Service object.", new List<ParameterResult>
+		new GeneroPackageClassMethod("setComment", "com.WebService", false, "Defines the comment for the Web Service object.", new List<ParameterResult>
 		{
 			new ParameterResult("comment", "", "string")
 		}, new List<string> {}),
-		new GeneroPackageClassMethod("publishOperation", "com.WebServices", false, "Publishes a Web Operation.", new List<ParameterResult>
+		new GeneroPackageClassMethod("publishOperation", "com.WebService", false, "Publishes a Web Operation.", new List<ParameterResult>
 		{
 			new ParameterResult("operation", "", "com.WebOperation")
 		}, new List<string> {"string"}),
-		new GeneroPackageClassMethod("saveWSDL", "com.WebServices", false, "Writes to a file the WSDL corresponding to the Web Service object.", new List<ParameterResult>
+		new GeneroPackageClassMethod("saveWSDL", "com.WebService", false, "Writes to a file the WSDL corresponding to the Web Service object.", new List<ParameterResult>
 		{
 			new ParameterResult("location", "", "string")
 		}, new List<string> {"integer"}),
-		new GeneroPackageClassMethod("generateWSDL", "com.WebServices", false, "Creates a xml.DomDocument object with the WSDL corresponding to the Web Service object.", new List<ParameterResult>
+		new GeneroPackageClassMethod("generateWSDL", "com.WebService", false, "Creates a xml.DomDocument object with the WSDL corresponding to the Web Service object.", new List<ParameterResult>
 		{
 			new ParameterResult("location", "", "string")
 		}, new List<string> {"xml.DomDocument"}),
-		new GeneroPackageClassMethod("createHeader", "com.WebServices", false, "Defines the header for the Web Service object.", new List<ParameterResult>
+		new GeneroPackageClassMethod("createHeader", "com.WebService", false, "Defines the header for the Web Service object.", new List<ParameterResult>
 		{
 			new ParameterResult("header", "", "header-type"),
 			new ParameterResult("encoded", "", "boolean")
 		}, new List<string> {}),
-		new GeneroPackageClassMethod("createFault", "com.WebServices", false, "Creates a new object to implement a Web Service.", new List<ParameterResult>
+		new GeneroPackageClassMethod("createFault", "com.WebService", false, "Creates a new object to implement a Web Service.", new List<ParameterResult>
 		{
 			new ParameterResult("fault", "", "fault-type"),
 			new ParameterResult("encoded", "", "boolean")
 		}, new List<string> {}),
-		new GeneroPackageClassMethod("registerWSDLHandler", "com.WebServices", false, "Registers the function to be executed when a WSDL is generated.", new List<ParameterResult>
+		new GeneroPackageClassMethod("registerWSDLHandler", "com.WebService", false, "Registers the function to be executed when a WSDL is generated.", new List<ParameterResult>
 		{
 			new ParameterResult("funcname", "", "string")
 		}, new List<string> {}),
-		new GeneroPackageClassMethod("registerInputRequestHandler", "com.WebServices", false, "Registers the function to be executed on incoming SOAP requests.", new List<ParameterResult>
+		new GeneroPackageClassMethod("registerInputRequestHandler", "com.WebService", false, "Registers the function to be executed on incoming SOAP requests.", new List<ParameterResult>
 		{
 			new ParameterResult("funcname", "", "string")
 		}, new List<string> {}),
-		new GeneroPackageClassMethod("registerOutputRequestHandler", "com.WebServices", false, "Registers the function to be executed just before the SOAP response is forwarded to the client.", new List<ParameterResult>
+		new GeneroPackageClassMethod("registerOutputRequestHandler", "com.WebService", false, "Registers the function to be executed just before the SOAP response is forwarded to the client.", new List<ParameterResult>
 		{
 			new ParameterResult("funcname", "", "string")
 		}, new List<string> {}),
-		new GeneroPackageClassMethod("registerInputHTTPVariable", "com.WebServices", false, "Registers the record variable for HTTP input.", new List<ParameterResult>
+		new GeneroPackageClassMethod("registerInputHTTPVariable", "com.WebService", false, "Registers the record variable for HTTP input.", new List<ParameterResult>
 		{
 			new ParameterResult("http-in", "", "http-in-type")
 		}, new List<string> {}),
-		new GeneroPackageClassMethod("registerOutputHTTPVariable", "com.WebServices", false, "Registers the record variable for HTTP output.", new List<ParameterResult>
+		new GeneroPackageClassMethod("registerOutputHTTPVariable", "com.WebService", false, "Registers the record variable for HTTP output.", new List<ParameterResult>
 		{
 			new ParameterResult("http-out", "", "http-out-type")
 		}, new List<string> {}),
-		new GeneroPackageClassMethod("setFeature", "com.WebServices", false, "Defines a feature for the current Web Service object.", new List<ParameterResult>
+		new GeneroPackageClassMethod("setFeature", "com.WebService", false, "Defines a feature for the current Web Service object.", new List<ParameterResult>
 		{
 			new ParameterResult("name", "", "string"),
 			new ParameterResult("value", "", "string")
@@ -3617,6 +3617,12 @@ namespace VSGenero.Analysis.Parsing.AST
         public string[] Returns
         {
             get { return _returns.ToArray(); }
+        }
+
+        private Dictionary<string, List<Tuple<IAnalysisResult, IndexSpan>>> _dummyLimitDict = new Dictionary<string, List<Tuple<IAnalysisResult, IndexSpan>>>();
+        public IDictionary<string, List<Tuple<IAnalysisResult, IndexSpan>>> LimitedScopeVariables
+        {
+            get { return _dummyLimitDict; }
         }
     }
 }

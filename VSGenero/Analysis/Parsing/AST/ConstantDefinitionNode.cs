@@ -28,7 +28,6 @@ namespace VSGenero.Analysis.Parsing.AST
     public class ConstantDefinitionNode : AstNode, IAnalysisResult
     {
         public string Identifier { get; private set; }
-        public string SpecifiedType { get; private set; }
         public string Literal { get; private set; }
 
         public bool CanGetValueFromDebugger
@@ -57,12 +56,13 @@ namespace VSGenero.Analysis.Parsing.AST
                 if (parser.PeekToken(TokenCategory.Identifier) || parser.PeekToken(TokenCategory.Keyword))
                 {
                     parser.NextToken();
-                    defNode.SpecifiedType = parser.Token.Token.Value.ToString();
+                    defNode.Typename = parser.Token.Token.Value.ToString();
 
                     string typeStr;
+                    // This gets things like char(50), etc.
                     if(TypeConstraints.VerifyValidConstraint(parser, out typeStr))
                     {
-                        defNode.SpecifiedType = typeStr;
+                        defNode.Typename = typeStr;
                     }
                 }
 
@@ -78,11 +78,13 @@ namespace VSGenero.Analysis.Parsing.AST
                     {
                         parser.NextToken();
                         defNode.Literal = string.Format("\"{0}\"", parser.Token.Token.Value.ToString());
+                        defNode.Typename = "string";
                     }
                     else if(parser.PeekToken(TokenCategory.CharacterLiteral))
                     {
                         parser.NextToken();
                         defNode.Literal = string.Format("\'{0}\'", parser.Token.Token.Value.ToString());
+                        defNode.Typename = "string";
                     }
                     else if(parser.PeekToken(TokenKind.Subtract))
                     {
@@ -108,6 +110,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         }
                         defNode.Literal = sb.ToString();
                         defNode.IsComplete = true;
+                        defNode.Typename = "string";
                     }
                     else if(parser.PeekToken(TokenKind.MdyKeyword))
                     {
@@ -151,6 +154,7 @@ namespace VSGenero.Analysis.Parsing.AST
                             parser.NextToken();
                             defNode.Literal = sb.ToString();
                             defNode.IsComplete = true;
+                            defNode.Typename = "date";
                         }
                         else
                             parser.ReportSyntaxError("Date constant found with an invalid MDY expression.");
@@ -180,6 +184,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                 sb.Append(constraintStr);
                                 defNode.Literal = sb.ToString();
                                 defNode.IsComplete = true;
+                                defNode.Typename = "datetime";
                             }
                             else
                                 parser.ReportSyntaxError("Datetime constant has an invalid constraint.");
@@ -212,6 +217,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                 sb.Append(constraintStr);
                                 defNode.Literal = sb.ToString();
                                 defNode.IsComplete = true;
+                                defNode.Typename = "interval";
                             }
                             else
                                 parser.ReportSyntaxError("Interval constant has an invalid constraint.");
@@ -223,10 +229,12 @@ namespace VSGenero.Analysis.Parsing.AST
                     {
                         // look for the constant in the system constants
                         var tok = parser.PeekToken();
-                        if(GeneroAst.SystemConstants.ContainsKey(tok.Value.ToString()))
+                        IAnalysisResult sysConst;
+                        if(GeneroAst.SystemConstants.TryGetValue(tok.Value.ToString(), out sysConst))
                         {
                             parser.NextToken();
-                            defNode.Literal = parser.Token.Token.Value.ToString();
+                            defNode.Literal = sysConst.Name;
+                            defNode.Typename = sysConst.Typename;
                         }
                     }
                 }
@@ -269,9 +277,9 @@ namespace VSGenero.Analysis.Parsing.AST
                     _oneTimeNamespace = null;
                 }
                 sb.Append(Name);
-                if(!string.IsNullOrWhiteSpace(SpecifiedType))
+                if(!string.IsNullOrWhiteSpace(Typename))
                 {
-                    sb.AppendFormat(" ({0})", SpecifiedType);
+                    sb.AppendFormat(" ({0})", Typename);
                 }
                 sb.AppendFormat(" = {0}", Literal);
                 return sb.ToString();
@@ -310,9 +318,28 @@ namespace VSGenero.Analysis.Parsing.AST
             _oneTimeNamespace = nameSpace;
         }
 
+        private string _typename;
         public string Typename
         {
-            get { return SpecifiedType; }       // TODO: this is usually not specified, so we need to determine the type from the value when it isn't
+            get 
+            {
+                if (_typename == null)
+                {
+                    // it's a number, so see if we can parse it as an int
+                    int parseInt;
+                    if (!int.TryParse(Literal, out parseInt))
+                    {
+                        _typename = "numeric";
+                    }
+                    else
+                        _typename = "integer";
+                }
+                return _typename;
+            }
+            set
+            {
+                _typename = value;
+            }
         }
     }
 }
