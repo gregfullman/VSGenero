@@ -314,10 +314,11 @@ namespace VSGenero.EditorExtensions.Intellisense
                                     UnloadImportedModules(proj);
 
                                     _projects.TryRemove(dirPath, out proj);
+
+                                    // remove the file from the error list
+                                    _errorProvider.Clear(dirPath, ParserTaskMoniker);
+                                    _errorProvider.ClearErrorSource(dirPath);
                                 }
-                                // remove the file from the error list
-                                _errorProvider.Clear(dirPath, ParserTaskMoniker);
-                                _errorProvider.ClearErrorSource(dirPath);
                             }
                         }
                     }
@@ -757,6 +758,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                                     RemoveIncludedFile(includeFile.FilePath, remProj2Entry);
                             }
                         }
+                        _errorProvider.Clear(refList[i].Directory, ParserTaskMoniker);
                         _errorProvider.ClearErrorSource(refList[i].Directory);
                     }
                 }
@@ -1067,8 +1069,6 @@ namespace VSGenero.EditorExtensions.Intellisense
             {
                 GeneroAst ast;
                 CollectingErrorSink errorSink;
-                // TODO: get the comment tasks from the parser (eventually)
-                List<TaskProviderItem> commentTasks = new List<TaskProviderItem>();
                 ParseGeneroCode(content, indentationSeverity, pyEntry, out ast, out errorSink);
 
                 if (ast != null)
@@ -1081,7 +1081,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                     pyEntry.UpdateTree(null, null);
                 }
 
-                UpdateErrorsAndWarnings(projectEntry, snapshot, errorSink, commentTasks);
+                UpdateErrorsAndWarnings(projectEntry, snapshot, errorSink, TaskLevel.Syntax);
 
                 if (ast != null)
                 {
@@ -1146,7 +1146,6 @@ namespace VSGenero.EditorExtensions.Intellisense
                 {
                     GeneroAst ast;
                     CollectingErrorSink errorSink;
-                    List<TaskProviderItem> commentTasks = new List<TaskProviderItem>();
                     var reader = new SnapshotSpanSourceCodeReader(new SnapshotSpan(snapshot, new Span(0, snapshot.Length)));
                     ParseGeneroCode(reader, indentationSeverity, pyProjEntry, out ast, out errorSink);
 
@@ -1160,7 +1159,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                         //}
                     }
 
-                    UpdateErrorsAndWarnings(analysis, snapshot, errorSink, commentTasks);
+                    UpdateErrorsAndWarnings(analysis, snapshot, errorSink, TaskLevel.Syntax);
                 }
             }
 
@@ -1254,7 +1253,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             // update any errors found
             if (astErrors.Errors.Count > 0 || astErrors.Warnings.Count > 0)
             {
-                AddErrorsAndWarnings(projEntry, snapshot, astErrors);
+                UpdateErrorsAndWarnings(projEntry, snapshot, astErrors, TaskLevel.Semantics);
             }
         }
 
@@ -1309,31 +1308,11 @@ namespace VSGenero.EditorExtensions.Intellisense
         private object _pendingWaitingLock = new object();
 
 
-        private void AddErrorsAndWarnings(IProjectEntry entry, ITextSnapshot snapshot,
-                                          CollectingErrorSink errorSink)
-        {
-            // Update the parser warnings/errors.
-            var factory = new TaskProviderItemFactory(snapshot);
-            if (errorSink.Warnings.Any() || errorSink.Errors.Any())
-            {
-                if (!_errorProvider.HasErrorSource(entry, ParserTaskMoniker))
-                    _errorProvider.AddBufferForErrorSource(entry, ParserTaskMoniker, null);
-                _errorProvider.AddItems(
-                    entry,
-                    ParserTaskMoniker,
-                    errorSink.Warnings
-                        .Select(er => factory.FromErrorResult(_serviceProvider, er, VSTASKPRIORITY.TP_NORMAL, VSTASKCATEGORY.CAT_BUILDCOMPILE))
-                        .Concat(errorSink.Errors.Select(er => factory.FromErrorResult(_serviceProvider, er, VSTASKPRIORITY.TP_HIGH, VSTASKCATEGORY.CAT_BUILDCOMPILE)))
-                        .ToList()
-                );
-            }
-        }
-
         private void UpdateErrorsAndWarnings(
             IProjectEntry entry,
             ITextSnapshot snapshot,
             CollectingErrorSink errorSink,
-            List<TaskProviderItem> commentTasks
+            TaskLevel level
         )
         {
             // Update the warn-on-launch state for this entry
@@ -1353,13 +1332,15 @@ namespace VSGenero.EditorExtensions.Intellisense
             {
                 if (!_errorProvider.HasErrorSource(entry, ParserTaskMoniker))
                     _errorProvider.AddBufferForErrorSource(entry, ParserTaskMoniker, null);
+
                 _errorProvider.ReplaceItems(
                     entry,
                     ParserTaskMoniker,
                     errorSink.Warnings
-                        .Select(er => factory.FromErrorResult(_serviceProvider, er, VSTASKPRIORITY.TP_NORMAL, VSTASKCATEGORY.CAT_BUILDCOMPILE))
-                        .Concat(errorSink.Errors.Select(er => factory.FromErrorResult(_serviceProvider, er, VSTASKPRIORITY.TP_HIGH, VSTASKCATEGORY.CAT_BUILDCOMPILE)))
-                        .ToList()
+                        .Select(er => factory.FromErrorResult(_serviceProvider, er, VSTASKPRIORITY.TP_NORMAL, VSTASKCATEGORY.CAT_BUILDCOMPILE, level))
+                        .Concat(errorSink.Errors.Select(er => factory.FromErrorResult(_serviceProvider, er, VSTASKPRIORITY.TP_HIGH, VSTASKCATEGORY.CAT_BUILDCOMPILE, level)))
+                        .ToList(),
+                    level
                 );
             }
             else

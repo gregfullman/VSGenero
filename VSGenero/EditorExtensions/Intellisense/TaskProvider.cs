@@ -33,6 +33,12 @@ using VSGenero.Analysis;
 
 namespace VSGenero.EditorExtensions.Intellisense
 {
+    enum TaskLevel
+    {
+        Syntax,
+        Semantics
+    }
+
     class TaskProviderItem
     {
         private readonly string _message;
@@ -43,6 +49,12 @@ namespace VSGenero.EditorExtensions.Intellisense
         private readonly bool _squiggle;
         private readonly ITextSnapshot _snapshot;
         private readonly IServiceProvider _serviceProvider;
+        private readonly TaskLevel _level;
+
+        public TaskLevel Level
+        {
+            get { return _level; }
+        }
 
         internal TaskProviderItem(
             IServiceProvider serviceProvider,
@@ -51,7 +63,8 @@ namespace VSGenero.EditorExtensions.Intellisense
             VSTASKPRIORITY priority,
             VSTASKCATEGORY category,
             bool squiggle,
-            ITextSnapshot snapshot
+            ITextSnapshot snapshot,
+            TaskLevel level
         )
         {
             _serviceProvider = serviceProvider;
@@ -63,6 +76,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             _priority = priority;
             _category = category;
             _squiggle = squiggle;
+            _level = level;
         }
 
         private string ErrorType
@@ -151,7 +165,7 @@ namespace VSGenero.EditorExtensions.Intellisense
 
         #region Factory Functions
 
-        public TaskProviderItem FromErrorResult(IServiceProvider serviceProvider, ErrorResult result, VSTASKPRIORITY priority, VSTASKCATEGORY category)
+        public TaskProviderItem FromErrorResult(IServiceProvider serviceProvider, ErrorResult result, VSTASKPRIORITY priority, VSTASKCATEGORY category, TaskLevel level)
         {
             return new TaskProviderItem(
                 serviceProvider,
@@ -160,35 +174,8 @@ namespace VSGenero.EditorExtensions.Intellisense
                 priority,
                 category,
                 true,
-                _snapshot
-            );
-        }
-
-        internal TaskProviderItem FromUnresolvedImport(
-            IServiceProvider serviceProvider,
-            //IPythonInterpreterFactoryWithDatabase factory,
-            string importName,
-            SourceSpan span
-        )
-        {
-            string message = "";
-            //if (factory != null && !factory.IsCurrent)
-            //{
-            //    message = SR.GetString(SR.UnresolvedModuleTooltipRefreshing, importName);
-            //}
-            //else
-            //{
-            //    message = SR.GetString(SR.UnresolvedModuleTooltip, importName);
-            //}
-
-            return new TaskProviderItem(
-                serviceProvider,
-                message,
-                span,
-                VSTASKPRIORITY.TP_NORMAL,
-                VSTASKCATEGORY.CAT_BUILDCOMPILE,
-                true,
-                _snapshot
+                _snapshot,
+                level
             );
         }
 
@@ -253,9 +240,9 @@ namespace VSGenero.EditorExtensions.Intellisense
             return new ClearMessage(new EntryKey(entry, moniker));
         }
 
-        public static WorkerMessage Replace(IProjectEntry entry, string moniker, List<TaskProviderItem> items)
+        public static WorkerMessage Replace(IProjectEntry entry, string moniker, List<TaskProviderItem> items, TaskLevel level)
         {
-            return new ReplaceMessage(new EntryKey(entry, moniker), items);
+            return new ReplaceMessage(new EntryKey(entry, moniker), items, level);
         }
 
         public static WorkerMessage Append(IProjectEntry entry, string moniker, List<TaskProviderItem> items)
@@ -271,15 +258,27 @@ namespace VSGenero.EditorExtensions.Intellisense
         // Message implementations
         sealed class ReplaceMessage : WorkerMessage
         {
-            public ReplaceMessage(EntryKey key, List<TaskProviderItem> items)
+            private readonly TaskLevel _level;
+
+            public ReplaceMessage(EntryKey key, List<TaskProviderItem> items, TaskLevel level)
                 : base(key, items)
-            { }
+            {
+                _level = level;
+            }
 
             public override bool Apply(Dictionary<EntryKey, List<TaskProviderItem>> items, object itemsLock)
             {
                 lock (itemsLock)
                 {
-                    items[_key] = _items;
+                    if (!items.ContainsKey(_key))
+                    {
+                        items[_key] = _items;
+                    }
+                    else
+                    {
+                        items[_key].RemoveAll(x => x.Level == _level);
+                        items[_key].AddRange(_items);
+                    }
                     return true;
                 }
             }
@@ -422,9 +421,20 @@ namespace VSGenero.EditorExtensions.Intellisense
         /// <summary>
         /// Replaces the items for the specified entry.
         /// </summary>
-        public void ReplaceItems(IProjectEntry entry, string moniker, List<TaskProviderItem> items)
+        public void ReplaceItems(IProjectEntry entry, string moniker, List<TaskProviderItem> items, TaskLevel level)
         {
-            SendMessage(WorkerMessage.Replace(entry, moniker, items));
+            SendMessage(WorkerMessage.Replace(entry, moniker, items, level));
+        }
+
+        public List<TaskProviderItem> GetItems(IProjectEntry entry, string moniker)
+        {
+            lock(_itemsLock)
+            {
+                EntryKey ek = new EntryKey(entry, moniker);
+                List<TaskProviderItem> items;
+                _items.TryGetValue(ek, out items);
+                return items;
+            }
         }
 
         /// <summary>
