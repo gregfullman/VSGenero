@@ -279,17 +279,17 @@ namespace VSGenero.EditorExtensions
                             }
                             else
                             {
-                                if (lastTokenWasDot)
-                                {
+                                //if (lastTokenWasDot)
+                                //{
                                     while (enumerator.MoveNext())
                                     {
                                         token = enumerator.Current;
                                         if (token != null)
                                             break;
                                     }
-                                }
-                                else
-                                    break;
+                                //}
+                                //else
+                                //    break;
                             }
                         }
                         else

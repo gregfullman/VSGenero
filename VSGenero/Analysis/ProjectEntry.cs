@@ -341,7 +341,7 @@ namespace VSGenero.Analysis
 
         public IEnumerable<IGeneroProjectEntry> GetIncludedFiles()
         {
-            return VSGeneroPackage.Instance.DefaultAnalyzer.GetIncludedFiles(this);
+            return VSGeneroPackage.Instance.DefaultAnalyzer.GetIncludedFiles(this).ToList();
         }
 
         public bool DetectCircularImports()
