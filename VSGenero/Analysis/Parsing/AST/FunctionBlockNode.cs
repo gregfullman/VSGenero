@@ -649,15 +649,18 @@ namespace VSGenero.Analysis.Parsing.AST
                                             Dictionary<string, List<int>> deferredFunctionSearches,
                                             GeneroAst.FunctionProviderSearchMode searchInFunctionProvider = GeneroAst.FunctionProviderSearchMode.NoSearch, bool isFunctionCallOrDefinition = false)
         {
-            // 1) check to make sure arguments have corresponding defined variables
-            foreach (var undefinedArg in _arguments.Where(x => x.Value == null))
+            if (_arguments != null)
             {
-                errorFunc(string.Format("No definition found for parameter {0}", undefinedArg.Key.Token.Value.ToString()), 
-                            undefinedArg.Key.Span.Start, undefinedArg.Key.Span.End);
+                // 1) check to make sure arguments have corresponding defined variables
+                foreach (var undefinedArg in _arguments.Where(x => x.Value == null))
+                {
+                    errorFunc(string.Format("No definition found for parameter {0}", undefinedArg.Key.Token.Value.ToString()),
+                                undefinedArg.Key.Span.Start, undefinedArg.Key.Span.End);
+                }
             }
 
             // TODO: 2) Check to make sure the types in return statements match up across multiple return statements.
-            if(_internalReturns.Count > 1)
+            if (_internalReturns != null && _internalReturns.Count > 1)
             {
 
             }

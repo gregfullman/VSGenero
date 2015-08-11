@@ -126,7 +126,9 @@ namespace VSGenero.Analysis.Parsing.AST
                                             GeneroAst.FunctionProviderSearchMode searchInFunctionProvider = GeneroAst.FunctionProviderSearchMode.NoSearch, bool isFunctionCallOrDefinition = false)
         {
             // check the variable
-            Variable.CheckForErrors(ast, errorFunc, deferredFunctionSearches);
+            if (Variable != null)
+                Variable.CheckForErrors(ast, errorFunc, deferredFunctionSearches);
+
             // check the expression
             base.CheckForErrors(ast, errorFunc, deferredFunctionSearches, searchInFunctionProvider, isFunctionCallOrDefinition);
         }

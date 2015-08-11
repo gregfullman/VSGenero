@@ -689,23 +689,29 @@ namespace VSGenero.Analysis.Parsing.AST
                 return;
 
             // Check for the function name
-            Function.CheckForErrors(ast, errorFunc, deferredFunctionSearches, GeneroAst.FunctionProviderSearchMode.Deferred, true);
-
-            foreach (var param in Parameters)
+            if (Function != null)
             {
-                if(param is NameExpression)
+                Function.CheckForErrors(ast, errorFunc, deferredFunctionSearches, GeneroAst.FunctionProviderSearchMode.Deferred, true);
+            }
+
+            if (Parameters != null)
+            {
+                foreach (var param in Parameters)
                 {
-                    string typeName = (param as NameExpression).GetExpressionType(ast);
-                    if (!string.IsNullOrWhiteSpace(typeName))
+                    if (param is NameExpression)
                     {
-                        if (!typeName.Contains("array") && typeName.Contains("record") && !(param as NameExpression).Name.EndsWith(".*"))
+                        string typeName = (param as NameExpression).GetExpressionType(ast);
+                        if (!string.IsNullOrWhiteSpace(typeName))
                         {
-                            errorFunc("Records must be specified with a '.*' ending when passed as a function parameter.", param.StartIndex, param.EndIndex);
-                            continue;
+                            if (!typeName.Contains("array") && typeName.Contains("record") && !(param as NameExpression).Name.EndsWith(".*"))
+                            {
+                                errorFunc("Records must be specified with a '.*' ending when passed as a function parameter.", param.StartIndex, param.EndIndex);
+                                continue;
+                            }
                         }
                     }
+                    param.CheckForErrors(ast, errorFunc, deferredFunctionSearches);
                 }
-                param.CheckForErrors(ast, errorFunc, deferredFunctionSearches);
             }
 
             // TODO: should we do something with the anything parameters
