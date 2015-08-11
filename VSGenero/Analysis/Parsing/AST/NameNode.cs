@@ -84,7 +84,8 @@ namespace VSGenero.Analysis.Parsing.AST
             // need to determine the type from the variables available
             IGeneroProject dummyProj;
             IProjectEntry dummyProjEntry;
-            IAnalysisResult res = GeneroAst.GetValueByIndex(Name, StartIndex, ast, out dummyProj, out dummyProjEntry);
+            bool dummy;
+            IAnalysisResult res = GeneroAst.GetValueByIndex(Name, StartIndex, ast, out dummyProj, out dummyProjEntry, out dummy);
             if (res != null)
             {
                 return res.Typename;
@@ -92,21 +93,38 @@ namespace VSGenero.Analysis.Parsing.AST
             return null;
         }
 
-        public override void CheckForErrors(GeneroAst ast, Action<string, int, int> errorFunc, bool searchInFunctionProvider = false, bool isFunctionCallOrDefinition = false)
+        public override void CheckForErrors(GeneroAst ast, Action<string, int, int> errorFunc,
+                                            Dictionary<string, List<int>> deferredFunctionSearches,
+                                            GeneroAst.FunctionProviderSearchMode searchInFunctionProvider = GeneroAst.FunctionProviderSearchMode.NoSearch, 
+                                            bool isFunctionCallOrDefinition = false)
         {
             // Check to see if the _firstPiece exists
             IGeneroProject proj;
             IProjectEntry projEntry;
             string searchStr = _firstPiece;
-            if (searchInFunctionProvider || isFunctionCallOrDefinition)
+            if (searchInFunctionProvider != GeneroAst.FunctionProviderSearchMode.NoSearch ||
+                isFunctionCallOrDefinition)
+            {
                 searchStr = Name;
-            var res = GeneroAst.GetValueByIndex(searchStr, StartIndex, ast, out proj, out projEntry, searchInFunctionProvider, isFunctionCallOrDefinition);
+            }
+            bool isDeferred;
+            var res = GeneroAst.GetValueByIndex(searchStr, StartIndex, ast, out proj, out projEntry, out isDeferred, searchInFunctionProvider, isFunctionCallOrDefinition);
             if(res == null)
             {
-                errorFunc(string.Format("No definition found for {0}", searchStr), StartIndex, StartIndex + searchStr.Length);
+                if (isDeferred)
+                {
+                    if (deferredFunctionSearches.ContainsKey(searchStr))
+                        deferredFunctionSearches[searchStr].Add(StartIndex);
+                    else
+                        deferredFunctionSearches.Add(searchStr, new List<int> { StartIndex });
+                }
+                else
+                {
+                    errorFunc(string.Format("No definition found for {0}", searchStr), StartIndex, StartIndex + searchStr.Length);
+                }
             }
 
-            base.CheckForErrors(ast, errorFunc, searchInFunctionProvider, isFunctionCallOrDefinition);
+            base.CheckForErrors(ast, errorFunc, deferredFunctionSearches, searchInFunctionProvider, isFunctionCallOrDefinition);
         }
     }
 

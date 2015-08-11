@@ -2477,6 +2477,15 @@
                   <Return name="result" type="integer"/>
                 </Returns>
               </Method>
+              <Method name="getAttributeString" desc="Returns the value of a DOM node attribute, with default string value." scope="instance">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                  <Parameter name="def" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
               <Method name="getAttributesCount" desc="Returns the number of attributes in the DOM node." scope="instance">
                 <Parameters>
                 </Parameters>

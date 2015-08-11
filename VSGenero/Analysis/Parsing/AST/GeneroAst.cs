@@ -346,9 +346,17 @@ namespace VSGenero.Analysis.Parsing.AST
             return null;
         }
 
-        public static IAnalysisResult GetValueByIndex(string exprText, int index, GeneroAst ast, out IGeneroProject definingProject, out IProjectEntry projectEntry,
-                                                      bool searchInFunctionProvider = false, bool isFunctionCallOrDefinition = false)
+        public enum FunctionProviderSearchMode
         {
+            NoSearch,
+            Search,
+            Deferred
+        }
+
+        public static IAnalysisResult GetValueByIndex(string exprText, int index, GeneroAst ast, out IGeneroProject definingProject, out IProjectEntry projectEntry, out bool isDeferredFunction,
+                                                      GeneroAst.FunctionProviderSearchMode searchInFunctionProvider = GeneroAst.FunctionProviderSearchMode.NoSearch, bool isFunctionCallOrDefinition = false)
+        {
+            isDeferredFunction = false;
             definingProject = null;
             projectEntry = null;
             //_functionProvider = functionProvider;
@@ -693,26 +701,6 @@ namespace VSGenero.Analysis.Parsing.AST
                         }
                     }
 
-                    if (lookForFunctions)
-                    {
-                        if (searchInFunctionProvider)
-                        {
-                            if (res == null && ast != null && ast._functionProvider != null)
-                            {
-                                // check for the function name in the function provider
-                                var funcs = ast._functionProvider.GetFunction(dotPiece);
-                                if (funcs != null)
-                                {
-                                    res = funcs.FirstOrDefault();
-                                    if (res != null)
-                                    {
-                                        continue;
-                                    }
-                                }
-                            }
-                        }
-                    }
-
                     // try an imported module
                     if (ast != null && ast.Body is IModuleResult &&
                        ast.ProjectEntry is IGeneroProjectEntry)
@@ -764,6 +752,32 @@ namespace VSGenero.Analysis.Parsing.AST
                         }
                     }
 
+                    // Only do a public function search if the dotPiece is the whole text we're searching for
+                    // I.e. no namespaces
+                    if (lookForFunctions && dotPiece == exprText)   
+                    {
+                        if (searchInFunctionProvider == GeneroAst.FunctionProviderSearchMode.Search)
+                        {
+                            if (res == null && ast != null && ast._functionProvider != null)
+                            {
+                                // check for the function name in the function provider
+                                var funcs = ast._functionProvider.GetFunction(dotPiece);
+                                if (funcs != null)
+                                {
+                                    res = funcs.FirstOrDefault();
+                                    if (res != null)
+                                    {
+                                        continue;
+                                    }
+                                }
+                            }
+                        }
+                        else if (searchInFunctionProvider == GeneroAst.FunctionProviderSearchMode.Deferred)
+                        {
+                            isDeferredFunction = true;
+                        }
+                    }
+
                     if (res == null)
                         break;
                 }
@@ -781,13 +795,17 @@ namespace VSGenero.Analysis.Parsing.AST
         public IAnalysisResult GetValueByIndex(string exprText, int index, IFunctionInformationProvider functionProvider,
                                                IDatabaseInformationProvider databaseProvider, IProgramFileProvider programFileProvider,
                                                bool isFunctionCallOrDefinition,
-                                               out IGeneroProject definingProject, out IProjectEntry projectEntry, bool searchInFunctionProvider = false)
+                                               out IGeneroProject definingProject, out IProjectEntry projectEntry, 
+                                               GeneroAst.FunctionProviderSearchMode searchInFunctionProvider = GeneroAst.FunctionProviderSearchMode.NoSearch)
         {
             _functionProvider = functionProvider;
             _databaseProvider = databaseProvider;
             _programFileProvider = programFileProvider;
 
-            return GetValueByIndex(exprText, index, this, out definingProject, out projectEntry, searchInFunctionProvider, isFunctionCallOrDefinition);
+            bool dummy;
+            return GetValueByIndex(exprText, index, this, out definingProject, out projectEntry, out dummy,
+                                   searchInFunctionProvider, 
+                                   isFunctionCallOrDefinition);
         }
 
         /// <summary>

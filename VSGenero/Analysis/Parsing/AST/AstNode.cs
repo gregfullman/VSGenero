@@ -261,10 +261,13 @@ namespace VSGenero.Analysis.Parsing.AST
         /// </summary>
         /// <param name="ast"></param>
         /// <param name="errors"></param>
-        public virtual void CheckForErrors(GeneroAst ast, Action<string, int, int> errorFunc, bool searchInFunctionProvider = false, bool isFunctionCallOrDefinition = false)
+        public virtual void CheckForErrors(GeneroAst ast, Action<string, int, int> errorFunc,
+                                           Dictionary<string, List<int>> deferredFunctionSearches,
+                                           GeneroAst.FunctionProviderSearchMode searchInFunctionProvider = GeneroAst.FunctionProviderSearchMode.NoSearch, 
+                                           bool isFunctionCallOrDefinition = false)
         {
             foreach (var child in Children)
-                child.Value.CheckForErrors(ast, errorFunc, searchInFunctionProvider, isFunctionCallOrDefinition);
+                child.Value.CheckForErrors(ast, errorFunc, deferredFunctionSearches, searchInFunctionProvider, isFunctionCallOrDefinition);
         }
     }
 

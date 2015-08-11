@@ -145,6 +145,12 @@ namespace VSGenero.EditorExtensions.Intellisense
         {
             get { return null; }
         }
+
+
+        public IEnumerable<string> GetExistingFunctionsFromSet(IEnumerable<string> set)
+        {
+            return new string[0];
+        }
     }
 
     internal class TestFunctionCollection : IAnalysisResult

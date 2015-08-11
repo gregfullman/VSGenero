@@ -645,7 +645,9 @@ namespace VSGenero.Analysis.Parsing.AST
             base.PropagateSyntaxTree(ast);
         }
 
-        public override void CheckForErrors(GeneroAst ast, Action<string, int, int> errorFunc, bool searchInFunctionProvider = false, bool isFunctionCallOrDefinition = false)
+        public override void CheckForErrors(GeneroAst ast, Action<string, int, int> errorFunc,
+                                            Dictionary<string, List<int>> deferredFunctionSearches,
+                                            GeneroAst.FunctionProviderSearchMode searchInFunctionProvider = GeneroAst.FunctionProviderSearchMode.NoSearch, bool isFunctionCallOrDefinition = false)
         {
             // 1) check to make sure arguments have corresponding defined variables
             foreach (var undefinedArg in _arguments.Where(x => x.Value == null))
@@ -660,7 +662,7 @@ namespace VSGenero.Analysis.Parsing.AST
 
             }
 
-            base.CheckForErrors(ast, errorFunc);
+            base.CheckForErrors(ast, errorFunc, deferredFunctionSearches);
         }
     }
 }

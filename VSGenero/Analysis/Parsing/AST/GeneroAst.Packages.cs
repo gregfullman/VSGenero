@@ -783,6 +783,11 @@ namespace VSGenero.Analysis.Parsing.AST
 			new ParameterResult("name", "", "string"),
 			new ParameterResult("def", "", "string")
 		}, new List<string> {"integer"}),
+		new GeneroPackageClassMethod("getAttributeString", "om.DomNode", false, "Returns the value of a DOM node attribute, with default string value.", new List<ParameterResult>
+		{
+			new ParameterResult("name", "", "string"),
+			new ParameterResult("def", "", "string")
+		}, new List<string> {"string"}),
 		new GeneroPackageClassMethod("getAttributesCount", "om.DomNode", false, "Returns the number of attributes in the DOM node.", new List<ParameterResult>
 		{
 		}, new List<string> {"integer"}),

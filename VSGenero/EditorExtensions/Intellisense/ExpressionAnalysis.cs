@@ -113,7 +113,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                             IGeneroProject dummyProj;
                             IProjectEntry projEntry;
                             return _analysis.GetValueByIndex(_expr, TranslatedIndex, _functionProvider, _databaseProvider, _programFileProvider, _isFunctionCallOrDefinition, 
-                                                             out dummyProj, out projEntry, true);
+                                                             out dummyProj, out projEntry, GeneroAst.FunctionProviderSearchMode.Search);
                         }
                     }
                 }

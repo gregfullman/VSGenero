@@ -662,7 +662,8 @@ namespace VSGenero.Analysis.Parsing.AST
             // need to determine the return type for the function call
             IGeneroProject dummyProj;
             IProjectEntry dummyProjEntry;
-            var result = GeneroAst.GetValueByIndex(Function.Name, Function.IndexSpan.Start, ast, out dummyProj, out dummyProjEntry, true, true);
+            bool dummy;
+            var result = GeneroAst.GetValueByIndex(Function.Name, Function.IndexSpan.Start, ast, out dummyProj, out dummyProjEntry, out dummy, GeneroAst.FunctionProviderSearchMode.Search, true);
             if(result != null)
             {
                 return result.Typename;
@@ -677,7 +678,9 @@ namespace VSGenero.Analysis.Parsing.AST
             "cast"
         };
 
-        public override void CheckForErrors(GeneroAst ast, Action<string, int, int> errorFunc, bool searchInFunctionProvider = false, bool isFunctionCallOrDefinition = false)
+        public override void CheckForErrors(GeneroAst ast, Action<string, int, int> errorFunc,
+                                            Dictionary<string, List<int>> deferredFunctionSearches, 
+                                            GeneroAst.FunctionProviderSearchMode searchInFunctionProvider = GeneroAst.FunctionProviderSearchMode.NoSearch, bool isFunctionCallOrDefinition = false)
         {
             // 1) Check parameters for errors
             //      - undefined identifier
@@ -686,7 +689,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 return;
 
             // Check for the function name
-            Function.CheckForErrors(ast, errorFunc, true, true);
+            Function.CheckForErrors(ast, errorFunc, deferredFunctionSearches, GeneroAst.FunctionProviderSearchMode.Deferred, true);
 
             foreach (var param in Parameters)
             {
@@ -702,12 +705,12 @@ namespace VSGenero.Analysis.Parsing.AST
                         }
                     }
                 }
-                param.CheckForErrors(ast, errorFunc);
+                param.CheckForErrors(ast, errorFunc, deferredFunctionSearches);
             }
 
             // TODO: should we do something with the anything parameters
 
-            base.CheckForErrors(ast, errorFunc);
+            base.CheckForErrors(ast, errorFunc, deferredFunctionSearches);
         }
     }
 

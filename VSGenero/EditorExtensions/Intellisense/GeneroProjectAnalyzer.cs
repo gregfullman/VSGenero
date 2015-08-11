@@ -94,7 +94,8 @@ namespace VSGenero.EditorExtensions.Intellisense
         private readonly Dictionary<BufferParser, IProjectEntry> _openFiles = new Dictionary<BufferParser, IProjectEntry>();
         private readonly ConcurrentDictionary<string, IGeneroProject> _projects;
 
-
+        private readonly System.Threading.Timer _waitingErrorCheckingTimer;
+        private readonly ConcurrentQueue<IGeneroProjectEntry> _waitingErrorCheckers;
 
         private readonly bool _implicitProject;
         private readonly AutoResetEvent _queueActivityEvent = new AutoResetEvent(false);
@@ -130,7 +131,8 @@ namespace VSGenero.EditorExtensions.Intellisense
             _includeFiles = new ConcurrentDictionary<string, IGeneroProjectEntry>(StringComparer.OrdinalIgnoreCase);
             _includesToIncludersMap = new ConcurrentDictionary<IGeneroProjectEntry, HashSet<IGeneroProjectEntry>>(ProjectEntryComparer);
             _includersToIncludesMap = new ConcurrentDictionary<IGeneroProjectEntry, HashSet<IGeneroProjectEntry>>(ProjectEntryComparer);
-
+            _waitingErrorCheckers = new ConcurrentQueue<IGeneroProjectEntry>();
+            _waitingErrorCheckingTimer = new System.Threading.Timer(WaitingErrorCheckersTimerCallback, null, 1000, 1000);
             _userCount = 1;
         }
 
@@ -1093,37 +1095,38 @@ namespace VSGenero.EditorExtensions.Intellisense
                     unanalyzed.AddRange(pyEntry.GetIncludedFiles().Where(x => !x.IsAnalyzed));
                     if (unanalyzed.Count > 0)
                     {
-                        // postpone error checking until the unanalyzed entries are analyzed
-                        lock (_pendingWaitingLock)
-                        {
-                            // set up a map of the unanalyzed project entry to the dependent entry for which we're doing error checking.
-                            // When there are no more unanalyzed project entries for the dependent entry, we can do the error checking.
-                            foreach (var item in unanalyzed)
-                            {
-                                lock (item)
-                                {
-                                    if (_waitingToPendingMap.ContainsKey(pyEntry))
-                                    {
-                                        _waitingToPendingMap[pyEntry].Add(item);
-                                    }
-                                    else
-                                    {
-                                        _waitingToPendingMap.Add(pyEntry, new HashSet<IGeneroProjectEntry> { item });
-                                    }
+                        _waitingErrorCheckers.Enqueue(pyEntry);
+                        //// postpone error checking until the unanalyzed entries are analyzed
+                        //lock (_pendingWaitingLock)
+                        //{
+                        //    // set up a map of the unanalyzed project entry to the dependent entry for which we're doing error checking.
+                        //    // When there are no more unanalyzed project entries for the dependent entry, we can do the error checking.
+                        //    foreach (var item in unanalyzed)
+                        //    {
+                        //        lock (item)
+                        //        {
+                        //            if (_waitingToPendingMap.ContainsKey(pyEntry))
+                        //            {
+                        //                _waitingToPendingMap[pyEntry].Add(item);
+                        //            }
+                        //            else
+                        //            {
+                        //                _waitingToPendingMap.Add(pyEntry, new HashSet<IGeneroProjectEntry> { item });
+                        //            }
 
-                                    if (_pendingToWaitingMap.ContainsKey(item))
-                                    {
-                                        _pendingToWaitingMap[item].Add(pyEntry);
-                                    }
-                                    else
-                                    {
-                                        _pendingToWaitingMap.Add(item, new List<IGeneroProjectEntry> { pyEntry });
-                                        // and register for the event (no need to register for the event if the item is already in the pendingToWaiting map
-                                        item.OnNewAnalysis += item_OnNewAnalysis;
-                                    }
-                                }
-                            }
-                        }
+                        //            if (_pendingToWaitingMap.ContainsKey(item))
+                        //            {
+                        //                _pendingToWaitingMap[item].Add(pyEntry);
+                        //            }
+                        //            else
+                        //            {
+                        //                _pendingToWaitingMap.Add(item, new List<IGeneroProjectEntry> { pyEntry });
+                        //                // and register for the event (no need to register for the event if the item is already in the pendingToWaiting map
+                        //                item.OnNewAnalysis += item_OnNewAnalysis;
+                        //            }
+                        //        }
+                        //    }
+                        //}
                     }
                     else
                     {
@@ -1190,37 +1193,38 @@ namespace VSGenero.EditorExtensions.Intellisense
                 unanalyzed.AddRange(pyProjEntry.GetIncludedFiles().Where(x => !x.IsAnalyzed));
                 if (unanalyzed.Count > 0)
                 {
-                    // postpone error checking until the unanalyzed entries are analyzed
-                    lock (_pendingWaitingLock)
-                    {
-                        // set up a map of the unanalyzed project entry to the dependent entry for which we're doing error checking.
-                        // When there are no more unanalyzed project entries for the dependent entry, we can do the error checking.
-                        foreach (var item in unanalyzed)
-                        {
-                            lock (item)
-                            {
-                                if (_waitingToPendingMap.ContainsKey(pyProjEntry))
-                                {
-                                    _waitingToPendingMap[pyProjEntry].Add(item);
-                                }
-                                else
-                                {
-                                    _waitingToPendingMap.Add(pyProjEntry, new HashSet<IGeneroProjectEntry> { item });
-                                }
+                    _waitingErrorCheckers.Enqueue(pyProjEntry);
+                    //// postpone error checking until the unanalyzed entries are analyzed
+                    //lock (_pendingWaitingLock)
+                    //{
+                    //    // set up a map of the unanalyzed project entry to the dependent entry for which we're doing error checking.
+                    //    // When there are no more unanalyzed project entries for the dependent entry, we can do the error checking.
+                    //    foreach (var item in unanalyzed)
+                    //    {
+                    //        lock (item)
+                    //        {
+                    //            if (_waitingToPendingMap.ContainsKey(pyProjEntry))
+                    //            {
+                    //                _waitingToPendingMap[pyProjEntry].Add(item);
+                    //            }
+                    //            else
+                    //            {
+                    //                _waitingToPendingMap.Add(pyProjEntry, new HashSet<IGeneroProjectEntry> { item });
+                    //            }
 
-                                if (_pendingToWaitingMap.ContainsKey(item))
-                                {
-                                    _pendingToWaitingMap[item].Add(pyProjEntry);
-                                }
-                                else
-                                {
-                                    _pendingToWaitingMap.Add(item, new List<IGeneroProjectEntry> { pyProjEntry });
-                                    // and register for the event (no need to register for the event if the item is already in the pendingToWaiting map
-                                    item.OnNewAnalysis += item_OnNewAnalysis;
-                                }
-                            }
-                        }
-                    }
+                    //            if (_pendingToWaitingMap.ContainsKey(item))
+                    //            {
+                    //                _pendingToWaitingMap[item].Add(pyProjEntry);
+                    //            }
+                    //            else
+                    //            {
+                    //                _pendingToWaitingMap.Add(item, new List<IGeneroProjectEntry> { pyProjEntry });
+                    //                // and register for the event (no need to register for the event if the item is already in the pendingToWaiting map
+                    //                item.OnNewAnalysis += item_OnNewAnalysis;
+                    //            }
+                    //        }
+                    //    }
+                    //}
                 }
                 else
                 {
@@ -1257,55 +1261,91 @@ namespace VSGenero.EditorExtensions.Intellisense
             }
         }
 
-        void item_OnNewAnalysis(object sender, EventArgs e)
+        private void WaitingErrorCheckersTimerCallback(object state)
         {
-            lock (_pendingWaitingLock)
+            if(_waitingErrorCheckers.Count > 0)
             {
-                IGeneroProjectEntry pendingItem = sender as IGeneroProjectEntry;
-                List<IGeneroProjectEntry> waitingItems;
-                if (_pendingToWaitingMap.TryGetValue(pendingItem, out waitingItems))
+                // pause the timer
+                _waitingErrorCheckingTimer.Change(Timeout.Infinite, Timeout.Infinite);
+
+                List<IGeneroProjectEntry> tempQueue = new List<IGeneroProjectEntry>();
+                while(!_waitingErrorCheckers.IsEmpty)
                 {
-                    lock (pendingItem)
+                    IGeneroProjectEntry entry;
+                    if(_waitingErrorCheckers.TryDequeue(out entry))
                     {
-                        foreach (var waiting in waitingItems.ToArray())
+                        List<IGeneroProjectEntry> unanalyzed = new List<IGeneroProjectEntry>();
+                        unanalyzed.AddRange(entry.ParentProject.GetUnanalyzedEntries());
+                        unanalyzed.AddRange(entry.GetIncludedFiles().Where(x => !x.IsAnalyzed));
+                        if (unanalyzed.Count == 0)
                         {
-                            // remove pendingItem from the waiting item's pending items
-                            if (_waitingToPendingMap.ContainsKey(waiting))
-                            {
-                                if (_waitingToPendingMap[waiting].Contains(pendingItem))
-                                {
-                                    _waitingToPendingMap[waiting].Remove(pendingItem);
-                                }
-
-                                if (_waitingToPendingMap[waiting].Count == 0)
-                                {
-                                    // the waiting item is no longer waiting for any other pending items
-                                    // so we can trigger the error checking
-
-                                    
-                                    // TODO: do this on a thread
-                                    CheckForErrors(waiting);
-
-                                    waitingItems.Remove(waiting);
-                                }
-                            }
+                            // check the errors
+                            CheckForErrors(entry);
                         }
-
-                        if (waitingItems.Count == 0)
+                        else
                         {
-                            // the pending item has no more items awaiting it.
-                            // so we can unregister from this item's event
-                            pendingItem.OnNewAnalysis -= item_OnNewAnalysis;
-                            _pendingToWaitingMap.Remove(pendingItem);
+                            // defer for later
+                            tempQueue.Add(entry);
                         }
                     }
                 }
+
+                foreach (var item in tempQueue)
+                    _waitingErrorCheckers.Enqueue(item);
+
+                _waitingErrorCheckingTimer.Change(1000, 1000);
             }
         }
 
-        private Dictionary<IGeneroProjectEntry, HashSet<IGeneroProjectEntry>> _waitingToPendingMap = new Dictionary<IGeneroProjectEntry, HashSet<IGeneroProjectEntry>>();
-        private Dictionary<IGeneroProjectEntry, List<IGeneroProjectEntry>> _pendingToWaitingMap = new Dictionary<IGeneroProjectEntry, List<IGeneroProjectEntry>>();
-        private object _pendingWaitingLock = new object();
+        //void item_OnNewAnalysis(object sender, EventArgs e)
+        //{
+        //    lock (_pendingWaitingLock)
+        //    {
+        //        IGeneroProjectEntry pendingItem = sender as IGeneroProjectEntry;
+        //        List<IGeneroProjectEntry> waitingItems;
+        //        if (_pendingToWaitingMap.TryGetValue(pendingItem, out waitingItems))
+        //        {
+        //            lock (pendingItem)
+        //            {
+        //                foreach (var waiting in waitingItems.ToArray())
+        //                {
+        //                    // remove pendingItem from the waiting item's pending items
+        //                    if (_waitingToPendingMap.ContainsKey(waiting))
+        //                    {
+        //                        if (_waitingToPendingMap[waiting].Contains(pendingItem))
+        //                        {
+        //                            _waitingToPendingMap[waiting].Remove(pendingItem);
+        //                        }
+
+        //                        if (_waitingToPendingMap[waiting].Count == 0)
+        //                        {
+        //                            // the waiting item is no longer waiting for any other pending items
+        //                            // so we can trigger the error checking
+
+                                    
+        //                            // TODO: do this on a thread
+        //                            CheckForErrors(waiting);
+
+        //                            waitingItems.Remove(waiting);
+        //                        }
+        //                    }
+        //                }
+
+        //                if (waitingItems.Count == 0)
+        //                {
+        //                    // the pending item has no more items awaiting it.
+        //                    // so we can unregister from this item's event
+        //                    pendingItem.OnNewAnalysis -= item_OnNewAnalysis;
+        //                    _pendingToWaitingMap.Remove(pendingItem);
+        //                }
+        //            }
+        //        }
+        //    }
+        //}
+
+        //private Dictionary<IGeneroProjectEntry, HashSet<IGeneroProjectEntry>> _waitingToPendingMap = new Dictionary<IGeneroProjectEntry, HashSet<IGeneroProjectEntry>>();
+        //private Dictionary<IGeneroProjectEntry, List<IGeneroProjectEntry>> _pendingToWaitingMap = new Dictionary<IGeneroProjectEntry, List<IGeneroProjectEntry>>();
+        //private object _pendingWaitingLock = new object();
 
 
         private void UpdateErrorsAndWarnings(
