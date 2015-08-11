@@ -10,7 +10,12 @@ namespace VSGenero.Options
         private readonly string _category;
         private const string _optionsKey = "Options";
 
-        internal GeneroDialogPage(string category)
+        [Obsolete("Designer only", true)]
+        public GeneroDialogPage()
+        {
+        }
+
+        public GeneroDialogPage(string category)
         {
             _category = category;
         }

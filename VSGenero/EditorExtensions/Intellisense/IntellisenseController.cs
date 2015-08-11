@@ -32,6 +32,8 @@ using VSGenero.Snippets;
 using VSGenero.EditorExtensions;
 using VSGenero.Analysis;
 using IServiceProvider = System.IServiceProvider;
+using VSGenero.Analysis.Parsing;
+using VSGenero.Analysis.Parsing.AST;
 
 namespace VSGenero.EditorExtensions.Intellisense
 {
@@ -210,9 +212,14 @@ namespace VSGenero.EditorExtensions.Intellisense
             {
                 switch (ch)
                 {
-                    case '&':
-                    case '.':
                     case ' ':
+                        if (VSGeneroPackage.Instance.LangPrefs.SpaceTriggersCompletion &&
+                            VSGeneroPackage.Instance.LangPrefs.AutoListMembers && AreSurroundingCharactersWhitespace(ch, true))
+                        {
+                            TriggerCompletionSession(false);
+                        }
+                        break;
+                    case '.':
                         if (VSGeneroPackage.Instance.LangPrefs.AutoListMembers && AreSurroundingCharactersWhitespace(ch, true))
                         {
                             TriggerCompletionSession(false);
@@ -764,6 +771,18 @@ namespace VSGenero.EditorExtensions.Intellisense
             }
         }
 
+        private bool IsPreviousCharacterWhitespace()
+        {
+            int position = _textView.Caret.Position.BufferPosition.Position;
+            if (position == 0)
+                return true;
+            else
+            {
+                var span = new SnapshotSpan(_textView.TextBuffer.CurrentSnapshot, new Span(position - 1, 1));
+                return string.IsNullOrWhiteSpace(span.GetText());
+            }
+        }
+
         private SnapshotSpan? GetPrecedingExpression()
         {
             ITrackingSpan startSpan = null;
@@ -1038,6 +1057,10 @@ namespace VSGenero.EditorExtensions.Intellisense
                             }
                             break;
                         case VSConstants.VSStd2KCmdID.TAB:
+                            if(IsPreviousCharacterWhitespace())
+                            {
+                                return _oldTarget.Exec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
+                            }
                             if (_expansionMgr != null && _expansionClient.InSession && ErrorHandler.Succeeded(_expansionClient.NextField()))
                             {
                                 return VSConstants.S_OK;
@@ -1060,6 +1083,12 @@ namespace VSGenero.EditorExtensions.Intellisense
                                     }
 
                                     string spanText = span.Value.GetText();
+                                    if(spanText == null || spanText.Length == 0)
+                                        return _oldTarget.Exec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
+                                    // see if the text is a keyword...if so, don't bother with the public function snippetizer
+                                    var tok = Tokens.GetToken(spanText);
+                                    if(tok != null || !(char.IsLetter(spanText[0]) || spanText[0] == '_'))
+                                        return _oldTarget.Exec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
 
                                     DynamicSnippet dynSnippet = null;
                                     // 1) TODO: first do a lookup internally (i.e. within the VSGenero symbols). We're not doing that right now

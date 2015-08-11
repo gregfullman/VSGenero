@@ -79,12 +79,12 @@ namespace VSGenero.Snippets
             MSXML.IXMLDOMNode codeNode, snippetTypes;
 
             int hr = VSConstants.S_OK;
-            if (ErrorHandler.Failed(hr = _session.GetSnippetNode("CodeSnippet:Code", out codeNode)))
+            if (ErrorHandler.Failed(hr = _session.GetSnippetNode("CodeSnippet:Code", out codeNode)) || codeNode == null)
             {
                 return hr;
             }
 
-            if (ErrorHandler.Failed(hr = _session.GetHeaderNode("CodeSnippet:SnippetTypes", out snippetTypes)))
+            if (ErrorHandler.Failed(hr = _session.GetHeaderNode("CodeSnippet:SnippetTypes", out snippetTypes)) || snippetTypes == null)
             {
                 return hr;
             }

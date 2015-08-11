@@ -11,6 +11,7 @@ namespace VSGenero.Options
     public class Genero4GLIntellisenseOptionsPage : GeneroDialogPage
     {
         private bool _enterCommitsIntellisense, _addNewLineAtEndOfFullyTypedWord, _showCompletionList, _spaceCommitsIntellisense, _preSelectMRU;
+        private bool _spacebarShowsCompletionList = true;   // set this for now
         private Genero4GLIntellisenseOptionsControl _window;
         private const string _defaultCompletionChars = "{}[]().,:;+-*/%&|^~=<>#'\"\\";
         private string _completionCommittedBy;
@@ -68,6 +69,12 @@ namespace VSGenero.Options
             set { _showCompletionList = value; }
         }
 
+        public bool SpacebarShowsCompletionList
+        {
+            get { return _spacebarShowsCompletionList; }
+            set { _spacebarShowsCompletionList = value; }
+        }
+
         public override void ResetSettings()
         {
             _enterCommitsIntellisense = true;
@@ -75,6 +82,7 @@ namespace VSGenero.Options
             _completionCommittedBy = _defaultCompletionChars;
             _spaceCommitsIntellisense = true;
             _showCompletionList = true;
+            _spacebarShowsCompletionList = true;
             _preSelectMRU = true;
         }
         
@@ -83,6 +91,7 @@ namespace VSGenero.Options
         private const string NewLineAtEndOfWordSetting = "NewLineAtEndOfWord";
         private const string SpaceCommitsSetting = "SpaceCommits";
         private const string ShowCompletionListSetting = "ShowCompletionList";
+        private const string SpacebarShowsCompletionListSetting = "SpacebarShowsCompletionList";
         private const string PreSelectMRUSetting = "PreSelectMRU";
 
         public override void LoadSettingsFromStorage()
@@ -92,6 +101,7 @@ namespace VSGenero.Options
             _completionCommittedBy = LoadString(CompletionCommittedBySetting) ?? _defaultCompletionChars;
             _spaceCommitsIntellisense = LoadBool(SpaceCommitsSetting) ?? true;
             _showCompletionList = LoadBool(ShowCompletionListSetting) ?? true;
+            _spacebarShowsCompletionList = LoadBool(SpacebarShowsCompletionListSetting) ?? true;
             _preSelectMRU = LoadBool(PreSelectMRUSetting) ?? true;
 
         }
@@ -103,6 +113,7 @@ namespace VSGenero.Options
             SaveString(CompletionCommittedBySetting, _completionCommittedBy);
             SaveBool(SpaceCommitsSetting, _spaceCommitsIntellisense);
             SaveBool(ShowCompletionListSetting, _showCompletionList);
+            SaveBool(SpacebarShowsCompletionListSetting, _spacebarShowsCompletionList);
             SaveBool(PreSelectMRUSetting, _preSelectMRU);
         }
     }

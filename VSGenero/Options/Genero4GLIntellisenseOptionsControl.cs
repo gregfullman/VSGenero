@@ -16,6 +16,16 @@ namespace VSGenero.Options
         {
             InitializeComponent();
             checkBoxCompletionList.Checked = VSGeneroPackage.Instance.IntellisenseOptions4GLPage.ShowCompletionList;
+            if(checkBoxCompletionList.Checked)
+            {
+                checkBoxSpaceTriggersCompletionList.Checked = VSGeneroPackage.Instance.IntellisenseOptions4GLPage.SpacebarShowsCompletionList;
+                checkBoxSpaceTriggersCompletionList.Enabled = true;
+            }
+            else
+            {
+                checkBoxSpaceTriggersCompletionList.Checked = false;
+                checkBoxSpaceTriggersCompletionList.Enabled = false;
+            }
             checkBoxEnterCommits.Checked = VSGeneroPackage.Instance.IntellisenseOptions4GLPage.EnterCommitsIntellisense;
             checkBoxNewLineOnFullyTypedWord.Checked = VSGeneroPackage.Instance.IntellisenseOptions4GLPage.AddNewLineAtEndOfFullyTypedWord;
             checkBoxPreselectMRU.Checked = VSGeneroPackage.Instance.IntellisenseOptions4GLPage.PreSelectMRU;
@@ -26,6 +36,15 @@ namespace VSGenero.Options
         private void checkBoxCompletionList_CheckedChanged(object sender, EventArgs e)
         {
             VSGeneroPackage.Instance.IntellisenseOptions4GLPage.ShowCompletionList = checkBoxCompletionList.Checked;
+            if (checkBoxCompletionList.Checked)
+            {
+                checkBoxSpaceTriggersCompletionList.Enabled = true;
+            }
+            else
+            {
+                checkBoxSpaceTriggersCompletionList.Checked = false;
+                checkBoxSpaceTriggersCompletionList.Enabled = false;
+            }
         }
 
         private void checkBoxSpacebarCommits_CheckedChanged(object sender, EventArgs e)
@@ -51,6 +70,11 @@ namespace VSGenero.Options
         private void textBoxCommitChars_TextChanged(object sender, EventArgs e)
         {
             VSGeneroPackage.Instance.IntellisenseOptions4GLPage.CompletionCommittedBy = textBoxCommitChars.Text;
+        }
+
+        private void checkBoxSpaceTriggersCompletionList_CheckedChanged(object sender, EventArgs e)
+        {
+            VSGeneroPackage.Instance.IntellisenseOptions4GLPage.SpacebarShowsCompletionList = checkBoxSpaceTriggersCompletionList.Checked;
         }
     }
 }
