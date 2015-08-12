@@ -88,53 +88,12 @@ namespace VSGenero.EditorExtensions.Intellisense
                 //}
                 return;
             }
-            //_textBuffer.Changed += _textBuffer_Changed;
             completionSets.Add(completions);
         }
-
-        //async void _textBuffer_Changed(object sender, TextContentChangedEventArgs e)
-        //{
-        //    if (_completionSession != null &&
-        //        _completionSession.SelectedCompletionSet != null)
-        //    {
-        //        var text = _completionSession.SelectedCompletionSet.ApplicableTo.GetText(_textBuffer.CurrentSnapshot);
-        //        if (text.Length == 2 && e.Before.Length < e.After.Length)   // only trigger after having added a character
-        //        {
-        //            if (_completionSession.SelectedCompletionSet is FuzzyCompletionSet)
-        //            {
-        //                // give the completion set a callback that can be run asynchronously to get additional completions
-        //                Func<IEnumerable<DynamicallyVisibleCompletion>> callback = () =>
-        //                    {
-        //                        if(_provider._PublicFunctionProvider != null)
-        //                        {
-        //                            _provider._PublicFunctionProvider.SetFilename(_textBuffer.GetFilePath());
-        //                            var results = _provider._PublicFunctionProvider.GetFunctionsStartingWith(text);
-        //                            if(results != null)
-        //                            {
-        //                                return results.Select(x => CompletionAnalysis.GeneroCompletion(_provider._glyphService, new Analysis.MemberResult(x.Name, Analysis.Parsing.AST.GeneroMemberType.Function, null)));
-        //                            }
-        //                        }
-        //                        return new DynamicallyVisibleCompletion[0];
-        //                    };
-        //                await (_completionSession.SelectedCompletionSet as FuzzyCompletionSet).RecalculateAsync(callback);
-        //            }
-        //        }
-        //    }
-        //    _textBuffer.Changed -= _textBuffer_Changed;
-        //}
 
 
         public void Dispose()
         {
-            //if (_completionSession != null && _textBuffer != null)
-            //{
-            //    try
-            //    {
-            //        _textBuffer.Changed -= _textBuffer_Changed;
-            //    }
-            //    catch (Exception)
-            //    { }
-            //}
         }
     }
 }

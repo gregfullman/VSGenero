@@ -258,34 +258,6 @@ namespace VSGenero.EditorExtensions.Intellisense
             return ((DynamicallyVisibleCompletion)completion).Visible;
         }
 
-        public async Task RecalculateAsync(Func<IEnumerable<DynamicallyVisibleCompletion>> callback)
-        {
-            if (callback != null)
-            {
-                var completions = await Task.Factory.StartNew<IEnumerable<DynamicallyVisibleCompletion>>(callback);
-                if (completions != null)
-                {
-                    _completions.AddRange(completions
-                        .Where(c => c != null && !string.IsNullOrWhiteSpace(c.DisplayText))
-                        .OrderBy(c => c, _initialComparer)
-                    );
-                    if (_shouldFilter | _shouldHideAdvanced)
-                    {
-                        //_filteredCompletions = new WritableFilteredObservableCollection<Completion>(_completions);
-
-                        foreach (var c in _completions.Cast<DynamicallyVisibleCompletion>())
-                        {
-                            c.Visible = !_shouldHideAdvanced || !IsAdvanced(c);
-                            _filteredCompletions.Add(c);
-                        }
-                        //_filteredCompletions.Filter(IsVisible);
-                    }
-                    Filter();
-                    SelectBestMatch();
-                }
-            }
-        }
-
         public override void Recalculate()
         {
             base.Recalculate();
@@ -346,7 +318,6 @@ namespace VSGenero.EditorExtensions.Intellisense
                         var completions = await Task.Factory.StartNew<IList<DynamicallyVisibleCompletion>>(() => _deferredLoadCallback(text).ToList());
                         _filteredCompletions.AddRange(completions);
 
-                        //Filter();
                         SelectBestMatch();
                     }
                 }

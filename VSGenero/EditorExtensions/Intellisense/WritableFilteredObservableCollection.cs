@@ -51,7 +51,6 @@ namespace VSGenero.EditorExtensions.Intellisense
         {
             if (((this._rangeOperationCount > 0) && (--this._rangeOperationCount == 0)) && this._collectionChangedDuringRangeOperation)
             {
-                //this.CollectionChanged(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
                 DoUpdate();
                 this._collectionChangedDuringRangeOperation = false;
             }
@@ -61,8 +60,6 @@ namespace VSGenero.EditorExtensions.Intellisense
         {
             if (items != null)
             {
-                //if (this._dispatcher.CheckAccess())
-                //{
                 try
                 {
                     this.BeginBulkOperation();
@@ -75,12 +72,6 @@ namespace VSGenero.EditorExtensions.Intellisense
                 {
                     this.EndBulkOperation();
                 }
-                //this.CollectionChanged(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
-                //}
-                //else
-                //{
-                //    this._dispatcher.BeginInvoke(DispatcherPriority.Send, new AddRangeCallback(this.AddRange), items);
-                //}
             }
         }
 
