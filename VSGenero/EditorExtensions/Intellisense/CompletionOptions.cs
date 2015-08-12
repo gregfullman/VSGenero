@@ -128,6 +128,12 @@ namespace VSGenero.EditorExtensions.Intellisense
         public bool FilterCompletions { get; set; }
 
         /// <summary>
+        /// Specifies the number of characters that should be typed before
+        /// a deferred load of completion items is done.
+        /// </summary>
+        public int DeferredLoadPreCharacters { get; set; }
+
+        /// <summary>
         /// The search mode to use for completions.
         /// </summary>
         public FuzzyMatchMode SearchMode { get; set; }
@@ -139,6 +145,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                 GetMemberOptions.HideAdvancedMembers;
             FilterCompletions = true;
             SearchMode = FuzzyMatchMode.Default;
+            DeferredLoadPreCharacters = 2;
         }
 
         public CompletionOptions(GetMemberOptions options)
@@ -146,6 +153,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             MemberOptions = options;
             FilterCompletions = true;
             SearchMode = FuzzyMatchMode.Default;
+            DeferredLoadPreCharacters = 2;
         }
 
         /// <summary>
@@ -160,7 +168,8 @@ namespace VSGenero.EditorExtensions.Intellisense
                 TabSize = TabSize,
                 IndentSize = IndentSize,
                 FilterCompletions = FilterCompletions,
-                SearchMode = SearchMode
+                SearchMode = SearchMode,
+                DeferredLoadPreCharacters = DeferredLoadPreCharacters
             };
         }
 

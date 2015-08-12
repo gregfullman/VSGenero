@@ -494,6 +494,7 @@
     <Compile Include="EditorExtensions\Intellisense\MemberCompletionSet.cs" />
     <Compile Include="EditorExtensions\Intellisense\TaskProvider.cs" />
     <Compile Include="EditorExtensions\Intellisense\TestFunctionProvider.cs" />
+    <Compile Include="EditorExtensions\Intellisense\WritableFilteredObservableCollection.cs" />
     <Compile Include="EditorExtensions\ISnapshotTextReader.cs" />
     <Compile Include="EditorExtensions\GeneroPredefinedClassificationTypeNames.cs" />
     <Compile Include="EditorExtensions\BraceCompletion\LanguageBraceCompletionAttribute.cs" />

@@ -527,7 +527,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                     set.SelectSingleBest())
                 {
                     // prevent the changed handler from triggering
-                    _blockChangeTrigger = true;
+                    //_blockChangeTrigger = true;
 
                     if(_parentSpan == null)
                         _parentSpan = GetCompletionParentSpan();
@@ -544,41 +544,53 @@ namespace VSGenero.EditorExtensions.Intellisense
                     _activeSession.Filter();
                     _activeSession.Dismissed += OnCompletionSessionDismissed;
                     _activeSession.Committed += OnCompletionSessionCommitted;
-                    _textView.TextBuffer.Changed += TextBuffer_Changed;
+                    //_textView.TextBuffer.Changed += TextBuffer_Changed;
                 }
             }
         }
 
-        private bool _blockChangeTrigger;
-        void TextBuffer_Changed(object sender, TextContentChangedEventArgs e)
-        {
-            if (_activeSession == null || _blockChangeTrigger)
-            {
-                _textView.TextBuffer.Changed -= TextBuffer_Changed;
-                _blockChangeTrigger = false;
-            }
-            else
-            {
-                if (e.After.Length - e.Before.Length == 1)
-                {
-                    if (_activeSession.SelectedCompletionSet.ApplicableTo.GetText(_textView.TextSnapshot).Length == 2 &&
-                        _provider._PublicFunctionProvider != null)
-                    {
-                        SnapshotSpan? span = GetPrecedingExpression();
-                        if(span.HasValue && span.Value.GetText().EndsWith("."))
-                        {
-                            return;
-                        }
+        //private bool _blockChangeTrigger;
+        //void TextBuffer_Changed(object sender, TextContentChangedEventArgs e)
+        //{
+        //    if (_activeSession == null || _blockChangeTrigger)
+        //    {
+        //        _textView.TextBuffer.Changed -= TextBuffer_Changed;
+        //        _blockChangeTrigger = false;
+        //    }
+        //    else
+        //    {
+        //        if (e.After.Length - e.Before.Length == 1)
+        //        {
+        //            if (_activeSession.SelectedCompletionSet.ApplicableTo.GetText(_textView.TextSnapshot).Length == 2 &&
+        //                _provider._PublicFunctionProvider != null)
+        //            {
+        //                if(_activeSession.SelectedCompletionSet is FuzzyCompletionSet)
+        //                {
+        //                    var complSet = _activeSession.SelectedCompletionSet as FuzzyCompletionSet;
+        //                    if(complSet.Completions is WritableFilteredObservableCollection<Completion>)
+        //                    {
+        //                        (complSet.Completions as WritableFilteredObservableCollection<Completion>).AddRange(new List<Completion>
+        //                        {
+        //                            new DynamicallyVisibleCompletion("alpha_item"),
+        //                            new DynamicallyVisibleCompletion("test_item2")
+        //                        });
+        //                    }
+        //                }
+        //                //SnapshotSpan? span = GetPrecedingExpression();
+        //                //if(span.HasValue && span.Value.GetText().EndsWith("."))
+        //                //{
+        //                //    return;
+        //                //}
 
-                        Dismiss();
-                        _activeSession = CompletionBroker.TriggerCompletion(_textView);
-                        _activeSession.Filter();
-                        _activeSession.Dismissed += OnCompletionSessionDismissed;
-                        _activeSession.Committed += OnCompletionSessionCommitted;
-                    }
-                }
-            }
-        }
+        //                //Dismiss();
+        //                //_activeSession = CompletionBroker.TriggerCompletion(_textView);
+        //                //_activeSession.Filter();
+        //                //_activeSession.Dismissed += OnCompletionSessionDismissed;
+        //                //_activeSession.Committed += OnCompletionSessionCommitted;
+        //            }
+        //        }
+        //    }
+        //}
 
         internal void TriggerSignatureHelp()
         {
@@ -613,7 +625,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             if (_activeSession != null)
             {
                 _activeSession.Dismissed -= OnCompletionSessionDismissed;
-                _textView.TextBuffer.Changed -= TextBuffer_Changed;
+                //_textView.TextBuffer.Changed -= TextBuffer_Changed;
                 _activeSession = null;
             }
         }
@@ -652,7 +664,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                 {
                     _activeSession.Committed -= OnCompletionSessionCommitted;
                     _activeSession = null;
-                    _textView.TextBuffer.Changed -= TextBuffer_Changed;
+                    //_textView.TextBuffer.Changed -= TextBuffer_Changed;
                 }
             }
         }
@@ -896,7 +908,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                          (ch == ' ' && VSGeneroPackage.Instance.IntellisenseOptions4GLPage.SpaceCommitsIntellisense)))
                     {
                         // prevent the changed handler from triggering
-                        _blockChangeTrigger = true;
+                        //_blockChangeTrigger = true;
 
                         if (_parentSpan == null)
                             _parentSpan = GetCompletionParentSpan();
@@ -946,7 +958,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                                          EnterOnCompleteText();
 
                                 // prevent the changed handler from triggering
-                                _blockChangeTrigger = true;
+                                //_blockChangeTrigger = true;
 
                                 if (_parentSpan == null)
                                     _parentSpan = GetCompletionParentSpan();
@@ -971,7 +983,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                             if (!_activeSession.IsDismissed)
                             {
                                 // prevent the changed handler from triggering
-                                _blockChangeTrigger = true;
+                                //_blockChangeTrigger = true;
 
                                 if (_parentSpan == null)
                                     _parentSpan = GetCompletionParentSpan();

@@ -133,7 +133,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                 Span,
                 members.Select(m => GeneroCompletion(glyphService, m)),
                 _options,
-                CompletionComparer.UnderscoresLast);
+                CompletionComparer.UnderscoresLast, null);
 
             end = _stopwatch.ElapsedMilliseconds;
 

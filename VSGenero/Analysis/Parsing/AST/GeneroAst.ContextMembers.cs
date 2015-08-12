@@ -394,15 +394,20 @@ namespace VSGenero.Analysis.Parsing.AST
                 }
             }
 
-            if (funcs && _functionProvider != null)
+            if(funcs)
             {
-                members.Add(new MemberResult(_functionProvider.Name, GeneroMemberType.Namespace, this));
-
-                if (_includePublicFunctions && !string.IsNullOrWhiteSpace(_contextString))
-                {
-                    members.AddRange(_functionProvider.GetFunctionsStartingWith(_contextString).Select(x => new MemberResult(x.Name, x, GeneroMemberType.Function, this)));
-                }
+                _includePublicFunctions = true; // allow for deferred adding of public functions
             }
+
+            //if (funcs && _functionProvider != null)
+            //{
+            //    members.Add(new MemberResult(_functionProvider.Name, GeneroMemberType.Namespace, this));
+
+            //    if (_includePublicFunctions && !string.IsNullOrWhiteSpace(_contextString))
+            //    {
+            //        members.AddRange(_functionProvider.GetFunctionsStartingWith(_contextString).Select(x => new MemberResult(x.Name, x, GeneroMemberType.Function, this)));
+            //    }
+            //}
 
             members.AddRange(this.ProjectEntry.GetIncludedFiles().Where(x => x.Analysis != null).SelectMany(x => x.Analysis.GetDefinedMembers(1, vars, consts, types, funcs)));
 

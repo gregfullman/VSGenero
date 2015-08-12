@@ -170,12 +170,18 @@ namespace VSGenero.EditorExtensions.Intellisense
     public class FuzzyCompletionSet : CompletionSet
     {
         BulkObservableCollection<Completion> _completions;
-        FilteredObservableCollection<Completion> _filteredCompletions;
+        WritableFilteredObservableCollection<Completion> _filteredCompletions;
         Completion _previousSelection;
         readonly FuzzyStringMatcher _comparer;
         readonly bool _shouldFilter;
         readonly bool _shouldHideAdvanced;
         readonly IComparer<Completion> _initialComparer;
+
+        private readonly CompletionOptions _options;
+        private readonly HashSet<string> _loadedDeferredCompletionSubsets;
+        private readonly Thread _deferredLoadThread;
+
+        Func<string, IEnumerable<DynamicallyVisibleCompletion>> _deferredLoadCallback;
 
         private readonly static Regex _advancedItemPattern = new Regex(
             @"__\w+__($|\s)",
@@ -196,11 +202,17 @@ namespace VSGenero.EditorExtensions.Intellisense
         /// selecting items.</param>
         /// <param name="comparer">The comparer to use to order the provided
         /// completions.</param>
-        public FuzzyCompletionSet(string moniker, string displayName, ITrackingSpan applicableTo, IEnumerable<DynamicallyVisibleCompletion> completions, CompletionOptions options, IComparer<Completion> comparer) :
+        public FuzzyCompletionSet(string moniker, string displayName, ITrackingSpan applicableTo, 
+                                  IEnumerable<DynamicallyVisibleCompletion> completions, 
+                                  CompletionOptions options, IComparer<Completion> comparer,
+                                  Func<string, IEnumerable<DynamicallyVisibleCompletion>> deferredLoadCallback) :
             base(moniker, displayName, applicableTo, null, null)
         {
+            _options = options;
             _initialComparer = comparer;
             _completions = new BulkObservableCollection<Completion>();
+            _loadedDeferredCompletionSubsets = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            _deferredLoadCallback = deferredLoadCallback;
             _completions.AddRange(completions
                 .Where(c => c != null && !string.IsNullOrWhiteSpace(c.DisplayText))
                 .OrderBy(c => c, comparer)
@@ -212,7 +224,7 @@ namespace VSGenero.EditorExtensions.Intellisense
 
             if (_shouldFilter | _shouldHideAdvanced)
             {
-                _filteredCompletions = new FilteredObservableCollection<Completion>(_completions);
+                _filteredCompletions = new WritableFilteredObservableCollection<Completion>(_completions);
 
                 foreach (var c in _completions.Cast<DynamicallyVisibleCompletion>())
                 {
@@ -259,13 +271,14 @@ namespace VSGenero.EditorExtensions.Intellisense
                     );
                     if (_shouldFilter | _shouldHideAdvanced)
                     {
-                        _filteredCompletions = new FilteredObservableCollection<Completion>(_completions);
+                        //_filteredCompletions = new WritableFilteredObservableCollection<Completion>(_completions);
 
                         foreach (var c in _completions.Cast<DynamicallyVisibleCompletion>())
                         {
                             c.Visible = !_shouldHideAdvanced || !IsAdvanced(c);
+                            _filteredCompletions.Add(c);
                         }
-                        _filteredCompletions.Filter(IsVisible);
+                        //_filteredCompletions.Filter(IsVisible);
                     }
                     Filter();
                     SelectBestMatch();
@@ -282,7 +295,7 @@ namespace VSGenero.EditorExtensions.Intellisense
         /// Restricts the set of completions to those that match the applicability text
         /// of the completion set, and then determines the best match.
         /// </summary>
-        public override void Filter()
+        public override async void Filter()
         {
             if (_filteredCompletions == null)
             {
@@ -323,6 +336,20 @@ namespace VSGenero.EditorExtensions.Intellisense
                     }
                 }
                 _filteredCompletions.Filter(IsVisible);
+
+                if (_options.DeferredLoadPreCharacters > 0 && text.Length == _options.DeferredLoadPreCharacters)
+                {
+                    // check to see if the deferred load has been done already
+                    if (_deferredLoadCallback != null && !_loadedDeferredCompletionSubsets.Contains(text))
+                    {
+                        _loadedDeferredCompletionSubsets.Add(text);
+                        var completions = await Task.Factory.StartNew<IList<DynamicallyVisibleCompletion>>(() => _deferredLoadCallback(text).ToList());
+                        _filteredCompletions.AddRange(completions);
+
+                        //Filter();
+                        SelectBestMatch();
+                    }
+                }
             }
             else if (_shouldHideAdvanced)
             {

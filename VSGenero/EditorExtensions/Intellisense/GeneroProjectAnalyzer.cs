@@ -1505,7 +1505,6 @@ namespace VSGenero.EditorExtensions.Intellisense
                 return null;
             }
             var start = snapSpan.Start;
-            bool includePublicFunctions = snapSpan.Length > 2;
             var parser = new Genero4glReverseParser(snapshot, buffer, span);
             //if (parser.IsInGrouping())
             //{
@@ -1559,14 +1558,27 @@ namespace VSGenero.EditorExtensions.Intellisense
             if (entry != null && entry.Analysis != null)
             {
                 //var members = entry.Analysis.GetContextMembersByIndex(start, parser, functionProvider, databaseProvider, programFileProvider);
-                var members = entry.Analysis.GetContextMembers(start, parser, functionProvider, databaseProvider, programFileProvider, includePublicFunctions, span.GetText(snapshot));
+                bool includePublicFunctions;
+                var members = entry.Analysis.GetContextMembers(start, parser, functionProvider, databaseProvider, programFileProvider, out includePublicFunctions, span.GetText(snapshot));
                 if (members != null)
                 {
-                    return new ContextSensitiveCompletionAnalysis(members, span, buffer, options);
+                    Func<string, IEnumerable<MemberResult>> deferredLoadCallback = null;
+                    if(includePublicFunctions)
+                    {
+                        deferredLoadCallback = (str) =>
+                            {
+                                if(functionProvider != null)
+                                {
+                                    return functionProvider.GetFunctionsStartingWith(str).Select(x => new MemberResult(x.Name, x, GeneroMemberType.Function, entry.Analysis));
+                                }
+                                return new MemberResult[0];
+                            };
+                    }
+                    return new ContextSensitiveCompletionAnalysis(members, span, buffer, options, deferredLoadCallback);
                 }
             }
 
-            return CompletionAnalysis.EmptyCompletionContext; ;
+            return CompletionAnalysis.EmptyCompletionContext;
         }
 
         private static CompletionAnalysis GetNormalCompletionContext(ITextSnapshot snapshot, ITrackingSpan applicableSpan, ITrackingPoint point, CompletionOptions options)

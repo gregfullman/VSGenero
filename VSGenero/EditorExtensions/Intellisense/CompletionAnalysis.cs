@@ -62,6 +62,8 @@ namespace VSGenero.EditorExtensions.Intellisense
             }
         }
 
+        public IGlyphService GlyphService { get; set; }
+
         public virtual CompletionSet GetCompletions(IGlyphService glyphService)
         {
             return null;

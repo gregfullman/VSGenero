@@ -2788,14 +2788,14 @@ namespace VSGenero.Analysis.Parsing.AST
 
         public IEnumerable<MemberResult> GetContextMembers(int index, IReverseTokenizer revTokenizer, IFunctionInformationProvider functionProvider,
                                                            IDatabaseInformationProvider databaseProvider, IProgramFileProvider programFileProvider,
-                                                           bool includePublicFunctions, string contextStr, 
+                                                           out bool includePublicFunctions, string contextStr, 
                                                            GetMemberOptions options = GetMemberOptions.IntersectMultipleResults)
         {
             _instance = this;
             _functionProvider = functionProvider;
             _databaseProvider = databaseProvider;
             _programFileProvider = programFileProvider;
-            _includePublicFunctions = includePublicFunctions;
+            _includePublicFunctions = includePublicFunctions = false;    // this is a flag that the context determination logic sets if public functions should eventually be included in the set
             _contextString = contextStr;
 
             List<MemberResult> members = new List<MemberResult>();
@@ -2811,7 +2811,9 @@ namespace VSGenero.Analysis.Parsing.AST
                 // TODO: do we want to put in the statement keywords?
                 members.AddRange(GetStatementStartKeywords(index));
             }
-            _includePublicFunctions = false;
+
+            includePublicFunctions = _includePublicFunctions;
+            _includePublicFunctions = false;    // reset the flag
             _contextString = null;
             return members;
         }

@@ -38,7 +38,8 @@ namespace VSGenero.EditorExtensions.Intellisense
             {
                 options.IntersectMembers = false;// VSGeneroPackage.Instance.AdvancedOptions4GLPage.IntersectMembers;
                 options.HideAdvancedMembers = VSGeneroPackage.Instance.LangPrefs.HideAdvancedMembers;
-                options.FilterCompletions = false; // VSGeneroPackage.Instance.AdvancedOptions4GLPage.FilterCompletions;
+                // TODO: make this an option
+                options.FilterCompletions = true; // false; // VSGeneroPackage.Instance.AdvancedOptions4GLPage.FilterCompletions;
                 options.SearchMode = FuzzyMatchMode.Default;// VSGeneroPackage.Instance.AdvancedOptions4GLPage.SearchMode;
             }
             return options;
@@ -73,6 +74,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             var options = session.GetOptions();
             var provider = textBuffer.CurrentSnapshot.GetCompletions(span, triggerPoint, options, _provider._PublicFunctionProvider, _provider._DatabaseInfoProvider, _provider._ProgramFileProvider);
             
+            provider.GlyphService = _provider._glyphService;
             var completions = provider.GetCompletions(_provider._glyphService);
 
             if (completions == null || completions.Completions.Count == 0)
