@@ -309,10 +309,22 @@ namespace VSGenero.EditorExtensions.Intellisense
                 }
                 _filteredCompletions.Filter(IsVisible);
 
-                if (_options.DeferredLoadPreCharacters > 0 && text.Length == _options.DeferredLoadPreCharacters)
+                if (_options.DeferredLoadPreCharacters > 0)
                 {
+                    var useText = text;
+                    if(text.Length > _options.DeferredLoadPreCharacters)
+                    {
+                        useText = text.Substring(0, _options.DeferredLoadPreCharacters);
+                        if(_loadedDeferredCompletionSubsets.Contains(useText))
+                            return;
+                    }
+                    else if(text.Length < _options.DeferredLoadPreCharacters)
+                    {
+                        return;
+                    }
+                    
                     // check to see if the deferred load has been done already
-                    if (_deferredLoadCallback != null && !_loadedDeferredCompletionSubsets.Contains(text))
+                    if (_deferredLoadCallback != null && !_loadedDeferredCompletionSubsets.Contains(useText))
                     {
                         _loadedDeferredCompletionSubsets.Add(text);
                         var completions = await Task.Factory.StartNew<IList<DynamicallyVisibleCompletion>>(() => _deferredLoadCallback(text).ToList());
