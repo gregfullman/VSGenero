@@ -364,27 +364,47 @@ namespace VSGenero.EditorExtensions.Intellisense
             bool isUnique = true;
             bool allowSelect = true;
 
-            // Using the Completions property to only search through visible
-            // completions.
-            foreach (var comp in Completions)
+            if (!string.IsNullOrWhiteSpace(text))
             {
-                int value = _comparer.GetSortKey(comp.DisplayText, text);
-                if (bestMatch == null || value > bestValue)
+                // Using the Completions property to only search through visible
+                // completions.
+                foreach (var comp in Completions)
                 {
-                    bestMatch = comp;
-                    bestValue = value;
-                    isUnique = true;
+                    int value = _comparer.GetSortKey(comp.DisplayText, text);
+                    if (bestMatch == null || value > bestValue)
+                    {
+                        bestMatch = comp;
+                        bestValue = value;
+                        isUnique = true;
+                    }
+                    else if (value == bestValue)
+                    {
+                        isUnique = false;
+                    }
                 }
-                else if (value == bestValue)
+            }
+            else
+            {
+                foreach (var comp in Completions)
                 {
-                    isUnique = false;
+                    int temp;
+                    if(IntellisenseExtensions.LastCommittedCompletions.TryGetValue(comp.DisplayText, out temp))
+                    {
+                        if(bestMatch == null || temp > bestValue)
+                        {
+                            bestMatch = comp;
+                            bestValue = temp;
+                            isUnique = true;
+                        }
+                    }
                 }
             }
 
-            if (Moniker == "PythonOverrides")
+            if (bestMatch == null || bestValue == 0)
             {
-                allowSelect = false;
-                isUnique = false;
+                bestMatch = Completions[0];
+                bestValue = 1;
+                isUnique = true;
             }
 
             if (((DynamicallyVisibleCompletion)bestMatch).Visible)

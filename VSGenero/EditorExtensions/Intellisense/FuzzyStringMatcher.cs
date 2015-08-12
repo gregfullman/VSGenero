@@ -211,12 +211,10 @@ namespace VSGenero.EditorExtensions.Intellisense
 
             if (VSGeneroPackage.Instance.IntellisenseOptions4GLPage.PreSelectMRU)
             {
-                var potentiallyMRU = IntellisenseExtensions.LastCommittedCompletions.FirstOrDefault(x =>
-                                                                           x.DisplayText.StartsWith(pattern, StringComparison.OrdinalIgnoreCase) &&
-                                                                           x.DisplayText.Equals(text, StringComparison.OrdinalIgnoreCase));
-                if (potentiallyMRU != null)
+                int mruBonus;
+                if(IntellisenseExtensions.LastCommittedCompletions.TryGetValue(text, out mruBonus))
                 {
-                    increment += LAST_USED_BONUS;
+                    increment += LAST_USED_BONUS + mruBonus;
                 }
             }
 

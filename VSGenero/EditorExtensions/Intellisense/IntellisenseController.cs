@@ -593,14 +593,16 @@ namespace VSGenero.EditorExtensions.Intellisense
                     {
                         // find the new completion in the list of MRU completions. If found, move it to the front.
                         // If not found, add it.
-                        var firstMRU = IntellisenseExtensions.LastCommittedCompletions.FirstOrDefault(x => x.DisplayText == _activeSession.SelectedCompletionSet.SelectionStatus.Completion.DisplayText);
-                        if (firstMRU != null)
+                        string complText = _activeSession.SelectedCompletionSet.ApplicableTo.GetText(_activeSession.TextView.TextBuffer.CurrentSnapshot);
+                        // TODO: will have to see how the size of this affects performance...might need to cull out old entries (do we need to consider max int size?)
+                        if(IntellisenseExtensions.LastCommittedCompletions.ContainsKey(complText))
                         {
-                            var indexOfMRU = IntellisenseExtensions.LastCommittedCompletions.IndexOf(firstMRU);
-                            IntellisenseExtensions.LastCommittedCompletions.RemoveAt(indexOfMRU);
+                            IntellisenseExtensions.LastCommittedCompletions[complText] = IntellisenseExtensions.LastCommittedCompletions.Count;
                         }
-                        IntellisenseExtensions.LastCommittedCompletions.Insert(0, _activeSession.SelectedCompletionSet.SelectionStatus.Completion);
-
+                        else
+                        {
+                            IntellisenseExtensions.LastCommittedCompletions.Add(complText, IntellisenseExtensions.LastCommittedCompletions.Count + 1);
+                        }
                         if (_parentSpan == null)
                         {
                             _parentSpan = GetCompletionParentSpan();
@@ -1150,20 +1152,27 @@ namespace VSGenero.EditorExtensions.Intellisense
 
         private void InsertCodeExpansion(MSXML.IXMLDOMNode customSnippet, int startLine, int startColumn, int endLine, int endColumn)
         {
-            // Insert the selected code snippet and start an expansion session
-            IVsTextLines buffer;
-            _vsTextView.GetBuffer(out buffer);
+            try
+            {
+                    // Insert the selected code snippet and start an expansion session
+                IVsTextLines buffer;
+                _vsTextView.GetBuffer(out buffer);
 
-            // Get the IVsExpansion from the current IVsTextLines
-            IVsExpansion vsExpansion = (IVsExpansion)buffer;
+                // Get the IVsExpansion from the current IVsTextLines
+                IVsExpansion vsExpansion = (IVsExpansion)buffer;
 
-            vsExpansion.InsertSpecificExpansion(
-                customSnippet,
-                new TextSpan { iStartIndex = startColumn, iEndIndex = endColumn, iEndLine = endLine, iStartLine = startLine },
-                _expansionClient,
-                VSGeneroConstants.guidGenero4glLanguageServiceGuid,
-                null,
-                out _expansionSession);
+                vsExpansion.InsertSpecificExpansion(
+                    customSnippet,
+                    new TextSpan { iStartIndex = startColumn, iEndIndex = endColumn, iEndLine = endLine, iStartLine = startLine },
+                    _expansionClient,
+                    VSGeneroConstants.guidGenero4glLanguageServiceGuid,
+                    null,
+                    out _expansionSession);
+            }
+            catch(Exception e)
+            {
+                // TODO: report the error?
+            }
         }
 
         #endregion

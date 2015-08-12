@@ -30,13 +30,13 @@ namespace VSGenero.EditorExtensions.Intellisense
     public static class IntellisenseExtensions
     {
         // This list holds MRU completions for pre-selection of auto-complete list.
-        private static List<Completion> _lastCommittedCompletions;
-        public static List<Completion> LastCommittedCompletions
+        private static Dictionary<string, int> _lastCommittedCompletions;
+        public static Dictionary<string, int> LastCommittedCompletions
         {
             get
             {
                 if (_lastCommittedCompletions == null)
-                    _lastCommittedCompletions = new List<Completion>();
+                    _lastCommittedCompletions = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
                 return _lastCommittedCompletions;
             }
         }
