@@ -36,7 +36,8 @@ namespace VSGenero.EditorExtensions.Intellisense
     enum TaskLevel
     {
         Syntax,
-        Semantics
+        Semantics,
+        Comment
     }
 
     class TaskProviderItem

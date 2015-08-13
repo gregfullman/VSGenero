@@ -146,12 +146,15 @@ namespace VSGenero.Analysis.Parsing
 
             var options = parserOptions ?? ParserOptions.Default;
 
-            Tokenizer tokenizer = new Tokenizer(options.ErrorSink, (options.Verbatim ? TokenizerOptions.Verbatim : TokenizerOptions.None) | TokenizerOptions.GroupingRecovery);
+            Parser result = null;
+            Tokenizer tokenizer = new Tokenizer(options.ErrorSink, 
+                                                (options.Verbatim ? TokenizerOptions.Verbatim : TokenizerOptions.None) | TokenizerOptions.GroupingRecovery,
+                                                (span, text) => options.RaiseProcessComment(result, new CommentEventArgs(span, text)));
 
             tokenizer.Initialize(null, reader, SourceLocation.MinValue);
             tokenizer.IndentationInconsistencySeverity = options.IndentationInconsistencySeverity;
 
-            Parser result = new Parser(tokenizer,
+            result = new Parser(tokenizer,
                 options.ErrorSink ?? ErrorSink.Null,
                 options.Verbatim,
                 options.BindReferences,

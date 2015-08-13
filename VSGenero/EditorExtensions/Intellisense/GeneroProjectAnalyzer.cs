@@ -110,7 +110,7 @@ namespace VSGenero.EditorExtensions.Intellisense
 
         // Internal for tests
         private ErrorTaskProvider _errorProvider;
-        //private CommentTaskProvider _commentTaskProvider;
+        private CommentTaskProvider _commentTaskProvider;
 
         private readonly IServiceProvider _serviceProvider;
 
@@ -120,7 +120,7 @@ namespace VSGenero.EditorExtensions.Intellisense
         {
             _serviceProvider = serviceProvider;
             _errorProvider = (ErrorTaskProvider)serviceProvider.GetService(typeof(ErrorTaskProvider));
-            //_commentTaskProvider = (CommentTaskProvider)serviceProvider.GetService(typeof(CommentTaskProvider));
+            _commentTaskProvider = (CommentTaskProvider)serviceProvider.GetService(typeof(CommentTaskProvider));
 
             _queue = new ParseQueue(this);
             _analysisQueue = new AnalysisQueue(this);
@@ -162,7 +162,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             {
                 _errorProvider.ClearErrorSource(bufferParser._currentProjEntry, ParserTaskMoniker);
                 //_errorProvider.ClearErrorSource(bufferParser._currentProjEntry, UnresolvedImportMoniker);
-                //_commentTaskProvider.ClearErrorSource(bufferParser._currentProjEntry, ParserTaskMoniker);
+                _commentTaskProvider.ClearErrorSource(bufferParser._currentProjEntry, ParserTaskMoniker);
                 //_unresolvedSquiggles.StopListening(bufferParser._currentProjEntry as IPythonProjectEntry);
 
                 var projEntry = CreateProjectEntry(buffers[0], new SnapshotCookie(buffers[0].CurrentSnapshot));
@@ -214,13 +214,13 @@ namespace VSGenero.EditorExtensions.Intellisense
         public void ConnectErrorList(IProjectEntry projEntry, ITextBuffer buffer)
         {
             _errorProvider.AddBufferForErrorSource(projEntry, ParserTaskMoniker, buffer);
-            //_commentTaskProvider.AddBufferForErrorSource(projEntry, ParserTaskMoniker, buffer);
+            _commentTaskProvider.AddBufferForErrorSource(projEntry, ParserTaskMoniker, buffer);
         }
 
         public void DisconnectErrorList(IProjectEntry projEntry, ITextBuffer buffer)
         {
             _errorProvider.RemoveBufferForErrorSource(projEntry, ParserTaskMoniker, buffer);
-            //_commentTaskProvider.RemoveBufferForErrorSource(projEntry, ParserTaskMoniker, buffer);
+            _commentTaskProvider.RemoveBufferForErrorSource(projEntry, ParserTaskMoniker, buffer);
         }
 
         internal void SwitchAnalyzers(GeneroProjectAnalyzer oldAnalyzer)
@@ -320,6 +320,9 @@ namespace VSGenero.EditorExtensions.Intellisense
                                     // remove the file from the error list
                                     _errorProvider.Clear(dirPath, ParserTaskMoniker);
                                     _errorProvider.ClearErrorSource(dirPath);
+
+                                    _commentTaskProvider.Clear(dirPath, ParserTaskMoniker);
+                                    _commentTaskProvider.ClearErrorSource(dirPath);
                                 }
                             }
                         }
@@ -1071,7 +1074,8 @@ namespace VSGenero.EditorExtensions.Intellisense
             {
                 GeneroAst ast;
                 CollectingErrorSink errorSink;
-                ParseGeneroCode(content, indentationSeverity, pyEntry, out ast, out errorSink);
+                List<TaskProviderItem> commentTasks;
+                ParseGeneroCode(snapshot, content, indentationSeverity, pyEntry, out ast, out errorSink, out commentTasks);
 
                 if (ast != null)
                 {
@@ -1083,7 +1087,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                     pyEntry.UpdateTree(null, null);
                 }
 
-                UpdateErrorsAndWarnings(projectEntry, snapshot, errorSink, TaskLevel.Syntax);
+                UpdateErrorsAndWarnings(projectEntry, snapshot, errorSink, TaskLevel.Syntax, commentTasks);
 
                 if (ast != null)
                 {
@@ -1096,37 +1100,6 @@ namespace VSGenero.EditorExtensions.Intellisense
                     if (unanalyzed.Count > 0)
                     {
                         _waitingErrorCheckers.Enqueue(pyEntry);
-                        //// postpone error checking until the unanalyzed entries are analyzed
-                        //lock (_pendingWaitingLock)
-                        //{
-                        //    // set up a map of the unanalyzed project entry to the dependent entry for which we're doing error checking.
-                        //    // When there are no more unanalyzed project entries for the dependent entry, we can do the error checking.
-                        //    foreach (var item in unanalyzed)
-                        //    {
-                        //        lock (item)
-                        //        {
-                        //            if (_waitingToPendingMap.ContainsKey(pyEntry))
-                        //            {
-                        //                _waitingToPendingMap[pyEntry].Add(item);
-                        //            }
-                        //            else
-                        //            {
-                        //                _waitingToPendingMap.Add(pyEntry, new HashSet<IGeneroProjectEntry> { item });
-                        //            }
-
-                        //            if (_pendingToWaitingMap.ContainsKey(item))
-                        //            {
-                        //                _pendingToWaitingMap[item].Add(pyEntry);
-                        //            }
-                        //            else
-                        //            {
-                        //                _pendingToWaitingMap.Add(item, new List<IGeneroProjectEntry> { pyEntry });
-                        //                // and register for the event (no need to register for the event if the item is already in the pendingToWaiting map
-                        //                item.OnNewAnalysis += item_OnNewAnalysis;
-                        //            }
-                        //        }
-                        //    }
-                        //}
                     }
                     else
                     {
@@ -1149,8 +1122,9 @@ namespace VSGenero.EditorExtensions.Intellisense
                 {
                     GeneroAst ast;
                     CollectingErrorSink errorSink;
+                    List<TaskProviderItem> commentTasks;
                     var reader = new SnapshotSpanSourceCodeReader(new SnapshotSpan(snapshot, new Span(0, snapshot.Length)));
-                    ParseGeneroCode(reader, indentationSeverity, pyProjEntry, out ast, out errorSink);
+                    ParseGeneroCode(snapshot, reader, indentationSeverity, pyProjEntry, out ast, out errorSink, out commentTasks);
 
                     if (ast != null)
                     {
@@ -1162,7 +1136,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                         //}
                     }
 
-                    UpdateErrorsAndWarnings(analysis, snapshot, errorSink, TaskLevel.Syntax);
+                    UpdateErrorsAndWarnings(analysis, snapshot, errorSink, TaskLevel.Syntax, commentTasks);
                 }
             }
 
@@ -1194,37 +1168,6 @@ namespace VSGenero.EditorExtensions.Intellisense
                 if (unanalyzed.Count > 0)
                 {
                     _waitingErrorCheckers.Enqueue(pyProjEntry);
-                    //// postpone error checking until the unanalyzed entries are analyzed
-                    //lock (_pendingWaitingLock)
-                    //{
-                    //    // set up a map of the unanalyzed project entry to the dependent entry for which we're doing error checking.
-                    //    // When there are no more unanalyzed project entries for the dependent entry, we can do the error checking.
-                    //    foreach (var item in unanalyzed)
-                    //    {
-                    //        lock (item)
-                    //        {
-                    //            if (_waitingToPendingMap.ContainsKey(pyProjEntry))
-                    //            {
-                    //                _waitingToPendingMap[pyProjEntry].Add(item);
-                    //            }
-                    //            else
-                    //            {
-                    //                _waitingToPendingMap.Add(pyProjEntry, new HashSet<IGeneroProjectEntry> { item });
-                    //            }
-
-                    //            if (_pendingToWaitingMap.ContainsKey(item))
-                    //            {
-                    //                _pendingToWaitingMap[item].Add(pyProjEntry);
-                    //            }
-                    //            else
-                    //            {
-                    //                _pendingToWaitingMap.Add(item, new List<IGeneroProjectEntry> { pyProjEntry });
-                    //                // and register for the event (no need to register for the event if the item is already in the pendingToWaiting map
-                    //                item.OnNewAnalysis += item_OnNewAnalysis;
-                    //            }
-                    //        }
-                    //    }
-                    //}
                 }
                 else
                 {
@@ -1297,62 +1240,38 @@ namespace VSGenero.EditorExtensions.Intellisense
             }
         }
 
-        //void item_OnNewAnalysis(object sender, EventArgs e)
-        //{
-        //    lock (_pendingWaitingLock)
-        //    {
-        //        IGeneroProjectEntry pendingItem = sender as IGeneroProjectEntry;
-        //        List<IGeneroProjectEntry> waitingItems;
-        //        if (_pendingToWaitingMap.TryGetValue(pendingItem, out waitingItems))
-        //        {
-        //            lock (pendingItem)
-        //            {
-        //                foreach (var waiting in waitingItems.ToArray())
-        //                {
-        //                    // remove pendingItem from the waiting item's pending items
-        //                    if (_waitingToPendingMap.ContainsKey(waiting))
-        //                    {
-        //                        if (_waitingToPendingMap[waiting].Contains(pendingItem))
-        //                        {
-        //                            _waitingToPendingMap[waiting].Remove(pendingItem);
-        //                        }
-
-        //                        if (_waitingToPendingMap[waiting].Count == 0)
-        //                        {
-        //                            // the waiting item is no longer waiting for any other pending items
-        //                            // so we can trigger the error checking
-
-                                    
-        //                            // TODO: do this on a thread
-        //                            CheckForErrors(waiting);
-
-        //                            waitingItems.Remove(waiting);
-        //                        }
-        //                    }
-        //                }
-
-        //                if (waitingItems.Count == 0)
-        //                {
-        //                    // the pending item has no more items awaiting it.
-        //                    // so we can unregister from this item's event
-        //                    pendingItem.OnNewAnalysis -= item_OnNewAnalysis;
-        //                    _pendingToWaitingMap.Remove(pendingItem);
-        //                }
-        //            }
-        //        }
-        //    }
-        //}
-
-        //private Dictionary<IGeneroProjectEntry, HashSet<IGeneroProjectEntry>> _waitingToPendingMap = new Dictionary<IGeneroProjectEntry, HashSet<IGeneroProjectEntry>>();
-        //private Dictionary<IGeneroProjectEntry, List<IGeneroProjectEntry>> _pendingToWaitingMap = new Dictionary<IGeneroProjectEntry, List<IGeneroProjectEntry>>();
-        //private object _pendingWaitingLock = new object();
-
+        // Tokenizer callback. Extracts comment tasks (like "TODO" or "HACK") from comments.
+        private void ProcessComment(List<TaskProviderItem> commentTasks, ITextSnapshot snapshot, SourceSpan span, string text)
+        {
+            if (text.Length > 0)
+            {
+                var tokens = _commentTaskProvider.Tokens;
+                if (tokens != null)
+                {
+                    foreach (var kv in tokens)
+                    {
+                        var index = text.IndexOf(kv.Key, StringComparison.OrdinalIgnoreCase);
+                        if (index >= 0)
+                        {
+                            // now check to see if the characters before or after the match are letters. If so, it's not a match
+                            if ((index > 0 && char.IsLetter(text[index - 1])) ||
+                                ((index + kv.Key.Length) < text.Length - 1 && char.IsLetter(text[index + kv.Key.Length])))
+                            {
+                                continue;
+                            }
+                            commentTasks.Add(new TaskProviderItem(_serviceProvider, text.Substring(1).Trim(), span, kv.Value, VSTASKCATEGORY.CAT_COMMENTS, false, snapshot, TaskLevel.Comment));
+                        }
+                    }
+                }
+            }
+        }
 
         private void UpdateErrorsAndWarnings(
             IProjectEntry entry,
             ITextSnapshot snapshot,
             CollectingErrorSink errorSink,
-            TaskLevel level
+            TaskLevel level,
+            List<TaskProviderItem> commentTasks = null
         )
         {
             // Update the warn-on-launch state for this entry
@@ -1387,6 +1306,19 @@ namespace VSGenero.EditorExtensions.Intellisense
             {
                 _errorProvider.Clear(entry, ParserTaskMoniker);
             }
+
+            // Update comment tasks.
+            if (commentTasks != null)
+            {
+                if (commentTasks.Count != 0)
+                {
+                    _commentTaskProvider.ReplaceItems(entry, ParserTaskMoniker, commentTasks, TaskLevel.Comment);
+                }
+                else
+                {
+                    _commentTaskProvider.Clear(entry, ParserTaskMoniker);
+                }
+            }
         }
 
         internal void ClearParserTasks(IProjectEntry entry)
@@ -1394,7 +1326,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             if (entry != null)
             {
                 _errorProvider.Clear(entry, ParserTaskMoniker);
-                //_commentTaskProvider.Clear(entry, ParserTaskMoniker);
+                _commentTaskProvider.Clear(entry, ParserTaskMoniker);
                 //_unresolvedSquiggles.StopListening(entry as IPythonProjectEntry);
 
                 bool removed = false;
@@ -1412,7 +1344,7 @@ namespace VSGenero.EditorExtensions.Intellisense
         internal void ClearAllTasks()
         {
             _errorProvider.ClearAll();
-            //_commentTaskProvider.ClearAll();
+            _commentTaskProvider.ClearAll();
 
             lock (_hasParseErrorsLock)
             {
@@ -1440,25 +1372,44 @@ namespace VSGenero.EditorExtensions.Intellisense
         internal event EventHandler<EntryEventArgs> ShouldWarnOnLaunchChanged;
 
 
-        private void ParseGeneroCode(Stream content, Severity indentationSeverity, IProjectEntry entry, out GeneroAst ast, out CollectingErrorSink errorSink)
+        private void ParseGeneroCode(ITextSnapshot snapshot, Stream content, Severity indentationSeverity, IProjectEntry entry, out GeneroAst ast, out CollectingErrorSink errorSink, out List<TaskProviderItem> commentTasks)
         {
             ast = null;
             errorSink = new CollectingErrorSink();
+            var tasks = commentTasks = new List<TaskProviderItem>();
 
-            using (var parser = Parser.CreateParser(content,
-                                                    new ParserOptions() { Verbatim = true, ErrorSink = errorSink, IndentationInconsistencySeverity = indentationSeverity, BindReferences = true },
-                                                    entry))
+            var options = new ParserOptions()
+            {
+                Verbatim = true,
+                ErrorSink = errorSink,
+                IndentationInconsistencySeverity = indentationSeverity,
+                BindReferences = true
+            };
+            options.ProcessComment += (sender, e) => ProcessComment(tasks, snapshot, e.Span, e.Text);
+
+
+            using (var parser = Parser.CreateParser(content, options, entry))
             {
                 ast = ParseOneFile(ast, parser);
             }
         }
 
-        private void ParseGeneroCode(TextReader content, Severity indentationSeverity, IProjectEntry entry, out GeneroAst ast, out CollectingErrorSink errorSink)
+        private void ParseGeneroCode(ITextSnapshot snapshot, TextReader content, Severity indentationSeverity, IProjectEntry entry, out GeneroAst ast, out CollectingErrorSink errorSink, out List<TaskProviderItem> commentTasks)
         {
             ast = null;
             errorSink = new CollectingErrorSink();
+            var tasks = commentTasks = new List<TaskProviderItem>();
 
-            using (var parser = Parser.CreateParser(content, new ParserOptions() { Verbatim = true, ErrorSink = errorSink, IndentationInconsistencySeverity = indentationSeverity, BindReferences = true }, entry))
+            var options = new ParserOptions() 
+            { 
+                Verbatim = true, 
+                ErrorSink = errorSink, 
+                IndentationInconsistencySeverity = indentationSeverity, 
+                BindReferences = true 
+            };
+            options.ProcessComment += (sender, e) => ProcessComment(tasks, snapshot, e.Span, e.Text);
+
+            using (var parser = Parser.CreateParser(content, options, entry))
             {
                 ast = ParseOneFile(ast, parser);
             }
@@ -1763,7 +1714,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                 {
                     _errorProvider.Clear(entry, ParserTaskMoniker);
                     //_errorProvider.Clear(entry, UnresolvedImportMoniker);
-                    //_commentTaskProvider.Clear(entry, ParserTaskMoniker);
+                    _commentTaskProvider.Clear(entry, ParserTaskMoniker);
                 }
 
                 // TODO: dispose of error providers for referenced projects

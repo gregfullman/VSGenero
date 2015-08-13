@@ -38,7 +38,8 @@ namespace VSGenero.Analysis.Parsing
         private bool _multiEolns;
         private int _position, _end, _tokenEnd, _start, _tokenStartIndex, _tokenEndIndex;
         private bool _bufferResized;
-        private TokenizerOptions _options;
+        private TokenizerOptions _options; 
+        private readonly Action<SourceSpan, string> _commentProcessor;
 
         private const int EOF = -1;
         private const int MaxIndent = 80;
@@ -61,9 +62,14 @@ namespace VSGenero.Analysis.Parsing
         }
 
         public Tokenizer(ErrorSink errorSink = null, TokenizerOptions options = TokenizerOptions.None)
+            : this(errorSink, options, null)
+        {
+        }
+
+        public Tokenizer(ErrorSink errorSink, TokenizerOptions options, Action<SourceSpan, string> commentProcessor)
         {
             errorSink = errorSink ?? ErrorSink.Null;
-
+            _commentProcessor = commentProcessor;
             _errors = errorSink;
             _state = new State(options);
             _printFunction = false;
@@ -901,11 +907,26 @@ namespace VSGenero.Analysis.Parsing
             return ch;
         }
 
+        private void ProcessComment()
+        {
+            if (_commentProcessor != null)
+            {
+                var tokenSpan = TokenSpan;
+                if (tokenSpan.Length > 0)
+                {
+                    var span = new SourceSpan(IndexToLocation(tokenSpan.Start), IndexToLocation(tokenSpan.End));
+                    var text = GetTokenString();
+                    _commentProcessor(span, text);
+                }
+            }
+        }
+
         private int SkipSingleLineComment()
         {
             // do single-line comment:
             int ch = ReadLine();
             MarkTokenEnd();
+            ProcessComment();
 
             // discard token '# ...':
             DiscardToken();
@@ -919,6 +940,7 @@ namespace VSGenero.Analysis.Parsing
             // do single-line comment:
             ch = ReadLine();
             MarkTokenEnd();
+            ProcessComment();
 
             return new CommentToken(GetTokenString());
         }

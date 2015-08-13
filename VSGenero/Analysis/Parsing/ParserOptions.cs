@@ -46,5 +46,30 @@ namespace VSGenero.Analysis.Parsing
         /// </summary>
         public string PrivatePrefix { get; set; }
 
+        /// <summary>
+        /// An event that is raised for every comment in the source as it is parsed.
+        /// </summary>
+        public event EventHandler<CommentEventArgs> ProcessComment;
+
+        internal void RaiseProcessComment(object sender, CommentEventArgs e)
+        {
+            var handler = ProcessComment;
+            if (handler != null)
+            {
+                handler(sender, e);
+            }
+        }
+    }
+
+    public class CommentEventArgs : EventArgs
+    {
+        public SourceSpan Span { get; private set; }
+        public string Text { get; private set; }
+
+        public CommentEventArgs(SourceSpan span, string text)
+        {
+            Span = span;
+            Text = text;
+        }
     }
 }
