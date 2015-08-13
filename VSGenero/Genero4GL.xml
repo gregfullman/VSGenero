@@ -1470,6 +1470,7 @@
             <Methods>
               <Method name="create" desc="Create a DomNode from a structured program variable." scope="static">
                 <Parameters>
+                  <Parameter name="variable" type="object"/>
                 </Parameters>
                 <Returns>
                   <Return name="result" type="om.DomNode"/>
@@ -5183,9 +5184,9 @@
               </Method>
               <Method name="toString" desc="Returns a string representation of a DomNode object.">
                 <Parameters>
-                  <Parameter name="str" type="string"/>
                 </Parameters>
                 <Returns>
+                  <Return name="str" type="string"/>
                 </Returns>
               </Method>
               <Method name="hasAttribute" desc="Checks whether an XML Element DomNode object has the XML Attribute specified by a specified name.">

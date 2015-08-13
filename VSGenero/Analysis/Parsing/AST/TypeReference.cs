@@ -8,7 +8,7 @@
  *
  * You must not remove this notice, or any other, from this software.
  *
- * ***************************************************************************/ 
+ * ***************************************************************************/
 
 using Microsoft.VisualStudio.Text;
 using System;
@@ -38,13 +38,29 @@ namespace VSGenero.Analysis.Parsing.AST
         public bool IsPublic { get { return _isPublic; } }
 
         private string _typeNameString;
+        private string _dbTypeNameString;
+        private bool _isConstrainedType;
         public string DatabaseName { get; private set; }
         public string TableName { get; private set; }
         public string ColumnName { get; private set; }
 
+        public IAnalysisResult ResolvedType { get; private set; }
+
         public bool CanGetValueFromDebugger
         {
             get { return false; }
+        }
+
+        public bool IsRecord
+        {
+            get
+            {
+                if(Children.Count == 1 && Children[Children.Keys[0]] is RecordDefinitionNode)
+                {
+                    return true;
+                }
+                return false;
+            }
         }
 
         /// <summary>
@@ -82,13 +98,13 @@ namespace VSGenero.Analysis.Parsing.AST
                     // 1) Look up the type from a database provider
                     // 2) Just list the mimicking "table.column"
                     // For right now, we'll go with #2
-                    if (string.IsNullOrWhiteSpace(_typeNameString) && VSGeneroPackage.Instance != null && VSGeneroPackage.Instance.GlobalDatabaseProvider != null)
+                    if (string.IsNullOrWhiteSpace(_dbTypeNameString) && VSGeneroPackage.Instance != null && VSGeneroPackage.Instance.GlobalDatabaseProvider != null)
                     {
-                        _typeNameString = VSGeneroPackage.Instance.GlobalDatabaseProvider.GetColumnType(TableName, ColumnName);
+                        _dbTypeNameString = VSGeneroPackage.Instance.GlobalDatabaseProvider.GetColumnType(TableName, ColumnName);
                     }
                     sb.AppendFormat("like {0}.{1}", TableName, ColumnName);
-                    if (!string.IsNullOrWhiteSpace(_typeNameString))
-                        sb.AppendFormat(" ({0})", _typeNameString);
+                    if (!string.IsNullOrWhiteSpace(_dbTypeNameString))
+                        sb.AppendFormat(" ({0})", _dbTypeNameString);
                 }
                 else
                 {
@@ -154,7 +170,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     parser.NextToken(); // advance to the table name
                     defNode.TableName = parser.Token.Token.Value.ToString();
                     parser.NextToken(); // advance to the dot
-                    if(parser.Token.Token.Kind == TokenKind.Dot)
+                    if (parser.Token.Token.Kind == TokenKind.Dot)
                     {
                         if (parser.PeekToken(TokenKind.Multiply) ||
                             parser.PeekToken(TokenCategory.Identifier) ||
@@ -204,6 +220,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     if (TypeConstraints.VerifyValidConstraint(parser, out typeString))
                     {
                         defNode._typeNameString = typeString;
+                        defNode._isConstrainedType = true;
                     }
                     else
                     {
@@ -276,24 +293,24 @@ namespace VSGenero.Analysis.Parsing.AST
             {
                 // try to get the function from the class
                 int firstParen = name.IndexOf('(');
-                if(firstParen > 0)
+                if (firstParen > 0)
                 {
                     name = name.Substring(0, firstParen);
                 }
             }
             //else
             //{
-                if (!string.IsNullOrWhiteSpace(TableName))
-                {
-                    // TODO: get the specified column from the database provider
-                    return null;
-                }
-                else
-                {
-                    MemberType memType = Analysis.MemberType.All;
-                    // TODO: there's probably a better way to do this
-                    return GetAnalysisMembers(ast, memType, out definingProject, out projEntry).Where(x => x.Name.Equals(name, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
-                }
+            if (!string.IsNullOrWhiteSpace(TableName))
+            {
+                // TODO: get the specified column from the database provider
+                return null;
+            }
+            else
+            {
+                MemberType memType = Analysis.MemberType.All;
+                // TODO: there's probably a better way to do this
+                return GetAnalysisMembers(ast, memType, out definingProject, out projEntry).Where(x => x.Name.Equals(name, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+            }
             //}
         }
 
@@ -334,13 +351,13 @@ namespace VSGenero.Analysis.Parsing.AST
                     {
                         return udt.GetMembers(ast, memberType).Select(x => x.Var).Where(y => y != null);
                     }
-                    
-                    foreach(var includedFile in ast.ProjectEntry.GetIncludedFiles())
+
+                    foreach (var includedFile in ast.ProjectEntry.GetIncludedFiles())
                     {
-                        if(includedFile.Analysis != null)
+                        if (includedFile.Analysis != null)
                         {
                             var res = includedFile.Analysis.GetValueByIndex(_typeNameString, 1, null, null, null, false, out definingProject, out projectEntry);
-                            if(res != null)
+                            if (res != null)
                             {
                                 return res.GetMembers(ast, memberType).Select(x => x.Var).Where(y => y != null);
                             }
@@ -348,15 +365,15 @@ namespace VSGenero.Analysis.Parsing.AST
                     }
 
                     // try to get the _typeNameString from types available in imported modules
-                    if(ast.ProjectEntry.ParentProject.ReferencedProjects.Count > 0)
+                    if (ast.ProjectEntry.ParentProject.ReferencedProjects.Count > 0)
                     {
-                        foreach(var refProj in ast.ProjectEntry.ParentProject.ReferencedProjects.Values)
+                        foreach (var refProj in ast.ProjectEntry.ParentProject.ReferencedProjects.Values)
                         {
-                            if(refProj is GeneroProject)
+                            if (refProj is GeneroProject)
                             {
                                 IProjectEntry dummyProj;
                                 udt = (refProj as GeneroProject).GetMemberOfType(_typeNameString, ast, false, true, false, false, out dummyProj);
-                                if(udt != null)
+                                if (udt != null)
                                 {
                                     definingProject = refProj;
                                     projectEntry = dummyProj;
@@ -523,7 +540,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         IGeneroProject dummyProj;
                         IProjectEntry projEntry;
                         udt = ast.GetValueByIndex(_typeNameString, LocationIndex, ast._functionProvider, ast._databaseProvider, ast._programFileProvider, false, out dummyProj, out projEntry);
-                        if(udt != null)
+                        if (udt != null)
                         {
                             return udt.HasChildFunctions(ast);
                         }
@@ -541,6 +558,49 @@ namespace VSGenero.Analysis.Parsing.AST
         public string Typename
         {
             get { return null; }
+        }
+
+        public override void CheckForErrors(GeneroAst ast, Action<string, int, int> errorFunc, Dictionary<string, List<int>> deferredFunctionSearches, GeneroAst.FunctionProviderSearchMode searchInFunctionProvider = GeneroAst.FunctionProviderSearchMode.NoSearch, bool isFunctionCallOrDefinition = false)
+        {
+            if (Children.Count > 0)
+            {
+                base.CheckForErrors(ast, errorFunc, deferredFunctionSearches, searchInFunctionProvider, isFunctionCallOrDefinition);
+            }
+            else if (!string.IsNullOrWhiteSpace(DatabaseName) ||
+                     !string.IsNullOrWhiteSpace(TableName) ||
+                     !string.IsNullOrWhiteSpace(ColumnName))
+            {
+                // TODO: do deferred checking of these
+            }
+            else if(!_isConstrainedType)
+            {
+                // see if the _typeNameString is a base type
+                var tok = Tokens.GetToken(_typeNameString);
+                if(tok == null || !GeneroAst.BuiltinTypes.Contains(tok.Kind))
+                {
+                    // if it's not a base type, look up the type
+                    IGeneroProject dummyProj;
+                    IProjectEntry dummyProjEntry;
+                    bool isDeferred;
+                    var res = GeneroAst.GetValueByIndex(_typeNameString, StartIndex, ast, out dummyProj, out dummyProjEntry, out isDeferred);
+                    if(res == null)
+                    {
+                        errorFunc(string.Format("Type {0} not found.", _typeNameString), StartIndex, EndIndex);
+                    }
+                    else
+                    {
+                        if(res is GeneroPackageClass ||
+                           res is TypeDefinitionNode)
+                        {
+                            ResolvedType = res;
+                        }
+                        else
+                        {
+                            errorFunc(string.Format("Invalid type {0} found.", _typeNameString), StartIndex, EndIndex);
+                        }
+                    }
+                }
+            }
         }
     }
 }

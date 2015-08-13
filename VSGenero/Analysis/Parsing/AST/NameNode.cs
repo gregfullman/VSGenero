@@ -93,6 +93,8 @@ namespace VSGenero.Analysis.Parsing.AST
             return null;
         }
 
+        public IAnalysisResult ResolvedResult { get; private set; }
+
         public override void CheckForErrors(GeneroAst ast, Action<string, int, int> errorFunc,
                                             Dictionary<string, List<int>> deferredFunctionSearches,
                                             GeneroAst.FunctionProviderSearchMode searchInFunctionProvider = GeneroAst.FunctionProviderSearchMode.NoSearch, 
@@ -105,7 +107,20 @@ namespace VSGenero.Analysis.Parsing.AST
             if (searchInFunctionProvider != GeneroAst.FunctionProviderSearchMode.NoSearch ||
                 isFunctionCallOrDefinition)
             {
-                searchStr = Name;
+                StringBuilder sb = new StringBuilder(searchStr);
+                foreach(var child in Children.Values)
+                {
+                    if (child is ArrayIndexNameExpressionPiece)
+                        sb.Append(child.ToString());
+                    else if(child is MemberAccessNameExpressionPiece)
+                    {
+                        if ((child as MemberAccessNameExpressionPiece).Text != ".*")
+                            sb.Append(child.ToString());
+                        else
+                            break;
+                    }
+                }
+                searchStr = sb.ToString();
             }
             bool isDeferred;
             var res = GeneroAst.GetValueByIndex(searchStr, StartIndex, ast, out proj, out projEntry, out isDeferred, searchInFunctionProvider, isFunctionCallOrDefinition);
@@ -122,6 +137,10 @@ namespace VSGenero.Analysis.Parsing.AST
                 {
                     errorFunc(string.Format("No definition found for {0}", searchStr), StartIndex, StartIndex + searchStr.Length);
                 }
+            }
+            else
+            {
+                ResolvedResult = res;
             }
 
             base.CheckForErrors(ast, errorFunc, deferredFunctionSearches, searchInFunctionProvider, isFunctionCallOrDefinition);
@@ -215,11 +234,11 @@ namespace VSGenero.Analysis.Parsing.AST
 
     public class MemberAccessNameExpressionPiece : AstNode
     {
-        private string _text;
+        public string Text { get; private set; }
 
         public override string ToString()
         {
-            return _text;
+            return Text;
         }
 
         public static bool TryParse(IParser parser, out MemberAccessNameExpressionPiece node)
@@ -239,7 +258,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 if(parser.PeekToken(TokenKind.Multiply) || parser.PeekToken(TokenCategory.Identifier) || parser.PeekToken(TokenCategory.Keyword))
                 {
                     sb.Append(parser.NextToken().Value.ToString());
-                    node._text = sb.ToString();
+                    node.Text = sb.ToString();
                     node.EndIndex = parser.Token.Span.End;
                     node.IsComplete = true;
                 }

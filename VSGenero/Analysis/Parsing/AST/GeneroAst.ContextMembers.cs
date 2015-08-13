@@ -673,13 +673,14 @@ namespace VSGenero.Analysis.Parsing.AST
             TokenKind.SqlKeyword
         };
 
-        private static TokenKind[] BuiltinTypes = new TokenKind[]
+        public static HashSet<TokenKind> BuiltinTypes = new HashSet<TokenKind>
         {
             TokenKind.CharKeyword,
             TokenKind.CharacterKeyword,
             TokenKind.VarcharKeyword,
             TokenKind.StringKeyword,
             TokenKind.DatetimeKeyword,
+            TokenKind.DateKeyword,
             TokenKind.IntervalKeyword,
             TokenKind.BigintKeyword,
             TokenKind.IntegerKeyword,

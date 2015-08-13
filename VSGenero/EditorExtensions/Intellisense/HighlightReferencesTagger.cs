@@ -115,49 +115,53 @@ namespace VSGenero.EditorExtensions.Intellisense
 
         private void AnalyzeExpression(CaretPosition position)
         {
-            var vars = buffer.CurrentSnapshot.AnalyzeExpression(
-                position.CreateTrackingSpan(buffer),
-                false,
-                _provider._PublicFunctionProvider,
-                _provider._DatabaseInfoProvider,
-                _provider._ProgramFileProvider
-            );
-
-            if (String.IsNullOrWhiteSpace(vars.Expression))
+            var trackingSpan = position.CreateTrackingSpan(buffer);
+            if (trackingSpan != null)
             {
-                Clear();
-                return;
-            }
+                var vars = buffer.CurrentSnapshot.AnalyzeExpression(
+                    trackingSpan,
+                    false,
+                    _provider._PublicFunctionProvider,
+                    _provider._DatabaseInfoProvider,
+                    _provider._ProgramFileProvider
+                );
 
-            if (vars.Value != null && vars.Variables != null)
-            {
-                IProjectEntry currProj = buffer.GetAnalysis();
-                if (currProj != null)
+                if (String.IsNullOrWhiteSpace(vars.Expression))
                 {
-                    var references = vars.Variables
-                                         .Where(x =>
-                                             {
-                                                 if (x.Location != null)
-                                                 {
-                                                     if ((x.Location.ProjectEntry != null && x.Location.ProjectEntry != currProj) ||
-                                                        (!string.IsNullOrWhiteSpace(x.Location.FilePath) && !x.Location.FilePath.Equals(currProj.FilePath, StringComparison.OrdinalIgnoreCase)))
-                                                     {
-                                                         return false;
-                                                     }
-                                                 }
-                                                 return true;
-                                             })
-                                         .Select(x => new IndexSpan(x.Location.Index, vars.Value.Name.Length));
-                    if (references != null)
+                    Clear();
+                    return;
+                }
+
+                if (vars.Value != null && vars.Variables != null)
+                {
+                    IProjectEntry currProj = buffer.GetAnalysis();
+                    if (currProj != null)
                     {
-                        ITextSnapshot currentSnapshot = this.buffer.CurrentSnapshot;
-                        NormalizedSnapshotSpanCollection spans = new NormalizedSnapshotSpanCollection(references.Select(x => x.ToSnapshotSpan(currentSnapshot)));
-                        if (this.highlightReferencesSpans != spans)
+                        var references = vars.Variables
+                                             .Where(x =>
+                                                 {
+                                                     if (x.Location != null)
+                                                     {
+                                                         if ((x.Location.ProjectEntry != null && x.Location.ProjectEntry != currProj) ||
+                                                            (!string.IsNullOrWhiteSpace(x.Location.FilePath) && !x.Location.FilePath.Equals(currProj.FilePath, StringComparison.OrdinalIgnoreCase)))
+                                                         {
+                                                             return false;
+                                                         }
+                                                     }
+                                                     return true;
+                                                 })
+                                             .Select(x => new IndexSpan(x.Location.Index, vars.Value.Name.Length));
+                        if (references != null)
                         {
-                            this.highlightReferencesSpans = spans;
-                            this.FireTagsChangedEvent();
+                            ITextSnapshot currentSnapshot = this.buffer.CurrentSnapshot;
+                            NormalizedSnapshotSpanCollection spans = new NormalizedSnapshotSpanCollection(references.Select(x => x.ToSnapshotSpan(currentSnapshot)));
+                            if (this.highlightReferencesSpans != spans)
+                            {
+                                this.highlightReferencesSpans = spans;
+                                this.FireTagsChangedEvent();
+                            }
+                            return;
                         }
-                        return;
                     }
                 }
             }

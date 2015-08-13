@@ -8,7 +8,7 @@
  *
  * You must not remove this notice, or any other, from this software.
  *
- * ***************************************************************************/ 
+ * ***************************************************************************/
 
 using System;
 using System.Collections.Generic;
@@ -47,7 +47,7 @@ namespace VSGenero.Analysis.Parsing.AST
             StringBuilder sb = new StringBuilder(GetStringForm());
 
             int index = 0;
-            while(index < AppendedExpressions.Count)
+            while (index < AppendedExpressions.Count)
             {
                 sb.Append(' ');
                 sb.Append(AppendedExpressions[index]);
@@ -113,7 +113,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 else if (parser.PeekToken(TokenKind.LeftBracket))
                 {
                     BracketWrappedExpressionNode brackNode;
-                    if(BracketWrappedExpressionNode.TryParseNode(parser, out brackNode))
+                    if (BracketWrappedExpressionNode.TryParseNode(parser, out brackNode))
                     {
                         if (node == null)
                             node = brackNode;
@@ -168,7 +168,7 @@ namespace VSGenero.Analysis.Parsing.AST
                             node.AppendExpression(new TokenExpressionNode(parser.Token));
                     }
                 }
-                else if(parser.PeekToken(TokenKind.IntervalKeyword))
+                else if (parser.PeekToken(TokenKind.IntervalKeyword))
                 {
                     parser.NextToken();
                     TokenExpressionNode intervalNode = new TokenExpressionNode(parser.Token);
@@ -180,7 +180,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     {
                         parser.NextToken();
                         node.AppendExpression(new TokenExpressionNode(parser.Token));
-                        while(!parser.PeekToken(TokenKind.EndOfFile))
+                        while (!parser.PeekToken(TokenKind.EndOfFile))
                         {
                             parser.NextToken();
                             node.AppendExpression(new TokenExpressionNode(parser.Token));
@@ -197,7 +197,7 @@ namespace VSGenero.Analysis.Parsing.AST
                             parser.ReportSyntaxError("Invalid interval expression found.");
                     }
                 }
-                else if(parser.PeekToken(TokenKind.SelectKeyword) && options.AllowNestedSelectStatement)
+                else if (parser.PeekToken(TokenKind.SelectKeyword) && options.AllowNestedSelectStatement)
                 {
                     FglStatement selStmt;
                     bool dummy;
@@ -220,9 +220,9 @@ namespace VSGenero.Analysis.Parsing.AST
                         options.AdditionalExpressionParsers != null)
                     {
                         ExpressionNode parsedExpr;
-                        foreach(var exprParser in options.AdditionalExpressionParsers)
+                        foreach (var exprParser in options.AdditionalExpressionParsers)
                         {
-                            if((parsedExpr = exprParser(parser)) != null)
+                            if ((parsedExpr = exprParser(parser)) != null)
                             {
                                 result = true;
                                 if (node == null)
@@ -301,7 +301,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     else
                         node.AppendExpression(new TokenExpressionNode(parser.Token));
                 }
-                else if(parser.PeekToken(TokenKind.QuestionMark) && options.AllowQuestionMark)
+                else if (parser.PeekToken(TokenKind.QuestionMark) && options.AllowQuestionMark)
                 {
                     parser.NextToken();
                     if (node == null)
@@ -537,7 +537,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 node.Function = name;
 
                 // get the left paren
-                if(parser.PeekToken(TokenKind.LeftParenthesis))
+                if (parser.PeekToken(TokenKind.LeftParenthesis))
                 {
                     result = true;
                     parser.NextToken();
@@ -564,7 +564,7 @@ namespace VSGenero.Analysis.Parsing.AST
                             parser.ReportSyntaxError("Call statement missing right parenthesis.");
                         }
 
-                        if(parser.PeekToken(TokenKind.Dot))
+                        if (parser.PeekToken(TokenKind.Dot))
                         {
                             parser.NextToken();
                             // get the dotted member access (which could end up being another function call, so this needs to allow recursion)
@@ -623,6 +623,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                 break;
                         }
                     }
+                    node.EndIndex = parser.Token.Span.End;
                 }
                 else
                 {
@@ -664,7 +665,7 @@ namespace VSGenero.Analysis.Parsing.AST
             IProjectEntry dummyProjEntry;
             bool dummy;
             var result = GeneroAst.GetValueByIndex(Function.Name, Function.IndexSpan.Start, ast, out dummyProj, out dummyProjEntry, out dummy, GeneroAst.FunctionProviderSearchMode.Search, true);
-            if(result != null)
+            if (result != null)
             {
                 return result.Typename;
             }
@@ -678,8 +679,13 @@ namespace VSGenero.Analysis.Parsing.AST
             "cast"
         };
 
+        private static HashSet<string> _allowedNonStarRecordParamFunctions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "base.typeinfo.create"
+        };
+
         public override void CheckForErrors(GeneroAst ast, Action<string, int, int> errorFunc,
-                                            Dictionary<string, List<int>> deferredFunctionSearches, 
+                                            Dictionary<string, List<int>> deferredFunctionSearches,
                                             GeneroAst.FunctionProviderSearchMode searchInFunctionProvider = GeneroAst.FunctionProviderSearchMode.NoSearch, bool isFunctionCallOrDefinition = false)
         {
             // 1) Check parameters for errors
@@ -696,17 +702,47 @@ namespace VSGenero.Analysis.Parsing.AST
 
             if (Parameters != null)
             {
+                if (Function != null &&
+                   Function.ResolvedResult != null &&
+                   (Function.ResolvedResult is IFunctionResult))
+                {
+                    var numParams = (Function.ResolvedResult as IFunctionResult).Parameters.Length;
+                    if (Parameters.Count != numParams)
+                    {
+                        errorFunc(string.Format("Unexpected number of parameters ({0}) found, expected {1} variables.", Parameters.Count, numParams), StartIndex, EndIndex);
+                    }
+                }
+
                 foreach (var param in Parameters)
                 {
+                    // TODO: check parameter types against what is supposed to be used.
                     if (param is NameExpression)
                     {
-                        string typeName = (param as NameExpression).GetExpressionType(ast);
-                        if (!string.IsNullOrWhiteSpace(typeName))
+                        var nameParam = param as NameExpression;
+                        nameParam.CheckForErrors(ast, errorFunc, deferredFunctionSearches, GeneroAst.FunctionProviderSearchMode.Deferred);
+                        if (nameParam.ResolvedResult != null)
                         {
-                            if (!typeName.Contains("array") && typeName.Contains("record") && !(param as NameExpression).Name.EndsWith(".*"))
+                            if (nameParam.ResolvedResult is TypeDefinitionNode) // Check for any invalid parameters
                             {
-                                errorFunc("Records must be specified with a '.*' ending when passed as a function parameter.", param.StartIndex, param.EndIndex);
+                                errorFunc("Invalid parameter found.", param.StartIndex, param.EndIndex);
                                 continue;
+                            }
+                            else if (nameParam.ResolvedResult is VariableDef &&
+                                     (nameParam.ResolvedResult as VariableDef).ResolvedType != null &&
+                                     (nameParam.ResolvedResult as VariableDef).ResolvedType is TypeDefinitionNode)
+                            {
+                                var typeDef = (nameParam.ResolvedResult as VariableDef).ResolvedType as TypeDefinitionNode;
+                                if (typeDef.TypeRef != null)
+                                {
+                                    if (typeDef.TypeRef.IsRecord && !(param as NameExpression).Name.EndsWith(".*"))
+                                    {
+                                        if (Function != null && !_allowedNonStarRecordParamFunctions.Contains(Function.Name))
+                                        {
+                                            errorFunc("Records must be specified with a '.*' ending when passed as a function parameter.", param.StartIndex, param.EndIndex);
+                                            continue;
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
@@ -772,7 +808,7 @@ namespace VSGenero.Analysis.Parsing.AST
         {
             StringBuilder sb = new StringBuilder();
             sb.Append("[");
-            for (int i = 0; i < Parameters.Count; i++ )
+            for (int i = 0; i < Parameters.Count; i++)
             {
                 sb.Append(Parameters[i].ToString());
                 if (i + 1 < Parameters.Count)

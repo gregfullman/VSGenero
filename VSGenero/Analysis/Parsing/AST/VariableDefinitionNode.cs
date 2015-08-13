@@ -23,7 +23,8 @@ namespace VSGenero.Analysis.Parsing.AST
     {
         public string Name { get; private set; }
         
-        public TypeReference Type { get; private set; }
+        public TypeReference Type { get; internal set; }
+        public IAnalysisResult ResolvedType { get; internal set; }
         private string _filename;
         private string _oneTimeNamespace;
         private bool _isPublic = false;
@@ -229,6 +230,30 @@ namespace VSGenero.Analysis.Parsing.AST
             }
 
             return result;
+        }
+
+        public override void CheckForErrors(GeneroAst ast, Action<string, int, int> errorFunc, Dictionary<string, List<int>> deferredFunctionSearches, GeneroAst.FunctionProviderSearchMode searchInFunctionProvider = GeneroAst.FunctionProviderSearchMode.NoSearch, bool isFunctionCallOrDefinition = false)
+        {
+            // This will do error checking on the type reference
+            base.CheckForErrors(ast, errorFunc, deferredFunctionSearches, searchInFunctionProvider, isFunctionCallOrDefinition);
+
+            if (VariableDefinitions != null)
+            {
+                if (Children.Count == 1 && 
+                    Children[Children.Keys[0]] is TypeReference)
+                {
+                    var resolvedType = (Children[Children.Keys[0]] as TypeReference).ResolvedType;
+                    if (resolvedType != null)
+                    {
+                        foreach (var vardef in VariableDefinitions)
+                        {
+                            // apply the resolved type definition to the variable
+                            vardef.ResolvedType = resolvedType;
+                        }
+                    }
+                }
+            }
+
         }
     }
 }

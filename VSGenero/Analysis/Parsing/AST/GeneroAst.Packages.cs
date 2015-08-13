@@ -235,6 +235,7 @@ namespace VSGenero.Analysis.Parsing.AST
 	{
 		new GeneroPackageClassMethod("create", "base.TypeInfo", true, "Create a DomNode from a structured program variable.", new List<ParameterResult>
 		{
+			new ParameterResult("variable", "", "object")
 		}, new List<string> {"om.DomNode"})
 	}),
 	new GeneroPackageClass("MessageServer", "base", true, new List<GeneroPackageClassMethod>
@@ -2234,8 +2235,7 @@ namespace VSGenero.Analysis.Parsing.AST
 		}, new List<string> {}),
 		new GeneroPackageClassMethod("toString", "xml.DomNode", false, "Returns a string representation of a DomNode object.", new List<ParameterResult>
 		{
-			new ParameterResult("str", "", "string")
-		}, new List<string> {}),
+		}, new List<string> {"string"}),
 		new GeneroPackageClassMethod("hasAttribute", "xml.DomNode", false, "Checks whether an XML Element DomNode object has the XML Attribute specified by a specified name.", new List<ParameterResult>
 		{
 			new ParameterResult("name", "", "string")

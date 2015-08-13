@@ -419,6 +419,8 @@ namespace VSGenero.EditorExtensions
             //    return session.GetApplicableSpan(buffer);
             //}
 
+            if (position.BufferPosition.Position + 1 > buffer.CurrentSnapshot.Length)
+                return null;
             return buffer.CurrentSnapshot.CreateTrackingSpan(position.BufferPosition.Position, 1, SpanTrackingMode.EdgeInclusive);
         }
 

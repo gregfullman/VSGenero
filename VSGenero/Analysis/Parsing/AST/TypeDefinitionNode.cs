@@ -34,6 +34,18 @@ namespace VSGenero.Analysis.Parsing.AST
         private bool _isPublic;
         public bool IsPublic { get { return _isPublic; } }
 
+        public TypeReference TypeRef
+        {
+            get
+            {
+                if(Children.Count == 1 && Children[Children.Keys[0]] is TypeReference)
+                {
+                    return Children[Children.Keys[0]] as TypeReference;
+                }
+                return null;
+            }
+        }
+
         public bool CanGetValueFromDebugger
         {
             get { return false; }

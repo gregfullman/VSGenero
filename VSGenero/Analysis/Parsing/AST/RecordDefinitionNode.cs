@@ -244,5 +244,21 @@ namespace VSGenero.Analysis.Parsing.AST
         {
             get { return null; }
         }
+
+        public override void CheckForErrors(GeneroAst ast, Action<string, int, int> errorFunc, Dictionary<string, List<int>> deferredFunctionSearches, GeneroAst.FunctionProviderSearchMode searchInFunctionProvider = GeneroAst.FunctionProviderSearchMode.NoSearch, bool isFunctionCallOrDefinition = false)
+        {
+            if(MemberDictionary.Count > 0)
+            {
+                foreach (var recChild in MemberDictionary.Values)
+                    recChild.Type.CheckForErrors(ast, errorFunc, deferredFunctionSearches, searchInFunctionProvider, isFunctionCallOrDefinition);
+            }
+            else
+            {
+                // TODO: check the database and table (deferred?)
+            }
+
+            // we don't store any children off, so this does nothing
+            base.CheckForErrors(ast, errorFunc, deferredFunctionSearches, searchInFunctionProvider, isFunctionCallOrDefinition);
+        }
     }
 }

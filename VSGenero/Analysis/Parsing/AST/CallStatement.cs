@@ -69,6 +69,11 @@ namespace VSGenero.Analysis.Parsing.AST
                                 break;
                             parser.NextToken();
                         }
+
+                        if(node.Returns.Count == 0)
+                        {
+                            parser.ReportSyntaxError("One or more return variables must be specified.");
+                        }
                     }
                     node.EndIndex = parser.Token.Span.End;
                 }
@@ -89,7 +94,26 @@ namespace VSGenero.Analysis.Parsing.AST
             if (Returns != null)
             {
                 foreach (var ret in Returns)
+                {
                     ret.CheckForErrors(ast, errorFunc, deferredFunctionSearches);
+                    if(ret.ResolvedResult != null &&
+                       !(ret.ResolvedResult is VariableDef))
+                    {
+                        errorFunc(string.Format("Return item {0} is not a variable", ret.Name), ret.StartIndex, ret.EndIndex);
+                    }
+                }
+
+                if(Function != null &&
+                   Function.Function != null &&
+                   Function.Function.ResolvedResult != null &&
+                   Function.Function.ResolvedResult is IFunctionResult)
+                {
+                    var numReturns = (Function.Function.ResolvedResult as IFunctionResult).Returns.Length;
+                    if(Returns.Count != numReturns)
+                    {
+                        errorFunc(string.Format("Unexpected number of return variables ({0}) found, expected {1} variables.", Returns.Count, numReturns), StartIndex, EndIndex);
+                    }
+                }
             }
 
             base.CheckForErrors(ast, errorFunc, deferredFunctionSearches);
