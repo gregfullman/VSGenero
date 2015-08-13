@@ -400,11 +400,9 @@ namespace VSGenero.EditorExtensions.Intellisense
                 }
             }
 
-            if (bestMatch == null || bestValue == 0)
+            if (bestMatch == null)
             {
                 bestMatch = Completions[0];
-                bestValue = 1;
-                isUnique = true;
             }
 
             if (((DynamicallyVisibleCompletion)bestMatch).Visible)

@@ -212,13 +212,13 @@ namespace VSGenero.EditorExtensions.Intellisense
             {
                 switch (ch)
                 {
-                    case ' ':
-                        if (VSGeneroPackage.Instance.LangPrefs.SpaceTriggersCompletion &&
-                            VSGeneroPackage.Instance.LangPrefs.AutoListMembers && AreSurroundingCharactersWhitespace(ch, true))
-                        {
-                            TriggerCompletionSession(false);
-                        }
-                        break;
+                    //case ' ':
+                    //    if (VSGeneroPackage.Instance.LangPrefs.SpaceTriggersCompletion &&
+                    //        VSGeneroPackage.Instance.LangPrefs.AutoListMembers && AreSurroundingCharactersWhitespace(ch, true))
+                    //    {
+                    //        TriggerCompletionSession(false);
+                    //    }
+                    //    break;
                     case '.':
                         if (VSGeneroPackage.Instance.LangPrefs.AutoListMembers && AreSurroundingCharactersWhitespace(ch, true))
                         {
