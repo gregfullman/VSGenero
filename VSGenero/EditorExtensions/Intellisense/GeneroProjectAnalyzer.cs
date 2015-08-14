@@ -515,7 +515,9 @@ namespace VSGenero.EditorExtensions.Intellisense
                 var files = QueueDirectoryAnalysis(projectPath);
                 projEntry = proj;
                 foreach (var file in files)
-                    projEntry.ProjectEntries.AddOrUpdate(file, new GeneroProjectEntry(null, file, importer.Cookie, true), (x, y) => y);
+                {
+                    projEntry.ProjectEntries.AddOrUpdate(file, new GeneroProjectEntry(null, file, (importer == null ? null : importer.Cookie), true), (x, y) => y);
+                }
             }
             return projEntry;
         }
