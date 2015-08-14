@@ -51,6 +51,13 @@ namespace VSGenero.Analysis.Parsing.AST
             get { return false; }
         }
 
+        private bool _useResolvedType;
+        public override void SetNamespace(string ns)
+        {
+            // Don't actually set the namespace, but use as a flag to indicate whether we should use the resolved type, if set
+            _useResolvedType = !string.IsNullOrWhiteSpace(ns);
+        }
+
         public bool IsRecord
         {
             get
@@ -108,7 +115,10 @@ namespace VSGenero.Analysis.Parsing.AST
                 }
                 else
                 {
-                    return _typeNameString;
+                    if (_useResolvedType && ResolvedType != null)
+                        return ResolvedType.Name;
+                    else
+                        return _typeNameString;
                 }
 
                 return sb.ToString();
@@ -343,6 +353,14 @@ namespace VSGenero.Analysis.Parsing.AST
                 {
                     return GeneroAst.StringFunctions.Values;
                 }
+                else if(_typeNameString.Equals("text", StringComparison.OrdinalIgnoreCase))
+                {
+                    return GeneroAst.TextFunctions.Values;
+                }
+                else if(_typeNameString.Equals("byte", StringComparison.OrdinalIgnoreCase))
+                {
+                    return GeneroAst.ByteFunctions.Values;
+                }
                 else
                 {
                     // try to determine if the _typeNameString is a user defined type, in which case we need to call its GetMembers function
@@ -452,6 +470,14 @@ namespace VSGenero.Analysis.Parsing.AST
                 {
                     return GeneroAst.StringFunctions.Values.Select(x => new MemberResult(x.Name, x, GeneroMemberType.Method, ast));
                 }
+                else if (_typeNameString.Equals("text", StringComparison.OrdinalIgnoreCase))
+                {
+                    return GeneroAst.TextFunctions.Values.Select(x => new MemberResult(x.Name, x, GeneroMemberType.Method, ast));
+                }
+                else if (_typeNameString.Equals("byte", StringComparison.OrdinalIgnoreCase))
+                {
+                    return GeneroAst.ByteFunctions.Values.Select(x => new MemberResult(x.Name, x, GeneroMemberType.Method, ast));
+                }
                 else
                 {
                     // try to determine if the _typeNameString is a user defined type (or package class), in which case we need to call its GetMembers function
@@ -548,11 +574,6 @@ namespace VSGenero.Analysis.Parsing.AST
                 }
             }
             return false;
-        }
-
-
-        public void SetOneTimeNamespace(string nameSpace)
-        {
         }
 
         public string Typename

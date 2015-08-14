@@ -257,10 +257,15 @@ namespace VSGenero.Analysis.Parsing.AST
 
         public string Name
         {
-            get { return Identifier; }
+            get 
+            {
+                if (!string.IsNullOrWhiteSpace(_namespace))
+                    return string.Format("{0}.{1}", _namespace, Identifier);
+                return Identifier; 
+            }
         }
 
-        private string _oneTimeNamespace;
+        private string _namespace;
 
         public override string Documentation
         {
@@ -270,11 +275,6 @@ namespace VSGenero.Analysis.Parsing.AST
                 if (!string.IsNullOrWhiteSpace(Scope))
                 {
                     sb.AppendFormat("({0}) ", Scope);
-                }
-                if(!string.IsNullOrWhiteSpace(_oneTimeNamespace))
-                {
-                    sb.AppendFormat("{0}.", _oneTimeNamespace);
-                    _oneTimeNamespace = null;
                 }
                 sb.Append(Name);
                 if(!string.IsNullOrWhiteSpace(Typename))
@@ -313,9 +313,9 @@ namespace VSGenero.Analysis.Parsing.AST
         }
 
 
-        public void SetOneTimeNamespace(string nameSpace)
+        public override void SetNamespace(string ns)
         {
-            _oneTimeNamespace = nameSpace;
+            _namespace = ns;
         }
 
         private string _typename;

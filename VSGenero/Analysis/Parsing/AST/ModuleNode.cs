@@ -403,6 +403,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 else if (ReportBlockNode.TryParseNode(parser, out repNode, defNode) && repNode != null)
                 {
                     defNode.Children.Add(repNode.StartIndex, repNode);
+                    
                     repNode.Scope = "report";
                     if (string.IsNullOrWhiteSpace(repNode.Name))
                     {

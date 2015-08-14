@@ -140,6 +140,7 @@ namespace VSGenero.Analysis.Parsing.AST
             }
             else
             {
+                // TODO: need to check array element type
                 ResolvedResult = res;
             }
 

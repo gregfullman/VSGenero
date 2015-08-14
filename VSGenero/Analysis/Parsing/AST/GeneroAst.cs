@@ -287,6 +287,7 @@ namespace VSGenero.Analysis.Parsing.AST
              */
             if (_body is IModuleResult)
             {
+                _body.SetNamespace(null);
                 // check for module vars, types, and constants (and globals defined in this module)
                 IModuleResult mod = _body as IModuleResult;
 
@@ -308,6 +309,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         if (projEntry.Value.Analysis != null &&
                            projEntry.Value.Analysis.Body != null)
                         {
+                            projEntry.Value.Analysis.Body.SetNamespace(null);
                             IModuleResult modRes = projEntry.Value.Analysis.Body as IModuleResult;
                             if (modRes != null)
                             {
@@ -365,7 +367,10 @@ namespace VSGenero.Analysis.Parsing.AST
 
             AstNode containingNode = null;
             if (ast != null)
+            {
                 containingNode = GetContainingNode(ast.Body, index);
+                ast.Body.SetNamespace(null);
+            }
 
             IAnalysisResult res = null;
             int tmpIndex = 0;
@@ -373,6 +378,7 @@ namespace VSGenero.Analysis.Parsing.AST
             bool doSearch = false;
             bool resetStartIndex = false;
             int startIndex = 0, endIndex = 0;
+            bool noEndIndexSet = false;
 
             while (tmpIndex < exprText.Length)
             {
@@ -404,8 +410,13 @@ namespace VSGenero.Analysis.Parsing.AST
                         }
                         break;
                     case '[':
-                        if (bracketDepth == 0)
-                            endIndex = tmpIndex - 1;
+                        if (noEndIndexSet)
+                            noEndIndexSet = false;
+                        else
+                        {
+                            if (bracketDepth == 0)
+                                endIndex = tmpIndex - 1;
+                        }
                         bracketDepth++;
                         tmpIndex++;
                         break;
@@ -414,8 +425,16 @@ namespace VSGenero.Analysis.Parsing.AST
                             bracketDepth--;
                             if (bracketDepth == 0)
                             {
-                                // we have our first 'piece'
-                                doSearch = true;
+                                if(exprText.Length <= tmpIndex + 1 ||
+                                   exprText[tmpIndex+1] != '[')
+                                {
+                                    // we have our first 'piece'
+                                    doSearch = true;
+                                }
+                                else
+                                {
+                                    noEndIndexSet = true;
+                                }
                             }
                             tmpIndex++;
                         }
@@ -457,14 +476,10 @@ namespace VSGenero.Analysis.Parsing.AST
                     if (ast != null)
                     {
                         IAnalysisResult tempRes = res.GetMember(dotPiece, ast, out tempProj, out tempProjEntry);
-                        if (tempProj != null)
-                        {
-                            if (definingProject != tempProj)
-                            {
-                                definingProject = tempProj;
-                                projectEntry = tempProjEntry;
-                            }
-                        }
+                        if (tempProj != null && definingProject != tempProj)
+                            definingProject = tempProj;
+                        if(tempProjEntry != null && projectEntry != tempProjEntry)
+                            projectEntry = tempProjEntry;
                         res = tempRes;
                         if (tempRes == null)
                         {
@@ -582,6 +597,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                 if (projEntry.Value.Analysis != null &&
                                    projEntry.Value.Analysis.Body != null)
                                 {
+                                    projEntry.Value.Analysis.Body.SetNamespace(null);
                                     IModuleResult modRes = projEntry.Value.Analysis.Body as IModuleResult;
                                     if (modRes != null)
                                     {
@@ -826,6 +842,7 @@ namespace VSGenero.Analysis.Parsing.AST
 
             List<IAnalysisVariable> vars = new List<IAnalysisVariable>();
 
+            _body.SetNamespace(null);
             // do a binary search to determine what node we're in
             List<int> keys = _body.Children.Select(x => x.Key).ToList();
             int searchIndex = keys.BinarySearch(index);
@@ -947,6 +964,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         if (projEntry.Value.Analysis != null &&
                            projEntry.Value.Analysis.Body != null)
                         {
+                            projEntry.Value.Analysis.Body.SetNamespace(null);
                             IModuleResult modRes = projEntry.Value.Analysis.Body as IModuleResult;
                             if (modRes != null)
                             {
@@ -1064,6 +1082,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     if (includeFile.Analysis != null &&
                        includeFile.Analysis.Body is IModuleResult)
                     {
+                        includeFile.Analysis.Body.SetNamespace(null);
                         var mod = includeFile.Analysis.Body as IModuleResult;
                         if (mod.Types.TryGetValue(exprText, out res))
                         {

@@ -193,6 +193,7 @@ namespace VSGenero.Navigation
             {
 
                 var moduleNode = _projectEntry.Analysis.Body as ModuleNode;
+                moduleNode.SetNamespace(null);
                 foreach (var node in moduleNode.Children)
                 {
                     if (node.Value is FunctionBlockNode)
@@ -213,6 +214,7 @@ namespace VSGenero.Navigation
                         else if (otherEntry.Analysis != null &&
                                 otherEntry.Analysis.Body is ModuleNode)
                         {
+                            otherEntry.Analysis.Body.SetNamespace(null);
                             var modNode = otherEntry.Analysis.Body as ModuleNode;
                             foreach (var node in modNode.Children)
                             {

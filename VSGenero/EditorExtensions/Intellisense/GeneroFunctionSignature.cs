@@ -54,11 +54,6 @@ namespace VSGenero.EditorExtensions.Intellisense
                 ppContent.AppendFormat("{0} ", overload.Returns[0]);
             }
 
-            if(!string.IsNullOrWhiteSpace(overload.Namespace))
-            {
-                content.AppendFormat("{0}.", overload.Namespace);
-                ppContent.AppendFormat("{0}.", overload.Namespace);
-            }
             content.AppendFormat("{0}(", overload.Name);
             ppContent.AppendFormat("{0}(\n", overload.Name);
             int start = content.Length, ppStart = ppContent.Length;

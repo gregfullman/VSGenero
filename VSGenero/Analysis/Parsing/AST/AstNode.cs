@@ -97,6 +97,11 @@ namespace VSGenero.Analysis.Parsing.AST
             }
         }
 
+        public virtual void SetNamespace(string ns)
+        {
+            foreach (var child in Children.Values)
+                child.SetNamespace(ns);
+        }
         //public string ToCodeString(GeneroAst ast)
         //{
         //    return ToCodeString(ast, CodeFormattingOptions.Default);

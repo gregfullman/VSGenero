@@ -173,6 +173,7 @@ namespace VSGenero.Analysis.Parsing.AST
 
                 int key = keys[searchIndex];
 
+                _body.SetNamespace(null);
                 // TODO: need to handle multiple results of the same name
                 AstNode containingNode = _body.Children[key];
                 if (containingNode != null)
@@ -209,6 +210,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         if (projEntry.Value.Analysis != null &&
                            projEntry.Value.Analysis.Body != null)
                         {
+                            projEntry.Value.Analysis.Body.SetNamespace(null);
                             IModuleResult modRes = projEntry.Value.Analysis.Body as IModuleResult;
                             if (modRes != null)
                             {
@@ -261,6 +263,7 @@ namespace VSGenero.Analysis.Parsing.AST
             // do a binary search to determine what node we're in
             if (_body.Children.Count > 0)
             {
+                _body.SetNamespace(null);
                 List<int> keys = _body.Children.Select(x => x.Key).ToList();
                 int searchIndex = keys.BinarySearch(index);
                 if (searchIndex < 0)
@@ -367,6 +370,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         if (projEntry.Value.Analysis != null &&
                            projEntry.Value.Analysis.Body != null)
                         {
+                            projEntry.Value.Analysis.Body.SetNamespace(null);
                             IModuleResult modRes = projEntry.Value.Analysis.Body as IModuleResult;
                             if (modRes != null)
                             {
@@ -713,6 +717,7 @@ namespace VSGenero.Analysis.Parsing.AST
             // do a binary search to determine what node we're in
             if (_body.Children.Count > 0)
             {
+                _body.SetNamespace(null);
                 List<int> keys = _body.Children.Select(x => x.Key).ToList();
                 int searchIndex = keys.BinarySearch(index);
                 if (searchIndex < 0)
@@ -767,6 +772,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                 if (projEntry.Value.Analysis != null &&
                                    projEntry.Value.Analysis.Body != null)
                                 {
+                                    projEntry.Value.Analysis.Body.SetNamespace(null);
                                     IModuleResult modRes = projEntry.Value.Analysis.Body as IModuleResult;
                                     if (modRes != null)
                                     {

@@ -45,6 +45,15 @@ namespace VSGeneroUnitTesting.Utilities
             return _document.XPathSelectElements(path, _nsManager);
         }
 
+        private Dictionary<string, Tuple<string, string>> _contextFunctionsMap = new Dictionary<string, Tuple<string, string>>(StringComparer.OrdinalIgnoreCase)
+        {
+            { "system", new Tuple<string, string>("_systemFunctions", "null") },
+            { "array", new Tuple<string, string>("_arrayFunctions", "\"Array\"") },
+            { "string", new Tuple<string, string>("_stringFunctions", "\"String\"") },
+            { "byte", new Tuple<string, string>("_byteFunctions", "\"Byte\"") },
+            { "text", new Tuple<string, string>("_textFunctions", "\"Text\"") },
+        };
+
         [TestMethod]
         public void GenerateFunctions()
         {
@@ -52,27 +61,11 @@ namespace VSGeneroUnitTesting.Utilities
             foreach (var element in GetElementsAtPath("//gns:Genero4GL/gns:Parsing/gns:Functions/gns:Context"))
             {
                 string context = (string)element.Attribute("name");
-                switch(context)
+                Tuple<string, string> mapping;
+                if(_contextFunctionsMap.TryGetValue(context, out mapping))
                 {
-                    case "system":
-                        {
-                            GenerateSystemFunctions(element, sb);
-                        }
-                        break;
-                    case "array":
-                        {
-                            GenerateArrayFunctions(element, sb);
-                        }
-                        break;
-                    case "string":
-                        {
-                            GenerateStringFunctions(element, sb);
-                        }
-                        break;
-                    default:
-                        break;
+                    GenerateContextFunctions(mapping.Item1, mapping.Item2, element, sb);
                 }
-
             }
 
             // write the string to a file
@@ -82,11 +75,11 @@ namespace VSGeneroUnitTesting.Utilities
             }
         }
 
-        private void GenerateSystemFunctions(XElement element, StringBuilder sb)
+        private void GenerateContextFunctions(string collectionName, string contextName, XElement element, StringBuilder sb)
         {
             foreach (var contextMethod in element.XPathSelectElements("gns:Function", _nsManager))
             {
-                sb.AppendFormat("_systemFunctions.Add(\"{0}\", new BuiltinFunction(\"{0}\", null, new List<ParameterResult>\n{{", (string)contextMethod.Attribute("name"));
+                sb.AppendFormat("{1}.Add(\"{0}\", new BuiltinFunction(\"{0}\", {2}, new List<ParameterResult>\n{{", (string)contextMethod.Attribute("name"), collectionName, contextName);
                 foreach (var paramElement in contextMethod.XPathSelectElement("gns:Parameters", _nsManager)
                                                           .XPathSelectElements("gns:Parameter", _nsManager))
                 {
@@ -102,45 +95,65 @@ namespace VSGeneroUnitTesting.Utilities
             }
         }
 
-        private void GenerateArrayFunctions(XElement element, StringBuilder sb)
-        {
-            foreach (var contextMethod in element.XPathSelectElements("gns:Function", _nsManager))
-            {
-                sb.AppendFormat("_arrayFunctions.Add(\"{0}\", new BuiltinFunction(\"{0}\", \"Array\", new List<ParameterResult>\n{{", (string)contextMethod.Attribute("name"));
-                foreach (var paramElement in contextMethod.XPathSelectElement("gns:Parameters", _nsManager)
-                                                          .XPathSelectElements("gns:Parameter", _nsManager))
-                {
-                    sb.AppendFormat("new ParameterResult(\"{0}\", \"\", \"{1}\"),\n", (string)paramElement.Attribute("name"), (string)paramElement.Attribute("type"));
-                }
-                sb.AppendFormat("}}, new List<string> {{");
-                foreach (var returnElement in contextMethod.XPathSelectElement("gns:Returns", _nsManager)
-                                                           .XPathSelectElements("gns:Return", _nsManager))
-                {
-                    sb.AppendFormat("\"{0}\", ", (string)returnElement.Attribute("type"));
-                }
-                sb.AppendFormat("}},\n\"{0}\"));\n", (string)contextMethod.Attribute("description"));
-            }
-        }
+        //private void GenerateSystemFunctions(XElement element, StringBuilder sb)
+        //{
+        //    foreach (var contextMethod in element.XPathSelectElements("gns:Function", _nsManager))
+        //    {
+        //        sb.AppendFormat("_systemFunctions.Add(\"{0}\", new BuiltinFunction(\"{0}\", null, new List<ParameterResult>\n{{", (string)contextMethod.Attribute("name"));
+        //        foreach (var paramElement in contextMethod.XPathSelectElement("gns:Parameters", _nsManager)
+        //                                                  .XPathSelectElements("gns:Parameter", _nsManager))
+        //        {
+        //            sb.AppendFormat("new ParameterResult(\"{0}\", \"\", \"{1}\"),\n", (string)paramElement.Attribute("name"), (string)paramElement.Attribute("type"));
+        //        }
+        //        sb.AppendFormat("}}, new List<string> {{");
+        //        foreach (var returnElement in contextMethod.XPathSelectElement("gns:Returns", _nsManager)
+        //                                                   .XPathSelectElements("gns:Return", _nsManager))
+        //        {
+        //            sb.AppendFormat("\"{0}\", ", (string)returnElement.Attribute("type"));
+        //        }
+        //        sb.AppendFormat("}},\n\"{0}\"));\n", (string)contextMethod.Attribute("description"));
+        //    }
+        //}
 
-        private void GenerateStringFunctions(XElement element, StringBuilder sb)
-        {
-            foreach (var contextMethod in element.XPathSelectElements("gns:Function", _nsManager))
-            {
-                sb.AppendFormat("_stringFunctions.Add(\"{0}\", new BuiltinFunction(\"{0}\", \"String\", new List<ParameterResult>\n{{", (string)contextMethod.Attribute("name"));
-                foreach (var paramElement in contextMethod.XPathSelectElement("gns:Parameters", _nsManager)
-                                                          .XPathSelectElements("gns:Parameter", _nsManager))
-                {
-                    sb.AppendFormat("new ParameterResult(\"{0}\", \"\", \"{1}\"),\n", (string)paramElement.Attribute("name"), (string)paramElement.Attribute("type"));
-                }
-                sb.AppendFormat("}}, new List<string> {{");
-                foreach (var returnElement in contextMethod.XPathSelectElement("gns:Returns", _nsManager)
-                                                           .XPathSelectElements("gns:Return", _nsManager))
-                {
-                    sb.AppendFormat("\"{0}\", ", (string)returnElement.Attribute("type"));
-                }
-                sb.AppendFormat("}},\n\"{0}\"));\n", (string)contextMethod.Attribute("description"));
-            }
-        }
+        //private void GenerateArrayFunctions(XElement element, StringBuilder sb)
+        //{
+        //    foreach (var contextMethod in element.XPathSelectElements("gns:Function", _nsManager))
+        //    {
+        //        sb.AppendFormat("_arrayFunctions.Add(\"{0}\", new BuiltinFunction(\"{0}\", \"Array\", new List<ParameterResult>\n{{", (string)contextMethod.Attribute("name"));
+        //        foreach (var paramElement in contextMethod.XPathSelectElement("gns:Parameters", _nsManager)
+        //                                                  .XPathSelectElements("gns:Parameter", _nsManager))
+        //        {
+        //            sb.AppendFormat("new ParameterResult(\"{0}\", \"\", \"{1}\"),\n", (string)paramElement.Attribute("name"), (string)paramElement.Attribute("type"));
+        //        }
+        //        sb.AppendFormat("}}, new List<string> {{");
+        //        foreach (var returnElement in contextMethod.XPathSelectElement("gns:Returns", _nsManager)
+        //                                                   .XPathSelectElements("gns:Return", _nsManager))
+        //        {
+        //            sb.AppendFormat("\"{0}\", ", (string)returnElement.Attribute("type"));
+        //        }
+        //        sb.AppendFormat("}},\n\"{0}\"));\n", (string)contextMethod.Attribute("description"));
+        //    }
+        //}
+
+        //private void GenerateStringFunctions(XElement element, StringBuilder sb)
+        //{
+        //    foreach (var contextMethod in element.XPathSelectElements("gns:Function", _nsManager))
+        //    {
+        //        sb.AppendFormat("_stringFunctions.Add(\"{0}\", new BuiltinFunction(\"{0}\", \"String\", new List<ParameterResult>\n{{", (string)contextMethod.Attribute("name"));
+        //        foreach (var paramElement in contextMethod.XPathSelectElement("gns:Parameters", _nsManager)
+        //                                                  .XPathSelectElements("gns:Parameter", _nsManager))
+        //        {
+        //            sb.AppendFormat("new ParameterResult(\"{0}\", \"\", \"{1}\"),\n", (string)paramElement.Attribute("name"), (string)paramElement.Attribute("type"));
+        //        }
+        //        sb.AppendFormat("}}, new List<string> {{");
+        //        foreach (var returnElement in contextMethod.XPathSelectElement("gns:Returns", _nsManager)
+        //                                                   .XPathSelectElements("gns:Return", _nsManager))
+        //        {
+        //            sb.AppendFormat("\"{0}\", ", (string)returnElement.Attribute("type"));
+        //        }
+        //        sb.AppendFormat("}},\n\"{0}\"));\n", (string)contextMethod.Attribute("description"));
+        //    }
+        //}
 
         [TestMethod]
         public void GeneratePackages()

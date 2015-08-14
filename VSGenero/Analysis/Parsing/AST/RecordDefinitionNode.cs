@@ -234,12 +234,6 @@ namespace VSGenero.Analysis.Parsing.AST
             return MemberDictionary.Values.Any(x => x.Type.HasChildFunctions(ast));
         }
 
-
-        public void SetOneTimeNamespace(string nameSpace)
-        {
-        }
-
-
         public string Typename
         {
             get { return null; }

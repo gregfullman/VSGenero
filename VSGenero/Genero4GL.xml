@@ -532,6 +532,42 @@
           </Returns>
         </Function>
       </Context>
+      <Context name="byte">
+        <Function name="readFile" description="Reads data from a file and copies into memory or to the file used by the variables according to the LOCATE statement issued on the object.">
+          <Parameters>
+            <Parameter name="fileName" type="string"/>
+          </Parameters>
+          <Returns></Returns>
+        </Function>
+        <Function name="writeFile" description="Writes data from the variable (memory or source file) to the destination file passed as parameter. The file is created if it does not exist.">
+          <Parameters>
+            <Parameter name="fileName" type="string"/>
+          </Parameters>
+          <Returns></Returns>
+        </Function>
+      </Context>
+      <Context name="text">
+        <Function name="getLength" description="Returns the size of the text in bytes.">
+          <Parameters></Parameters>
+          <Returns>
+            <Return name="result" type="integer"/>
+          </Returns>
+        </Function>
+        <Function name="readFile" description="Reads data from a file and copies into memory or to the file used by the variables according to the LOCATE statement issued on the object.">
+          <Parameters>
+            <Parameter name="filename" type="string"/>
+          </Parameters>
+          <Returns>
+          </Returns>
+        </Function>
+        <Function name="writeFile" description="Writes data from the variable (memory or source file) to the destination file passed as parameter. The file is created if it does not exist.">
+          <Parameters>
+            <Parameter name="filename" type="string"/>
+          </Parameters>
+          <Returns>
+          </Returns>
+        </Function>
+      </Context>
       <Context name="system">
         <Function name="arg_val" description="Returns a command line argument by position.">
           <Parameters>
@@ -5045,9 +5081,9 @@
               </Method>
               <Method name="addNextSibling" desc="Adds a DomNode object as the next sibling of a DomNode object.">
                 <Parameters>
+                  <Parameter name="node" type="xml.DomNode"/>
                 </Parameters>
                 <Returns>
-                  <Return name="node" type="xml.DomNode"/>
                 </Returns>
               </Method>
               <Method name="prependChild" desc="Adds a child DomNode object to the beginning of the child list for a DomNode object.">
@@ -5059,9 +5095,9 @@
               </Method>
               <Method name="appendChild" desc="Adds a child DomNode object to the end of the child list for a DomNode object">
                 <Parameters>
+                  <Parameter name="node" type="xml.DomNode"/>
                 </Parameters>
                 <Returns>
-                  <Return name="node" type="xml.DomNode"/>
                 </Returns>
               </Method>
               <Method name="insertBeforeChild" desc="Inserts a DomNode object before an existing child DomNode object.">

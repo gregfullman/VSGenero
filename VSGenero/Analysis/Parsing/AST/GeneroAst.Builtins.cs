@@ -22,6 +22,7 @@ namespace VSGenero.Analysis.Parsing.AST
     public partial class GeneroAst
     {
         internal static VariableDef DialogVariable = new VariableDef("Dialog", new TypeReference("ui.Dialog"), -1);
+        internal static VariableDef PagenoVariable = new VariableDef("pageno", new TypeReference("integer"), -1);
 
         private static bool _builtinsInitialized = false;
         private static object _builtinsInitLock = new object();
@@ -144,6 +145,28 @@ namespace VSGenero.Analysis.Parsing.AST
             }
         }
 
+        private static Dictionary<string, IFunctionResult> _byteFunctions;
+        public static IDictionary<string, IFunctionResult> ByteFunctions
+        {
+            get
+            {
+                if (_byteFunctions == null)
+                    InitializeBuiltins();
+                return _byteFunctions;
+            }
+        }
+
+        private static Dictionary<string, IFunctionResult> _textFunctions;
+        public static IDictionary<string, IFunctionResult> TextFunctions
+        {
+            get
+            {
+                if (_textFunctions == null)
+                    InitializeBuiltins();
+                return _textFunctions;
+            }
+        }
+
         private static void InitializeBuiltins()
         {
             lock (_builtinsInitLock)
@@ -153,6 +176,8 @@ namespace VSGenero.Analysis.Parsing.AST
                     _arrayFunctions = new Dictionary<string, IFunctionResult>(StringComparer.OrdinalIgnoreCase);
                     _systemFunctions = new Dictionary<string, IFunctionResult>(StringComparer.OrdinalIgnoreCase);
                     _stringFunctions = new Dictionary<string, IFunctionResult>(StringComparer.OrdinalIgnoreCase);
+                    _byteFunctions = new Dictionary<string, IFunctionResult>(StringComparer.OrdinalIgnoreCase);
+                    _textFunctions = new Dictionary<string, IFunctionResult>(StringComparer.OrdinalIgnoreCase);
 
                     _systemFunctions.Add("ascii", new BuiltinFunction("ascii", null, new List<ParameterResult> 
                     {
@@ -276,6 +301,24 @@ new ParameterResult("epos", "", "integer"),
                     "Removes white space characters from the beginning of the current string. Returns NULL if the string is null."));
                     _stringFunctions.Add("trimRight", new BuiltinFunction("trimRight", "String", new List<ParameterResult> { }, new List<string> { "string", },
                     "Removes white space characters from the end of the current string. Returns NULL if the string is null."));
+                    _byteFunctions.Add("readFile", new BuiltinFunction("readFile", "Byte", new List<ParameterResult>
+{new ParameterResult("fileName", "", "string"),
+}, new List<string> { },
+                    "Reads data from a file and copies into memory or to the file used by the variables according to the LOCATE statement issued on the object."));
+                    _byteFunctions.Add("writeFile", new BuiltinFunction("writeFile", "Byte", new List<ParameterResult>
+{new ParameterResult("fileName", "", "string"),
+}, new List<string> { },
+                    "Writes data from the variable (memory or source file) to the destination file passed as parameter. The file is created if it does not exist."));
+                    _textFunctions.Add("getLength", new BuiltinFunction("getLength", "Text", new List<ParameterResult> { }, new List<string> { "integer", },
+                    "Returns the size of the text in bytes."));
+                    _textFunctions.Add("readFile", new BuiltinFunction("readFile", "Text", new List<ParameterResult>
+{new ParameterResult("filename", "", "string"),
+}, new List<string> { },
+                    "Reads data from a file and copies into memory or to the file used by the variables according to the LOCATE statement issued on the object."));
+                    _textFunctions.Add("writeFile", new BuiltinFunction("writeFile", "Text", new List<ParameterResult>
+{new ParameterResult("filename", "", "string"),
+}, new List<string> { },
+                    "Writes data from the variable (memory or source file) to the destination file passed as parameter. The file is created if it does not exist."));
                     _systemFunctions.Add("arg_val", new BuiltinFunction("arg_val", null, new List<ParameterResult>
 {new ParameterResult("position", "", "integer"),
 }, new List<string> { "string", },
@@ -510,7 +553,6 @@ new ParameterResult("width", "", "integer"),
 {new ParameterResult("source", "", "string"),
 }, new List<string> { "string", },
                     "Converts a string to uppercase."));
-
                     #endregion
                     _builtinsInitialized = true;
                 }
@@ -622,11 +664,6 @@ new ParameterResult("width", "", "integer"),
             return false;
         }
 
-
-        public void SetOneTimeNamespace(string nameSpace)
-        {
-        }
-
         public string Typename
         {
             get { return _typeName; }
@@ -714,11 +751,6 @@ new ParameterResult("width", "", "integer"),
         public IEnumerable<MemberResult> GetMembers(GeneroAst ast, MemberType memberType)
         {
             return null;
-        }
-
-
-        public void SetOneTimeNamespace(string nameSpace)
-        {
         }
 
         public string Typename
@@ -810,11 +842,6 @@ new ParameterResult("width", "", "integer"),
             return false;
         }
 
-
-        public void SetOneTimeNamespace(string nameSpace)
-        {
-        }
-
         public string Typename
         {
             get { return _typeName; }
@@ -895,8 +922,6 @@ new ParameterResult("width", "", "integer"),
                 return _name;
             }
         }
-
-        public string Namespace { get { return _namespace; } }
 
         public string Documentation
         {
@@ -1045,11 +1070,6 @@ new ParameterResult("width", "", "integer"),
             }
         }
 
-
-        public void SetOneTimeNamespace(string nameSpace)
-        {
-        }
-
         public string Typename
         {
             get 
@@ -1153,11 +1173,6 @@ new ParameterResult("width", "", "integer"),
         public bool HasChildFunctions(GeneroAst ast)
         {
             return false;
-        }
-
-
-        public void SetOneTimeNamespace(string nameSpace)
-        {
         }
 
         public string Typename

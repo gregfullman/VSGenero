@@ -483,8 +483,9 @@ namespace VSGenero.Analysis
         internal IAnalysisResult GetMemberOfType(string name, GeneroAst ast, bool vars, bool types, bool consts, bool funcs, out IProjectEntry definingProjEntry)
         {
             string projNamespace = string.Format("{0}", this.Name);
-            if (name.StartsWith(projNamespace, StringComparison.OrdinalIgnoreCase))
-                name = name.Substring(projNamespace.Length);
+            string tempStart = string.Format("{0}.", projNamespace);
+            if (name.StartsWith(tempStart, StringComparison.OrdinalIgnoreCase))
+                name = name.Substring(tempStart.Length);
 
             definingProjEntry = null;
             IAnalysisResult res = null;
@@ -493,6 +494,7 @@ namespace VSGenero.Analysis
                 if (projEntry.Value.Analysis != null &&
                    projEntry.Value.Analysis.Body != null)
                 {
+                    projEntry.Value.Analysis.Body.SetNamespace(projNamespace);
                     IModuleResult modRes = projEntry.Value.Analysis.Body as IModuleResult;
                     if (modRes != null)
                     {
@@ -529,8 +531,6 @@ namespace VSGenero.Analysis
                     }
                 }
             }
-            if(res != null)
-                res.SetOneTimeNamespace(projNamespace);
             return res;
         }
 
@@ -553,58 +553,31 @@ namespace VSGenero.Analysis
                 if (projEntry.Value.Analysis != null &&
                    projEntry.Value.Analysis.Body != null)
                 {
+                    projEntry.Value.Analysis.Body.SetNamespace(projNamespace);
                     IModuleResult modRes = projEntry.Value.Analysis.Body as IModuleResult;
                     if (modRes != null)
                     {
                         if (memberType.HasFlag(MemberType.Variables))
                         {
-                            members.AddRange(modRes.GlobalVariables.Select(x =>
-                                {
-                                    x.Value.SetOneTimeNamespace(projNamespace);
-                                    return new MemberResult(x.Key, x.Value, GeneroMemberType.Variable, ast);
-                                }));
-                            members.AddRange(modRes.Variables.Where(x => x.Value.IsPublic).Select(x =>
-                            {
-                                x.Value.SetOneTimeNamespace(projNamespace);
-                                return new MemberResult(x.Key, x.Value, GeneroMemberType.Variable, ast);
-                            }));
+                            members.AddRange(modRes.GlobalVariables.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Variable, ast)));
+                            members.AddRange(modRes.Variables.Where(x => x.Value.IsPublic).Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Variable, ast)));
                         }
 
                         if (memberType.HasFlag(MemberType.Types))
                         {
-                            members.AddRange(modRes.GlobalTypes.Select(x =>
-                            {
-                                x.Value.SetOneTimeNamespace(projNamespace);
-                                return new MemberResult(x.Key, x.Value, GeneroMemberType.Class, ast);
-                            }));
-                            members.AddRange(modRes.Types.Where(x => x.Value.IsPublic).Select(x =>
-                            {
-                                x.Value.SetOneTimeNamespace(projNamespace);
-                                return new MemberResult(x.Key, x.Value, GeneroMemberType.Class, ast);
-                            }));
+                            members.AddRange(modRes.GlobalTypes.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Class, ast)));
+                            members.AddRange(modRes.Types.Where(x => x.Value.IsPublic).Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Class, ast)));
                         }
 
                         if (memberType.HasFlag(MemberType.Constants))
                         {
-                            members.AddRange(modRes.GlobalConstants.Select(x =>
-                            {
-                                x.Value.SetOneTimeNamespace(projNamespace);
-                                return new MemberResult(x.Key, x.Value, GeneroMemberType.Constant, ast);
-                            }));
-                            members.AddRange(modRes.Constants.Where(x => x.Value.IsPublic).Select(x =>
-                            {
-                                x.Value.SetOneTimeNamespace(projNamespace);
-                                return new MemberResult(x.Key, x.Value, GeneroMemberType.Constant, ast);
-                            }));
+                            members.AddRange(modRes.GlobalConstants.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Constant, ast)));
+                            members.AddRange(modRes.Constants.Where(x => x.Value.IsPublic).Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Constant, ast)));
                         }
 
                         if (memberType.HasFlag(MemberType.Functions))
                         {
-                            members.AddRange(modRes.Functions.Where(x => x.Value.IsPublic).Select(x =>
-                            {
-                                x.Value.SetOneTimeNamespace(projNamespace);
-                                return new MemberResult(x.Key, x.Value, GeneroMemberType.Method, ast);
-                            }));
+                            members.AddRange(modRes.Functions.Where(x => x.Value.IsPublic).Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Method, ast)));
                         }
                     }
                 }
@@ -612,12 +585,6 @@ namespace VSGenero.Analysis
 
             return members;
         }
-
-
-        public void SetOneTimeNamespace(string nameSpace)
-        {
-        }
-
 
         public IEnumerable<IGeneroProjectEntry> GetUnanalyzedEntries()
         {

@@ -136,11 +136,6 @@ namespace VSGenero.EditorExtensions.Intellisense
             return new IFunctionResult[0];
         }
 
-
-        public void SetOneTimeNamespace(string nameSpace)
-        {
-        }
-
         public string Typename
         {
             get { return null; }
@@ -228,11 +223,6 @@ namespace VSGenero.EditorExtensions.Intellisense
             get { return false; }
         }
 
-
-        public void SetOneTimeNamespace(string nameSpace)
-        {
-        }
-
         public string Typename
         {
             get { return null; }
@@ -302,8 +292,6 @@ namespace VSGenero.EditorExtensions.Intellisense
         {
             get { return _name; }
         }
-
-        public string Namespace { get { return null; } }
 
         private readonly string _desc;
         public string Documentation
@@ -394,11 +382,6 @@ namespace VSGenero.EditorExtensions.Intellisense
             set
             {
             }
-        }
-
-
-        public void SetOneTimeNamespace(string nameSpace)
-        {
         }
 
         public string Typename

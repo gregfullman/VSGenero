@@ -8,7 +8,7 @@
  *
  * You must not remove this notice, or any other, from this software.
  *
- * ***************************************************************************/ 
+ * ***************************************************************************/
 
 using Microsoft.VisualStudio.Text;
 using System;
@@ -21,12 +21,22 @@ namespace VSGenero.Analysis.Parsing.AST
 {
     public class VariableDef : IAnalysisResult
     {
-        public string Name { get; private set; }
-        
+        private string _name;
+        public string Name
+        {
+            get
+            {
+                if (!string.IsNullOrWhiteSpace(_namespace))
+                    return string.Format("{0}.{1}", _namespace, _name);
+                return _name;
+            }
+            private set { _name = value; }
+        }
+
         public TypeReference Type { get; internal set; }
         public IAnalysisResult ResolvedType { get; internal set; }
         private string _filename;
-        private string _oneTimeNamespace;
+        private string _namespace;
         private bool _isPublic = false;
         public bool IsPublic
         {
@@ -52,14 +62,9 @@ namespace VSGenero.Analysis.Parsing.AST
             get
             {
                 StringBuilder sb = new StringBuilder();
-                if(!string.IsNullOrWhiteSpace(Scope))
+                if (!string.IsNullOrWhiteSpace(Scope))
                 {
                     sb.AppendFormat("({0}) ", Scope);
-                }
-                if (!string.IsNullOrWhiteSpace(_oneTimeNamespace))
-                {
-                    sb.AppendFormat("{0}.", _oneTimeNamespace);
-                    _oneTimeNamespace = null;
                 }
                 sb.AppendFormat("{0} {1}", Name, Type.ToString());
                 return sb.ToString();
@@ -85,16 +90,16 @@ namespace VSGenero.Analysis.Parsing.AST
             get { return _locationIndex; }
         }
 
-        public LocationInfo Location 
-        { 
-            get 
-            { 
-                if(!string.IsNullOrWhiteSpace(_filename))
+        public LocationInfo Location
+        {
+            get
+            {
+                if (!string.IsNullOrWhiteSpace(_filename))
                 {
                     return new LocationInfo(_filename, _locationIndex);
                 }
-                return null; 
-            } 
+                return null;
+            }
         }
 
         public IAnalysisResult GetMember(string name, GeneroAst ast, out IGeneroProject definingProject, out IProjectEntry projEntry)
@@ -117,9 +122,9 @@ namespace VSGenero.Analysis.Parsing.AST
             get { return true; }
         }
 
-        public void SetOneTimeNamespace(string nameSpace)
+        public void SetNamespace(string ns)
         {
-            _oneTimeNamespace = nameSpace;
+            _namespace = ns;
         }
 
         public string Typename
@@ -141,7 +146,7 @@ namespace VSGenero.Analysis.Parsing.AST
         {
             get
             {
-                if(_identifiers == null)
+                if (_identifiers == null)
                 {
                     _identifiers = new List<Tuple<string, int>>();
                 }
@@ -200,11 +205,11 @@ namespace VSGenero.Analysis.Parsing.AST
                 }
 
                 TypeReference typeRef;
-                if(TypeReference.TryParseNode(parser, out typeRef) && typeRef != null)
+                if (TypeReference.TryParseNode(parser, out typeRef) && typeRef != null)
                 {
                     defNode.EndIndex = typeRef.EndIndex;
                     defNode.Children.Add(typeRef.StartIndex, typeRef);
-                    if(defNode.Children.Last().Value.IsComplete)
+                    if (defNode.Children.Last().Value.IsComplete)
                     {
                         defNode.IsComplete = true;
                     }
@@ -215,13 +220,13 @@ namespace VSGenero.Analysis.Parsing.AST
                     result = false;
                 }
 
-                if(typeRef != null)
+                if (typeRef != null)
                 {
                     foreach (var ident in defNode.Identifiers)
                     {
                         var varDef = new VariableDef(ident.Item1, typeRef, ident.Item2, false, (defNode.Location != null ? defNode.Location.FilePath : null));
                         defNode.VariableDefinitions.Add(varDef);
-                        if(binder != null)
+                        if (binder != null)
                         {
                             binder(varDef);
                         }
@@ -239,7 +244,7 @@ namespace VSGenero.Analysis.Parsing.AST
 
             if (VariableDefinitions != null)
             {
-                if (Children.Count == 1 && 
+                if (Children.Count == 1 &&
                     Children[Children.Keys[0]] is TypeReference)
                 {
                     var resolvedType = (Children[Children.Keys[0]] as TypeReference).ResolvedType;
@@ -253,7 +258,12 @@ namespace VSGenero.Analysis.Parsing.AST
                     }
                 }
             }
+        }
 
+        public override void SetNamespace(string ns)
+        {
+            foreach (var def in VariableDefinitions)
+                def.SetNamespace(ns);
         }
     }
 }

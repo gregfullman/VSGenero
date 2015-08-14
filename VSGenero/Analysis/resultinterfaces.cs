@@ -43,7 +43,6 @@ namespace VSGenero.Analysis
         bool IsPublic { get; }
         string Typename { get; }
 
-        void SetOneTimeNamespace(string nameSpace);
         IAnalysisResult GetMember(string name, GeneroAst ast, out IGeneroProject definingProject, out IProjectEntry projectEntry);
         IEnumerable<MemberResult> GetMembers(GeneroAst ast, MemberType memberType);
     }
@@ -93,7 +92,6 @@ namespace VSGenero.Analysis
         IDictionary<string, IAnalysisResult> Constants { get; }
         IDictionary<string, List<Tuple<IAnalysisResult, IndexSpan>>> LimitedScopeVariables { get; }
         string CompletionParentName { get; }
-        string Namespace { get; }
     }
 
     public interface IOutlinableResult

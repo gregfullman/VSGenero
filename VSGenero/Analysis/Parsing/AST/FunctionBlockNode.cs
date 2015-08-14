@@ -36,10 +36,19 @@ namespace VSGenero.Analysis.Parsing.AST
         // TODO: instead of string, this should be the token
         public string AccessModifierToken { get; protected set; }
 
-        public string Name { get; protected set; }
+        private string _name;
+        public string Name 
+        { 
+            get
+            {
+                if (!string.IsNullOrWhiteSpace(_namespace))
+                    return string.Format("{0}.{1}", _namespace, _name);
+                return _name;
+            }
+            protected set { _name = value; }
+        }
 
-        public string Namespace { get; protected set; }
-        private string _oneTimeNamespace;
+        private string _namespace;
         public int DecoratorEnd { get; set; }
 
         public bool CanGetValueFromDebugger
@@ -55,11 +64,6 @@ namespace VSGenero.Analysis.Parsing.AST
             {
                 StringBuilder sb = new StringBuilder();
 
-                if (!string.IsNullOrWhiteSpace(_oneTimeNamespace))
-                {
-                    sb.AppendFormat("{0}.", _oneTimeNamespace);
-                    _oneTimeNamespace = null;
-                }
                 sb.Append(Name);
                 sb.Append('(');
 
@@ -247,8 +251,6 @@ namespace VSGenero.Analysis.Parsing.AST
                     parser.NextToken();
                     defNode.Name = parser.Token.Token.Value.ToString();
                     defNode.LocationIndex = parser.Token.Span.Start;
-                    if (containingModule != null)
-                        defNode.Namespace = containingModule.ProgramName;
                     defNode.DecoratorEnd = parser.Token.Span.End;
                 }
                 else
@@ -405,6 +407,7 @@ namespace VSGenero.Analysis.Parsing.AST
             }
             return result;
         }
+
 
         public ParameterResult[] Parameters
         {
@@ -606,10 +609,14 @@ namespace VSGenero.Analysis.Parsing.AST
             }
         }
 
-
-        public void SetOneTimeNamespace(string nameSpace)
+        public override void SetNamespace(string ns)
         {
-            _oneTimeNamespace = nameSpace;
+            _namespace = ns;
+            foreach(var arg in _arguments.Values)
+            {
+                if (arg.Type != null)
+                    arg.Type.SetNamespace(ns);
+            }
         }
 
         private string _typename;

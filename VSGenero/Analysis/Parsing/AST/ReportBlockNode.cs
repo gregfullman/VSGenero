@@ -84,8 +84,6 @@ namespace VSGenero.Analysis.Parsing.AST
                     parser.NextToken();
                     defNode.Name = parser.Token.Token.Value.ToString();
                     defNode.LocationIndex = parser.Token.Span.Start;
-                    if (containingModule != null)
-                        defNode.Namespace = containingModule.ProgramName;
                     defNode.DecoratorEnd = parser.Token.Span.End;
                 }
                 else
@@ -395,6 +393,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         parser.NextToken();
                         defNode.EndIndex = parser.Token.Span.End;
                         defNode.IsComplete = true;
+                        defNode.AddLimitedScopeVariable(GeneroAst.PagenoVariable, defNode.StartIndex, defNode.EndIndex);
                     }
                     else
                     {

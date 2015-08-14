@@ -706,47 +706,117 @@ namespace VSGenero.Analysis.Parsing.AST
                    Function.ResolvedResult != null &&
                    (Function.ResolvedResult is IFunctionResult))
                 {
-                    var numParams = (Function.ResolvedResult as IFunctionResult).Parameters.Length;
-                    if (Parameters.Count != numParams)
+                    // TODO: if a parameter is a record, then the number of required input arguments increases by the number of fields in that record.
+                    int totalRequiredParams = 0;
+                    IGeneroProject proj;
+                    IProjectEntry projEntry;
+                    bool isDeferred;
+                    foreach (var param in (Function.ResolvedResult as IFunctionResult).Parameters)
                     {
-                        errorFunc(string.Format("Unexpected number of parameters ({0}) found, expected {1} variables.", Parameters.Count, numParams), StartIndex, EndIndex);
-                    }
-                }
-
-                foreach (var param in Parameters)
-                {
-                    // TODO: check parameter types against what is supposed to be used.
-                    if (param is NameExpression)
-                    {
-                        var nameParam = param as NameExpression;
-                        nameParam.CheckForErrors(ast, errorFunc, deferredFunctionSearches, GeneroAst.FunctionProviderSearchMode.Deferred);
-                        if (nameParam.ResolvedResult != null)
+                        TypeReference typeRef = null;
+                        var typeName = param.Type;
+                        // TODO: need to look into how importable projects populate their parameter result types
+                        if (typeName.StartsWith("record", StringComparison.OrdinalIgnoreCase))
                         {
-                            if (nameParam.ResolvedResult is TypeDefinitionNode) // Check for any invalid parameters
+                            if (Function.ResolvedResult is AstNode &&
+                               (Function.ResolvedResult as AstNode).StartIndex >= 0)
                             {
-                                errorFunc("Invalid parameter found.", param.StartIndex, param.EndIndex);
-                                continue;
-                            }
-                            else if (nameParam.ResolvedResult is VariableDef &&
-                                     (nameParam.ResolvedResult as VariableDef).ResolvedType != null &&
-                                     (nameParam.ResolvedResult as VariableDef).ResolvedType is TypeDefinitionNode)
-                            {
-                                var typeDef = (nameParam.ResolvedResult as VariableDef).ResolvedType as TypeDefinitionNode;
-                                if (typeDef.TypeRef != null)
+                                // need to retrieve the variable and then get its type
+                                var resVar = GeneroAst.GetValueByIndex(param.Name, (Function.ResolvedResult as AstNode).StartIndex, ast, out proj, out projEntry, out isDeferred);
+                                if (resVar != null &&
+                                   resVar is VariableDef)
                                 {
-                                    if (typeDef.TypeRef.IsRecord && !(param as NameExpression).Name.EndsWith(".*"))
+                                    typeRef = ((resVar as VariableDef).ResolvedType as TypeReference) ?? (resVar as VariableDef).Type;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            // TODO: eventually, this needs to handle system types
+                            var resType = GeneroAst.GetValueByIndex(typeName, StartIndex, ast, out proj, out projEntry, out isDeferred);
+                            if (resType != null &&
+                               resType is TypeDefinitionNode &&
+                               (resType as TypeDefinitionNode).TypeRef != null)
+                            {
+                                typeRef = (resType as TypeDefinitionNode).TypeRef;
+                            }
+                        }
+
+                        if (typeRef != null && typeRef.IsRecord)
+                        {
+                            int recFieldCount = (typeRef.Children[typeRef.Children.Keys[0]] as RecordDefinitionNode).GetMembers(ast, Analysis.MemberType.All).Count();
+                            if (recFieldCount > 0)
+                                totalRequiredParams += recFieldCount;
+                            else
+                                totalRequiredParams++;
+                        }
+                        else
+                        {
+                            totalRequiredParams++;
+                        }
+                    }
+
+                    int totalParameters = 0;
+                    foreach (var param in Parameters)
+                    {
+                        // TODO: check parameter types against what is supposed to be used.
+                        if (param is NameExpression)
+                        {
+                            var nameParam = param as NameExpression;
+                            nameParam.CheckForErrors(ast, errorFunc, deferredFunctionSearches, GeneroAst.FunctionProviderSearchMode.Deferred);
+                            if (nameParam.ResolvedResult != null)
+                            {
+                                if (nameParam.ResolvedResult is TypeDefinitionNode) // Check for any invalid parameters TODO: others
+                                {
+                                    errorFunc("Invalid parameter found.", param.StartIndex, param.EndIndex);
+                                }
+                                else
+                                {
+                                    TypeReference typeRef = null;
+                                    if (nameParam.ResolvedResult is VariableDef)
                                     {
-                                        if (Function != null && !_allowedNonStarRecordParamFunctions.Contains(Function.Name))
+                                        if ((nameParam.ResolvedResult as VariableDef).ResolvedType != null &&
+                                            (nameParam.ResolvedResult as VariableDef).ResolvedType is TypeDefinitionNode)
+                                        {
+                                            var typeDef = (nameParam.ResolvedResult as VariableDef).ResolvedType as TypeDefinitionNode;
+                                            if (typeDef.TypeRef != null)
+                                            {
+                                                typeRef = typeDef.TypeRef;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            typeRef = (nameParam.ResolvedResult as VariableDef).Type;
+                                        }
+                                    }
+
+                                    if (typeRef != null && typeRef.IsRecord)
+                                    {
+                                        if (!(param as NameExpression).Name.EndsWith(".*") &&
+                                            !_allowedNonStarRecordParamFunctions.Contains(Function.Name))
                                         {
                                             errorFunc("Records must be specified with a '.*' ending when passed as a function parameter.", param.StartIndex, param.EndIndex);
-                                            continue;
+                                        }
+                                        else
+                                        {
+                                            // need to get the number of fields in the record, as they count toward our passed parameter total
+                                            int recFieldCount = (typeRef.Children[typeRef.Children.Keys[0]] as RecordDefinitionNode).GetMembers(ast, Analysis.MemberType.All).Count();
+                                            if (recFieldCount > 0)
+                                                totalParameters += (recFieldCount - 1); // minus 1 so we can do the increment below    
                                         }
                                     }
                                 }
                             }
                         }
+                        param.CheckForErrors(ast, errorFunc, deferredFunctionSearches);
+                        totalParameters++;
                     }
-                    param.CheckForErrors(ast, errorFunc, deferredFunctionSearches);
+
+                    // need to determine if any of the passed in parameters are records, and if so, adjust the passed count
+                    if (totalParameters != totalRequiredParams)
+                    {
+                        errorFunc(string.Format("Unexpected number of parameters ({0}) found, expected {1} variables.", totalParameters, totalRequiredParams), StartIndex, EndIndex);
+                    }
                 }
             }
 

@@ -2166,13 +2166,15 @@ namespace VSGenero.Analysis.Parsing.AST
 		}, new List<string> {"xml.DomNode"}),
 		new GeneroPackageClassMethod("addNextSibling", "xml.DomNode", false, "Adds a DomNode object as the next sibling of a DomNode object.", new List<ParameterResult>
 		{
-		}, new List<string> {"xml.DomNode"}),
+			new ParameterResult("node", "", "xml.DomNode")
+		}, new List<string> {}),
 		new GeneroPackageClassMethod("prependChild", "xml.DomNode", false, "Adds a child DomNode object to the beginning of the child list for a DomNode object.", new List<ParameterResult>
 		{
 		}, new List<string> {"xml.DomNode"}),
 		new GeneroPackageClassMethod("appendChild", "xml.DomNode", false, "Adds a child DomNode object to the end of the child list for a DomNode object", new List<ParameterResult>
 		{
-		}, new List<string> {"xml.DomNode"}),
+			new ParameterResult("node", "", "xml.DomNode")
+		}, new List<string> {}),
 		new GeneroPackageClassMethod("insertBeforeChild", "xml.DomNode", false, "Inserts a DomNode object before an existing child DomNode object.", new List<ParameterResult>
 		{
 			new ParameterResult("node", "", "xml.DomNode"),
@@ -3272,11 +3274,6 @@ namespace VSGenero.Analysis.Parsing.AST
             }
         }
 
-
-        public void SetOneTimeNamespace(string nameSpace)
-        {
-        }
-
         public string Typename
         {
             get { return null; }
@@ -3367,11 +3364,6 @@ namespace VSGenero.Analysis.Parsing.AST
             return true;
         }
 
-
-        public void SetOneTimeNamespace(string nameSpace)
-        {
-        }
-
         public string Typename
         {
             get { return null; }
@@ -3453,8 +3445,6 @@ namespace VSGenero.Analysis.Parsing.AST
             get { return _name; }
         }
 
-        public string Namespace { get { return _parentClass; } }
-
         public string Documentation
         {
             get
@@ -3475,7 +3465,8 @@ namespace VSGenero.Analysis.Parsing.AST
                     sb.AppendFormat("{0} ", _returns[0]);
                 }
 
-                sb.AppendFormat("{0}.{1}", Namespace, Name);
+
+                sb.AppendFormat("{0}.{1}", _parentClass, Name);
                 sb.Append('(');
 
                 // if there are any parameters put them in
@@ -3598,11 +3589,6 @@ namespace VSGenero.Analysis.Parsing.AST
             set
             {
             }
-        }
-
-
-        public void SetOneTimeNamespace(string nameSpace)
-        {
         }
 
         public string Typename
