@@ -536,9 +536,25 @@ namespace VSGenero.EditorExtensions
                             {
                                 endCheck = _snapshot.Length - enumerator.Current.Span.End.Position;
                             }
-                            var nextTokens = _classifier.GetTokens(new SnapshotSpan(_snapshot, new Span(enumerator.Current.Span.End.Position - 1, endCheck)))
-                                                        .Where(x => x.SourceSpan.Start.Index > (enumerator.Current.Span.End.Position - 1)).ToList();
-                            if (nextTokens.Count > 0 && nextTokens[0].Token.Kind == TokenKind.LeftParenthesis)
+                            var nextTokens = _classifier.GetTokens(new SnapshotSpan(_snapshot, new Span(enumerator.Current.Span.End.Position - 1, endCheck))).ToList();
+                            int parenIndex = -1;
+                            if (nextTokens.Count > 0)
+                            {
+                                parenIndex = 0;
+                                TokenInfo tokInfo;
+                                while (parenIndex < nextTokens.Count)
+                                {
+                                    tokInfo = nextTokens[parenIndex];
+                                    if (Math.Abs(tokInfo.SourceSpan.Start.Index - enumerator.Current.Span.Start.Position) <= 1 &&
+                                       Math.Abs(tokInfo.SourceSpan.End.Index - enumerator.Current.Span.End.Position) <= 1)
+                                    {
+                                        parenIndex++;
+                                        break;
+                                    }
+                                    parenIndex++;
+                                }
+                            }
+                            if (parenIndex >= 0 && parenIndex < nextTokens.Count && nextTokens[parenIndex].Token.Kind == TokenKind.LeftParenthesis)
                             {
                                 // we might have a function call or function name
                                 isFunctionCallOrDefinition = true;

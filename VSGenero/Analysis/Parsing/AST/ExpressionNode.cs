@@ -715,8 +715,9 @@ namespace VSGenero.Analysis.Parsing.AST
                     {
                         TypeReference typeRef = null;
                         var typeName = param.Type;
+                        int index = typeName.IndexOf("record", StringComparison.OrdinalIgnoreCase);
                         // TODO: need to look into how importable projects populate their parameter result types
-                        if (typeName.StartsWith("record", StringComparison.OrdinalIgnoreCase))
+                        if(index == 0 && (typeName.Length == 6 || char.IsWhiteSpace(typeName[6])))
                         {
                             if (Function.ResolvedResult is AstNode &&
                                (Function.ResolvedResult as AstNode).StartIndex >= 0)
@@ -792,17 +793,30 @@ namespace VSGenero.Analysis.Parsing.AST
 
                                     if (typeRef != null && typeRef.IsRecord)
                                     {
-                                        if (!(param as NameExpression).Name.EndsWith(".*") &&
-                                            !_allowedNonStarRecordParamFunctions.Contains(Function.Name))
+                                        if ((nameParam.ResolvedResult as VariableDef).Type.IsArray)
                                         {
-                                            errorFunc("Records must be specified with a '.*' ending when passed as a function parameter.", param.StartIndex, param.EndIndex);
+                                            if((param as NameExpression).Name.EndsWith(".*"))
+                                            {
+                                                // need to get the number of fields in the record, as they count toward our passed parameter total
+                                                int recFieldCount = (typeRef.Children[typeRef.Children.Keys[0]] as RecordDefinitionNode).GetMembers(ast, Analysis.MemberType.All).Count();
+                                                if (recFieldCount > 0)
+                                                    totalParameters += (recFieldCount - 1); // minus 1 so we can do the increment below   
+                                            }
                                         }
                                         else
                                         {
-                                            // need to get the number of fields in the record, as they count toward our passed parameter total
-                                            int recFieldCount = (typeRef.Children[typeRef.Children.Keys[0]] as RecordDefinitionNode).GetMembers(ast, Analysis.MemberType.All).Count();
-                                            if (recFieldCount > 0)
-                                                totalParameters += (recFieldCount - 1); // minus 1 so we can do the increment below    
+                                            if (!(param as NameExpression).Name.EndsWith(".*") &&
+                                                !_allowedNonStarRecordParamFunctions.Contains(Function.Name))
+                                            {
+                                                errorFunc("Records must be specified with a '.*' ending when passed as a function parameter.", param.StartIndex, param.EndIndex);
+                                            }
+                                            else
+                                            {
+                                                // need to get the number of fields in the record, as they count toward our passed parameter total
+                                                int recFieldCount = (typeRef.Children[typeRef.Children.Keys[0]] as RecordDefinitionNode).GetMembers(ast, Analysis.MemberType.All).Count();
+                                                if (recFieldCount > 0)
+                                                    totalParameters += (recFieldCount - 1); // minus 1 so we can do the increment below    
+                                            }
                                         }
                                     }
                                 }

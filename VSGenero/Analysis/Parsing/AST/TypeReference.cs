@@ -44,7 +44,19 @@ namespace VSGenero.Analysis.Parsing.AST
         public string TableName { get; private set; }
         public string ColumnName { get; private set; }
 
-        public IAnalysisResult ResolvedType { get; private set; }
+        private IAnalysisResult _resolvedType;
+        public IAnalysisResult ResolvedType
+        {
+            get
+            {
+                if(_resolvedType == null && Children.Count == 1 && Children[Children.Keys[0]] is ArrayTypeReference)
+                {
+                    return (Children[Children.Keys[0]] as ArrayTypeReference).ResolvedType;
+                }
+                return _resolvedType;
+            }
+            private set { _resolvedType = value; }
+        }
 
         public bool CanGetValueFromDebugger
         {

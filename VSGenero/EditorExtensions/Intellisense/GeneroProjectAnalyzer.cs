@@ -1074,6 +1074,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             ITextSnapshot snapshot = GetOpenSnapshot(projectEntry);
             if ((pyEntry = projectEntry as IGeneroProjectEntry) != null)
             {
+                pyEntry.IsErrorChecked = false;
                 GeneroAst ast;
                 CollectingErrorSink errorSink;
                 List<TaskProviderItem> commentTasks;
@@ -1096,10 +1097,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                     _analysisQueue.Enqueue(pyEntry, AnalysisPriority.Normal);
                     pyEntry.UpdateIncludesAndImports(filename, ast);
 
-                    List<IGeneroProjectEntry> unanalyzed = new List<IGeneroProjectEntry>();
-                    unanalyzed.AddRange(pyEntry.ParentProject.GetUnanalyzedEntries());
-                    unanalyzed.AddRange(pyEntry.GetIncludedFiles().Where(x => !x.IsAnalyzed));
-                    if (unanalyzed.Count > 0)
+                    if (!pyEntry.CanErrorCheck)
                     {
                         _waitingErrorCheckers.Enqueue(pyEntry);
                     }
@@ -1116,6 +1114,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             IProjectEntry analysis = bufferParser._currentProjEntry;
 
             IGeneroProjectEntry pyProjEntry = analysis as IGeneroProjectEntry;
+            pyProjEntry.IsErrorChecked = false;
             List<GeneroAst> asts = new List<GeneroAst>();
             foreach (var snapshot in snapshots)
             {
@@ -1127,7 +1126,6 @@ namespace VSGenero.EditorExtensions.Intellisense
                     List<TaskProviderItem> commentTasks;
                     var reader = new SnapshotSpanSourceCodeReader(new SnapshotSpan(snapshot, new Span(0, snapshot.Length)));
                     ParseGeneroCode(snapshot, reader, indentationSeverity, pyProjEntry, out ast, out errorSink, out commentTasks);
-
                     if (ast != null)
                     {
                         asts.Add(ast);
@@ -1164,10 +1162,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                     pyProjEntry.UpdateTree(prevTree, prevCookie);
                 }
 
-                List<IGeneroProjectEntry> unanalyzed = new List<IGeneroProjectEntry>();
-                unanalyzed.AddRange(pyProjEntry.ParentProject.GetUnanalyzedEntries());
-                unanalyzed.AddRange(pyProjEntry.GetIncludedFiles().Where(x => !x.IsAnalyzed));
-                if (unanalyzed.Count > 0)
+                if (!pyProjEntry.CanErrorCheck)
                 {
                     _waitingErrorCheckers.Enqueue(pyProjEntry);
                 }
@@ -1199,6 +1194,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                 astErrors.Add(msg, projEntry.Analysis._lineLocations, start, end, ErrorCodes.SyntaxError, Severity.Error);
             });
 
+            projEntry.IsErrorChecked = true;
             // update any errors found
             if (astErrors.Errors.Count > 0 || astErrors.Warnings.Count > 0)
             {
@@ -1219,10 +1215,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                     IGeneroProjectEntry entry;
                     if(_waitingErrorCheckers.TryDequeue(out entry))
                     {
-                        List<IGeneroProjectEntry> unanalyzed = new List<IGeneroProjectEntry>();
-                        unanalyzed.AddRange(entry.ParentProject.GetUnanalyzedEntries());
-                        unanalyzed.AddRange(entry.GetIncludedFiles().Where(x => !x.IsAnalyzed));
-                        if (unanalyzed.Count == 0)
+                        if (entry.CanErrorCheck)
                         {
                             // check the errors
                             CheckForErrors(entry);

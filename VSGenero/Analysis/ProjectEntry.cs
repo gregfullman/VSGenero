@@ -194,6 +194,8 @@ namespace VSGenero.Analysis
             }
         }
 
+        public bool IsErrorChecked { get; set; }
+
         private void Parse(bool enqueOnly, CancellationToken cancel)
         {
             GeneroAst tree;
@@ -347,6 +349,30 @@ namespace VSGenero.Analysis
         public bool DetectCircularImports()
         {
             return false;
+        }
+
+        public bool CanErrorCheck
+        {
+            get
+            {
+                return this.ParentProject.ProjectEntries.Select(x => x.Value).All(y =>
+                {
+                    if (!y.IsAnalyzed)
+                    {
+                        return false;
+                    }
+
+                    if (y.ParentProject.ReferencedProjects.Count > 0)
+                    {
+                        // check to see if all entries in each of the referenced project have been error checked
+                        return y.ParentProject.ReferencedProjects.SelectMany(a => a.Value.ProjectEntries).All(x => x.Value.IsErrorChecked);
+                    }
+
+                    if (GetIncludedFiles().Any(x => !x.IsAnalyzed))
+                        return false;
+                    return true;
+                });
+            }
         }
     }
 
@@ -585,12 +611,6 @@ namespace VSGenero.Analysis
 
             return members;
         }
-
-        public IEnumerable<IGeneroProjectEntry> GetUnanalyzedEntries()
-        {
-            return ProjectEntries.Select(x => x.Value).Where(y => !y.IsAnalyzed)
-                                 .Union(ReferencedProjects.Select(a => a.Value).SelectMany(b => b.GetUnanalyzedEntries()));
-        }
     }
 
     /// <summary>
@@ -611,6 +631,11 @@ namespace VSGenero.Analysis
         /// Returns true if the project entry has been parsed and analyzed.
         /// </summary>
         bool IsAnalyzed { get; }
+
+        /// <summary>
+        /// Returns true if the project entry has been error checked.
+        /// </summary>
+        bool IsErrorChecked { get; set; }
 
         /// <summary>
         /// Returns the current analysis version of the project entry.
@@ -675,8 +700,6 @@ namespace VSGenero.Analysis
         ConcurrentDictionary<string, IGeneroProject> ReferencedProjects { get; }
 
         HashSet<IGeneroProjectEntry> ReferencingProjectEntries { get; }
-
-        IEnumerable<IGeneroProjectEntry> GetUnanalyzedEntries();
     }
 
     public interface IGeneroProjectEntry : IProjectEntry
@@ -724,5 +747,7 @@ namespace VSGenero.Analysis
         void SetProject(IGeneroProject project);
 
         IAnalysisCookie Cookie { get; }
+
+        bool CanErrorCheck { get; }
     }
 }

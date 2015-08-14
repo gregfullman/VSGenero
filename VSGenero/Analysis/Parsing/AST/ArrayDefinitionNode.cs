@@ -52,6 +52,18 @@ namespace VSGenero.Analysis.Parsing.AST
             }
         }
 
+        public IAnalysisResult ResolvedType
+        {
+            get
+            {
+                if(Children.Count == 1 && Children[Children.Keys[0]] is TypeReference)
+                {
+                    return (Children[Children.Keys[0]] as TypeReference).ResolvedType;
+                }
+                return null;
+            }
+        }
+
         public ExpressionNode StaticDimOneSize { get; private set; }
 
         public ExpressionNode StaticDimTwoSize { get; private set; }

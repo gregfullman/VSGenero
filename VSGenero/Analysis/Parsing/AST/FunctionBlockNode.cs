@@ -614,7 +614,7 @@ namespace VSGenero.Analysis.Parsing.AST
             _namespace = ns;
             foreach(var arg in _arguments.Values)
             {
-                if (arg.Type != null)
+                if (arg != null && arg.Type != null)
                     arg.Type.SetNamespace(ns);
             }
         }
