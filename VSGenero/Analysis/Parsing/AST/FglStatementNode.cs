@@ -35,7 +35,8 @@ namespace VSGenero.Analysis.Parsing.AST
                                  bool returnStatementsOnly = false,
                                  List<TokenKind> validExitKeywords = null,
                                  IEnumerable<ContextStatementFactory> contextStatementFactories = null,
-                                 ExpressionParsingOptions expressionOptions = null)
+                                 ExpressionParsingOptions expressionOptions = null,
+                                 HashSet<TokenKind> endKeywords = null)
         {
             node = null;
             bool result = false;
@@ -150,7 +151,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     {
                         IfStatement ifStmt;
                         if ((result = IfStatement.TryParseNode(parser, out ifStmt, containingModule, prepStatementBinder, returnStatementBinder, 
-                                                               limitedScopeVariableAdder, validExitKeywords, contextStatementFactories, expressionOptions)))
+                                                               limitedScopeVariableAdder, validExitKeywords, contextStatementFactories, expressionOptions, endKeywords)))
                         {
                             node = ifStmt;
                         }
@@ -160,7 +161,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     {
                         WhileStatement whileStmt;
                         if ((result = WhileStatement.TryParseNode(parser, out whileStmt, containingModule, prepStatementBinder, returnStatementBinder, 
-                                                                  limitedScopeVariableAdder, validExitKeywords, contextStatementFactories, expressionOptions)))
+                                                                  limitedScopeVariableAdder, validExitKeywords, contextStatementFactories, expressionOptions, endKeywords)))
                         {
                             node = whileStmt;
                         }
@@ -197,7 +198,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     {
                         ForStatement forStmt;
                         if ((result = ForStatement.TryParserNode(parser, out forStmt, containingModule, prepStatementBinder, returnStatementBinder, 
-                                                                 limitedScopeVariableAdder, validExitKeywords, contextStatementFactories, expressionOptions)))
+                                                                 limitedScopeVariableAdder, validExitKeywords, contextStatementFactories, expressionOptions, endKeywords)))
                         {
                             node = forStmt;
                         }
@@ -207,7 +208,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     {
                         CaseStatement caseStmt;
                         if ((result = CaseStatement.TryParseNode(parser, out caseStmt, containingModule, prepStatementBinder, returnStatementBinder, 
-                                                                 limitedScopeVariableAdder, validExitKeywords, contextStatementFactories, expressionOptions)))
+                                                                 limitedScopeVariableAdder, validExitKeywords, contextStatementFactories, expressionOptions, endKeywords)))
                         {
                             node = caseStmt;
                         }
@@ -271,7 +272,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     {
                         TryCatchStatement tryStmt;
                         if ((result = TryCatchStatement.TryParseNode(parser, out tryStmt, containingModule, prepStatementBinder, returnStatementBinder, 
-                                                                     limitedScopeVariableAdder, validExitKeywords, contextStatementFactories)))
+                                                                     limitedScopeVariableAdder, validExitKeywords, contextStatementFactories, endKeywords)))
                         {
                             node = tryStmt;
                         }
@@ -335,7 +336,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     {
                         ForeachStatement foreachStmt;
                         if ((result = ForeachStatement.TryParseNode(parser, out foreachStmt, containingModule, prepStatementBinder, returnStatementBinder, 
-                                                                    limitedScopeVariableAdder, validExitKeywords, contextStatementFactories)))
+                                                                    limitedScopeVariableAdder, validExitKeywords, contextStatementFactories, endKeywords)))
                         {
                             node = foreachStmt;
                         }
@@ -354,7 +355,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     {
                         MenuBlock menuStmt;
                         if ((result = MenuBlock.TryParseNode(parser, out menuStmt, containingModule, prepStatementBinder, returnStatementBinder, 
-                                                             limitedScopeVariableAdder, validExitKeywords, contextStatementFactories)))
+                                                             limitedScopeVariableAdder, validExitKeywords, contextStatementFactories, endKeywords)))
                         {
                             node = menuStmt;
                             limitedScopeVariableAdder(GeneroAst.DialogVariable, node.StartIndex, node.EndIndex);
@@ -365,7 +366,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     {
                         InputBlock inputStmt;
                         if ((result = InputBlock.TryParseNode(parser, out inputStmt, containingModule, prepStatementBinder, returnStatementBinder, 
-                                                              limitedScopeVariableAdder, validExitKeywords, contextStatementFactories)))
+                                                              limitedScopeVariableAdder, validExitKeywords, contextStatementFactories, endKeywords)))
                         {
                             node = inputStmt;
                             limitedScopeVariableAdder(GeneroAst.DialogVariable, node.StartIndex, node.EndIndex);
@@ -376,7 +377,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     {
                         ConstructBlock constructStmt;
                         if ((result = ConstructBlock.TryParseNode(parser, out constructStmt, containingModule, prepStatementBinder, returnStatementBinder, 
-                                                                  limitedScopeVariableAdder, validExitKeywords, contextStatementFactories)))
+                                                                  limitedScopeVariableAdder, validExitKeywords, contextStatementFactories, endKeywords)))
                         {
                             node = constructStmt;
                             limitedScopeVariableAdder(GeneroAst.DialogVariable, node.StartIndex, node.EndIndex);
@@ -396,7 +397,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     {
                         DisplayBlock dispStmt;
                         if ((result = DisplayBlock.TryParseNode(parser, out dispStmt, containingModule, prepStatementBinder, returnStatementBinder, 
-                                                                limitedScopeVariableAdder, validExitKeywords, contextStatementFactories)))
+                                                                limitedScopeVariableAdder, validExitKeywords, contextStatementFactories, endKeywords)))
                         {
                             node = dispStmt;
                             limitedScopeVariableAdder(GeneroAst.DialogVariable, node.StartIndex, node.EndIndex);
@@ -407,7 +408,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     {
                         PromptStatement promptStmt;
                         if((result = PromptStatement.TryParseNode(parser, out promptStmt, containingModule, prepStatementBinder, returnStatementBinder, 
-                                                                  limitedScopeVariableAdder, validExitKeywords, contextStatementFactories)))
+                                                                  limitedScopeVariableAdder, validExitKeywords, contextStatementFactories, endKeywords)))
                         {
                             node = promptStmt;
                             limitedScopeVariableAdder(GeneroAst.DialogVariable, node.StartIndex, node.EndIndex);
@@ -418,7 +419,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     {
                         DialogBlock dialogBlock;
                         if ((result = DialogBlock.TryParseNode(parser, out dialogBlock, containingModule, prepStatementBinder, returnStatementBinder, 
-                                                               limitedScopeVariableAdder, validExitKeywords, contextStatementFactories)))
+                                                               limitedScopeVariableAdder, validExitKeywords, contextStatementFactories, endKeywords)))
                         {
                             node = dialogBlock;
                             limitedScopeVariableAdder(GeneroAst.DialogVariable, node.StartIndex, node.EndIndex);

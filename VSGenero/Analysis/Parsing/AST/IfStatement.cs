@@ -29,7 +29,8 @@ namespace VSGenero.Analysis.Parsing.AST
                                  Action<IAnalysisResult, int, int> limitedScopeVariableAdder = null,
                                  List<TokenKind> validExitKeywords = null,
                                  IEnumerable<ContextStatementFactory> contextStatementFactories = null,
-                                 ExpressionParsingOptions expressionOptions = null)
+                                 ExpressionParsingOptions expressionOptions = null,
+                                 HashSet<TokenKind> endKeywords = null)
         {
             node = null;
             bool result = false;
@@ -57,9 +58,14 @@ namespace VSGenero.Analysis.Parsing.AST
 
                     node.DecoratorEnd = parser.Token.Span.End;
 
+                    HashSet<TokenKind> newEndKeywords = new HashSet<TokenKind>();
+                    if (endKeywords != null)
+                        newEndKeywords.AddRange(endKeywords);
+                    newEndKeywords.Add(TokenKind.IfKeyword);
+
                     IfBlockContentsNode ifBlock;
-                    if (IfBlockContentsNode.TryParseNode(parser, out ifBlock, containingModule, prepStatementBinder, returnStatementBinder, 
-                                                         limitedScopeVariableAdder, validExitKeywords, contextStatementFactories, expressionOptions))
+                    if (IfBlockContentsNode.TryParseNode(parser, out ifBlock, containingModule, prepStatementBinder, returnStatementBinder,
+                                                         limitedScopeVariableAdder, validExitKeywords, contextStatementFactories, expressionOptions, newEndKeywords))
                     {
                         if(ifBlock != null)
                             node.Children.Add(ifBlock.StartIndex, ifBlock);
@@ -69,8 +75,8 @@ namespace VSGenero.Analysis.Parsing.AST
                     {
                         parser.NextToken();
                         ElseBlockContentsNode elseBlock;
-                        if (ElseBlockContentsNode.TryParseNode(parser, out elseBlock, containingModule, prepStatementBinder, returnStatementBinder, 
-                                                               limitedScopeVariableAdder, validExitKeywords, contextStatementFactories, expressionOptions))
+                        if (ElseBlockContentsNode.TryParseNode(parser, out elseBlock, containingModule, prepStatementBinder, returnStatementBinder,
+                                                               limitedScopeVariableAdder, validExitKeywords, contextStatementFactories, expressionOptions, newEndKeywords))
                         {
                             if(elseBlock != null)
                                 node.Children.Add(elseBlock.StartIndex, elseBlock);
@@ -123,7 +129,8 @@ namespace VSGenero.Analysis.Parsing.AST
                                  Action<IAnalysisResult, int, int> limitedScopeVariableAdder = null,
                                  List<TokenKind> validExitKeywords = null,
                                  IEnumerable<ContextStatementFactory> contextStatementFactories = null,
-                                 ExpressionParsingOptions expressionOptions = null)
+                                 ExpressionParsingOptions expressionOptions = null,
+                                 HashSet<TokenKind> endKeywords = null)
         {
             node = new IfBlockContentsNode();
             node.StartIndex = parser.Token.Span.Start;
@@ -134,11 +141,15 @@ namespace VSGenero.Analysis.Parsing.AST
                 FglStatement statement;
                 if (parser.StatementFactory.TryParseNode(parser, out statement, containingModule, prepStatementBinder, 
                                                          returnStatementBinder, limitedScopeVariableAdder, false, validExitKeywords, 
-                                                         contextStatementFactories, expressionOptions))
+                                                         contextStatementFactories, expressionOptions, endKeywords))
                 {
                     AstNode stmtNode = statement as AstNode;
                     if (stmtNode != null && !node.Children.ContainsKey(stmtNode.StartIndex))
                         node.Children.Add(stmtNode.StartIndex, stmtNode);
+                }
+                else if(parser.PeekToken(TokenKind.EndKeyword) && endKeywords != null && endKeywords.Contains(parser.PeekToken(2).Kind))
+                {
+                    break;
                 }
                 else
                 {
@@ -160,7 +171,8 @@ namespace VSGenero.Analysis.Parsing.AST
                                  Action<IAnalysisResult, int, int> limitedScopeVariableAdder = null,
                                  List<TokenKind> validExitKeywords = null,
                                  IEnumerable<ContextStatementFactory> contextStatementFactories = null,
-                                 ExpressionParsingOptions expressionOptions = null)
+                                 ExpressionParsingOptions expressionOptions = null,
+                                 HashSet<TokenKind> endKeywords = null)
         {
             node = new ElseBlockContentsNode();
             node.StartIndex = parser.Token.Span.Start;
@@ -170,11 +182,15 @@ namespace VSGenero.Analysis.Parsing.AST
                 FglStatement statement;
                 if (parser.StatementFactory.TryParseNode(parser, out statement, containingModule, prepStatementBinder, 
                                                          returnStatementBinder, limitedScopeVariableAdder, false, validExitKeywords, 
-                                                         contextStatementFactories, expressionOptions))
+                                                         contextStatementFactories, expressionOptions, endKeywords))
                 {
                     AstNode stmtNode = statement as AstNode;
                     if(stmtNode != null && !node.Children.ContainsKey(stmtNode.StartIndex))
                         node.Children.Add(stmtNode.StartIndex, stmtNode);
+                }
+                else if (parser.PeekToken(TokenKind.EndKeyword) && endKeywords != null && endKeywords.Contains(parser.PeekToken(2).Kind))
+                {
+                    break;
                 }
                 else
                 {

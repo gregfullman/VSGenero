@@ -186,7 +186,8 @@ namespace VSGenero.Analysis.Parsing.AST
                                  Func<ReturnStatement, ParserResult> returnStatementBinder = null,
                                  Action<IAnalysisResult, int, int> limitedScopeVariableAdder = null,
                                  List<TokenKind> validExitKeywords = null,
-                                 IEnumerable<ContextStatementFactory> contextStatementFactories = null)
+                                 IEnumerable<ContextStatementFactory> contextStatementFactories = null,
+                                 HashSet<TokenKind> endKeywords = null)
         {
             if(parser.PeekToken(TokenKind.AttributeKeyword) || parser.PeekToken(TokenKind.AttributesKeyword))
             {
@@ -233,7 +234,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         {
                             InputBlock inputBlock;
                             if (InputBlock.TryParseNode(parser, out inputBlock, containingModule, prepStatementBinder, returnStatementBinder, 
-                                                        limitedScopeVariableAdder, validExitKeywords, csfs) && inputBlock != null)
+                                                        limitedScopeVariableAdder, validExitKeywords, csfs, endKeywords) && inputBlock != null)
                                 node.Children.Add(inputBlock.StartIndex, inputBlock);
                             else
                                 parser.ReportSyntaxError("Invalid input block found in dialog statement.");
@@ -243,7 +244,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         {
                             ConstructBlock constructBlock;
                             if (ConstructBlock.TryParseNode(parser, out constructBlock, containingModule, prepStatementBinder, returnStatementBinder, 
-                                                            limitedScopeVariableAdder, validExitKeywords, csfs) && constructBlock != null)
+                                                            limitedScopeVariableAdder, validExitKeywords, csfs, endKeywords) && constructBlock != null)
                                 node.Children.Add(constructBlock.StartIndex, constructBlock);
                             else
                                 parser.ReportSyntaxError("Invalid construct block found in dialog statement.");
@@ -253,7 +254,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         {
                             DisplayBlock dispBlock;
                             if (DisplayBlock.TryParseNode(parser, out dispBlock, containingModule, prepStatementBinder, returnStatementBinder, 
-                                                          limitedScopeVariableAdder, validExitKeywords, csfs) && dispBlock != null)
+                                                          limitedScopeVariableAdder, validExitKeywords, csfs, endKeywords) && dispBlock != null)
                                 node.Children.Add(dispBlock.StartIndex, dispBlock);
                             else
                                 parser.ReportSyntaxError("Invalid display block found in dialog statement.");
@@ -280,17 +281,26 @@ namespace VSGenero.Analysis.Parsing.AST
                 validExits.AddRange(validExits);
             validExits.Add(TokenKind.DialogKeyword);
 
+            HashSet<TokenKind> newEndKeywords = new HashSet<TokenKind>();
+            if (endKeywords != null)
+                newEndKeywords.AddRange(endKeywords);
+            newEndKeywords.Add(TokenKind.DialogKeyword);
+
             // get the dialog control blocks
             while (!parser.PeekToken(TokenKind.EndOfFile) &&
                     !(parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.DialogKeyword, 2)))
             {
                 DialogControlBlock icb;
                 if (DialogControlBlock.TryParseNode(parser, out icb, containingModule, prepStatementBinder, returnStatementBinder, 
-                                                    limitedScopeVariableAdder, validExits, contextStatementFactories) && icb != null)
+                                                    limitedScopeVariableAdder, validExits, contextStatementFactories, newEndKeywords) && icb != null)
                 {
                     if (icb.StartIndex < 0)
                         continue;
                     node.Children.Add(icb.StartIndex, icb);
+                }
+                else if (parser.PeekToken(TokenKind.EndKeyword) && endKeywords != null && endKeywords.Contains(parser.PeekToken(2).Kind))
+                {
+                    break;
                 }
                 else
                     parser.NextToken();
@@ -303,7 +313,8 @@ namespace VSGenero.Analysis.Parsing.AST
                                  Func<ReturnStatement, ParserResult> returnStatementBinder = null,
                                  Action<IAnalysisResult, int, int> limitedScopeVariableAdder = null,
                                  List<TokenKind> validExitKeywords = null,
-                                 IEnumerable<ContextStatementFactory> contextStatementFactories = null)
+                                 IEnumerable<ContextStatementFactory> contextStatementFactories = null,
+                                 HashSet<TokenKind> endKeywords = null)
         {
             node = null;
             bool result = false;
@@ -319,7 +330,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 node.DecoratorEnd = parser.Token.Span.End;
 
                 BuildDialogBlock(parser, node, containingModule, prepStatementBinder, returnStatementBinder, limitedScopeVariableAdder, 
-                                 validExitKeywords, contextStatementFactories);
+                                 validExitKeywords, contextStatementFactories, endKeywords);
 
                 if (!(parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.DialogKeyword, 2)))
                 {
@@ -425,7 +436,8 @@ namespace VSGenero.Analysis.Parsing.AST
                                  Func<ReturnStatement, ParserResult> returnStatementBinder = null,
                                  Action<IAnalysisResult, int, int> limitedScopeVariableAdder = null,
                                  List<TokenKind> validExitKeywords = null,
-                                 IEnumerable<ContextStatementFactory> contextStatementFactories = null)
+                                 IEnumerable<ContextStatementFactory> contextStatementFactories = null,
+                                 HashSet<TokenKind> endKeywords = null)
         {
             node = new DialogControlBlock();
             node.StartIndex = parser.Token.Span.Start;
@@ -561,7 +573,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 // get the dialog statements
                 FglStatement inputStmt;
                 while (DialogStatementFactory.TryGetStatement(parser, out inputStmt, containingModule, prepStatementBinder, returnStatementBinder, 
-                                                              limitedScopeVariableAdder, validExitKeywords, contextStatementFactories) && inputStmt != null)
+                                                              limitedScopeVariableAdder, validExitKeywords, contextStatementFactories, endKeywords) && inputStmt != null)
                     node.Children.Add(inputStmt.StartIndex, inputStmt);
 
                 if (node.Type == DialogControlBlockType.None && node.Children.Count == 0)
@@ -592,7 +604,8 @@ namespace VSGenero.Analysis.Parsing.AST
                                  Func<ReturnStatement, ParserResult> returnStatementBinder = null,
                                  Action<IAnalysisResult, int, int> limitedScopeVariableAdder = null,
                                  List<TokenKind> validExitKeywords = null,
-                                 IEnumerable<ContextStatementFactory> contextStatementFactories = null)
+                                 IEnumerable<ContextStatementFactory> contextStatementFactories = null,
+                                 HashSet<TokenKind> endKeywords = null)
         {
             bool result = false;
             node = null;
@@ -614,7 +627,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     return testNode;
                 });
                 result = parser.StatementFactory.TryParseNode(parser, out node, containingModule, prepStatementBinder, 
-                                                              returnStatementBinder, limitedScopeVariableAdder, false, validExitKeywords, csfs);
+                                                              returnStatementBinder, limitedScopeVariableAdder, false, validExitKeywords, csfs, null, endKeywords);
             }
 
             return result;

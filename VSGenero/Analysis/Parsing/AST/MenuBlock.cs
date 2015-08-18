@@ -29,7 +29,8 @@ namespace VSGenero.Analysis.Parsing.AST
                                  Func<ReturnStatement, ParserResult> returnStatementBinder = null,
                                  Action<IAnalysisResult, int, int> limitedScopeVariableAdder = null,
                                  List<TokenKind> validExitKeywords = null,
-                                 IEnumerable<ContextStatementFactory> contextStatementFactories = null)
+                                 IEnumerable<ContextStatementFactory> contextStatementFactories = null,
+                                 HashSet<TokenKind> endKeywords = null)
         {
             node = null;
             bool result = false;
@@ -79,6 +80,11 @@ namespace VSGenero.Analysis.Parsing.AST
                     validExits.AddRange(validExitKeywords);
                 validExits.Add(TokenKind.MenuKeyword);
 
+                HashSet<TokenKind> newEndKeywords = new HashSet<TokenKind>();
+                if (endKeywords != null)
+                    newEndKeywords.AddRange(endKeywords);
+                newEndKeywords.Add(TokenKind.MenuKeyword);
+
                 int beforeStart = -1, beforeDecEnd = -1, beforeEnd = -1;
                 if(parser.PeekToken(TokenKind.BeforeKeyword))
                 {
@@ -91,7 +97,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         FglStatement menuStmt;
                         List<FglStatement> stmts = new List<FglStatement>();
                         while (MenuStatementFactory.TryGetStatement(parser, out menuStmt, containingModule, prepStatementBinder, returnStatementBinder, 
-                                                                    limitedScopeVariableAdder, validExits, contextStatementFactories))
+                                                                    limitedScopeVariableAdder, validExits, contextStatementFactories, newEndKeywords))
                         {
                             stmts.Add(menuStmt);
                             beforeEnd = menuStmt.EndIndex;
@@ -111,12 +117,16 @@ namespace VSGenero.Analysis.Parsing.AST
                        !(parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.MenuKeyword, 2)))
                 {
                     MenuOption menuOpt;
-                    if (MenuOption.TryParseNode(parser, out menuOpt, containingModule, prepStatementBinder, returnStatementBinder, 
-                                                limitedScopeVariableAdder, validExits, contextStatementFactories) && menuOpt != null)
+                    if (MenuOption.TryParseNode(parser, out menuOpt, containingModule, prepStatementBinder, returnStatementBinder,
+                                                limitedScopeVariableAdder, validExits, contextStatementFactories, newEndKeywords) && menuOpt != null)
                     {
                         if (menuOpt.StartIndex < 0)
                             continue;
                         node.Children.Add(menuOpt.StartIndex, menuOpt);
+                    }
+                    else if (parser.PeekToken(TokenKind.EndKeyword) && endKeywords != null && endKeywords.Contains(parser.PeekToken(2).Kind))
+                    {
+                        break;
                     }
                     else
                         parser.NextToken();
@@ -178,7 +188,8 @@ namespace VSGenero.Analysis.Parsing.AST
                                  Func<ReturnStatement, ParserResult> returnStatementBinder = null,
                                  Action<IAnalysisResult, int, int> limitedScopeVariableAdder = null,
                                  List<TokenKind> validExitKeywords = null,
-                                 IEnumerable<ContextStatementFactory> contextStatementFactories = null)
+                                 IEnumerable<ContextStatementFactory> contextStatementFactories = null,
+                                 HashSet<TokenKind> endKeywords = null)
         {
             bool result = false;
             node = null;
@@ -200,7 +211,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     return testNode;
                 });
                 result = parser.StatementFactory.TryParseNode(parser, out node, containingModule, prepStatementBinder, 
-                                                              returnStatementBinder, limitedScopeVariableAdder, false, validExitKeywords, csfs);
+                                                              returnStatementBinder, limitedScopeVariableAdder, false, validExitKeywords, csfs, null, endKeywords);
             }
 
             return result;
@@ -338,7 +349,8 @@ namespace VSGenero.Analysis.Parsing.AST
                                  Func<ReturnStatement, ParserResult> returnStatementBinder = null,
                                  Action<IAnalysisResult, int, int> limitedScopeVariableAdder = null,
                                  List<TokenKind> validExitKeywords = null,
-                                 IEnumerable<ContextStatementFactory> contextStatementFactories = null)
+                                 IEnumerable<ContextStatementFactory> contextStatementFactories = null,
+                                 HashSet<TokenKind> endKeywords = null)
         {
             node = new MenuOption();
             bool result = true;
@@ -387,7 +399,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         // at this point we need to try to get a menu-statement. If it doesn't work, we have some other stuff to gather
                         FglStatement menuStmt = null;
                         if (getOptionName || !MenuStatementFactory.TryGetStatement(parser, out menuStmt, containingModule, prepStatementBinder, returnStatementBinder, 
-                                                                                   limitedScopeVariableAdder, validExitKeywords, contextStatementFactories))
+                                                                                   limitedScopeVariableAdder, validExitKeywords, contextStatementFactories, endKeywords))
                         {
                             ExpressionNode optionName;
                             if (ExpressionNode.TryGetExpressionNode(parser, out optionName))
@@ -422,7 +434,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         }
 
                         while (MenuStatementFactory.TryGetStatement(parser, out menuStmt, containingModule, prepStatementBinder, returnStatementBinder, 
-                                                                    limitedScopeVariableAdder, validExitKeywords, contextStatementFactories))
+                                                                    limitedScopeVariableAdder, validExitKeywords, contextStatementFactories, endKeywords))
                             if(menuStmt != null && !node.Children.ContainsKey(menuStmt.StartIndex))
                                 node.Children.Add(menuStmt.StartIndex, menuStmt);
 
@@ -443,7 +455,7 @@ namespace VSGenero.Analysis.Parsing.AST
                             node.DecoratorEnd = parser.Token.Span.End;
                             FglStatement menuStmt = null;
                             while (MenuStatementFactory.TryGetStatement(parser, out menuStmt, containingModule, prepStatementBinder, returnStatementBinder, 
-                                                                        limitedScopeVariableAdder, validExitKeywords, contextStatementFactories) && menuStmt != null)
+                                                                        limitedScopeVariableAdder, validExitKeywords, contextStatementFactories, endKeywords) && menuStmt != null)
                                 node.Children.Add(menuStmt.StartIndex, menuStmt);
                         }
                         else if (parser.PeekToken(TokenKind.IdleKeyword))
@@ -457,7 +469,7 @@ namespace VSGenero.Analysis.Parsing.AST
                             node.DecoratorEnd = parser.Token.Span.End;
                             FglStatement menuStmt = null;
                             while (MenuStatementFactory.TryGetStatement(parser, out menuStmt, containingModule, prepStatementBinder, returnStatementBinder, 
-                                                                        limitedScopeVariableAdder, validExitKeywords, contextStatementFactories) && menuStmt != null)
+                                                                        limitedScopeVariableAdder, validExitKeywords, contextStatementFactories, endKeywords) && menuStmt != null)
                                 node.Children.Add(menuStmt.StartIndex, menuStmt);
                         }
                         else

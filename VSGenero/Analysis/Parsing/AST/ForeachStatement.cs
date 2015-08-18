@@ -30,7 +30,8 @@ namespace VSGenero.Analysis.Parsing.AST
                                         Func<ReturnStatement, ParserResult> returnStatementBinder = null,
                                         Action<IAnalysisResult, int, int> limitedScopeVariableAdder = null,
                                         List<TokenKind> validExitKeywords = null,
-                                        IEnumerable<ContextStatementFactory> contextStatementFactories = null)
+                                        IEnumerable<ContextStatementFactory> contextStatementFactories = null,
+                                        HashSet<TokenKind> endKeywords = null)
         {
             node = null;
             bool result = false;
@@ -97,13 +98,18 @@ namespace VSGenero.Analysis.Parsing.AST
                     validExits.AddRange(validExitKeywords);
                 validExits.Add(TokenKind.ForeachKeyword);
 
+                HashSet<TokenKind> newEndKeywords = new HashSet<TokenKind>();
+                if (endKeywords != null)
+                    newEndKeywords.AddRange(endKeywords);
+                newEndKeywords.Add(TokenKind.ForeachKeyword);
+
                 while (!parser.PeekToken(TokenKind.EndOfFile) &&
                       !(parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.ForeachKeyword, 2)))
                 {
                     FglStatement statement;
                     if (parser.StatementFactory.TryParseNode(parser, out statement, containingModule, prepStatementBinder, 
                                                              returnStatementBinder, limitedScopeVariableAdder, false, validExits, 
-                                                             contextStatementFactories) && statement != null)
+                                                             contextStatementFactories, null, newEndKeywords) && statement != null)
                     {
                         AstNode stmtNode = statement as AstNode;
                         node.Children.Add(stmtNode.StartIndex, stmtNode);
@@ -121,6 +127,10 @@ namespace VSGenero.Analysis.Parsing.AST
                             if (validExitKeywords == null || !validExitKeywords.Contains((statement as ContinueStatement).ContinueType))
                                 parser.ReportSyntaxError("Invalid continue statement for for loop detected.");
                         }
+                    }
+                    else if (parser.PeekToken(TokenKind.EndKeyword) && endKeywords != null && endKeywords.Contains(parser.PeekToken(2).Kind))
+                    {
+                        break;
                     }
                     else
                     {

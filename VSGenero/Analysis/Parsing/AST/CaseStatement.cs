@@ -29,7 +29,8 @@ namespace VSGenero.Analysis.Parsing.AST
                                         Action<IAnalysisResult, int, int> limitedScopeVariableAdder = null,
                                         List<TokenKind> validExitKeywords = null,
                                         IEnumerable<ContextStatementFactory> contextStatementFactories = null,
-                                        ExpressionParsingOptions expressionOptions = null)
+                                        ExpressionParsingOptions expressionOptions = null,
+                                        HashSet<TokenKind> endKeywords = null)
         {
             node = null;
             bool result = false;
@@ -61,6 +62,11 @@ namespace VSGenero.Analysis.Parsing.AST
                     validExits.AddRange(validExitKeywords);
                 validExits.Add(TokenKind.CaseKeyword);
 
+                HashSet<TokenKind> newEndKeywords = new HashSet<TokenKind>();
+                if (endKeywords != null)
+                    newEndKeywords.AddRange(endKeywords);
+                newEndKeywords.Add(TokenKind.CaseKeyword);
+
                 // need to allow multiple when statements
                 bool whenCases = true;
                 while(!parser.PeekToken(TokenKind.EndOfFile) &&
@@ -69,7 +75,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     WhenStatement whenStmt;
                     if (WhenStatement.TryParseNode(parser, out whenStmt, containingModule, prepStatementBinder, 
                                                    returnStatementBinder, limitedScopeVariableAdder, validExits, 
-                                                   contextStatementFactories, expressionOptions) && whenStmt != null)
+                                                   contextStatementFactories, expressionOptions, newEndKeywords) && whenStmt != null)
                     {
                         if (whenCases)
                         {
@@ -85,7 +91,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     {
                         OtherwiseStatement otherStmt;
                         if (OtherwiseStatement.TryParseNode(parser, out otherStmt, containingModule, prepStatementBinder, returnStatementBinder, 
-                                                            limitedScopeVariableAdder, validExits, contextStatementFactories, expressionOptions) && otherStmt != null)
+                                                            limitedScopeVariableAdder, validExits, contextStatementFactories, expressionOptions, newEndKeywords) && otherStmt != null)
                         {
                             whenCases = false;
                             node.Children.Add(otherStmt.StartIndex, otherStmt);
@@ -143,7 +149,8 @@ namespace VSGenero.Analysis.Parsing.AST
                                         Action<IAnalysisResult, int, int> limitedScopeVariableAdder = null,
                                         List<TokenKind> validExitKeywords = null,
                                         IEnumerable<ContextStatementFactory> contextStatementFactories = null,
-                                        ExpressionParsingOptions expressionOptions = null)
+                                        ExpressionParsingOptions expressionOptions = null,
+                                        HashSet<TokenKind> endKeywords = null)
         {
             node = null;
             bool result = false;
@@ -169,7 +176,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     FglStatement statement;
                     if (parser.StatementFactory.TryParseNode(parser, out statement, containingModule, prepStatementBinder, 
                                                              returnStatementBinder, limitedScopeVariableAdder, false, validExitKeywords, 
-                                                             contextStatementFactories, expressionOptions) && statement != null)
+                                                             contextStatementFactories, expressionOptions, endKeywords) && statement != null)
                     {
                         AstNode stmtNode = statement as AstNode;
                         node.Children.Add(stmtNode.StartIndex, stmtNode);
@@ -180,6 +187,10 @@ namespace VSGenero.Analysis.Parsing.AST
                             if (!validExitKeywords.Contains((statement as ExitStatement).ExitType))
                                 parser.ReportSyntaxError("Invalid exit statement for case statement block detected.");
                         }
+                    }
+                    else if (parser.PeekToken(TokenKind.EndKeyword) && endKeywords != null && endKeywords.Contains(parser.PeekToken(2).Kind))
+                    {
+                        break;
                     }
                     else
                     {
@@ -221,7 +232,8 @@ namespace VSGenero.Analysis.Parsing.AST
                                         Action<IAnalysisResult, int, int> limitedScopeVariableAdder = null,
                                         List<TokenKind> validExitKeywords = null,
                                         IEnumerable<ContextStatementFactory> contextStatementFactories = null,
-                                        ExpressionParsingOptions expressionOptions = null)
+                                        ExpressionParsingOptions expressionOptions = null,
+                                        HashSet<TokenKind> endKeywords = null)
         {
             node = null;
             bool result = false;
@@ -252,6 +264,10 @@ namespace VSGenero.Analysis.Parsing.AST
                             if (!validExitKeywords.Contains((statement as ExitStatement).ExitType))
                                 parser.ReportSyntaxError("Invalid exit statement for case statement block detected.");
                         }
+                    }
+                    else if (parser.PeekToken(TokenKind.EndKeyword) && endKeywords != null && endKeywords.Contains(parser.PeekToken(2).Kind))
+                    {
+                        break;
                     }
                     else
                     {

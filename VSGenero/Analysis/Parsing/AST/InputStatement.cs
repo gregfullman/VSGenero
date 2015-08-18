@@ -34,7 +34,8 @@ namespace VSGenero.Analysis.Parsing.AST
                                  Func<ReturnStatement, ParserResult> returnStatementBinder = null,
                                  Action<IAnalysisResult, int, int> limitedScopeVariableAdder = null,
                                  List<TokenKind> validExitKeywords = null,
-                                 IEnumerable<ContextStatementFactory> contextStatementFactories = null)
+                                 IEnumerable<ContextStatementFactory> contextStatementFactories = null,
+                                 HashSet<TokenKind> endKeywords = null)
         {
             node = null;
             bool result = false;
@@ -161,10 +162,15 @@ namespace VSGenero.Analysis.Parsing.AST
                     validExits.AddRange(validExits);
                 validExits.Add(TokenKind.InputKeyword);
 
+                HashSet<TokenKind> newEndKeywords = new HashSet<TokenKind>();
+                if (endKeywords != null)
+                    newEndKeywords.AddRange(endKeywords);
+                newEndKeywords.Add(TokenKind.InputKeyword);
+
                 bool hasControlBlocks = false;
                 InputControlBlock icb;
                 while (InputControlBlock.TryParseNode(parser, out icb, containingModule, hasControlBlocks, node.IsArray, prepStatementBinder, returnStatementBinder, 
-                                                      limitedScopeVariableAdder, validExits, contextStatementFactories) && icb != null)
+                                                      limitedScopeVariableAdder, validExits, contextStatementFactories, newEndKeywords) && icb != null)
                 {
                     if (icb.StartIndex < 0)
                         continue;
@@ -247,7 +253,8 @@ namespace VSGenero.Analysis.Parsing.AST
                                  Func<ReturnStatement, ParserResult> returnStatementBinder = null,
                                  Action<IAnalysisResult, int, int> limitedScopeVariableAdder = null,
                                  List<TokenKind> validExitKeywords = null,
-                                 IEnumerable<ContextStatementFactory> contextStatementFactories = null)
+                                 IEnumerable<ContextStatementFactory> contextStatementFactories = null,
+                                 HashSet<TokenKind> endKeywords = null)
         {
             node = new InputControlBlock();
             bool result = true;
@@ -426,7 +433,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 // get the dialog statements
                 FglStatement inputStmt;
                 while (InputDialogStatementFactory.TryGetStatement(parser, out inputStmt, isArray, containingModule, prepStatementBinder, returnStatementBinder, 
-                                                                   limitedScopeVariableAdder, validExitKeywords, contextStatementFactories))
+                                                                   limitedScopeVariableAdder, validExitKeywords, contextStatementFactories, endKeywords))
                 {
                     if (inputStmt != null)
                     {
@@ -484,7 +491,8 @@ namespace VSGenero.Analysis.Parsing.AST
                                  Func<ReturnStatement, ParserResult> returnStatementBinder = null,
                                  Action<IAnalysisResult, int, int> limitedScopeVariableAdder = null,
                                  List<TokenKind> validExitKeywords = null,
-                                 IEnumerable<ContextStatementFactory> contextStatementFactories = null)
+                                 IEnumerable<ContextStatementFactory> contextStatementFactories = null,
+                                 HashSet<TokenKind> endKeywords = null)
         {
             bool result = false;
             node = null;
@@ -506,7 +514,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         return testNode;
                     });
                 result = parser.StatementFactory.TryParseNode(parser, out node, containingModule, prepStatementBinder, returnStatementBinder,
-                                                              limitedScopeVariableAdder, false, validExitKeywords, csfs);
+                                                              limitedScopeVariableAdder, false, validExitKeywords, csfs, null, endKeywords);
             }
 
             return result;

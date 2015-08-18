@@ -32,7 +32,8 @@ namespace VSGenero.Analysis.Parsing.AST
                                  Func<ReturnStatement, ParserResult> returnStatementBinder = null,
                                  Action<IAnalysisResult, int, int> limitedScopeVariableAdder = null,
                                  List<TokenKind> validExitKeywords = null,
-                                 IEnumerable<ContextStatementFactory> contextStatementFactories = null)
+                                 IEnumerable<ContextStatementFactory> contextStatementFactories = null,
+                                 HashSet<TokenKind> endKeywords = null)
         {
             node = null;
             bool result = false;
@@ -133,6 +134,11 @@ namespace VSGenero.Analysis.Parsing.AST
                 if (validExitKeywords != null)
                     validExits.AddRange(validExitKeywords);
                 validExits.Add(TokenKind.PromptKeyword);
+
+                HashSet<TokenKind> newEndKeywords = new HashSet<TokenKind>();
+                if (endKeywords != null)
+                    newEndKeywords.AddRange(endKeywords);
+                newEndKeywords.Add(TokenKind.PromptKeyword);
 
                 bool hasControlBlocks = false;
                 PromptControlBlock controlBlock;
@@ -317,7 +323,8 @@ namespace VSGenero.Analysis.Parsing.AST
                                 Func<ReturnStatement, ParserResult> returnStatementBinder = null,
                                 Action<IAnalysisResult, int, int> limitedScopeVariableAdder = null,
                                 List<TokenKind> validExitKeywords = null,
-                                 IEnumerable<ContextStatementFactory> contextStatementFactories = null)
+                                 IEnumerable<ContextStatementFactory> contextStatementFactories = null,
+                                 HashSet<TokenKind> endKeywords = null)
         {
             node = new PromptControlBlock();
             bool result = true;
@@ -391,7 +398,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 // get the dialog statements
                 FglStatement dispStmt;
                 while (parser.StatementFactory.TryParseNode(parser, out dispStmt, containingModule, prepStatementBinder, returnStatementBinder, 
-                                                            limitedScopeVariableAdder, false, validExitKeywords, contextStatementFactories) && dispStmt != null)
+                                                            limitedScopeVariableAdder, false, validExitKeywords, contextStatementFactories, null, endKeywords) && dispStmt != null)
                 {
                     node.Children.Add(dispStmt.StartIndex, dispStmt);
                     node.EndIndex = dispStmt.EndIndex;
