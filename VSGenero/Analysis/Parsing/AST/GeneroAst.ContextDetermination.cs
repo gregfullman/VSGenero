@@ -865,6 +865,7 @@ namespace VSGenero.Analysis.Parsing.AST
                             new BackwardTokenSearchItem[] 
                             { 
                                 new BackwardTokenSearchItem(TokenKind.WhenKeyword),
+                                new BackwardTokenSearchItem(TokenKind.ReturningKeyword),
                                 new BackwardTokenSearchItem(new OrderedTokenSet(new object[] { TokenCategory.Identifier, TokenKind.DefineKeyword })),
                                 new BackwardTokenSearchItem(new OrderedTokenSet(new object[] { TokenKind.LikeKeyword, TokenKind.DefineKeyword })),
                                 new BackwardTokenSearchItem(new OrderedTokenSet(new object[] { TokenCategory.Identifier, TokenKind.TypeKeyword })),
@@ -1909,8 +1910,14 @@ namespace VSGenero.Analysis.Parsing.AST
                         ),
                         new ContextPossibilities(
                             emptyTokenKindSet,
-                            emptyContextSetProviderSet,
-                            emptyBackwardTokenSearchSet
+                            new ContextSetProvider[] { GetReports },
+                            new BackwardTokenSearchItem[] 
+                            { 
+                                new BackwardTokenSearchItem(TokenKind.StartKeyword),
+                                new BackwardTokenSearchItem(TokenKind.ToKeyword),
+                                new BackwardTokenSearchItem(TokenKind.FinishKeyword),
+                                new BackwardTokenSearchItem(TokenKind.TerminateKeyword)
+                            }
                         )
                     });
                     _contextMap.Add(TokenKind.RestartKeyword, new List<ContextPossibilities>
@@ -2374,6 +2381,14 @@ namespace VSGenero.Analysis.Parsing.AST
                             }
                         ),
                     });
+                    _contextMap.Add(TokenKind.SubdialogKeyword, new List<ContextPossibilities>
+                    {
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetDeclaredDialogs },
+                            emptyBackwardTokenSearchSet
+                        )
+                    });
                     _contextMap.Add(TokenKind.TableKeyword, new List<ContextPossibilities>
                     {
                         new ContextPossibilities(
@@ -2732,11 +2747,29 @@ namespace VSGenero.Analysis.Parsing.AST
                 new MemberResult(Tokens.TokenKinds[x], GeneroMemberType.Keyword, _instance));
         }
 
+        private static IEnumerable<MemberResult> GetDeclaredDialogs(int index)
+        {
+            if (_instance != null)
+            {
+                return _instance.GetInstanceDeclaredDialogs(index);
+            }
+            return new MemberResult[0];
+        }
+
+        private static IEnumerable<MemberResult> GetReports(int index)
+        {
+            if (_instance != null)
+            {
+                return _instance.GetInstanceReports(index);
+            }
+            return new MemberResult[0];
+        }
+
         private static IEnumerable<MemberResult> GetConstants(int index)
         {
             if (_instance != null)
             {
-                return _instance.GetInstanceVariables(index);
+                return _instance.GetInstanceConstants(index);
             }
             return new MemberResult[0];
         }

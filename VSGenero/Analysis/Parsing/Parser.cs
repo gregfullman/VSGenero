@@ -366,60 +366,6 @@ namespace VSGenero.Analysis.Parsing
             }
             _codeRegions.Clear();
             return null;
-
-            //List<Statement> l = new List<Statement>();
-
-            //
-            // A future statement must appear near the top of the module. 
-            // The only lines that can appear before a future statement are: 
-            // - the module docstring (if any), 
-            // - comments, 
-            // - blank lines, and 
-            // - other future statements. 
-            // 
-
-            //MaybeEatNewLine();
-
-            //if (PeekToken(TokenKind.Constant))
-            //{
-            //    //Statement s = ParseStmt();
-            //    //l.Add(s);
-            //    _fromFutureAllowed = false;
-            //    //ExpressionStatement es = s as ExpressionStatement;
-            //    //if (es != null)
-            //    //{
-            //    //    ConstantExpression ce = es.Expression as ConstantExpression;
-            //    //    if (ce != null && IsString(ce))
-            //    //    {
-            //    //        // doc string
-            //    //        _fromFutureAllowed = true;
-            //    //    }
-            //    //}
-            //}
-
-            //MaybeEatNewLine();
-
-            //// the end of from __future__ sequence
-            //_fromFutureAllowed = false;
-
-            //while (true)
-            //{
-            //    if (MaybeEatEof()) break;
-            //    if (MaybeEatNewLine()) continue;
-
-            //    Statement s = ParseStmt();
-            //    l.Add(s);
-            //}
-
-            //Statement[] stmts = l.ToArray();
-
-            //SuiteStatement ret = new SuiteStatement(stmts);
-            //AddIsAltForm(ret);
-            //if (_token.Token != null)
-            //{
-            //    ret.SetLoc(0, GetEnd());
-            //}
-            //return CreateAst(ret);
         }
 
         private void StartParsing()

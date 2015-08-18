@@ -317,6 +317,7 @@
   <ItemGroup>
     <Compile Include="Analysis\AnalysisVariable.cs" />
     <Compile Include="Analysis\GeneroKeywords.cs" />
+    <Compile Include="Analysis\ICommentValidator.cs" />
     <Compile Include="Analysis\IDatabaseInformationProvider.cs" />
     <Compile Include="Analysis\IFunctionInformationProvider.cs" />
     <Compile Include="Analysis\ILocatedMember.cs" />

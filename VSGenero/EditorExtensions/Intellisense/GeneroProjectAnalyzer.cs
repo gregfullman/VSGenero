@@ -1078,7 +1078,8 @@ namespace VSGenero.EditorExtensions.Intellisense
                 GeneroAst ast;
                 CollectingErrorSink errorSink;
                 List<TaskProviderItem> commentTasks;
-                ParseGeneroCode(snapshot, content, indentationSeverity, pyEntry, out ast, out errorSink, out commentTasks);
+                List<TaskProviderItem> commentErrors;
+                ParseGeneroCode(snapshot, content, indentationSeverity, pyEntry, out ast, out errorSink, out commentTasks, out commentErrors);
 
                 if (ast != null)
                 {
@@ -1090,7 +1091,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                     pyEntry.UpdateTree(null, null);
                 }
 
-                UpdateErrorsAndWarnings(projectEntry, snapshot, errorSink, TaskLevel.Syntax, commentTasks);
+                UpdateErrorsAndWarnings(projectEntry, snapshot, errorSink, TaskLevel.Syntax, commentTasks, commentErrors);
 
                 if (ast != null)
                 {
@@ -1124,8 +1125,9 @@ namespace VSGenero.EditorExtensions.Intellisense
                     GeneroAst ast;
                     CollectingErrorSink errorSink;
                     List<TaskProviderItem> commentTasks;
+                    List<TaskProviderItem> commentErrors;
                     var reader = new SnapshotSpanSourceCodeReader(new SnapshotSpan(snapshot, new Span(0, snapshot.Length)));
-                    ParseGeneroCode(snapshot, reader, indentationSeverity, pyProjEntry, out ast, out errorSink, out commentTasks);
+                    ParseGeneroCode(snapshot, reader, indentationSeverity, pyProjEntry, out ast, out errorSink, out commentTasks, out commentErrors);
                     if (ast != null)
                     {
                         asts.Add(ast);
@@ -1136,7 +1138,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                         //}
                     }
 
-                    UpdateErrorsAndWarnings(analysis, snapshot, errorSink, TaskLevel.Syntax, commentTasks);
+                    UpdateErrorsAndWarnings(analysis, snapshot, errorSink, TaskLevel.Syntax, commentTasks, commentErrors);
                 }
             }
 
@@ -1236,7 +1238,7 @@ namespace VSGenero.EditorExtensions.Intellisense
         }
 
         // Tokenizer callback. Extracts comment tasks (like "TODO" or "HACK") from comments.
-        private void ProcessComment(List<TaskProviderItem> commentTasks, ITextSnapshot snapshot, SourceSpan span, string text)
+        private void ProcessComment(IProjectEntry projectEntry, List<TaskProviderItem> commentTasks, List<TaskProviderItem> commentErrors, ITextSnapshot snapshot, SourceSpan span, string text)
         {
             if (text.Length > 0)
             {
@@ -1258,6 +1260,22 @@ namespace VSGenero.EditorExtensions.Intellisense
                         }
                     }
                 }
+
+                if(VSGeneroPackage.Instance.CommentValidators != null)
+                {
+                    CommentError commErr;
+                    foreach(var validator in VSGeneroPackage.Instance.CommentValidators)
+                    {
+                        if(text.StartsWith(validator.ValidStartsWith, StringComparison.OrdinalIgnoreCase))
+                        {
+                            if((commErr = validator.ProcessComment(projectEntry, span, text)) != null)
+                            {
+
+                                commentErrors.Add(new TaskProviderItem(_serviceProvider, commErr.ErrorMessage, commErr.Span, VSTASKPRIORITY.TP_NORMAL, VSTASKCATEGORY.CAT_CODESENSE, true, snapshot, TaskLevel.Syntax));
+                            }
+                        }
+                    }
+                }
             }
         }
 
@@ -1266,7 +1284,8 @@ namespace VSGenero.EditorExtensions.Intellisense
             ITextSnapshot snapshot,
             CollectingErrorSink errorSink,
             TaskLevel level,
-            List<TaskProviderItem> commentTasks = null
+            List<TaskProviderItem> commentTasks = null,
+            List<TaskProviderItem> commentErrors = null
         )
         {
             // Update the warn-on-launch state for this entry
@@ -1280,20 +1299,28 @@ namespace VSGenero.EditorExtensions.Intellisense
                 OnShouldWarnOnLaunchChanged(entry);
             }
 
+
+
             // Update the parser warnings/errors.
             var factory = new TaskProviderItemFactory(snapshot);
-            if (errorSink.Warnings.Any() || errorSink.Errors.Any())
+            if (errorSink.Warnings.Any() || errorSink.Errors.Any() || (commentErrors != null && commentErrors.Count > 0))
             {
                 if (!_errorProvider.HasErrorSource(entry, ParserTaskMoniker))
                     _errorProvider.AddBufferForErrorSource(entry, ParserTaskMoniker, null);
 
+                var items = errorSink.Warnings
+                        .Select(er => factory.FromErrorResult(_serviceProvider, er, VSTASKPRIORITY.TP_NORMAL, VSTASKCATEGORY.CAT_BUILDCOMPILE, level))
+                        .Concat(errorSink.Errors.Select(er => factory.FromErrorResult(_serviceProvider, er, VSTASKPRIORITY.TP_HIGH, VSTASKCATEGORY.CAT_BUILDCOMPILE, level)))
+                        .ToList();
+                if(commentErrors != null)
+                {
+                    items.AddRange(commentErrors);
+                }
+
                 _errorProvider.ReplaceItems(
                     entry,
                     ParserTaskMoniker,
-                    errorSink.Warnings
-                        .Select(er => factory.FromErrorResult(_serviceProvider, er, VSTASKPRIORITY.TP_NORMAL, VSTASKCATEGORY.CAT_BUILDCOMPILE, level))
-                        .Concat(errorSink.Errors.Select(er => factory.FromErrorResult(_serviceProvider, er, VSTASKPRIORITY.TP_HIGH, VSTASKCATEGORY.CAT_BUILDCOMPILE, level)))
-                        .ToList(),
+                    items,
                     level
                 );
             }
@@ -1367,11 +1394,14 @@ namespace VSGenero.EditorExtensions.Intellisense
         internal event EventHandler<EntryEventArgs> ShouldWarnOnLaunchChanged;
 
 
-        private void ParseGeneroCode(ITextSnapshot snapshot, Stream content, Severity indentationSeverity, IProjectEntry entry, out GeneroAst ast, out CollectingErrorSink errorSink, out List<TaskProviderItem> commentTasks)
+        private void ParseGeneroCode(ITextSnapshot snapshot, Stream content, Severity indentationSeverity, IProjectEntry entry, 
+                                     out GeneroAst ast, out CollectingErrorSink errorSink, out List<TaskProviderItem> commentTasks,
+                                     out List<TaskProviderItem> commentErrors)
         {
             ast = null;
             errorSink = new CollectingErrorSink();
             var tasks = commentTasks = new List<TaskProviderItem>();
+            var errTasks = commentErrors = new List<TaskProviderItem>();
 
             var options = new ParserOptions()
             {
@@ -1380,7 +1410,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                 IndentationInconsistencySeverity = indentationSeverity,
                 BindReferences = true
             };
-            options.ProcessComment += (sender, e) => ProcessComment(tasks, snapshot, e.Span, e.Text);
+            options.ProcessComment += (sender, e) => ProcessComment(entry, tasks, errTasks, snapshot, e.Span, e.Text);
 
 
             using (var parser = Parser.CreateParser(content, options, entry))
@@ -1389,11 +1419,14 @@ namespace VSGenero.EditorExtensions.Intellisense
             }
         }
 
-        private void ParseGeneroCode(ITextSnapshot snapshot, TextReader content, Severity indentationSeverity, IProjectEntry entry, out GeneroAst ast, out CollectingErrorSink errorSink, out List<TaskProviderItem> commentTasks)
+        private void ParseGeneroCode(ITextSnapshot snapshot, TextReader content, Severity indentationSeverity, IProjectEntry entry, 
+                                     out GeneroAst ast, out CollectingErrorSink errorSink, out List<TaskProviderItem> commentTasks,
+                                     out List<TaskProviderItem> commentErrors)
         {
             ast = null;
             errorSink = new CollectingErrorSink();
             var tasks = commentTasks = new List<TaskProviderItem>();
+            var errTasks = commentErrors = new List<TaskProviderItem>();
 
             var options = new ParserOptions() 
             { 
@@ -1402,7 +1435,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                 IndentationInconsistencySeverity = indentationSeverity, 
                 BindReferences = true 
             };
-            options.ProcessComment += (sender, e) => ProcessComment(tasks, snapshot, e.Span, e.Text);
+            options.ProcessComment += (sender, e) => ProcessComment(entry, tasks, errTasks, snapshot, e.Span, e.Text);
 
             using (var parser = Parser.CreateParser(content, options, entry))
             {

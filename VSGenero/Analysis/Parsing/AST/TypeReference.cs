@@ -615,7 +615,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     IGeneroProject dummyProj;
                     IProjectEntry dummyProjEntry;
                     bool isDeferred;
-                    var res = GeneroAst.GetValueByIndex(_typeNameString, StartIndex, ast, out dummyProj, out dummyProjEntry, out isDeferred);
+                    var res = GeneroAst.GetValueByIndex(_typeNameString, StartIndex, ast, out dummyProj, out dummyProjEntry, out isDeferred, GeneroAst.FunctionProviderSearchMode.NoSearch, false, true, false, false);
                     if(res == null)
                     {
                         errorFunc(string.Format("Type {0} not found.", _typeNameString), StartIndex, EndIndex);

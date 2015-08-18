@@ -219,6 +219,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                     //        TriggerCompletionSession(false);
                     //    }
                     //    break;
+                    case '&':
                     case '.':
                         if (VSGeneroPackage.Instance.LangPrefs.AutoListMembers && AreSurroundingCharactersWhitespace(ch, true))
                         {

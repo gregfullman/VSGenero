@@ -33,6 +33,17 @@ namespace VSGenero.Analysis.Parsing.AST
 
         internal GeneroAst SyntaxTree { get; set; }
 
+        private Dictionary<string, List<PreprocessorNode>> _includeFiles;
+        public Dictionary<string, List<PreprocessorNode>> IncludeFiles
+        {
+            get
+            {
+                if (_includeFiles == null)
+                    _includeFiles = new Dictionary<string, List<PreprocessorNode>>(StringComparer.OrdinalIgnoreCase);
+                return _includeFiles;
+            }
+        }
+
         public virtual GeneroMemberType MemberType
         {
             get

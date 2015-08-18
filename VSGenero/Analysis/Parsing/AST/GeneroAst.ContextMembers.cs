@@ -135,7 +135,7 @@ namespace VSGenero.Analysis.Parsing.AST
 
         private IEnumerable<MemberResult> GetAdditionalUserDefinedTypes(int index, string token)
         {
-            return GetDefinedMembers(index, false, false, true, false);
+            return GetDefinedMembers(index, AstMemberType.Types);
         }
 
         private IEnumerable<MemberResult> GetDatabaseTables(int index, string token)
@@ -227,12 +227,22 @@ namespace VSGenero.Analysis.Parsing.AST
             return type;
         }
 
-        private IEnumerable<MemberResult> GetDefinedMembers(int index, bool vars, bool consts, bool types, bool funcs)
+        private enum AstMemberType
+        {
+            Variables = 1,
+            Constants = 2,
+            Types = 4,
+            Functions = 8,
+            Dialogs = 16,
+            Reports = 32
+        }
+
+        private IEnumerable<MemberResult> GetDefinedMembers(int index, AstMemberType memberType)
         {
             HashSet<MemberResult> members = new HashSet<MemberResult>();
 
             HashSet<GeneroPackage> includedPackages = new HashSet<GeneroPackage>();
-            if (types)
+            if (memberType.HasFlag(AstMemberType.Types))
             {
                 // Built-in types
                 members.AddRange(BuiltinTypes.Select(x => new MemberResult(Tokens.TokenKinds[x], GeneroMemberType.Keyword, this)));
@@ -243,14 +253,14 @@ namespace VSGenero.Analysis.Parsing.AST
                     includedPackages.Add(package);
                 }
             }
-            if (consts)
+            if (memberType.HasFlag(AstMemberType.Constants))
             {
                 members.AddRange(SystemConstants.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Keyword, this)));
                 members.AddRange(SystemMacros.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Constant, this)));
             }
-            if (vars)
+            if (memberType.HasFlag(AstMemberType.Variables))
                 members.AddRange(SystemVariables.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Keyword, this)));
-            if (funcs)
+            if (memberType.HasFlag(AstMemberType.Functions))
             {
                 members.AddRange(SystemFunctions.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Function, this)));
                 foreach (var package in Packages.Values.Where(x => _importedPackages[x.Name] && x.ContainsStaticClasses))
@@ -281,7 +291,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 {
                     if (containingNode is IFunctionResult)
                     {
-                        if (vars)
+                        if (memberType.HasFlag(AstMemberType.Variables))
                         {
                             members.AddRange((containingNode as IFunctionResult).Variables.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Variable, this)));
                             foreach(var varList in (containingNode as IFunctionResult).LimitedScopeVariables)
@@ -296,11 +306,11 @@ namespace VSGenero.Analysis.Parsing.AST
                                 }
                             }
                         }
-                        if (types)
+                        if (memberType.HasFlag(AstMemberType.Types))
                             members.AddRange((containingNode as IFunctionResult).Types.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Class, this)));
-                        if (consts)
+                        if (memberType.HasFlag(AstMemberType.Constants))
                             members.AddRange((containingNode as IFunctionResult).Constants.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Constant, this)));
-                        if (funcs)
+                        if (memberType.HasFlag(AstMemberType.Functions))
                         {
                             foreach (var res in (containingNode as IFunctionResult).Variables/*.Where(x => x.Value.HasChildFunctions(this))
                                                                                             */.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Variable, this)))
@@ -324,24 +334,37 @@ namespace VSGenero.Analysis.Parsing.AST
                     if (_body is IModuleResult)
                     {
                         // check for module vars, types, and constants (and globals defined in this module)
-                        if (vars)
+                        if (memberType.HasFlag(AstMemberType.Variables))
                         {
                             members.AddRange((_body as IModuleResult).Variables.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Variable, this)));
                             members.AddRange((_body as IModuleResult).GlobalVariables.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Variable, this)));
                         }
-                        if (types)
+                        if (memberType.HasFlag(AstMemberType.Types))
                         {
                             members.AddRange((_body as IModuleResult).Types.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Class, this)));
                             members.AddRange((_body as IModuleResult).GlobalTypes.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Class, this)));
                         }
-                        if (consts)
+                        if (memberType.HasFlag(AstMemberType.Constants))
                         {
                             members.AddRange((_body as IModuleResult).Constants.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Constant, this)));
                             members.AddRange((_body as IModuleResult).GlobalConstants.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Constant, this)));
                         }
-                        if (funcs)
+                        if (memberType.HasFlag(AstMemberType.Dialogs))
                         {
-                            members.AddRange((_body as IModuleResult).Functions.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Method, this)));
+                            members.AddRange((_body as IModuleResult).Functions.Where(x => x.Value is DeclarativeDialogBlock)
+                                                             .Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Dialog, this)));
+                            members.AddRange((_body as IModuleResult).FglImports.Select(x => new MemberResult(x, GeneroMemberType.Module, this)));
+                        }
+                        if (memberType.HasFlag(AstMemberType.Reports))
+                        {
+                            members.AddRange((_body as IModuleResult).Functions.Where(x => x.Value is ReportBlockNode)
+                                                             .Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Report, this)));
+                        }
+                        if (memberType.HasFlag(AstMemberType.Functions))
+                        {
+                            members.AddRange((_body as IModuleResult).Functions
+                                                                     .Where(x => !(x.Value is ReportBlockNode) && !(x.Value is DeclarativeDialogBlock))
+                                                                     .Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Method, this)));
                             foreach (var res in (_body as IModuleResult).Variables/*.Where(x => x.Value.HasChildFunctions(this))
                                                                                             */.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Variable, this)))
                                 if (!members.Contains(res))
@@ -375,16 +398,44 @@ namespace VSGenero.Analysis.Parsing.AST
                             if (modRes != null)
                             {
                                 // check global types
-                                if (vars)
-                                    members.AddRange(modRes.GlobalVariables.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Variable, this)));
-                                if (types)
-                                    members.AddRange(modRes.GlobalTypes.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Class, this)));
-                                if (consts)
-                                    members.AddRange(modRes.GlobalConstants.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Constant, this)));
-                                if (funcs)
+                                // TODO: need to add an option to enable/disable legacy linking (to not reference other modules' non-public members
+                                if (memberType.HasFlag(AstMemberType.Variables))
                                 {
-                                    members.AddRange(modRes.Functions.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Method, this)));
+                                    members.AddRange(modRes.GlobalVariables.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Variable, this)));
+                                    members.AddRange(modRes.Variables.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Variable, this)));
+                                }
+                                if (memberType.HasFlag(AstMemberType.Types))
+                                {
+                                    members.AddRange(modRes.GlobalTypes.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Class, this)));
+                                    members.AddRange(modRes.Types.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Class, this)));
+                                }
+                                if (memberType.HasFlag(AstMemberType.Constants))
+                                {
+                                    members.AddRange(modRes.GlobalConstants.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Constant, this)));
+                                    members.AddRange(modRes.Constants.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Constant, this)));
+                                }
+                                if(memberType.HasFlag(AstMemberType.Dialogs))
+                                {
+                                    members.AddRange(modRes.Functions.Where(x => x.Value is DeclarativeDialogBlock)
+                                                                     .Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Dialog, this)));
+                                }
+                                if (memberType.HasFlag(AstMemberType.Reports))
+                                {
+                                    members.AddRange(modRes.Functions.Where(x => x.Value is ReportBlockNode)
+                                                                     .Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Report, this)));
+                                }
+                                if (memberType.HasFlag(AstMemberType.Functions))
+                                {
+                                    members.AddRange(modRes.Functions.Where(x => !(x.Value is ReportBlockNode) && !(x.Value is DeclarativeDialogBlock))
+                                                                     .Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Method, this)));
                                     foreach (var res in modRes.GlobalVariables/*.Where(x => 
+                                        {
+                                            return x.Value.HasChildFunctions(this);
+                                        })*/
+                                        .Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Variable, this)))
+                                        if (!members.Contains(res))
+                                            members.Add(res);
+                                    foreach (var res in modRes.Variables/*.Where(x => 
                                         {
                                             return x.Value.HasChildFunctions(this);
                                         })*/
@@ -398,7 +449,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 }
             }
 
-            if(funcs)
+            if (memberType.HasFlag(AstMemberType.Functions))
             {
                 _includePublicFunctions = true; // allow for deferred adding of public functions
             }
@@ -413,7 +464,7 @@ namespace VSGenero.Analysis.Parsing.AST
             //    }
             //}
 
-            members.AddRange(this.ProjectEntry.GetIncludedFiles().Where(x => x.Analysis != null).SelectMany(x => x.Analysis.GetDefinedMembers(1, vars, consts, types, funcs)));
+            members.AddRange(this.ProjectEntry.GetIncludedFiles().Where(x => x.Analysis != null).SelectMany(x => x.Analysis.GetDefinedMembers(1, memberType)));
 
             return members;
         }
@@ -456,8 +507,11 @@ namespace VSGenero.Analysis.Parsing.AST
                 if (tokInfo.Equals(default(TokenInfo)) || tokInfo.Token.Kind == TokenKind.NewLine || tokInfo.Token.Kind == TokenKind.NLToken || tokInfo.Token.Kind == TokenKind.Comment)
                     continue;   // linebreak
 
-                if (tokInfo.Token.Kind == TokenKind.Dot)
+                if (tokInfo.Token.Kind == TokenKind.Dot || tokInfo.Token.VerbatimImage.EndsWith("."))
                 {
+                    if (tokInfo.Category == TokenCategory.NumericLiteral)
+                        return true;
+
                     // now we need to analyze the variable reference to get its members
                     int startIndex, endIndex;
                     bool isFunctionCallOrDefinition;
@@ -856,18 +910,18 @@ namespace VSGenero.Analysis.Parsing.AST
             // 5) Imported modules
             // 6) Available packages
             // maybe more...
-            return GetDefinedMembers(index, true, true, false, true)
+            return GetDefinedMembers(index, AstMemberType.Variables | AstMemberType.Constants | AstMemberType.Functions)
                 .Union(_preUnaryOperators.Select(x => new MemberResult(Tokens.TokenKinds[x], GeneroMemberType.Keyword, this)));
         }
 
         private IEnumerable<MemberResult> GetInstanceTypes(int index)
         {
-            return GetDefinedMembers(index, false, false, true, false);
+            return GetDefinedMembers(index, AstMemberType.Types);
         }
 
         private IEnumerable<MemberResult> GetInstanceFunctions(int index)
         {
-            return GetDefinedMembers(index, false, false, false, true);
+            return GetDefinedMembers(index, AstMemberType.Functions);
         }
 
         private IEnumerable<MemberResult> GetInstanceLabels(int index)
@@ -875,14 +929,24 @@ namespace VSGenero.Analysis.Parsing.AST
             return new MemberResult[0];
         }
 
+        private IEnumerable<MemberResult> GetInstanceDeclaredDialogs(int index)
+        {
+            return GetDefinedMembers(index, AstMemberType.Dialogs);
+        }
+
+        private IEnumerable<MemberResult> GetInstanceReports(int index)
+        {
+            return GetDefinedMembers(index, AstMemberType.Reports);
+        }
+
         private IEnumerable<MemberResult> GetInstanceVariables(int index)
         {
-            return GetDefinedMembers(index, true, false, false, false);
+            return GetDefinedMembers(index, AstMemberType.Variables);
         }
 
         private IEnumerable<MemberResult> GetInstanceConstants(int index)
         {
-            return GetDefinedMembers(index, false, true, false, false);
+            return GetDefinedMembers(index, AstMemberType.Constants);
         }
 
         private IEnumerable<MemberResult> GetInstanceImportModules(int index)

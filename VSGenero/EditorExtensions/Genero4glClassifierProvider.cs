@@ -73,6 +73,9 @@ namespace VSGenero.EditorExtensions
         [Import(AllowDefault = true)]
         internal IProgramFileProvider _ProgramFileProvider = null;
 
+        [ImportMany(typeof(ICommentValidator))]
+        internal IEnumerable<ICommentValidator> _CommentValidators = null;
+
         #region Genero Classification Type Definitions
 
         [Export]
@@ -128,6 +131,11 @@ namespace VSGenero.EditorExtensions
             if(VSGeneroPackage.Instance.GlobalDatabaseProvider == null)
             {
                 VSGeneroPackage.Instance.GlobalDatabaseProvider = _DatabaseInfoProvider;
+            }
+
+            if(VSGeneroPackage.Instance.CommentValidators == null)
+            {
+                VSGeneroPackage.Instance.CommentValidators = _CommentValidators;
             }
 
             return res;

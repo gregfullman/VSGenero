@@ -57,6 +57,8 @@ namespace VSGenero.Analysis.Parsing.AST
         DbTable,
         DbView,
         DbColumn,
-        Namespace
+        Namespace,
+        Dialog,
+        Report
     }
 }

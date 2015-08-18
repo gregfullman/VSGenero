@@ -86,25 +86,15 @@ namespace VSGenero.Analysis.Parsing.AST
             }
         }
 
-        private Dictionary<string, List<PreprocessorNode>> _includeFiles;
-        public Dictionary<string, List<PreprocessorNode>> IncludeFiles
-        {
-            get
-            {
-                if (_includeFiles == null)
-                    _includeFiles = new Dictionary<string, List<PreprocessorNode>>(StringComparer.OrdinalIgnoreCase);
-                return _includeFiles;
-            }
-        }
-
-        private static bool CheckForPreprocessorNode(Parser parser, ModuleNode node)
+        public static bool CheckForPreprocessorNode(Parser parser, AstNode node)
         {
             PreprocessorNode preNode;
-            if (PreprocessorNode.TryParseNode(parser, out preNode))
+            if (PreprocessorNode.TryParseNode(parser, out preNode) && node != null)
             {
-                if(preNode.Type == PreprocessorType.Include && !string.IsNullOrWhiteSpace(preNode.IncludeFile))
+                // TODO: determine context of the preprocessor via containingNode
+                if (preNode.Type == PreprocessorType.Include && !string.IsNullOrWhiteSpace(preNode.IncludeFile))
                 {
-                    if(node.IncludeFiles.ContainsKey(preNode.IncludeFile))
+                    if (node.IncludeFiles.ContainsKey(preNode.IncludeFile))
                     {
                         node.IncludeFiles[preNode.IncludeFile].Add(preNode);
                     }
@@ -113,17 +103,6 @@ namespace VSGenero.Analysis.Parsing.AST
                         node.IncludeFiles.Add(preNode.IncludeFile, new List<PreprocessorNode>() { preNode });
                     }
                 }
-                
-                //if(preNode.Type == PreprocessorType.Include &&
-                //   !string.IsNullOrWhiteSpace(preNode.IncludeFile) &&
-                //   VSGeneroPackage.Instance.ProgramFileProvider != null)
-                //{
-                //    var fullFilename = VSGeneroPackage.Instance.ProgramFileProvider.GetIncludeFile(preNode.IncludeFile);
-                //    if(!string.IsNullOrWhiteSpace(fullFilename))
-                //    {
-                //        parser.CreateIncludeParser(fullFilename);
-                //    }
-                //}
                 return true;
             }
             return false;
@@ -375,8 +354,6 @@ namespace VSGenero.Analysis.Parsing.AST
 
                 if (CheckForPreprocessorNode(parser, defNode))
                     continue;
-
-                // TODO: declared dialog block
 
                 FunctionBlockNode funcNode;
                 ReportBlockNode repNode;

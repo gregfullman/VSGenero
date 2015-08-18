@@ -89,11 +89,7 @@ namespace VSGenero.Analysis.Parsing.AST
 
         public IEnumerable<string> GetIncludedFiles()
         {
-            if (Body is ModuleNode)
-            {
-                return (Body as ModuleNode).IncludeFiles.Keys;
-            }
-            return new string[0];
+            return Body.IncludeFiles.Keys;
         }
 
         internal bool TryGetAttribute(AstNode node, object key, out object value)
@@ -356,7 +352,8 @@ namespace VSGenero.Analysis.Parsing.AST
         }
 
         public static IAnalysisResult GetValueByIndex(string exprText, int index, GeneroAst ast, out IGeneroProject definingProject, out IProjectEntry projectEntry, out bool isDeferredFunction,
-                                                      GeneroAst.FunctionProviderSearchMode searchInFunctionProvider = GeneroAst.FunctionProviderSearchMode.NoSearch, bool isFunctionCallOrDefinition = false)
+                                                      GeneroAst.FunctionProviderSearchMode searchInFunctionProvider = GeneroAst.FunctionProviderSearchMode.NoSearch, bool isFunctionCallOrDefinition = false,
+                                                      bool getTypes = true, bool getVariables = true, bool getConstants = true)
         {
             isDeferredFunction = false;
             definingProject = null;
@@ -398,7 +395,7 @@ namespace VSGenero.Analysis.Parsing.AST
                             if (bracketDepth == 0)
                             {
                                 endIndex = tmpIndex - 1;
-                                if (endIndex > startIndex)
+                                if (endIndex >= startIndex)
                                 {
                                     // we have our 'piece'
                                     doSearch = true;
@@ -526,15 +523,15 @@ namespace VSGenero.Analysis.Parsing.AST
                         {
                             // Check for local vars, types, and constants
                             IFunctionResult func = containingNode as IFunctionResult;
-                            if (func.Variables.TryGetValue(dotPiece, out res) ||
-                               func.Types.TryGetValue(dotPiece, out res) ||
-                               func.Constants.TryGetValue(dotPiece, out res))
+                            if ((getVariables && func.Variables.TryGetValue(dotPiece, out res)) ||
+                                (getTypes && func.Types.TryGetValue(dotPiece, out res)) ||
+                                (getConstants && func.Constants.TryGetValue(dotPiece, out res)))
                             {
                                 continue;
                             }
 
                             List<Tuple<IAnalysisResult, IndexSpan>> limitedScopeVars;
-                            if(func.LimitedScopeVariables.TryGetValue(dotPiece, out limitedScopeVars))
+                            if((getVariables &&func.LimitedScopeVariables.TryGetValue(dotPiece, out limitedScopeVars)))
                             {
                                 foreach(var item in limitedScopeVars)
                                 {
@@ -556,12 +553,9 @@ namespace VSGenero.Analysis.Parsing.AST
                         if (!lookForFunctions)
                         {
                             // check for module vars, types, and constants (and globals defined in this module)
-                            if (mod.Variables.TryGetValue(dotPiece, out res) ||
-                               mod.Types.TryGetValue(dotPiece, out res) ||
-                               mod.Constants.TryGetValue(dotPiece, out res) ||
-                               mod.GlobalVariables.TryGetValue(dotPiece, out res) ||
-                               mod.GlobalTypes.TryGetValue(dotPiece, out res) ||
-                               mod.GlobalConstants.TryGetValue(dotPiece, out res))
+                            if ((getVariables && (mod.Variables.TryGetValue(dotPiece, out res) || mod.GlobalVariables.TryGetValue(dotPiece, out res))) ||
+                                (getTypes && (mod.Types.TryGetValue(dotPiece, out res) || mod.GlobalTypes.TryGetValue(dotPiece, out res))) ||
+                                (getConstants && (mod.Constants.TryGetValue(dotPiece, out res) || mod.GlobalConstants.TryGetValue(dotPiece, out res))))
                             {
                                 continue;
                             }
@@ -604,9 +598,10 @@ namespace VSGenero.Analysis.Parsing.AST
                                         if (!lookForFunctions)
                                         {
                                             // check global vars, types, and constants
-                                            if (modRes.GlobalVariables.TryGetValue(dotPiece, out res) ||
-                                               modRes.GlobalTypes.TryGetValue(dotPiece, out res) ||
-                                               modRes.GlobalConstants.TryGetValue(dotPiece, out res))
+                                            // TODO: need option to enable/disable legacy linking
+                                            if ((getVariables && (modRes.Variables.TryGetValue(dotPiece, out res) || modRes.GlobalVariables.TryGetValue(dotPiece, out res))) ||
+                                                (getTypes && (modRes.Types.TryGetValue(dotPiece, out res) || modRes.GlobalTypes.TryGetValue(dotPiece, out res))) ||
+                                                (getConstants && (modRes.Constants.TryGetValue(dotPiece, out res) || modRes.GlobalConstants.TryGetValue(dotPiece, out res))))
                                             {
                                                 found = true;
                                                 break;
@@ -746,10 +741,8 @@ namespace VSGenero.Analysis.Parsing.AST
                                     includeFile.Analysis.Body is IModuleResult)
                                 {
                                     var mod = includeFile.Analysis.Body as IModuleResult;
-                                    if (mod.Types.TryGetValue(dotPiece, out res) ||
-                                       mod.Constants.TryGetValue(dotPiece, out res) ||
-                                       mod.GlobalTypes.TryGetValue(dotPiece, out res) ||
-                                       mod.GlobalConstants.TryGetValue(dotPiece, out res))
+                                    if ((getTypes && (mod.Types.TryGetValue(dotPiece, out res) || mod.GlobalTypes.TryGetValue(dotPiece, out res))) ||
+                                        (getConstants && (mod.Constants.TryGetValue(dotPiece, out res) || mod.GlobalConstants.TryGetValue(dotPiece, out res))))
                                     {
                                         foundInclude = true;
                                         break;
@@ -971,18 +964,19 @@ namespace VSGenero.Analysis.Parsing.AST
                                 if (!isFunctionCallOrDefinition)
                                 {
                                     // check global vars, types, and constants
+                                    // TODO: need to introduce option to enable/disable legacy linking
                                     IAnalysisResult res;
-                                    if (modRes.GlobalVariables.TryGetValue(exprText, out res))
+                                    if (modRes.GlobalVariables.TryGetValue(exprText, out res) || modRes.Variables.TryGetValue(exprText, out res))
                                     {
                                         vars.Add(new AnalysisVariable(projEntry.Value.Analysis.ResolveLocation(res), VariableType.Definition));
                                     }
 
-                                    if (modRes.GlobalTypes.TryGetValue(exprText, out res))
+                                    if (modRes.GlobalTypes.TryGetValue(exprText, out res) || modRes.Types.TryGetValue(exprText, out res))
                                     {
                                         vars.Add(new AnalysisVariable(projEntry.Value.Analysis.ResolveLocation(res), VariableType.Definition));
                                     }
 
-                                    if (modRes.GlobalConstants.TryGetValue(exprText, out res))
+                                    if (modRes.GlobalConstants.TryGetValue(exprText, out res) || modRes.Constants.TryGetValue(exprText, out res))
                                     {
                                         vars.Add(new AnalysisVariable(projEntry.Value.Analysis.ResolveLocation(res), VariableType.Definition));
                                     }

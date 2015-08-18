@@ -347,6 +347,13 @@ namespace VSGenero
             set { _dbProvider = value; }
         }
 
+        private IEnumerable<ICommentValidator> _commentValidators;
+        public IEnumerable<ICommentValidator> CommentValidators
+        {
+            get { return _commentValidators; }
+            set { _commentValidators = value; }
+        }
+
         #region Program File Provider
 
         private object _programFileProviderLock = new object();
