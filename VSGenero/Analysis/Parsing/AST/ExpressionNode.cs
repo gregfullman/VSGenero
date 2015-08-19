@@ -39,7 +39,9 @@ namespace VSGenero.Analysis.Parsing.AST
         public void AppendExpression(ExpressionNode node)
         {
             AppendedExpressions.Add(node);
-            Children.Add(node.StartIndex, node);
+            if(!Children.ContainsKey(node.StartIndex))
+                Children.Add(node.StartIndex, node);
+            EndIndex = AppendedExpressions[AppendedExpressions.Count - 1].EndIndex;
         }
 
         public override string ToString()
@@ -150,11 +152,14 @@ namespace VSGenero.Analysis.Parsing.AST
                 {
                     result = true;
                     parser.NextToken();
+                    int currentExprStart = parser.Token.Span.Start;
                     string currentTypeConstraint;
                     if (TypeConstraints.VerifyValidConstraint(parser, out currentTypeConstraint, TokenKind.CurrentKeyword, true))
                     {
                         result = true;
-                        StringExpressionNode strExpr = new StringExpressionNode(currentTypeConstraint);
+                        StringExpressionNode strExpr = new StringExpressionNode(string.Format("current {0}", currentTypeConstraint));
+                        strExpr.StartIndex = currentExprStart;
+                        strExpr.EndIndex = parser.Token.Span.End;
                         if (node == null)
                             node = strExpr;
                         else
@@ -676,7 +681,10 @@ namespace VSGenero.Analysis.Parsing.AST
         // We don't want to error check those yet.
         private static HashSet<string> _skipValidationFunctionNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
-            "cast"
+            "cast",
+            "get_fldbuf",
+            "field_touched",
+
         };
 
         private static HashSet<string> _allowedNonStarRecordParamFunctions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
@@ -722,8 +730,14 @@ namespace VSGenero.Analysis.Parsing.AST
                             if (Function.ResolvedResult is AstNode &&
                                (Function.ResolvedResult as AstNode).StartIndex >= 0)
                             {
+                                var useAst = ast;
+                                if((Function.ResolvedResult as AstNode).SyntaxTree != null &&
+                                    (Function.ResolvedResult as AstNode).SyntaxTree != ast)
+                                {
+                                    useAst = (Function.ResolvedResult as AstNode).SyntaxTree;
+                                }
                                 // need to retrieve the variable and then get its type
-                                var resVar = GeneroAst.GetValueByIndex(param.Name, (Function.ResolvedResult as AstNode).StartIndex, ast, out proj, out projEntry, out isDeferred);
+                                var resVar = GeneroAst.GetValueByIndex(param.Name, (Function.ResolvedResult as AstNode).StartIndex, useAst, out proj, out projEntry, out isDeferred);
                                 if (resVar != null &&
                                    resVar is VariableDef)
                                 {
@@ -760,7 +774,8 @@ namespace VSGenero.Analysis.Parsing.AST
                     int totalParameters = 0;
                     foreach (var param in Parameters)
                     {
-                        // TODO: check parameter types against what is supposed to be used.
+                        // The genero compiler does not do error checking of types, so I guess anything goes...
+                        // That makes things easier...
                         if (param is NameExpression)
                         {
                             var nameParam = param as NameExpression;
@@ -1060,6 +1075,7 @@ namespace VSGenero.Analysis.Parsing.AST
             _tokens = new List<Token>();
             StartIndex = token.Span.Start;
             _tokens.Add(token.Token);
+            EndIndex = token.Span.End;
         }
 
         protected override string GetStringForm()

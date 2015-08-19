@@ -714,7 +714,7 @@ namespace VSGenero.Analysis.Parsing.AST
 
                     // try an imported module
                     if (ast != null && ast.Body is IModuleResult &&
-                       ast.ProjectEntry is IGeneroProjectEntry)
+                       ast.ProjectEntry != null && ast.ProjectEntry is IGeneroProjectEntry)
                     {
                         if ((ast.Body as IModuleResult).FglImports.Contains(dotPiece))
                         {
@@ -733,7 +733,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     {
                         // try include files
                         bool foundInclude = false;
-                        if (ast != null)
+                        if (ast != null && ast.ProjectEntry != null)
                         {
                             foreach (var includeFile in ast.ProjectEntry.GetIncludedFiles())
                             {

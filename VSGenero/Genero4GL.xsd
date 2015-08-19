@@ -9,56 +9,9 @@
   <xs:element name="Genero4GL">
     <xs:complexType>
       <xs:all>
-        <xs:element name="Lexing">
-          <xs:complexType>
-            <xs:all>
-              <xs:element name="Symbols">
-                <xs:complexType>
-                  <xs:sequence>
-                    <xs:element name="Symbol" maxOccurs="unbounded" minOccurs="0">
-                      <xs:complexType>
-                        <xs:attribute name="value" type="xs:string"/>
-                        <xs:attribute name="name" type="xs:string"/>
-                      </xs:complexType>
-                    </xs:element>
-                  </xs:sequence>
-                </xs:complexType>
-              </xs:element>
-              <xs:element name="Keywords">
-                <xs:complexType>
-                  <xs:sequence>
-                    <xs:element name="Keyword" maxOccurs="unbounded" minOccurs="0">
-                      <xs:complexType>
-                        <xs:attribute name="value" type="xs:string"/>
-                        <xs:attribute name="name" type="xs:string"/>
-                      </xs:complexType>
-                    </xs:element>
-                  </xs:sequence>
-                </xs:complexType>
-              </xs:element>
-            </xs:all>
-          </xs:complexType>
-        </xs:element>
-        <xs:element name="BraceMatching">
-          
-        </xs:element>
         <xs:element name="Parsing">
           <xs:complexType>
             <xs:all>
-              <xs:element name="DataTypes">
-                <xs:complexType>
-                  <xs:sequence>
-                    <xs:element name="DataType" maxOccurs="unbounded" minOccurs="0">
-                      <xs:complexType>
-                        <xs:attribute name="name" type="xs:string"/>
-                        <xs:attribute name="synonyms" type="xs:string"/>
-                        <xs:attribute name="dim_allowed" type="xs:boolean"/>
-                        <xs:attribute name="range_req" type="xs:boolean"/>
-                      </xs:complexType>
-                    </xs:element>
-                  </xs:sequence>
-                </xs:complexType>
-              </xs:element>
               <xs:element name="Functions">
                 <xs:complexType>
                   <xs:sequence>
@@ -75,6 +28,8 @@
                                         <xs:complexType>
                                           <xs:attribute name="name" type="xs:string"/>
                                           <xs:attribute name="type" type="xs:string"/>
+                                          <xs:attribute name="desc" type="xs:string"/>
+                                          <xs:attribute name="required" type="xs:boolean"/>
                                         </xs:complexType>
                                       </xs:element>
                                     </xs:sequence>
@@ -99,43 +54,6 @@
                           </xs:element>
                         </xs:sequence>
                         <xs:attribute name="name" type="xs:string"/>
-                      </xs:complexType>
-                    </xs:element>
-                  </xs:sequence>
-                </xs:complexType>
-              </xs:element>
-              <xs:element name="Operators">
-                <xs:complexType>
-                  <xs:sequence>
-                    <xs:element name="Operator" maxOccurs="unbounded" minOccurs="0">
-                      <xs:complexType>
-                        <xs:sequence>
-                          <xs:element name="Operands" maxOccurs="1" minOccurs="1">
-                            <xs:complexType>
-                              <xs:sequence>
-                                <xs:element name="Operand" maxOccurs="unbounded" minOccurs="1">
-                                  <xs:complexType>
-                                    <xs:attribute name="name" type="xs:string"/>
-                                    <xs:attribute name="type" type="xs:string"/>
-                                  </xs:complexType>
-                                </xs:element>
-                              </xs:sequence>
-                            </xs:complexType>
-                          </xs:element>
-                          <xs:element name="MultiParams" maxOccurs="1" minOccurs="0">
-                            <xs:complexType>
-                              <xs:attribute name="name" type="xs:string"/>
-                              <xs:attribute name="type" type="xs:string"/>
-                            </xs:complexType>
-                          </xs:element>
-                          <xs:element name="Value" maxOccurs="1" minOccurs="1">
-                            <xs:complexType>
-                              <xs:attribute name="type" type="xs:string"/>
-                            </xs:complexType>
-                          </xs:element>
-                        </xs:sequence>
-                        <xs:attribute name="name" type="xs:string"/>
-                        <xs:attribute name="desc" type="xs:string"/>
                       </xs:complexType>
                     </xs:element>
                   </xs:sequence>

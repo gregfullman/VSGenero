@@ -97,7 +97,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 {
                     ret.CheckForErrors(ast, errorFunc, deferredFunctionSearches);
                     if(ret.ResolvedResult != null &&
-                       !(ret.ResolvedResult is VariableDef))
+                       !(ret.ResolvedResult is VariableDef || ret.ResolvedResult is ProgramRegister))
                     {
                         errorFunc(string.Format("Return item {0} is not a variable", ret.Name), ret.StartIndex, ret.EndIndex);
                     }

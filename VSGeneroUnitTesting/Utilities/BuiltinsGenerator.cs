@@ -54,9 +54,14 @@ namespace VSGeneroUnitTesting.Utilities
             { "text", new Tuple<string, string>("_textFunctions", "\"Text\"") },
         };
 
+        private Dictionary<string, HashSet<string>> _duplicatesChecker = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
+
         [TestMethod]
         public void GenerateFunctions()
         {
+            foreach(var key in _contextFunctionsMap.Values)
+                _duplicatesChecker.Add(key.Item1, new HashSet<string>());
+
             StringBuilder sb = new StringBuilder();
             foreach (var element in GetElementsAtPath("//gns:Genero4GL/gns:Parsing/gns:Functions/gns:Context"))
             {
@@ -79,7 +84,10 @@ namespace VSGeneroUnitTesting.Utilities
         {
             foreach (var contextMethod in element.XPathSelectElements("gns:Function", _nsManager))
             {
-                sb.AppendFormat("{1}.Add(\"{0}\", new BuiltinFunction(\"{0}\", {2}, new List<ParameterResult>\n{{", (string)contextMethod.Attribute("name"), collectionName, contextName);
+                var funcName = (string)contextMethod.Attribute("name");
+                if (_duplicatesChecker[collectionName].Contains(funcName))
+                    continue;
+                sb.AppendFormat("{1}.Add(\"{0}\", new BuiltinFunction(\"{0}\", {2}, new List<ParameterResult>\n{{", funcName, collectionName, contextName);
                 foreach (var paramElement in contextMethod.XPathSelectElement("gns:Parameters", _nsManager)
                                                           .XPathSelectElements("gns:Parameter", _nsManager))
                 {
