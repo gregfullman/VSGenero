@@ -374,6 +374,26 @@ namespace VSGenero.Analysis
                 });
             }
         }
+
+        private bool _preventErrorCheck;
+        private object _preventErrorCheckLock = new object();
+        public bool PreventErrorCheck
+        {
+            get
+            {
+                lock (_preventErrorCheckLock)
+                {
+                    return _preventErrorCheck;
+                }
+            }
+            set
+            {
+                lock (_preventErrorCheckLock)
+                {
+                    _preventErrorCheck = value;
+                }
+            }
+        }
     }
 
     public class GeneroProject : IGeneroProject, IAnalysisResult
@@ -560,7 +580,7 @@ namespace VSGenero.Analysis
             return res;
         }
 
-        public IAnalysisResult GetMember(string name, GeneroAst ast, out IGeneroProject definingProject, out IProjectEntry projEntry)
+        public IAnalysisResult GetMember(string name, GeneroAst ast, out IGeneroProject definingProject, out IProjectEntry projEntry, bool function)
         {
             definingProject = null;
             var res = GetMemberOfType(name, ast, true, true, true, true, out projEntry);
@@ -569,7 +589,7 @@ namespace VSGenero.Analysis
             return res;
         }
 
-        public IEnumerable<MemberResult> GetMembers(GeneroAst ast, MemberType memberType)
+        public IEnumerable<MemberResult> GetMembers(GeneroAst ast, MemberType memberType, bool function)
         {
             string projNamespace = string.Format("{0}", this.Name);
             List<MemberResult> members = new List<MemberResult>();
@@ -749,5 +769,6 @@ namespace VSGenero.Analysis
         IAnalysisCookie Cookie { get; }
 
         bool CanErrorCheck { get; }
+        bool PreventErrorCheck { get; set; }
     }
 }

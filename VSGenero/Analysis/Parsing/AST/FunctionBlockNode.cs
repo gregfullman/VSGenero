@@ -313,7 +313,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                         if (!defNode.Types.ContainsKey(def.Name))
                                             defNode.Types.Add(def.Name, def);
                                         else
-                                            parser.ReportSyntaxError(def.LocationIndex, def.LocationIndex + def.Name.Length, string.Format("Type {0} defined more than once.", def.Name), Severity.Warning);
+                                            parser.ReportSyntaxError(def.LocationIndex, def.LocationIndex + def.Name.Length, string.Format("Type {0} defined more than once.", def.Name), Severity.Error);
                                     }
                                 }
                                 break;
@@ -329,7 +329,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                         if (!defNode.Constants.ContainsKey(def.Name))
                                             defNode.Constants.Add(def.Name, def);
                                         else
-                                            parser.ReportSyntaxError(def.LocationIndex, def.LocationIndex + def.Name.Length, string.Format("Constant {0} defined more than once.", def.Name), Severity.Warning);
+                                            parser.ReportSyntaxError(def.LocationIndex, def.LocationIndex + def.Name.Length, string.Format("Constant {0} defined more than once.", def.Name), Severity.Error);
                                     }
                                 }
                                 break;
@@ -346,7 +346,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                             if (!defNode.Variables.ContainsKey(vardef.Name))
                                                 defNode.Variables.Add(vardef.Name, vardef);
                                             else
-                                                parser.ReportSyntaxError(vardef.LocationIndex, vardef.LocationIndex + vardef.Name.Length, string.Format("Variable {0} defined more than once.", vardef.Name), Severity.Warning);
+                                                parser.ReportSyntaxError(vardef.LocationIndex, vardef.LocationIndex + vardef.Name.Length, string.Format("Variable {0} defined more than once.", vardef.Name), Severity.Error);
                                         }
                                 }
                                 break;
@@ -577,14 +577,14 @@ namespace VSGenero.Analysis.Parsing.AST
         private LocationInfo _location = null;
         public LocationInfo Location { get { return _location; } }
 
-        public IAnalysisResult GetMember(string name, GeneroAst ast, out IGeneroProject definingProject, out IProjectEntry projEntry)
+        public IAnalysisResult GetMember(string name, GeneroAst ast, out IGeneroProject definingProject, out IProjectEntry projEntry, bool function)
         {
             definingProject = null;
             projEntry = null;
             return null;
         }
 
-        public IEnumerable<MemberResult> GetMembers(GeneroAst ast, MemberType memberType)
+        public IEnumerable<MemberResult> GetMembers(GeneroAst ast, MemberType memberType, bool function)
         {
             return null;
         }

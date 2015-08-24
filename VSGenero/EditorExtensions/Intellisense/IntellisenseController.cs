@@ -274,7 +274,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             var point = _textView.GetCaretPosition();
             if (point.HasValue)
             {
-                if (point.Value.Position <= 1) 
+                if (point.Value.Position <= 1 || _textView.TextSnapshot.Length == point.Value.Position) 
                     return true;
                 string prevChar = _textView.TextSnapshot.GetText(new Span(point.Value.Position - 2, 1));
                 string nextChar = _textView.TextSnapshot.GetText(new Span(point.Value.Position, 1));

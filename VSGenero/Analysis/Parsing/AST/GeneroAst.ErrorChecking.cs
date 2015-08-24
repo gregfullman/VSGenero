@@ -16,6 +16,7 @@ namespace VSGenero.Analysis.Parsing.AST
             if(deferredFunctionSearches.Count > 0 && this._functionProvider != null)
             {
                 // do the deferred search for function names
+                // TODO: need to check the number of arguments and returns...no idea how that's going to happen
                 var existing = this._functionProvider.GetExistingFunctionsFromSet(deferredFunctionSearches.Keys);
                 if(existing != null)
                 {

@@ -135,24 +135,24 @@ namespace VSGenero.Analysis.Parsing.AST
         private LocationInfo _location;
         public LocationInfo Location { get { return _location; } }
 
-        public IAnalysisResult GetMember(string name, GeneroAst ast, out IGeneroProject definingProject, out IProjectEntry projEntry)
+        public IAnalysisResult GetMember(string name, GeneroAst ast, out IGeneroProject definingProject, out IProjectEntry projEntry, bool function)
         {
             definingProject = null;
             projEntry = null;
             if (Children.Count == 1 &&
                Children[Children.Keys[0]] is TypeReference)
             {
-                return (Children[Children.Keys[0]] as TypeReference).GetMember(name, ast, out definingProject, out projEntry);
+                return (Children[Children.Keys[0]] as TypeReference).GetMember(name, ast, out definingProject, out projEntry, function);
             }
             return null;
         }
 
-        public IEnumerable<MemberResult> GetMembers(GeneroAst ast, MemberType memberType)
+        public IEnumerable<MemberResult> GetMembers(GeneroAst ast, MemberType memberType, bool function)
         {
             if(Children.Count == 1 &&
                Children[Children.Keys[0]] is TypeReference)
             {
-                return (Children[Children.Keys[0]] as TypeReference).GetMembers(ast, memberType);
+                return (Children[Children.Keys[0]] as TypeReference).GetMembers(ast, memberType, function);
             }
             return null;
         }

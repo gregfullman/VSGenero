@@ -528,16 +528,7 @@ namespace VSGenero.Analysis.Parsing.AST
                             var analysisRes = GetValueByIndex(var, index, _functionProvider, _databaseProvider, _programFileProvider, false, out dummyProj, out projEntry);
                             if (analysisRes != null)
                             {
-                                IEnumerable<MemberResult> memberList = null;
-                                if ((analysisRes is VariableDef && (analysisRes as VariableDef).Type.IsArray) && !var[var.Length - 1].Equals(']'))
-                                {
-                                    memberList = (analysisRes as VariableDef).Type.GetArrayMembers(this, memberType);
-                                }
-                                else
-                                {
-                                    memberList = analysisRes.GetMembers(this, memberType);
-                                }
-
+                                IEnumerable<MemberResult> memberList = analysisRes.GetMembers(this, memberType, !var[var.Length - 1].Equals(']'));
                                 if(memberList != null)
                                 {
                                     results.AddRange(memberList);

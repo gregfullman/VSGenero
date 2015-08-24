@@ -128,7 +128,7 @@ namespace VSGenero.Analysis.Parsing.AST
                             if (!defNode.MemberDictionary.ContainsKey(tok.Token.Value.ToString()))
                                 defNode.MemberDictionary.Add(tok.Token.Value.ToString(), new VariableDef(tok.Token.Value.ToString(), tr, tok.Span.Start, true));
                             else
-                                parser.ReportSyntaxError(string.Format("Record field {0} defined more than once.", tok.Token.Value.ToString()), Severity.Warning);
+                                parser.ReportSyntaxError(string.Format("Record field {0} defined more than once.", tok.Token.Value.ToString()), Severity.Error);
                         }
 
                         AttributeSpecifier.TryParseNode(parser, out attribSpec);
@@ -186,7 +186,7 @@ namespace VSGenero.Analysis.Parsing.AST
 
         public LocationInfo Location { get { return null; } }
 
-        public IAnalysisResult GetMember(string name, GeneroAst ast, out IGeneroProject definingProject, out IProjectEntry projEntry)
+        public IAnalysisResult GetMember(string name, GeneroAst ast, out IGeneroProject definingProject, out IProjectEntry projEntry, bool function)
         {
             definingProject = null;
             projEntry = null;
@@ -215,17 +215,21 @@ namespace VSGenero.Analysis.Parsing.AST
             }
         }
 
-        public IEnumerable<MemberResult> GetMembers(GeneroAst ast, MemberType memberType)
+        public IEnumerable<MemberResult> GetMembers(GeneroAst ast, MemberType memberType, bool function)
         {
             if (MemberDictionary.Count == 0 && MimicTableName != null)
             {
                 // get the table's columns
-                return ast._databaseProvider.GetColumns(MimicTableName.Name).Select(x => new MemberResult(x.Name, x, GeneroMemberType.DbColumn, ast));
+                if (ast._databaseProvider != null)
+                {
+                    return ast._databaseProvider.GetColumns(MimicTableName.Name).Select(x => new MemberResult(x.Name, x, GeneroMemberType.DbColumn, ast));
+                }
             }
             else
             {
                 return MemberDictionary.Values.Select(x => new MemberResult(x.Name, x, GeneroMemberType.Variable, ast));
             }
+            return new MemberResult[0];
         }
 
 

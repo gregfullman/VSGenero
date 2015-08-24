@@ -118,7 +118,7 @@ namespace VSGenero.Analysis.Parsing.AST
                             if (!node.Variables.ContainsKey(vardef.Name))
                                 node.Variables.Add(vardef.Name, vardef);
                             else
-                                parser.ReportSyntaxError(vardef.LocationIndex, vardef.LocationIndex + vardef.Name.Length, string.Format("Variable {0} defined more than once.", vardef.Name), Severity.Warning);
+                                parser.ReportSyntaxError(vardef.LocationIndex, vardef.LocationIndex + vardef.Name.Length, string.Format("Variable {0} defined more than once.", vardef.Name), Severity.Error);
                         }
 
                     if (parser.PeekToken(TokenKind.EndOfFile) ||

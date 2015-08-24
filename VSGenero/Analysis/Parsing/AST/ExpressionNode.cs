@@ -689,7 +689,8 @@ namespace VSGenero.Analysis.Parsing.AST
 
         private static HashSet<string> _allowedNonStarRecordParamFunctions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
-            "base.typeinfo.create"
+            "base.typeinfo.create",
+            "com.WebOperation.CreateRPCStyle"
         };
 
         public override void CheckForErrors(GeneroAst ast, Action<string, int, int> errorFunc,
@@ -759,7 +760,7 @@ namespace VSGenero.Analysis.Parsing.AST
 
                         if (typeRef != null && typeRef.IsRecord)
                         {
-                            int recFieldCount = (typeRef.Children[typeRef.Children.Keys[0]] as RecordDefinitionNode).GetMembers(ast, Analysis.MemberType.All).Count();
+                            int recFieldCount = (typeRef.Children[typeRef.Children.Keys[0]] as RecordDefinitionNode).GetMembers(ast, Analysis.MemberType.All, false).Count();
                             if (recFieldCount > 0)
                                 totalRequiredParams += recFieldCount;
                             else
@@ -813,7 +814,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                             if((param as NameExpression).Name.EndsWith(".*"))
                                             {
                                                 // need to get the number of fields in the record, as they count toward our passed parameter total
-                                                int recFieldCount = (typeRef.Children[typeRef.Children.Keys[0]] as RecordDefinitionNode).GetMembers(ast, Analysis.MemberType.All).Count();
+                                                int recFieldCount = (typeRef.Children[typeRef.Children.Keys[0]] as RecordDefinitionNode).GetMembers(ast, Analysis.MemberType.All, false).Count();
                                                 if (recFieldCount > 0)
                                                     totalParameters += (recFieldCount - 1); // minus 1 so we can do the increment below   
                                             }
@@ -828,7 +829,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                             else
                                             {
                                                 // need to get the number of fields in the record, as they count toward our passed parameter total
-                                                int recFieldCount = (typeRef.Children[typeRef.Children.Keys[0]] as RecordDefinitionNode).GetMembers(ast, Analysis.MemberType.All).Count();
+                                                int recFieldCount = (typeRef.Children[typeRef.Children.Keys[0]] as RecordDefinitionNode).GetMembers(ast, Analysis.MemberType.All, false).Count();
                                                 if (recFieldCount > 0)
                                                     totalParameters += (recFieldCount - 1); // minus 1 so we can do the increment below    
                                             }

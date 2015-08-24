@@ -472,7 +472,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     IProjectEntry tempProjEntry;
                     if (ast != null)
                     {
-                        IAnalysisResult tempRes = res.GetMember(dotPiece, ast, out tempProj, out tempProjEntry);
+                        IAnalysisResult tempRes = res.GetMember(dotPiece, ast, out tempProj, out tempProjEntry, lookForFunctions);
                         if (tempProj != null && definingProject != tempProj)
                             definingProject = tempProj;
                         if(tempProjEntry != null && projectEntry != tempProjEntry)

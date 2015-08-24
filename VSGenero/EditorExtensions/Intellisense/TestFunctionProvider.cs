@@ -93,7 +93,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             return _collections.Count > 0;
         }
 
-        public IAnalysisResult GetMember(string name, GeneroAst ast, out IGeneroProject definingProject, out IProjectEntry projEntry)
+        public IAnalysisResult GetMember(string name, GeneroAst ast, out IGeneroProject definingProject, out IProjectEntry projEntry, bool function)
         {
             definingProject = null;
             projEntry = null;
@@ -102,7 +102,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             return collection;
         }
 
-        public IEnumerable<MemberResult> GetMembers(GeneroAst ast, MemberType memberType)
+        public IEnumerable<MemberResult> GetMembers(GeneroAst ast, MemberType memberType, bool function)
         {
             return _collections.Values.Select(x => new MemberResult(x.Name, x, GeneroMemberType.Class, ast));
         }
@@ -199,14 +199,14 @@ namespace VSGenero.EditorExtensions.Intellisense
             return _functions.Count > 0;
         }
 
-        public IAnalysisResult GetMember(string name, GeneroAst ast, out IGeneroProject definingProject, out IProjectEntry projEntry)
+        public IAnalysisResult GetMember(string name, GeneroAst ast, out IGeneroProject definingProject, out IProjectEntry projEntry, bool function)
         {
             definingProject = null;
             projEntry = null;
             return GetFunction(name);
         }
 
-        public IEnumerable<MemberResult> GetMembers(GeneroAst ast, MemberType memberType)
+        public IEnumerable<MemberResult> GetMembers(GeneroAst ast, MemberType memberType, bool function)
         {
             return _functions.Values.Select(x => new MemberResult(x.Name, x, GeneroMemberType.Method, ast));
         }
@@ -311,14 +311,14 @@ namespace VSGenero.EditorExtensions.Intellisense
             return false;
         }
 
-        public IAnalysisResult GetMember(string name, GeneroAst ast, out IGeneroProject definingProject, out IProjectEntry projEntry)
+        public IAnalysisResult GetMember(string name, GeneroAst ast, out IGeneroProject definingProject, out IProjectEntry projEntry, bool function)
         {
             definingProject = null;
             projEntry = null;
             return null;
         }
 
-        public IEnumerable<MemberResult> GetMembers(GeneroAst ast, MemberType memberType)
+        public IEnumerable<MemberResult> GetMembers(GeneroAst ast, MemberType memberType, bool function)
         {
             return new List<MemberResult>();
         }

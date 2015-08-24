@@ -43,8 +43,8 @@ namespace VSGenero.Analysis
         bool IsPublic { get; }
         string Typename { get; }
 
-        IAnalysisResult GetMember(string name, GeneroAst ast, out IGeneroProject definingProject, out IProjectEntry projectEntry);
-        IEnumerable<MemberResult> GetMembers(GeneroAst ast, MemberType memberType);
+        IAnalysisResult GetMember(string name, GeneroAst ast, out IGeneroProject definingProject, out IProjectEntry projectEntry, bool function);
+        IEnumerable<MemberResult> GetMembers(GeneroAst ast, MemberType memberType, bool function);
     }
 
     public enum DatabaseTableType

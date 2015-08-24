@@ -116,7 +116,7 @@ namespace VSGenero.EditorExtensions
                     string prevLineStr = null;
                     // find the line that corresponds
                     bool inNestedBlock = false;
-                    while (prevLineNo > 0)
+                    while (prevLineNo >= 0)
                     {
                         prevLine = e.After.GetLineFromLineNumber(prevLineNo);
                         prevLineStr = prevLine.GetText();

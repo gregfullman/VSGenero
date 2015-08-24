@@ -36,6 +36,8 @@ using Microsoft.VisualStudio;
 using System.Windows.Forms;
 using System.Runtime.InteropServices;
 using VSGenero.Analysis.Parsing;
+using System.ComponentModel.Composition;
+using System.Text.RegularExpressions;
 
 namespace VSGenero.EditorExtensions.Intellisense
 {
@@ -113,12 +115,14 @@ namespace VSGenero.EditorExtensions.Intellisense
         private CommentTaskProvider _commentTaskProvider;
 
         private readonly IServiceProvider _serviceProvider;
+        private readonly IBuildTaskProvider _buildTaskProvider;
 
         private object _contentsLock = new object();
 
-        internal GeneroProjectAnalyzer(IServiceProvider serviceProvider, bool implicitProject = true)
+        internal GeneroProjectAnalyzer(IServiceProvider serviceProvider, IBuildTaskProvider buildTaskProvider, bool implicitProject = true)
         {
             _serviceProvider = serviceProvider;
+            _buildTaskProvider = buildTaskProvider;
             _errorProvider = (ErrorTaskProvider)serviceProvider.GetService(typeof(ErrorTaskProvider));
             _commentTaskProvider = (CommentTaskProvider)serviceProvider.GetService(typeof(CommentTaskProvider));
 
@@ -133,7 +137,96 @@ namespace VSGenero.EditorExtensions.Intellisense
             _includersToIncludesMap = new ConcurrentDictionary<IGeneroProjectEntry, HashSet<IGeneroProjectEntry>>(ProjectEntryComparer);
             _waitingErrorCheckers = new ConcurrentQueue<IGeneroProjectEntry>();
             _waitingErrorCheckingTimer = new System.Threading.Timer(WaitingErrorCheckersTimerCallback, null, 1000, 1000);
+
+            if(_buildTaskProvider != null)
+            {
+                _buildTaskProvider.BuildTaskGenerated += _buildTaskProvider_BuildTaskGenerated;
+                _buildTaskProvider.ClearBuildTasks += _buildTaskProvider_ClearBuildTasks;
+            }
+
             _userCount = 1;
+        }
+
+        void _buildTaskProvider_ClearBuildTasks(object sender, ClearBuildTasksEventArgs e)
+        {
+            _errorProvider.ClearAll(TaskLevel.Build);
+        }
+
+        void _buildTaskProvider_BuildTaskGenerated(object sender, BuildTaskEventArgs e)
+        {
+            VSTASKPRIORITY priority = VSTASKPRIORITY.TP_NORMAL;
+            switch(e.Priority)
+            {
+                case TaskPriority.High : priority = VSTASKPRIORITY.TP_HIGH; break;
+                case TaskPriority.Low: priority = VSTASKPRIORITY.TP_LOW; break;
+                case TaskPriority.Normal: priority = VSTASKPRIORITY.TP_NORMAL; break;
+            }
+
+            ErrorType errType = ErrorType.None;
+            switch (e.Category)
+            {
+                case TaskErrorCategory.Error: errType = ErrorType.CompilerError; break;
+                case TaskErrorCategory.Warning: 
+                    errType = ErrorType.Warning;
+                    if (priority != VSTASKPRIORITY.TP_NORMAL)
+                        priority = VSTASKPRIORITY.TP_NORMAL;
+                    break;
+                case TaskErrorCategory.Message: 
+                    errType = ErrorType.None;
+                    if (priority != VSTASKPRIORITY.TP_LOW)
+                        priority = VSTASKPRIORITY.TP_LOW;
+                    break;
+            }
+
+            if (!string.IsNullOrWhiteSpace(e.Filename))
+            {
+                if (e.Line <= 0)
+                {
+                    // TODO: try to extract information out of the message
+                    var msg = e.Message.Trim();
+                    Regex r = new Regex(@"The function ([\/\w\.]*)\((\d*),(\d*)\) will be called as ([\/\w\.]*)\((\d*),(\d*)\).", RegexOptions.IgnoreCase | RegexOptions.Singleline);
+                    Match m = r.Match(msg);
+                    if(m.Success)
+                    {
+                        var funcName = m.Groups[4].ToString();  // this group piece shouldn't have the dot access on it
+                        if(!string.IsNullOrWhiteSpace(funcName) && File.Exists(e.Filename))
+                        {
+                            int line = 0, col = 0;
+                            using(StreamReader sr = new StreamReader(e.Filename))
+                            {
+                                while (!sr.EndOfStream)
+                                {
+                                    var fline = sr.ReadLine();
+                                    line++;
+                                    if(!fline.StartsWith("#") && (col = fline.IndexOf(funcName, StringComparison.OrdinalIgnoreCase)) > 0)
+                                        break;
+                                }
+                            }
+
+                            e.Line = (uint)line;
+                            e.Column = (uint)col + 1;
+                        }
+                    }
+                }
+                
+                if(e.Line > 0)
+                {
+                    if (!_errorProvider.HasErrorSource(e.Filename, ParserTaskMoniker))
+                    {
+                        _errorProvider.AddErrorSource(e.Filename, ParserTaskMoniker);
+                    }
+
+                    var ss = new SourceSpan(new SourceLocation(0, (int)e.Line, (int)e.Column), new SourceLocation(0, (int)e.Line, (int)e.Column + 1));
+                    var tpi = new TaskProviderItem(_serviceProvider, e.Message, ss, priority, VSTASKCATEGORY.CAT_BUILDCOMPILE, true, null, TaskLevel.Build, errType);
+                    _errorProvider.AddItems(e.Filename, ParserTaskMoniker, new List<TaskProviderItem> { tpi });
+                    if (errType == ErrorType.CompilerError)
+                        _errorProvider.BringToFront();
+                }
+            }
+            else
+            {
+                int i = 0;
+            }
         }
 
         public void AddUser()
@@ -160,9 +253,9 @@ namespace VSGenero.EditorExtensions.Intellisense
             ITextBuffer[] buffers = bufferParser.Buffers;
             if (buffers.Length > 0)
             {
-                _errorProvider.ClearErrorSource(bufferParser._currentProjEntry, ParserTaskMoniker);
+                _errorProvider.ClearErrorSource(bufferParser._currentProjEntry.FilePath, ParserTaskMoniker);
                 //_errorProvider.ClearErrorSource(bufferParser._currentProjEntry, UnresolvedImportMoniker);
-                _commentTaskProvider.ClearErrorSource(bufferParser._currentProjEntry, ParserTaskMoniker);
+                _commentTaskProvider.ClearErrorSource(bufferParser._currentProjEntry.FilePath, ParserTaskMoniker);
                 //_unresolvedSquiggles.StopListening(bufferParser._currentProjEntry as IPythonProjectEntry);
 
                 var projEntry = CreateProjectEntry(buffers[0], new SnapshotCookie(buffers[0].CurrentSnapshot));
@@ -213,14 +306,14 @@ namespace VSGenero.EditorExtensions.Intellisense
 
         public void ConnectErrorList(IProjectEntry projEntry, ITextBuffer buffer)
         {
-            _errorProvider.AddBufferForErrorSource(projEntry, ParserTaskMoniker, buffer);
-            _commentTaskProvider.AddBufferForErrorSource(projEntry, ParserTaskMoniker, buffer);
+            _errorProvider.AddBufferForErrorSource(projEntry.FilePath, ParserTaskMoniker, buffer);
+            _commentTaskProvider.AddBufferForErrorSource(projEntry.FilePath, ParserTaskMoniker, buffer);
         }
 
         public void DisconnectErrorList(IProjectEntry projEntry, ITextBuffer buffer)
         {
-            _errorProvider.RemoveBufferForErrorSource(projEntry, ParserTaskMoniker, buffer);
-            _commentTaskProvider.RemoveBufferForErrorSource(projEntry, ParserTaskMoniker, buffer);
+            _errorProvider.RemoveBufferForErrorSource(projEntry.FilePath, ParserTaskMoniker, buffer);
+            _commentTaskProvider.RemoveBufferForErrorSource(projEntry.FilePath, ParserTaskMoniker, buffer);
         }
 
         internal void SwitchAnalyzers(GeneroProjectAnalyzer oldAnalyzer)
@@ -310,6 +403,8 @@ namespace VSGenero.EditorExtensions.Intellisense
                                         }
                                     }
 
+                                    foreach (var kvp in proj.ProjectEntries)
+                                        kvp.Value.PreventErrorCheck = true;
                                     proj.ProjectEntries.Clear();
 
                                     // unload any import modules that are not referenced by anything else.
@@ -765,6 +860,8 @@ namespace VSGenero.EditorExtensions.Intellisense
                                     RemoveIncludedFile(includeFile.FilePath, remProj2Entry);
                             }
                         }
+                        foreach(var item in refList[i].ProjectEntries)
+                            item.Value.PreventErrorCheck = true;
                         _errorProvider.Clear(refList[i].Directory, ParserTaskMoniker);
                         _errorProvider.ClearErrorSource(refList[i].Directory);
                     }
@@ -1191,16 +1288,19 @@ namespace VSGenero.EditorExtensions.Intellisense
                 projEntry.Analysis._databaseProvider = VSGeneroPackage.Instance.GlobalDatabaseProvider;
                 projEntry.Analysis._databaseProvider.SetFilename(projEntry.FilePath);
             }
-            projEntry.Analysis.CheckForErrors((msg, start, end) =>
+            if (!projEntry.PreventErrorCheck)
             {
-                astErrors.Add(msg, projEntry.Analysis._lineLocations, start, end, ErrorCodes.SyntaxError, Severity.Error);
-            });
+                projEntry.Analysis.CheckForErrors((msg, start, end) =>
+                {
+                    astErrors.Add(msg, projEntry.Analysis._lineLocations, start, end, ErrorCodes.SyntaxError, Severity.Error);
+                });
 
-            projEntry.IsErrorChecked = true;
-            // update any errors found
-            if (astErrors.Errors.Count > 0 || astErrors.Warnings.Count > 0)
-            {
-                UpdateErrorsAndWarnings(projEntry, snapshot, astErrors, TaskLevel.Semantics);
+                projEntry.IsErrorChecked = true;
+                // update any errors found
+                if (!projEntry.PreventErrorCheck)
+                {
+                    UpdateErrorsAndWarnings(projEntry, snapshot, astErrors, TaskLevel.Semantics);
+                }
             }
         }
 
@@ -1217,15 +1317,18 @@ namespace VSGenero.EditorExtensions.Intellisense
                     IGeneroProjectEntry entry;
                     if(_waitingErrorCheckers.TryDequeue(out entry))
                     {
-                        if (entry.CanErrorCheck)
+                        if (!entry.PreventErrorCheck)
                         {
-                            // check the errors
-                            CheckForErrors(entry);
-                        }
-                        else
-                        {
-                            // defer for later
-                            tempQueue.Add(entry);
+                            if (entry.CanErrorCheck)
+                            {
+                                // check the errors
+                                CheckForErrors(entry);
+                            }
+                            else
+                            {
+                                // defer for later
+                                tempQueue.Add(entry);
+                            }
                         }
                     }
                 }
@@ -1256,7 +1359,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                             {
                                 continue;
                             }
-                            commentTasks.Add(new TaskProviderItem(_serviceProvider, text.Substring(1).Trim(), span, kv.Value, VSTASKCATEGORY.CAT_COMMENTS, false, snapshot, TaskLevel.Comment));
+                            commentTasks.Add(new TaskProviderItem(_serviceProvider, text.Substring(1).Trim(), span, kv.Value, VSTASKCATEGORY.CAT_COMMENTS, false, snapshot, TaskLevel.Comment, ErrorType.None));
                         }
                     }
                 }
@@ -1270,8 +1373,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                         {
                             if((commErr = validator.ProcessComment(projectEntry, span, text)) != null)
                             {
-
-                                commentErrors.Add(new TaskProviderItem(_serviceProvider, commErr.ErrorMessage, commErr.Span, VSTASKPRIORITY.TP_NORMAL, VSTASKCATEGORY.CAT_CODESENSE, true, snapshot, TaskLevel.Syntax));
+                                commentErrors.Add(new TaskProviderItem(_serviceProvider, commErr.ErrorMessage, commErr.Span, VSTASKPRIORITY.TP_NORMAL, VSTASKCATEGORY.CAT_BUILDCOMPILE, true, snapshot, TaskLevel.Syntax, ErrorType.Warning));
                             }
                         }
                     }
@@ -1299,18 +1401,16 @@ namespace VSGenero.EditorExtensions.Intellisense
                 OnShouldWarnOnLaunchChanged(entry);
             }
 
-
-
             // Update the parser warnings/errors.
             var factory = new TaskProviderItemFactory(snapshot);
             if (errorSink.Warnings.Any() || errorSink.Errors.Any() || (commentErrors != null && commentErrors.Count > 0))
             {
-                if (!_errorProvider.HasErrorSource(entry, ParserTaskMoniker))
-                    _errorProvider.AddBufferForErrorSource(entry, ParserTaskMoniker, null);
+                if (!_errorProvider.HasErrorSource(entry.FilePath, ParserTaskMoniker))
+                    _errorProvider.AddBufferForErrorSource(entry.FilePath, ParserTaskMoniker, null);
 
                 var items = errorSink.Warnings
-                        .Select(er => factory.FromErrorResult(_serviceProvider, er, VSTASKPRIORITY.TP_NORMAL, VSTASKCATEGORY.CAT_BUILDCOMPILE, level))
-                        .Concat(errorSink.Errors.Select(er => factory.FromErrorResult(_serviceProvider, er, VSTASKPRIORITY.TP_HIGH, VSTASKCATEGORY.CAT_BUILDCOMPILE, level)))
+                        .Select(er => factory.FromErrorResult(_serviceProvider, er, VSTASKPRIORITY.TP_NORMAL, VSTASKCATEGORY.CAT_BUILDCOMPILE, level, ErrorType.Warning))
+                        .Concat(errorSink.Errors.Select(er => factory.FromErrorResult(_serviceProvider, er, VSTASKPRIORITY.TP_HIGH, VSTASKCATEGORY.CAT_BUILDCOMPILE, level, ErrorType.SyntaxError)))
                         .ToList();
                 if(commentErrors != null)
                 {
@@ -1318,7 +1418,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                 }
 
                 _errorProvider.ReplaceItems(
-                    entry,
+                    entry.FilePath,
                     ParserTaskMoniker,
                     items,
                     level
@@ -1326,7 +1426,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             }
             else
             {
-                _errorProvider.Clear(entry, ParserTaskMoniker);
+                _errorProvider.Clear(entry.FilePath, ParserTaskMoniker, level);
             }
 
             // Update comment tasks.
@@ -1334,11 +1434,11 @@ namespace VSGenero.EditorExtensions.Intellisense
             {
                 if (commentTasks.Count != 0)
                 {
-                    _commentTaskProvider.ReplaceItems(entry, ParserTaskMoniker, commentTasks, TaskLevel.Comment);
+                    _commentTaskProvider.ReplaceItems(entry.FilePath, ParserTaskMoniker, commentTasks, TaskLevel.Comment);
                 }
                 else
                 {
-                    _commentTaskProvider.Clear(entry, ParserTaskMoniker);
+                    _commentTaskProvider.Clear(entry.FilePath, ParserTaskMoniker);
                 }
             }
         }
@@ -1347,8 +1447,8 @@ namespace VSGenero.EditorExtensions.Intellisense
         {
             if (entry != null)
             {
-                _errorProvider.Clear(entry, ParserTaskMoniker);
-                _commentTaskProvider.Clear(entry, ParserTaskMoniker);
+                _errorProvider.Clear(entry.FilePath, ParserTaskMoniker);
+                _commentTaskProvider.Clear(entry.FilePath, ParserTaskMoniker);
                 //_unresolvedSquiggles.StopListening(entry as IPythonProjectEntry);
 
                 bool removed = false;
@@ -1740,9 +1840,9 @@ namespace VSGenero.EditorExtensions.Intellisense
             {
                 foreach (var entry in proj.ProjectEntries.Values)
                 {
-                    _errorProvider.Clear(entry, ParserTaskMoniker);
+                    _errorProvider.Clear(entry.FilePath, ParserTaskMoniker);
                     //_errorProvider.Clear(entry, UnresolvedImportMoniker);
-                    _commentTaskProvider.Clear(entry, ParserTaskMoniker);
+                    _commentTaskProvider.Clear(entry.FilePath, ParserTaskMoniker);
                 }
 
                 // TODO: dispose of error providers for referenced projects

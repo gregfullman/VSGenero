@@ -123,6 +123,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 searchStr = sb.ToString();
             }
             bool isDeferred;
+            // TODO: need to defer database lookups too
             var res = GeneroAst.GetValueByIndex(searchStr, StartIndex, ast, out proj, out projEntry, out isDeferred, searchInFunctionProvider, isFunctionCallOrDefinition);
             if(res == null)
             {

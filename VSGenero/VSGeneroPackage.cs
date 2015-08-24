@@ -20,6 +20,7 @@ using System.ComponentModel.Design;
 using System.Collections.Generic;
 using System.Timers;
 using System.ComponentModel;
+using System.ComponentModel.Composition;
 using System.Threading;
 
 using Microsoft.Win32;
@@ -59,6 +60,7 @@ using VSGenero.EditorExtensions.Intellisense;
 using Microsoft.VisualStudio.Text.Adornments;
 using VSGenero.Analysis;
 using VSGenero.EditorExtensions.BraceCompletion;
+using System.ComponentModel.Composition.Hosting;
 
 namespace VSGenero
 {
@@ -196,6 +198,8 @@ namespace VSGenero
             return null;
         }
 
+        internal IBuildTaskProvider _BuildTaskProvider;
+
         /////////////////////////////////////////////////////////////////////////////
         // Overriden Package Implementation
         #region Package Members
@@ -216,7 +220,8 @@ namespace VSGenero
 
             services.AddService(
                 typeof(ErrorTaskProvider),
-                (container, serviceType) => {
+                (container, serviceType) =>
+                {
                     var errorList = GetService(typeof(SVsErrorList)) as IVsTaskList;
                     var model = ComponentModel;
                     var errorProvider = model != null ? model.GetService<IErrorProviderFactory>() : null;
@@ -226,7 +231,8 @@ namespace VSGenero
 
             services.AddService(
                 typeof(CommentTaskProvider),
-                (container, serviceType) => {
+                (container, serviceType) =>
+                {
                     var taskList = GetService(typeof(SVsTaskList)) as IVsTaskList;
                     var model = ComponentModel;
                     var errorProvider = model != null ? model.GetService<IErrorProviderFactory>() : null;
@@ -253,13 +259,25 @@ namespace VSGenero
                 GeneroEditorFactory = new EditorFactory(this);
                 this.RegisterEditorFactory(GeneroEditorFactory);
             }
-            
+
             RegisterCommands(new CommonCommand[]
                 {
                     new ExtractSqlStatementsCommand()
                 }, GuidList.guidVSGeneroCmdSet);
 
             TestCompletionAnalysis.InitializeResults();
+
+            var dte2 = (DTE2)Package.GetGlobalService(typeof(SDTE));
+            var sp = new ServiceProvider(dte2 as Microsoft.VisualStudio.OLE.Interop.IServiceProvider);
+            var mefContainer = sp.GetService(typeof(Microsoft.VisualStudio.ComponentModelHost.SComponentModel))
+                                as Microsoft.VisualStudio.ComponentModelHost.IComponentModel;
+            var exportSpec = mefContainer.DefaultExportProvider.GetExport<IBuildTaskProvider>();
+            if(exportSpec != null)
+            {
+                _BuildTaskProvider = exportSpec.Value;
+            }
+            if (DefaultAnalyzer != null)
+            { }
         }
 
         #endregion
@@ -330,7 +348,7 @@ namespace VSGenero
 
         private GeneroProjectAnalyzer CreateAnalyzer()
         {
-            return new GeneroProjectAnalyzer(this);
+            return new GeneroProjectAnalyzer(this, _BuildTaskProvider);
         }
 
         private IFunctionInformationProvider _functionProvider;
@@ -368,8 +386,11 @@ namespace VSGenero
                     if (_programFileProvider == null)
                     {
                         _programFileProvider = value;
-                        _programFileProvider.ImportModuleLocationChanged += _programFileProvider_ImportModuleLocationChanged;
-                        _programFileProvider.IncludeFileLocationChanged += _programFileProvider_IncludeFileLocationChanged;
+                        if (_programFileProvider != null)
+                        {
+                            _programFileProvider.ImportModuleLocationChanged += _programFileProvider_ImportModuleLocationChanged;
+                            _programFileProvider.IncludeFileLocationChanged += _programFileProvider_IncludeFileLocationChanged;
+                        }
                     }
                 }
             }

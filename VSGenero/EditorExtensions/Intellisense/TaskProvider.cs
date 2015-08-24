@@ -30,14 +30,32 @@ using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudioTools;
 using VSGenero.Analysis.Parsing;
 using VSGenero.Analysis;
+using Shell = Microsoft.VisualStudio.Shell;
 
 namespace VSGenero.EditorExtensions.Intellisense
 {
-    enum TaskLevel
+    /// <summary>
+    /// This enum allows for errors to be updated in different levels for a task provider key.
+    /// </summary>
+    public enum TaskLevel
     {
+        All,
         Syntax,
         Semantics,
-        Comment
+        Comment,
+        /// <summary>
+        /// Use the Build enum to specify errors that occurred specifically during a build.
+        /// </summary>
+        Build
+    }
+
+    public enum ErrorType
+    {
+        None,
+        CompilerError,
+        OtherError,
+        SyntaxError,
+        Warning
     }
 
     class TaskProviderItem
@@ -51,6 +69,7 @@ namespace VSGenero.EditorExtensions.Intellisense
         private readonly ITextSnapshot _snapshot;
         private readonly IServiceProvider _serviceProvider;
         private readonly TaskLevel _level;
+        private readonly ErrorType _errorType;
 
         public TaskLevel Level
         {
@@ -65,7 +84,8 @@ namespace VSGenero.EditorExtensions.Intellisense
             VSTASKCATEGORY category,
             bool squiggle,
             ITextSnapshot snapshot,
-            TaskLevel level
+            TaskLevel level,
+            ErrorType errorType
         )
         {
             _serviceProvider = serviceProvider;
@@ -78,19 +98,22 @@ namespace VSGenero.EditorExtensions.Intellisense
             _category = category;
             _squiggle = squiggle;
             _level = level;
+            _errorType = errorType;
         }
 
         private string ErrorType
         {
             get
             {
-                switch (_priority)
+                switch (_errorType)
                 {
-                    case VSTASKPRIORITY.TP_HIGH:
+                    case Intellisense.ErrorType.SyntaxError:
                         return PredefinedErrorTypeNames.SyntaxError;
-                    case VSTASKPRIORITY.TP_LOW:
+                    case Intellisense.ErrorType.OtherError:
                         return PredefinedErrorTypeNames.OtherError;
-                    case VSTASKPRIORITY.TP_NORMAL:
+                    case Intellisense.ErrorType.CompilerError:
+                        return PredefinedErrorTypeNames.CompilerError;
+                    case Intellisense.ErrorType.Warning:
                         return PredefinedErrorTypeNames.Warning;
                     default:
                         return string.Empty;
@@ -114,7 +137,7 @@ namespace VSGenero.EditorExtensions.Intellisense
 
         public void CreateSquiggleSpan(SimpleTagger<ErrorTag> tagger)
         {
-            tagger.CreateTagSpan(_span, new ErrorTag(ErrorType, _message));
+            var result = tagger.CreateTagSpan(_span, new ErrorTag(ErrorType, _message));
         }
 
         public ITextSnapshot Snapshot
@@ -131,7 +154,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                 _serviceProvider,
                 _rawSpan,
                 _message,
-                (key.Entry != null ? key.Entry.FilePath : null) ?? string.Empty
+                key.Filepath ?? string.Empty
             )
             {
                 Priority = _priority,
@@ -166,7 +189,7 @@ namespace VSGenero.EditorExtensions.Intellisense
 
         #region Factory Functions
 
-        public TaskProviderItem FromErrorResult(IServiceProvider serviceProvider, ErrorResult result, VSTASKPRIORITY priority, VSTASKCATEGORY category, TaskLevel level)
+        public TaskProviderItem FromErrorResult(IServiceProvider serviceProvider, ErrorResult result, VSTASKPRIORITY priority, VSTASKCATEGORY category, TaskLevel level, ErrorType errorType)
         {
             return new TaskProviderItem(
                 serviceProvider,
@@ -176,7 +199,8 @@ namespace VSGenero.EditorExtensions.Intellisense
                 category,
                 true,
                 _snapshot,
-                level
+                level,
+                errorType
             );
         }
 
@@ -185,14 +209,14 @@ namespace VSGenero.EditorExtensions.Intellisense
 
     struct EntryKey : IEquatable<EntryKey>
     {
-        public IProjectEntry Entry;
+        public string Filepath;
         public string Moniker;
 
         public static readonly EntryKey Empty = new EntryKey(null, null);
 
-        public EntryKey(IProjectEntry entry, string moniker)
+        public EntryKey(string filepath, string moniker)
         {
-            Entry = entry;
+            Filepath = filepath;
             Moniker = moniker;
         }
 
@@ -203,12 +227,12 @@ namespace VSGenero.EditorExtensions.Intellisense
 
         public bool Equals(EntryKey other)
         {
-            return Entry == other.Entry && Moniker == other.Moniker;
+            return Filepath.Equals(other.Filepath, StringComparison.OrdinalIgnoreCase) && Moniker == other.Moniker;
         }
 
         public override int GetHashCode()
         {
-            return (Entry == null ? 0 : Entry.GetHashCode()) ^ (Moniker ?? string.Empty).GetHashCode();
+            return (Filepath == null ? 0 : Filepath.ToLower().GetHashCode()) ^ (Moniker ?? string.Empty).GetHashCode();
         }
     }
 
@@ -231,24 +255,24 @@ namespace VSGenero.EditorExtensions.Intellisense
         public abstract bool Apply(Dictionary<EntryKey, List<TaskProviderItem>> items, object itemsLock);
 
         // Factory methods
-        public static WorkerMessage Clear()
+        public static WorkerMessage Clear(TaskLevel taskLevel = TaskLevel.All)
         {
-            return new ClearMessage(EntryKey.Empty);
+            return new ClearMessage(EntryKey.Empty, taskLevel);
         }
 
-        public static WorkerMessage Clear(IProjectEntry entry, string moniker)
+        public static WorkerMessage Clear(string filepath, string moniker, TaskLevel taskLevel = TaskLevel.All)
         {
-            return new ClearMessage(new EntryKey(entry, moniker));
+            return new ClearMessage(new EntryKey(filepath, moniker), taskLevel);
         }
 
-        public static WorkerMessage Replace(IProjectEntry entry, string moniker, List<TaskProviderItem> items, TaskLevel level)
+        public static WorkerMessage Replace(string filepath, string moniker, List<TaskProviderItem> items, TaskLevel level)
         {
-            return new ReplaceMessage(new EntryKey(entry, moniker), items, level);
+            return new ReplaceMessage(new EntryKey(filepath, moniker), items, level);
         }
 
-        public static WorkerMessage Append(IProjectEntry entry, string moniker, List<TaskProviderItem> items)
+        public static WorkerMessage Append(string filepath, string moniker, List<TaskProviderItem> items)
         {
-            return new AppendMessage(new EntryKey(entry, moniker), items);
+            return new AppendMessage(new EntryKey(filepath, moniker), items);
         }
 
         public static WorkerMessage Flush(TaskCompletionSource<TimeSpan> taskSource)
@@ -277,7 +301,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                     }
                     else
                     {
-                        items[_key].RemoveAll(x => x.Level == _level);
+                        items[_key].RemoveAll(x => x.Level.HasFlag(_level));
                         items[_key].AddRange(_items);
                     }
                     return true;
@@ -311,21 +335,49 @@ namespace VSGenero.EditorExtensions.Intellisense
 
         sealed class ClearMessage : WorkerMessage
         {
-            public ClearMessage(EntryKey key)
+            private readonly TaskLevel _taskLevel;
+
+            public ClearMessage(EntryKey key, TaskLevel taskLevel)
                 : base(key, null)
-            { }
+            {
+                _taskLevel = taskLevel;
+            }
 
             public override bool Apply(Dictionary<EntryKey, List<TaskProviderItem>> items, object itemsLock)
             {
                 lock (itemsLock)
                 {
-                    if (_key.Entry != null)
+                    if (_key.Filepath != null && items.ContainsKey(_key))
                     {
-                        items.Remove(_key);
+                        if (_taskLevel == TaskLevel.All)
+                        {
+                            items.Remove(_key);
+                        }
+                        else
+                        {
+                            items[_key].RemoveAll(x => x.Level.HasFlag(_taskLevel));
+                            if (items[_key].Count == 0)
+                                items.Remove(_key);
+                        }
                     }
                     else
                     {
-                        items.Clear();
+                        if (_taskLevel == TaskLevel.All)
+                        {
+                            items.Clear();
+                        }
+                        else
+                        {
+                            List<EntryKey> remove = new List<EntryKey>();
+                            foreach(var item in items)
+                            {
+                                item.Value.RemoveAll(x => x.Level.HasFlag(_taskLevel));
+                                if (item.Value.Count == 0)
+                                    remove.Add(item.Key);
+                            }
+                            foreach (var rem in remove)
+                                items.Remove(rem);
+                        }
                     }
                     // Always return true to ensure the refresh occurs
                     return true;
@@ -365,6 +417,8 @@ namespace VSGenero.EditorExtensions.Intellisense
 
         private bool _hasWorker;
         private readonly BlockingCollection<WorkerMessage> _workerQueue;
+
+        protected virtual bool UpdatesSquiggles { get { return true; } }
 
         public TaskProvider(IServiceProvider serviceProvider, IVsTaskList taskList, IErrorProviderFactory errorProvider)
         {
@@ -422,16 +476,16 @@ namespace VSGenero.EditorExtensions.Intellisense
         /// <summary>
         /// Replaces the items for the specified entry.
         /// </summary>
-        public void ReplaceItems(IProjectEntry entry, string moniker, List<TaskProviderItem> items, TaskLevel level)
+        public void ReplaceItems(string filepath, string moniker, List<TaskProviderItem> items, TaskLevel level)
         {
-            SendMessage(WorkerMessage.Replace(entry, moniker, items, level));
+            SendMessage(WorkerMessage.Replace(filepath, moniker, items, level));
         }
 
-        public List<TaskProviderItem> GetItems(IProjectEntry entry, string moniker)
+        public List<TaskProviderItem> GetItems(string filepath, string moniker)
         {
             lock(_itemsLock)
             {
-                EntryKey ek = new EntryKey(entry, moniker);
+                EntryKey ek = new EntryKey(filepath, moniker);
                 List<TaskProviderItem> items;
                 _items.TryGetValue(ek, out items);
                 return items;
@@ -441,33 +495,28 @@ namespace VSGenero.EditorExtensions.Intellisense
         /// <summary>
         /// Adds items to the specified entry's existing items.
         /// </summary>
-        public void AddItems(IProjectEntry entry, string moniker, List<TaskProviderItem> items)
+        public void AddItems(string filepath, string moniker, List<TaskProviderItem> items)
         {
-            SendMessage(WorkerMessage.Append(entry, moniker, items));
+            SendMessage(WorkerMessage.Append(filepath, moniker, items));
         }
 
         /// <summary>
         /// Removes all items from all entries.
         /// </summary>
-        public void ClearAll()
+        public void ClearAll(TaskLevel taskLevel = TaskLevel.All)
         {
-            SendMessage(WorkerMessage.Clear());
+            SendMessage(WorkerMessage.Clear(taskLevel));
         }
 
         /// <summary>
         /// Removes all items for the specified entry.
         /// </summary>
-        public void Clear(IProjectEntry entry, string moniker)
+        public void Clear(string filePath, string moniker, TaskLevel taskLevel = TaskLevel.All)
         {
-            SendMessage(WorkerMessage.Clear(entry, moniker));
-        }
-
-        public void Clear(string filePath, string moniker)
-        {
-            var remKeys = _errorSources.Where(x => x.Key.Entry.FilePath.StartsWith(filePath, StringComparison.OrdinalIgnoreCase)).Select(x => x.Key).ToList();
+            var remKeys = _errorSources.Where(x => x.Key.Filepath.StartsWith(filePath, StringComparison.OrdinalIgnoreCase)).Select(x => x.Key).ToList();
             foreach (var key in remKeys)
             {
-                SendMessage(WorkerMessage.Clear(key.Entry, moniker));
+                SendMessage(WorkerMessage.Clear(key.Filepath, moniker, taskLevel));
             }
         }
 
@@ -485,11 +534,11 @@ namespace VSGenero.EditorExtensions.Intellisense
             return tcs.Task;
         }
 
-        public bool HasErrorSource(IProjectEntry entry, string moniker)
+        public bool HasErrorSource(string filepath, string moniker)
         {
             lock (_errorSources)
             {
-                return _errorSources.ContainsKey(new EntryKey(entry, moniker));
+                return _errorSources.ContainsKey(new EntryKey(filepath, moniker));
             }
         }
 
@@ -497,18 +546,27 @@ namespace VSGenero.EditorExtensions.Intellisense
         /// Adds the buffer to be tracked for reporting squiggles and error list entries
         /// for the given project entry and moniker for the error source.
         /// </summary>
-        public void AddBufferForErrorSource(IProjectEntry entry, string moniker, ITextBuffer buffer)
+        public void AddBufferForErrorSource(string filepath, string moniker, ITextBuffer buffer)
         {
             lock (_errorSources)
             {
-                var key = new EntryKey(entry, moniker);
+                var key = new EntryKey(filepath, moniker);
                 HashSet<ITextBuffer> buffers;
                 if (!_errorSources.TryGetValue(key, out buffers))
                 {
-                    _errorSources[new EntryKey(entry, moniker)] = buffers = new HashSet<ITextBuffer>();
+                    _errorSources[new EntryKey(filepath, moniker)] = buffers = new HashSet<ITextBuffer>();
                 }
                 if(buffer != null)
                     buffers.Add(buffer);
+            }
+        }
+
+        public void AddErrorSource(string filepath, string moniker)
+        {
+            var key = new EntryKey(filepath, moniker);
+            if (!_errorSources.ContainsKey(key))
+            {
+                _errorSources[new EntryKey(filepath, moniker)] = new HashSet<ITextBuffer>();
             }
         }
 
@@ -516,11 +574,11 @@ namespace VSGenero.EditorExtensions.Intellisense
         /// Removes the buffer from tracking for reporting squiggles and error list entries
         /// for the given project entry and moniker for the error source.
         /// </summary>
-        public void RemoveBufferForErrorSource(IProjectEntry entry, string moniker, ITextBuffer buffer)
+        public void RemoveBufferForErrorSource(string filepath, string moniker, ITextBuffer buffer)
         {
             lock (_errorSources)
             {
-                var key = new EntryKey(entry, moniker);
+                var key = new EntryKey(filepath, moniker);
                 HashSet<ITextBuffer> buffers;
                 if (_errorSources.TryGetValue(key, out buffers))
                 {
@@ -533,11 +591,11 @@ namespace VSGenero.EditorExtensions.Intellisense
         /// Clears all tracked buffers for the given project entry and moniker for
         /// the error source.
         /// </summary>
-        public void ClearErrorSource(IProjectEntry entry, string moniker)
+        public void ClearErrorSource(string filepath, string moniker)
         {
             lock (_errorSources)
             {
-                _errorSources.Remove(new EntryKey(entry, moniker));
+                _errorSources.Remove(new EntryKey(filepath, moniker));
             }
         }
 
@@ -545,7 +603,7 @@ namespace VSGenero.EditorExtensions.Intellisense
         {
             lock (_errorSources)
             {
-                var remKeys = _errorSources.Where(x => x.Key.Entry.FilePath.StartsWith(filePath, StringComparison.OrdinalIgnoreCase)).Select(x => x.Key).ToList();
+                var remKeys = _errorSources.Where(x => x.Key.Filepath.StartsWith(filePath, StringComparison.OrdinalIgnoreCase)).Select(x => x.Key).ToList();
                 foreach (var key in remKeys)
                 {
                     _errorSources.Remove(key);
@@ -646,17 +704,20 @@ namespace VSGenero.EditorExtensions.Intellisense
             }
         }
 
+        private bool _isRefreshing = false;
+
         private void Refresh()
         {
-            if (_taskList != null || _errorProvider != null)
+            if (_taskList != null || _errorProvider != null && !_isRefreshing)
             {
                 _serviceProvider.GetUIThread().MustNotBeCalledFromUIThread();
-                RefreshAsync().WaitAndHandleAllExceptions(/*SR.ProductName*/"VSGenero", GetType());
+                RefreshAsync().WaitAndHandleAllExceptions("VSGenero", GetType());
             }
         }
 
         private async Task RefreshAsync()
         {
+            _isRefreshing = true;
             var buffers = new HashSet<ITextBuffer>();
             var bufferToErrorList = new Dictionary<ITextBuffer, List<TaskProviderItem>>();
 
@@ -712,7 +773,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                     }
                 }
 
-                if (_errorProvider != null)
+                if (UpdatesSquiggles && _errorProvider != null)
                 {
                     foreach (var kv in bufferToErrorList)
                     {
@@ -744,6 +805,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                     }
                 }
             });
+            _isRefreshing = false;
         }
 
         private void SendMessage(WorkerMessage message)
@@ -777,7 +839,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             lock (_itemsLock)
             {
                 ppenum = new TaskEnum(_items
-                    .Where(x => x.Key.Entry.FilePath != null)   // don't report REPL window errors in the error list, you can't naviagate to them
+                    .Where(x => x.Key.Filepath != null)   // don't report REPL window errors in the error list, you can't naviagate to them
                     .SelectMany(kv => kv.Value.Select(i => i.ToErrorTaskItem(kv.Key)))
                     .ToArray()
                 );
@@ -1101,15 +1163,43 @@ namespace VSGenero.EditorExtensions.Intellisense
 
     sealed class ErrorTaskProvider : TaskProvider
     {
+        private readonly IVsErrorList _errorList;
+
         public ErrorTaskProvider(IServiceProvider serviceProvider, IVsTaskList taskList, IErrorProviderFactory errorProvider)
             : base(serviceProvider, taskList, errorProvider)
         {
+            if (taskList is IVsErrorList)
+                _errorList = taskList as IVsErrorList;
+        }
+
+        public void BringToFront()
+        {
+            if(!Shell.VsShellUtilities.ShellIsShuttingDown)
+            {
+                _errorList.BringToFront();
+            }
+        }
+
+        public void ForceShowErrors()
+        {
+            if (!Shell.VsShellUtilities.ShellIsShuttingDown)
+            {
+                _errorList.ForceShowErrors();
+            }
         }
     }
 
     sealed class CommentTaskProvider : TaskProvider, IVsTaskListEvents
     {
         private volatile Dictionary<string, VSTASKPRIORITY> _tokens;
+
+        protected override bool UpdatesSquiggles
+        {
+            get
+            {
+                return false;
+            }
+        }
 
         public CommentTaskProvider(IServiceProvider serviceProvider, IVsTaskList taskList, IErrorProviderFactory errorProvider)
             : base(serviceProvider, taskList, errorProvider)

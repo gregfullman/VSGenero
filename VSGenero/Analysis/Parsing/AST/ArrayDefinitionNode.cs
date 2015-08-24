@@ -292,7 +292,7 @@ namespace VSGenero.Analysis.Parsing.AST
             return result;
         }
 
-        internal IEnumerable<IAnalysisResult> GetAnalysisResults(GeneroAst ast, MemberType memberType, out IGeneroProject definingProject, out IProjectEntry projEntry)
+        internal IEnumerable<IAnalysisResult> GetAnalysisResults(GeneroAst ast, MemberType memberType, out IGeneroProject definingProject, out IProjectEntry projEntry, bool function)
         {
             definingProject = null;
             projEntry = null;
@@ -303,7 +303,7 @@ namespace VSGenero.Analysis.Parsing.AST
                 var node = Children[Children.Keys[0]];
                 if(node is TypeReference)
                 {
-                    results.AddRange((node as TypeReference).GetAnalysisMembers(ast, memberType, out definingProject, out projEntry));
+                    results.AddRange((node as TypeReference).GetAnalysisMembers(ast, memberType, out definingProject, out projEntry, function));
                 }
             }
             results.AddRange(GeneroAst.ArrayFunctions.Values);
@@ -320,7 +320,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     var node = Children[Children.Keys[0]];
                     if (node is TypeReference)
                     {
-                        results.AddRange((node as TypeReference).GetMembers(ast, memberType));
+                        results.AddRange((node as TypeReference).GetMembers(ast, memberType, arrayFunctions));
                     }
                 }
             }

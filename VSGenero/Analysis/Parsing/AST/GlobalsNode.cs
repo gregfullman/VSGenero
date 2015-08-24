@@ -87,7 +87,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                             if(!defNode.Types.ContainsKey(def.Name))
                                                 defNode.Types.Add(def.Name, def);
                                             else
-                                                parser.ReportSyntaxError(string.Format("Global type {0} is defined more than once.", def.Name), Severity.Warning);
+                                                parser.ReportSyntaxError(string.Format("Global type {0} is defined more than once.", def.Name), Severity.Error);
                                         }
                                     }
                                     break;
@@ -103,7 +103,7 @@ namespace VSGenero.Analysis.Parsing.AST
                                             if(!defNode.Constants.ContainsKey(def.Name))
                                                 defNode.Constants.Add(def.Name, def);
                                             else
-                                                parser.ReportSyntaxError(string.Format("Global constant {0} is defined more than once.", def.Name), Severity.Warning);
+                                                parser.ReportSyntaxError(string.Format("Global constant {0} is defined more than once.", def.Name), Severity.Error);
                                         }
                                     }
                                     break;
@@ -120,8 +120,8 @@ namespace VSGenero.Analysis.Parsing.AST
                                                 if(!defNode.Variables.ContainsKey(vardef.Name))
                                                     defNode.Variables.Add(vardef.Name, vardef);
                                                 else
-                                                    parser.ReportSyntaxError(vardef.LocationIndex, (vardef.LocationIndex + vardef.Name.Length), 
-                                                                             string.Format("Global variable {0} is defined more than once.", vardef.Name), Severity.Warning);
+                                                    parser.ReportSyntaxError(vardef.LocationIndex, (vardef.LocationIndex + vardef.Name.Length),
+                                                                             string.Format("Global variable {0} is defined more than once.", vardef.Name), Severity.Error);
                                             }
                                     }
                                     break;

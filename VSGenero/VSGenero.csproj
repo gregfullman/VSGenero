@@ -404,6 +404,7 @@
     <Compile Include="EditorExtensions\GeneroLexer.cs" />
     <Compile Include="EditorExtensions\GeneroTextViewListener.cs" />
     <Compile Include="EditorExtensions\GeneroToken.cs" />
+    <Compile Include="EditorExtensions\IBuildEventProvider.cs" />
     <Compile Include="EditorExtensions\IGeneroTextViewChangedListener.cs" />
     <Compile Include="EditorExtensions\IGeneroTextViewCommandTarget.cs" />
     <Compile Include="EditorExtensions\Intellisense\AnalysisQueue.cs" />

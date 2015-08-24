@@ -102,14 +102,14 @@ namespace VSGenero.Analysis.Parsing.AST
             }
         }
 
-        public IAnalysisResult GetMember(string name, GeneroAst ast, out IGeneroProject definingProject, out IProjectEntry projEntry)
+        public IAnalysisResult GetMember(string name, GeneroAst ast, out IGeneroProject definingProject, out IProjectEntry projEntry, bool function)
         {
-            return Type.GetMember(name, ast, out definingProject, out projEntry);
+            return Type.GetMember(name, ast, out definingProject, out projEntry, function);
         }
 
-        public IEnumerable<MemberResult> GetMembers(GeneroAst ast, MemberType memberType)
+        public IEnumerable<MemberResult> GetMembers(GeneroAst ast, MemberType memberType, bool function)
         {
-            return Type.GetMembers(ast, memberType);
+            return Type.GetMembers(ast, memberType, function);
         }
 
         public bool HasChildFunctions(GeneroAst ast)
