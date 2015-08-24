@@ -828,10 +828,13 @@ namespace VSGenero.Analysis.Parsing.AST
                                             }
                                             else
                                             {
-                                                // need to get the number of fields in the record, as they count toward our passed parameter total
-                                                int recFieldCount = (typeRef.Children[typeRef.Children.Keys[0]] as RecordDefinitionNode).GetMembers(ast, Analysis.MemberType.All, false).Count();
-                                                if (recFieldCount > 0)
-                                                    totalParameters += (recFieldCount - 1); // minus 1 so we can do the increment below    
+                                                if (!_allowedNonStarRecordParamFunctions.Contains(Function.Name))
+                                                {
+                                                    // need to get the number of fields in the record, as they count toward our passed parameter total
+                                                    int recFieldCount = (typeRef.Children[typeRef.Children.Keys[0]] as RecordDefinitionNode).GetMembers(ast, Analysis.MemberType.All, false).Count();
+                                                    if (recFieldCount > 0)
+                                                        totalParameters += (recFieldCount - 1); // minus 1 so we can do the increment below    
+                                                }
                                             }
                                         }
                                     }
