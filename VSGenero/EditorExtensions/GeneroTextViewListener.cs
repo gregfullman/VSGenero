@@ -34,14 +34,6 @@ namespace VSGenero.EditorExtensions
     {
         [Import(AllowDefault = true)]
         internal IGeneroTextViewChangedListener _changeListener;
-        private IWpfTextView _textView;
-        private int _ignoreNextChange;
-        private IEditorOptions _options;
-        private string _filename;
-
-        public GeneroTextViewCreationListener()
-        {
-        }
 
         public void TextViewCreated(IWpfTextView textView)
         {
@@ -49,21 +41,29 @@ namespace VSGenero.EditorExtensions
             {
                 _changeListener.SetTextView(textView);
             }
-            if(_textView != null && _textView.TextBuffer != null)
-                _filename = _textView.TextBuffer.GetFilePath();
-            _textView = textView;
-            _options = textView.Options;
-            textView.Closed += textView_Closed;
-            textView.TextBuffer.Changed += TextBuffer_Changed;
+            if(!textView.Properties.ContainsProperty(typeof(GeneroTextViewChangedListener)))
+            {
+                var listener = new GeneroTextViewChangedListener(textView);
+                textView.Properties.AddProperty(typeof(GeneroTextViewChangedListener), listener);
+            }
         }
+    }
 
-        void textView_Closed(object sender, EventArgs e)
+    internal class GeneroTextViewChangedListener
+    {
+        private readonly IWpfTextView _textView;
+        private readonly IEditorOptions _options;
+        private int _ignoreNextChange;
+
+        public GeneroTextViewChangedListener(IWpfTextView textView)
         {
-            (sender as IWpfTextView).TextBuffer.Changed -= TextBuffer_Changed;
-            (sender as IWpfTextView).Closed -= textView_Closed;
+            _textView = textView;
+            _options = _textView.Options;
+            _textView.Closed += _textView_Closed;
+            _textView.TextBuffer.Changed += TextBuffer_Changed;
         }
 
-        void TextBuffer_Changed(object sender, Microsoft.VisualStudio.Text.TextContentChangedEventArgs e)
+        void TextBuffer_Changed(object sender, TextContentChangedEventArgs e)
         {
             string filename = e.After.TextBuffer.GetFilePath();
             if (_textView.Caret.Position.BufferPosition.Position >= 0 &&
@@ -177,6 +177,17 @@ namespace VSGenero.EditorExtensions
                 }
             }
             _ignoreNextChange = -1;
+        }
+
+        void _textView_Closed(object sender, EventArgs e)
+        {
+            var tv = sender as IWpfTextView;
+            if(tv != null && tv == _textView)
+            {
+                tv.Properties.RemoveProperty(typeof(GeneroTextViewChangedListener));
+                tv.Closed -= _textView_Closed;
+                tv.TextBuffer.Changed -= TextBuffer_Changed;
+            }
         }
     }
 }
