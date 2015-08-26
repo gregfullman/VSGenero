@@ -861,7 +861,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     {
                         new ContextPossibilities(
                             emptyTokenKindSet,
-                            new ContextSetProvider[] { GetStatementStartKeywords },
+                            new ContextSetProvider[] { GetStatementStartKeywords, GetPostUnaryOperators },
                             new BackwardTokenSearchItem[] 
                             { 
                                 new BackwardTokenSearchItem(TokenKind.WhenKeyword),
@@ -1051,9 +1051,10 @@ namespace VSGenero.Analysis.Parsing.AST
                         ),
                         new ContextPossibilities(
                             emptyTokenKindSet,
-                            new ContextSetProvider[] { GetBinaryOperatorKeywords, GetStatementStartKeywords },
+                            new ContextSetProvider[] { GetBinaryOperatorKeywords, GetStatementStartKeywords, GetPostUnaryOperators },
                             new BackwardTokenSearchItem[] 
                             { 
+                                new BackwardTokenSearchItem(TokenKind.CallKeyword),
                                 new BackwardTokenSearchItem(new OrderedTokenSet(new object[] { TokenKind.Equals, TokenKind.LetKeyword })),
                                 new BackwardTokenSearchItem(new OrderedTokenSet(new object[] { TokenKind.Equals, TokenCategory.Identifier, TokenKind.WhereKeyword }))
                             }
@@ -1068,7 +1069,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         ),
                         new ContextPossibilities(
                             new TokenKind [] { TokenKind.AttributeKeyword, TokenKind.AttributesKeyword },
-                            new ContextSetProvider[] { GetBinaryOperatorKeywords, GetStatementStartKeywords },
+                            new ContextSetProvider[] { GetBinaryOperatorKeywords, GetStatementStartKeywords, GetPostUnaryOperators },
                             new BackwardTokenSearchItem[] 
                             { 
                                 new BackwardTokenSearchItem(new OrderedTokenSet(new object[] { TokenKind.NameKeyword, TokenKind.ByKeyword, TokenKind.DisplayKeyword })),
@@ -1088,7 +1089,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         ),
                         new ContextPossibilities(
                             emptyTokenKindSet,
-                            new ContextSetProvider[] { GetBinaryOperatorKeywords, GetStatementStartKeywords },
+                            new ContextSetProvider[] { GetBinaryOperatorKeywords, GetStatementStartKeywords, GetPostUnaryOperators },
                             new BackwardTokenSearchItem[] 
                             { 
                                 new BackwardTokenSearchItem(new OrderedTokenSet(new object[] { TokenKind.ByKeyword, TokenKind.ScrollKeyword }))
@@ -1096,7 +1097,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         ),
                         new ContextPossibilities(
                             emptyTokenKindSet,
-                            new ContextSetProvider[] { GetBinaryOperatorKeywords, GetStatementStartKeywords },
+                            new ContextSetProvider[] { GetBinaryOperatorKeywords, GetStatementStartKeywords, GetPostUnaryOperators },
                             emptyBackwardTokenSearchSet
                         ),
                     };
@@ -1470,7 +1471,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     {
                         new ContextPossibilities(
                             new TokenKind [] { TokenKind.AttributeKeyword, TokenKind.AttributesKeyword },
-                            new ContextSetProvider[] { GetBinaryOperatorKeywords, GetStatementStartKeywords },
+                            new ContextSetProvider[] { GetBinaryOperatorKeywords, GetStatementStartKeywords, GetPostUnaryOperators },
                             emptyBackwardTokenSearchSet
                         )
                     });
@@ -1697,7 +1698,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         ),
                         new ContextPossibilities(
                             new TokenKind[] { TokenKind.ToKeyword },
-                            new ContextSetProvider[] { GetBinaryOperatorKeywords, GetStatementStartKeywords },
+                            new ContextSetProvider[] { GetBinaryOperatorKeywords, GetStatementStartKeywords, GetPostUnaryOperators },
                             new BackwardTokenSearchItem[] 
                             { 
                                 new BackwardTokenSearchItem(TokenKind.DisplayKeyword)
@@ -1705,7 +1706,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         ),
                         new ContextPossibilities(
                             new TokenKind[] { TokenKind.AttributeKeyword, TokenKind.AttributesKeyword },
-                            new ContextSetProvider[] { GetBinaryOperatorKeywords, GetStatementStartKeywords },
+                            new ContextSetProvider[] { GetBinaryOperatorKeywords, GetStatementStartKeywords, GetPostUnaryOperators },
                             new BackwardTokenSearchItem[] 
                             { 
                                 new BackwardTokenSearchItem(TokenKind.MessageKeyword),
@@ -1717,7 +1718,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         ),
                         new ContextPossibilities(
                             emptyTokenKindSet,
-                            new ContextSetProvider[] { GetBinaryOperatorKeywords, GetStatementStartKeywords },
+                            new ContextSetProvider[] { GetBinaryOperatorKeywords, GetStatementStartKeywords, GetPostUnaryOperators },
                             new BackwardTokenSearchItem[] 
                             { 
                                 new BackwardTokenSearchItem(new OrderedTokenSet(new object[] { TokenKind.LeftParenthesis, TokenKind.WhereKeyword }))
@@ -1725,7 +1726,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         ),
                         new ContextPossibilities(
                             emptyTokenKindSet,
-                            new ContextSetProvider[] { GetBinaryOperatorKeywords, GetStatementStartKeywords },
+                            new ContextSetProvider[] { GetBinaryOperatorKeywords, GetStatementStartKeywords, GetPostUnaryOperators },
                             emptyBackwardTokenSearchSet
                         )
                     });
@@ -1932,7 +1933,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     {
                         new ContextPossibilities(
                             emptyTokenKindSet,
-                            new ContextSetProvider[] { GetExpressionComponents },
+                            new ContextSetProvider[] { GetExpressionComponents, GetStatementStartKeywords },
                             emptyBackwardTokenSearchSet
                         )
                     });
@@ -1972,7 +1973,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         ),
                         new ContextPossibilities(
                             new TokenKind[] { TokenKind.ToKeyword },
-                            new ContextSetProvider[] { GetBinaryOperatorKeywords, GetStatementStartKeywords },
+                            new ContextSetProvider[] { GetBinaryOperatorKeywords, GetStatementStartKeywords, GetPostUnaryOperators },
                             new BackwardTokenSearchItem[] 
                             { 
                                 new BackwardTokenSearchItem(TokenKind.DisplayKeyword)
@@ -1980,7 +1981,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         ),
                         new ContextPossibilities(
                             new TokenKind[] { TokenKind.AttributeKeyword, TokenKind.AttributesKeyword },
-                            new ContextSetProvider[] { GetBinaryOperatorKeywords, GetStatementStartKeywords },
+                            new ContextSetProvider[] { GetBinaryOperatorKeywords, GetStatementStartKeywords, GetPostUnaryOperators },
                             new BackwardTokenSearchItem[] 
                             { 
                                 new BackwardTokenSearchItem(TokenKind.MessageKeyword),
@@ -1992,7 +1993,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         ),
                         new ContextPossibilities(
                             emptyTokenKindSet,
-                            new ContextSetProvider[] { GetBinaryOperatorKeywords, GetStatementStartKeywords },
+                            new ContextSetProvider[] { GetBinaryOperatorKeywords, GetStatementStartKeywords, GetPostUnaryOperators },
                             emptyBackwardTokenSearchSet
                         )
                     });
@@ -2000,7 +2001,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     {
                         new ContextPossibilities(
                             new TokenKind[] { TokenKind.ToKeyword },
-                            new ContextSetProvider[] { GetStatementStartKeywords, GetBinaryOperatorKeywords },
+                            new ContextSetProvider[] { GetStatementStartKeywords, GetBinaryOperatorKeywords, GetPostUnaryOperators },
                             new BackwardTokenSearchItem[] 
                             { 
                                 new BackwardTokenSearchItem(TokenKind.DisplayKeyword)
@@ -2008,7 +2009,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         ),
                          new ContextPossibilities(
                             new TokenKind[] { TokenKind.AttributeKeyword, TokenKind.AttributesKeyword },
-                            new ContextSetProvider[] { GetBinaryOperatorKeywords, GetStatementStartKeywords },
+                            new ContextSetProvider[] { GetBinaryOperatorKeywords, GetStatementStartKeywords, GetPostUnaryOperators },
                             new BackwardTokenSearchItem[] 
                             { 
                                 new BackwardTokenSearchItem(TokenKind.MessageKeyword),
@@ -2123,7 +2124,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         ),
                         new ContextPossibilities(
                             emptyTokenKindSet,
-                            new ContextSetProvider[] { GetBinaryOperatorKeywords, GetStatementStartKeywords },
+                            new ContextSetProvider[] { GetBinaryOperatorKeywords, GetStatementStartKeywords, GetPostUnaryOperators },
                             new BackwardTokenSearchItem[] 
                             { 
                                 new BackwardTokenSearchItem(TokenKind.WhereKeyword)
@@ -2131,7 +2132,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         ),
                         new ContextPossibilities(
                             emptyTokenKindSet,
-                            new ContextSetProvider[] { GetBinaryOperatorKeywords, GetStatementStartKeywords },
+                            new ContextSetProvider[] { GetBinaryOperatorKeywords, GetStatementStartKeywords, GetPostUnaryOperators },
                             emptyBackwardTokenSearchSet
                         ),
                     });
@@ -2337,7 +2338,7 @@ namespace VSGenero.Analysis.Parsing.AST
                     {
                         new ContextPossibilities(
                             emptyTokenKindSet,
-                            new ContextSetProvider[] { GetStatementStartKeywords, GetBinaryOperatorKeywords, GetExpressionComponents },
+                            new ContextSetProvider[] { GetStatementStartKeywords, GetBinaryOperatorKeywords, GetExpressionComponents, GetPostUnaryOperators },
                             new BackwardTokenSearchItem[] 
                             { 
                                 new BackwardTokenSearchItem(TokenKind.WhileKeyword)
@@ -2345,7 +2346,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         ),
                         new ContextPossibilities(
                             new TokenKind[] { TokenKind.HelpKeyword },
-                            new ContextSetProvider[] { GetStatementStartKeywords, GetBinaryOperatorKeywords, GetExpressionComponents },
+                            new ContextSetProvider[] { GetStatementStartKeywords, GetBinaryOperatorKeywords, GetExpressionComponents, GetPostUnaryOperators },
                             new BackwardTokenSearchItem[] 
                             { 
                                 new BackwardTokenSearchItem(TokenKind.CommandKeyword)
@@ -2353,7 +2354,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         ),
                         new ContextPossibilities(
                             new TokenKind[] { TokenKind.ToKeyword },
-                            new ContextSetProvider[] { GetStatementStartKeywords, GetBinaryOperatorKeywords },
+                            new ContextSetProvider[] { GetStatementStartKeywords, GetBinaryOperatorKeywords, GetPostUnaryOperators },
                             new BackwardTokenSearchItem[] 
                             { 
                                 new BackwardTokenSearchItem(TokenKind.DisplayKeyword)
@@ -2361,7 +2362,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         ),
                         new ContextPossibilities(
                             new TokenKind[] { TokenKind.AttributeKeyword, TokenKind.AttributesKeyword },
-                            new ContextSetProvider[] { GetStatementStartKeywords, GetBinaryOperatorKeywords },
+                            new ContextSetProvider[] { GetStatementStartKeywords, GetBinaryOperatorKeywords, GetPostUnaryOperators },
                             new BackwardTokenSearchItem[] 
                             { 
                                 new BackwardTokenSearchItem(TokenKind.MessageKeyword),
@@ -2373,7 +2374,7 @@ namespace VSGenero.Analysis.Parsing.AST
                         ),
                         new ContextPossibilities(
                             emptyTokenKindSet,
-                            new ContextSetProvider[] { GetStatementStartKeywords, GetBinaryOperatorKeywords },
+                            new ContextSetProvider[] { GetStatementStartKeywords, GetBinaryOperatorKeywords, GetPostUnaryOperators },
                             new BackwardTokenSearchItem[] 
                             { 
                                 new BackwardTokenSearchItem(new OrderedTokenSet(new object[] { TokenKind.Equals, TokenKind.LetKeyword })),
@@ -2689,6 +2690,15 @@ namespace VSGenero.Analysis.Parsing.AST
         #endregion
 
         #region Context Provider Functions
+
+        private static IEnumerable<MemberResult> GetPostUnaryOperators(int index)
+        {
+            if (_instance != null)
+            {
+                return _postUnaryOperators.Select(x => new MemberResult(Tokens.TokenKinds[x], GeneroMemberType.Keyword, _instance));
+            }
+            return new MemberResult[0];
+        }
 
         private static IEnumerable<MemberResult> GetExpressionComponents(int index)
         {
