@@ -19,6 +19,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using VSGenero.Analysis;
+using VSGenero.Analysis.Parsing;
 
 namespace VSGenero.EditorExtensions.Intellisense
 {
@@ -82,7 +83,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                 list.Add(new MemberResult(new string(
     Enumerable.Repeat(chars, 8)
               .Select(s => s[random.Next(s.Length)])
-              .ToArray()), Analysis.Parsing.AST_4GL.GeneroMemberType.Variable, null));
+              .ToArray()), GeneroMemberType.Variable, null));
             }
             _result = list;
         }

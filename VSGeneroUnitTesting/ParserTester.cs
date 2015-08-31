@@ -19,6 +19,7 @@ using System.Text;
 using System.Threading.Tasks;
 using VSGenero.Analysis;
 using VSGenero.Analysis.Parsing;
+using VSGenero.Analysis.Parsing.AST_4GL;
 
 namespace VSGeneroUnitTesting
 {
@@ -57,7 +58,7 @@ namespace VSGeneroUnitTesting
             using (TextReader tr = new StreamReader(path))
             {
                 Genero4glParser p = Genero4glParser.CreateParser(tr, po);
-                var node = p.ParseFile();
+                var node = (Genero4glAst)p.ParseFile();
                 Assert.IsNotNull(node);
                 Assert.IsTrue(_errorSink.Errors.Count == 0);
                 Assert.IsTrue(node.Body.Children.Count == 0);

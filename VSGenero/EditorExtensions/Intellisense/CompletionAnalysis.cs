@@ -21,6 +21,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using VSGenero.Analysis;
 using VSGenero.Analysis.Parsing.AST_4GL;
+using VSGenero.Analysis.Parsing;
 
 namespace VSGenero.EditorExtensions.Intellisense
 {

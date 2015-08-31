@@ -65,6 +65,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     { 
                         new List<TokenKind> { TokenKind.EndKeyword, TokenKind.MainKeyword }
                     };
+                List<TokenKind> validExits = new List<TokenKind> { TokenKind.ProgramKeyword };
+                HashSet<TokenKind> endKeywords = new HashSet<TokenKind> { TokenKind.MainKeyword };
                 bool fglStatement = false;
                 // try to parse one or more declaration statements
                 while (!parser.PeekToken(TokenKind.EndOfFile) &&
@@ -128,10 +130,9 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                             }
                         default:
                             {
-                                List<TokenKind> validExits = new List<TokenKind> { TokenKind.ProgramKeyword };
                                 FglStatement statement;
                                 if (parser.StatementFactory.TryParseNode(parser, out statement, containingModule, defNode.BindPrepareCursorFromIdentifier, 
-                                                                         defNode.StoreReturnStatement, defNode.AddLimitedScopeVariable, false, validExits) && statement != null)
+                                                                         defNode.StoreReturnStatement, defNode.AddLimitedScopeVariable, false, validExits, null, null, endKeywords) && statement != null)
                                 {
                                     AstNode4gl stmtNode = statement as AstNode4gl;
                                     defNode.Children.Add(stmtNode.StartIndex, stmtNode);

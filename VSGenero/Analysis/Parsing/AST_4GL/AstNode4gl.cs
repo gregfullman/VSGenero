@@ -134,20 +134,20 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             }
         }
 
-        //public SourceLocation GetStart(Genero4glAst parent)
-        //{
-        //    return parent.IndexToLocation(StartIndex);
-        //}
+        public SourceLocation GetStart(Genero4glAst parent)
+        {
+            return parent.IndexToLocation(StartIndex);
+        }
 
-        //public SourceLocation GetEnd(Genero4glAst parent)
-        //{
-        //    return parent.IndexToLocation(EndIndex);
-        //}
+        public SourceLocation GetEnd(Genero4glAst parent)
+        {
+            return parent.IndexToLocation(EndIndex);
+        }
 
-        //public SourceSpan GetSpan(Genero4glAst parent)
-        //{
-        //    return new SourceSpan(GetStart(parent), GetEnd(parent));
-        //}
+        public SourceSpan GetSpan(Genero4glAst parent)
+        {
+            return new SourceSpan(GetStart(parent), GetEnd(parent));
+        }
 
         //public static void CopyLeadingWhiteSpace(Genero4glAst parentNode, AstNode4gl fromNode, AstNode4gl toNode)
         //{
@@ -267,9 +267,9 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             }
         }
 
-        //public virtual void FindAllReferences(IAnalysisResult item, List<IndexSpan> referenceList)
-        //{
-        //}
+        public virtual void FindAllReferences(IAnalysisResult item, List<IndexSpan> referenceList)
+        {
+        }
         
         /// <summary>
         /// The default method calls CheckForErrors on all AstNode children of this node.
@@ -277,14 +277,14 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         /// </summary>
         /// <param name="ast"></param>
         /// <param name="errors"></param>
-        //public virtual void CheckForErrors(Genero4glAst ast, Action<string, int, int> errorFunc,
-        //                                   Dictionary<string, List<int>> deferredFunctionSearches,
-        //                                   Genero4glAst.FunctionProviderSearchMode searchInFunctionProvider = Genero4glAst.FunctionProviderSearchMode.NoSearch, 
-        //                                   bool isFunctionCallOrDefinition = false)
-        //{
-        //    foreach (var child in Children)
-        //        child.Value.CheckForErrors(ast, errorFunc, deferredFunctionSearches, searchInFunctionProvider, isFunctionCallOrDefinition);
-        //}
+        public virtual void CheckForErrors(Genero4glAst ast, Action<string, int, int> errorFunc,
+                                           Dictionary<string, List<int>> deferredFunctionSearches,
+                                           Genero4glAst.FunctionProviderSearchMode searchInFunctionProvider = Genero4glAst.FunctionProviderSearchMode.NoSearch,
+                                           bool isFunctionCallOrDefinition = false)
+        {
+            foreach (var child in Children)
+                child.Value.CheckForErrors(ast, errorFunc, deferredFunctionSearches, searchInFunctionProvider, isFunctionCallOrDefinition);
+        }
     }
 
     //public class IndexSpanComparer : IComparer<IndexSpan>

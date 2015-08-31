@@ -20,6 +20,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using VSGenero.Analysis.Parsing.AST_4GL;
+using VSGenero.Analysis.Parsing;
 
 namespace VSGenero.Analysis
 {

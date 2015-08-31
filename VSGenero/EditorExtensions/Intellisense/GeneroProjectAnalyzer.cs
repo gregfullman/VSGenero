@@ -1549,7 +1549,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             {
                 try
                 {
-                    ast = parser.ParseFile();
+                    ast = (Genero4glAst)parser.ParseFile();
                 }
                 catch (Exception e)
                 {
@@ -1786,8 +1786,8 @@ namespace VSGenero.EditorExtensions.Intellisense
             try
             {
                 // TODO: need to handle .per and .inc files as well.
-                foreach (string filename in Directory.EnumerateFiles(dir, "*.*").Where(x => x.EndsWith(".4gl", StringComparison.OrdinalIgnoreCase) ||
-                                                                                            x.EndsWith(".per", StringComparison.OrdinalIgnoreCase)))
+                foreach (string filename in Directory.EnumerateFiles(dir, "*.*").Where(x => x.EndsWith(".4gl", StringComparison.OrdinalIgnoreCase) /*||
+                                                                                            x.EndsWith(".per", StringComparison.OrdinalIgnoreCase)*/))
                 {
                     if (_excludeFile != null && filename.Equals(_excludeFile, StringComparison.OrdinalIgnoreCase))
                     {
