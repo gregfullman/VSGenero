@@ -267,16 +267,21 @@ namespace VSGenero
 
             TestCompletionAnalysis.InitializeResults();
 
-            var dte2 = (DTE2)Package.GetGlobalService(typeof(SDTE));
-            var sp = new ServiceProvider(dte2 as Microsoft.VisualStudio.OLE.Interop.IServiceProvider);
-            var mefContainer = sp.GetService(typeof(Microsoft.VisualStudio.ComponentModelHost.SComponentModel))
-                                as Microsoft.VisualStudio.ComponentModelHost.IComponentModel;
-            var exportSpec = mefContainer.DefaultExportProvider.GetExport<IBuildTaskProvider>();
-            if(exportSpec != null)
+            try
             {
-                _BuildTaskProvider = exportSpec.Value;
+                var dte2 = (DTE2)Package.GetGlobalService(typeof(SDTE));
+                var sp = new ServiceProvider(dte2 as Microsoft.VisualStudio.OLE.Interop.IServiceProvider);
+                var mefContainer = sp.GetService(typeof(Microsoft.VisualStudio.ComponentModelHost.SComponentModel))
+                                    as Microsoft.VisualStudio.ComponentModelHost.IComponentModel;
+                var exportSpec = mefContainer.DefaultExportProvider.GetExport<IBuildTaskProvider>();
+                if (exportSpec != null)
+                {
+                    _BuildTaskProvider = exportSpec.Value;
+                }
+                if (DefaultAnalyzer != null)
+                { }
             }
-            if (DefaultAnalyzer != null)
+            catch (Exception)
             { }
         }
 

@@ -17,7 +17,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using VSGenero.Analysis.Parsing.AST;
+using VSGenero.Analysis.Parsing.AST_4GL;
 
 namespace VSGenero.Analysis.Parsing
 {
@@ -99,7 +99,7 @@ namespace VSGenero.Analysis.Parsing
             ErrorSink.Add(message, null, start, end, errorCode, severity);
         }
 
-        public GeneroAst ParseFile()
+        public IGeneroAst ParseFile()
         {
             return null;
         }

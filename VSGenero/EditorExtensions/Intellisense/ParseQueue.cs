@@ -24,7 +24,7 @@ using System.Windows;
 using System.Windows.Threading;
 using VSGenero.Analysis;
 using VSGenero.Analysis.Parsing;
-using VSGenero.Analysis.Parsing.AST;
+using VSGenero.Analysis.Parsing.AST_4GL;
 
 namespace VSGenero.EditorExtensions.Intellisense
 {
@@ -120,7 +120,7 @@ namespace VSGenero.EditorExtensions.Intellisense
 
                 IGeneroProjectEntry gEntry = projEntry as IGeneroProjectEntry;
                 IAnalysisCookie cookie = null;
-                GeneroAst node = null;
+                Genero4glAst node = null;
                 if (gEntry != null)
                 {
                     // failed to parse, keep the UpdateTree calls balanced

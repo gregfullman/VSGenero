@@ -16,7 +16,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using VSGenero.Analysis.Parsing.AST;
+using VSGenero.Analysis.Parsing.AST_4GL;
 
 namespace VSGenero.Analysis
 {
@@ -26,10 +26,10 @@ namespace VSGenero.Analysis
         private string _completion;
         private readonly Func<GeneroMemberType> _type;
         private readonly Func<IAnalysisResult> _var;
-        private readonly GeneroAst _ast;
+        private readonly Genero4glAst _ast;
         private readonly string _documentation;
 
-        public MemberResult(string name, IAnalysisResult var, GeneroMemberType type, GeneroAst ast)
+        public MemberResult(string name, IAnalysisResult var, GeneroMemberType type, Genero4glAst ast)
         {
             _documentation = null;
             _name = _completion = name;
@@ -39,7 +39,7 @@ namespace VSGenero.Analysis
             _type = () => type;
         }
 
-        public MemberResult(string name, GeneroMemberType type, GeneroAst ast)
+        public MemberResult(string name, GeneroMemberType type, Genero4glAst ast)
         {
             _documentation = null;
             _name = _completion = name;
@@ -48,7 +48,7 @@ namespace VSGenero.Analysis
             _ast = ast;
         }
 
-        public MemberResult(string name, string documentation, GeneroMemberType type, GeneroAst ast)
+        public MemberResult(string name, string documentation, GeneroMemberType type, Genero4glAst ast)
         {
             _documentation = documentation;
             _name = _completion = name;

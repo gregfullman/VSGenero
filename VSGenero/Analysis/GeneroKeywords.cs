@@ -17,7 +17,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using VSGenero.Analysis.Parsing;
-using VSGenero.Analysis.Parsing.AST;
+using VSGenero.Analysis.Parsing.AST_4GL;
 
 namespace VSGenero.Analysis
 {
@@ -86,7 +86,7 @@ namespace VSGenero.Analysis
         /// </summary>
         public static IEnumerable<string> Statement(GeneroLanguageVersion version = GeneroLanguageVersion.None)
         {
-            return GeneroAst.ValidStatementKeywords.Select(x => Tokens.TokenKinds[x]);
+            return Genero4glAst.ValidStatementKeywords.Select(x => Tokens.TokenKinds[x]);
         }
 
         /// <summary>

@@ -15,7 +15,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using VSGenero.Analysis.Parsing.AST;
 
 namespace VSGenero.Analysis.Parsing
 {
@@ -31,7 +30,7 @@ namespace VSGenero.Analysis.Parsing
         void ReportSyntaxError(int start, int end, string message, Severity severity = Severity.Error);
         void ReportSyntaxError(int start, int end, string message, int errorCode, Severity severity = Severity.Error);
 
-        GeneroAst ParseFile();
+        IGeneroAst ParseFile();
         Token NextToken();
         Token PeekToken(uint aheadBy = 1);
         TokenWithSpan PeekTokenWithSpan(uint aheadBy = 1);

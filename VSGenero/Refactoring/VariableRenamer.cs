@@ -20,7 +20,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using VSGenero.Analysis;
-using VSGenero.Analysis.Parsing.AST;
+using VSGenero.Analysis.Parsing.AST_4GL;
 using VSGenero.EditorExtensions;
 
 namespace VSGenero.Refactoring

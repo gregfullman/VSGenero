@@ -33,7 +33,7 @@ using VSGenero.EditorExtensions;
 using VSGenero.Analysis;
 using IServiceProvider = System.IServiceProvider;
 using VSGenero.Analysis.Parsing;
-using VSGenero.Analysis.Parsing.AST;
+using VSGenero.Analysis.Parsing.AST_4GL;
 
 namespace VSGenero.EditorExtensions.Intellisense
 {

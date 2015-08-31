@@ -23,7 +23,7 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
 using VSGenero.Analysis;
 using VSGenero.Analysis.Parsing;
-using VSGenero.Analysis.Parsing.AST;
+using VSGenero.Analysis.Parsing.AST_4GL;
 using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace VSGenero.EditorExtensions
@@ -80,7 +80,7 @@ namespace VSGenero.EditorExtensions
                     if (words.Length >= 1)
                     {
                         var tok = Tokens.GetToken(words[0]);
-                        if (tok != null && GeneroAst.ValidStatementKeywords.Contains(tok.Kind))
+                        if (tok != null && Genero4glAst.ValidStatementKeywords.Contains(tok.Kind))
                         {
                             baseIndentation = GetIndentation(lineText, tabSize);
                             break;
@@ -250,7 +250,7 @@ namespace VSGenero.EditorExtensions
                      token.ClassificationType == revParser.Classifier.Provider.Keyword)
                     {
                         var tok = Tokens.GetToken(token.Span.GetText());
-                        if (tok != null && GeneroAst.ValidStatementKeywords.Contains(tok.Kind))
+                        if (tok != null && Genero4glAst.ValidStatementKeywords.Contains(tok.Kind))
                         {
                             switch (tok.Kind)
                             {
@@ -311,7 +311,7 @@ namespace VSGenero.EditorExtensions
                     else if (current.NeedsUpdate == true)
                     {
                         var tok = Tokens.GetToken(token.Span.GetText());
-                        if (tok == null || !GeneroAst.ValidStatementKeywords.Contains(tok.Kind))
+                        if (tok == null || !Genero4glAst.ValidStatementKeywords.Contains(tok.Kind))
                         {
                             current.NeedsUpdate = false;
                         }
@@ -559,6 +559,8 @@ namespace VSGenero.EditorExtensions
              { TokenKind.ForKeyword, null },
              { TokenKind.ForeachKeyword, null },
              { TokenKind.CaseKeyword, null },
+             { TokenKind.WhenKeyword, null },
+             { TokenKind.OtherwiseKeyword, null }
         };
 
         public class CancelIndent
@@ -568,12 +570,12 @@ namespace VSGenero.EditorExtensions
         }
 
         // TODO: eventually this will need to support mixed use (e.g. dialog, display, etc. blocks)
-        public static Dictionary<TokenKind, TokenKind> SubBlockKeywords = new Dictionary<TokenKind, TokenKind>
+        public static Dictionary<TokenKind, Tuple<TokenKind, bool>> SubBlockKeywords = new Dictionary<TokenKind, Tuple<TokenKind, bool>>
         {
-            { TokenKind.ElseKeyword, TokenKind.IfKeyword },
-            { TokenKind.CatchKeyword, TokenKind.TryKeyword },
-            { TokenKind.WhenKeyword, TokenKind.CaseKeyword },
-            { TokenKind.OtherwiseKeyword, TokenKind.CaseKeyword }
+            { TokenKind.ElseKeyword, new Tuple<TokenKind, bool>(TokenKind.IfKeyword, false) },
+            { TokenKind.CatchKeyword, new Tuple<TokenKind, bool>(TokenKind.TryKeyword, false) },
+            { TokenKind.WhenKeyword, new Tuple<TokenKind, bool>(TokenKind.CaseKeyword, true) },
+            { TokenKind.OtherwiseKeyword, new Tuple<TokenKind, bool>(TokenKind.CaseKeyword, true) }
         };
 
         private static bool ShouldIndentAfterKeyword(ClassificationSpan span, out TokenKind matchedToken, out List<CancelIndent> cancelIndent)

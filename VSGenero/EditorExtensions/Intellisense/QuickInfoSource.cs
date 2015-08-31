@@ -19,7 +19,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using VSGenero.Analysis;
-using VSGenero.Analysis.Parsing.AST;
+using VSGenero.Analysis.Parsing.AST_4GL;
 using Microsoft.VisualStudio.VSCommon;
 using EnvDTE;
 using System.Runtime.InteropServices;

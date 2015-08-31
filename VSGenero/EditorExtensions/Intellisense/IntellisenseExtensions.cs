@@ -23,7 +23,7 @@ using Microsoft.VisualStudio.Text.Classification;
 using System.Data.SqlClient;
 using System.Data;
 using VSGenero.Analysis;
-using VSGenero.Analysis.Parsing.AST;
+using VSGenero.Analysis.Parsing.AST_4GL;
 
 namespace VSGenero.EditorExtensions.Intellisense
 {

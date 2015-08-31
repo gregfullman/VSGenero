@@ -20,7 +20,7 @@ using Microsoft.VisualStudio.Language.StandardClassification;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using VSGenero.Analysis;
-using VSGenero.Analysis.Parsing.AST;
+using VSGenero.Analysis.Parsing.AST_4GL;
 
 namespace VSGenero.EditorExtensions.Intellisense
 {
@@ -92,7 +92,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             return compl;
         }
 
-        internal GeneroAst GetAnalysisEntry()
+        internal Genero4glAst GetAnalysisEntry()
         {
             var entry = (IGeneroProjectEntry)TextBuffer.GetAnalysis();
             return entry != null ? entry.Analysis : null;
@@ -105,26 +105,26 @@ namespace VSGenero.EditorExtensions.Intellisense
             return res;
         }
 
-        protected IEnumerable<MemberResult> GetModules(string[] package, bool modulesOnly = true)
-        {
-            var analysis = GetAnalysisEntry();
+        //protected IEnumerable<MemberResult> GetModules(string[] package, bool modulesOnly = true)
+        //{
+        //    var analysis = GetAnalysisEntry();
 
-            if (package == null)
-            {
-                package = new string[0];
-            }
+        //    if (package == null)
+        //    {
+        //        package = new string[0];
+        //    }
 
-            var modules = Enumerable.Empty<MemberResult>();
-            if (analysis != null)
-            {
-                modules = modules.Concat(package.Length > 0 ?
-                    analysis.GetModuleMembers(package, !modulesOnly) :
-                    analysis.GetModules(true).Distinct(CompletionComparer.MemberEquality)
-                );
-            }
+        //    var modules = Enumerable.Empty<MemberResult>();
+        //    if (analysis != null)
+        //    {
+        //        modules = modules.Concat(package.Length > 0 ?
+        //            analysis.GetModuleMembers(package, !modulesOnly) :
+        //            analysis.GetModules(true).Distinct(CompletionComparer.MemberEquality)
+        //        );
+        //    }
 
-            return modules;
-        }
+        //    return modules;
+        //}
 
         public override string ToString()
         {

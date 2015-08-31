@@ -20,7 +20,7 @@ using System.Text;
 using System.Threading.Tasks;
 using VSGenero.Analysis;
 using VSGenero.Analysis.Parsing;
-using VSGenero.Analysis.Parsing.AST;
+using VSGenero.Analysis.Parsing.AST_4GL;
 
 namespace VSGenero.EditorExtensions.Intellisense
 {
@@ -88,12 +88,12 @@ namespace VSGenero.EditorExtensions.Intellisense
 
         public LocationInfo Location { get { return null; } }
 
-        public bool HasChildFunctions(GeneroAst ast)
+        public bool HasChildFunctions(Genero4glAst ast)
         {
             return _collections.Count > 0;
         }
 
-        public IAnalysisResult GetMember(string name, GeneroAst ast, out IGeneroProject definingProject, out IProjectEntry projEntry, bool function)
+        public IAnalysisResult GetMember(string name, Genero4glAst ast, out IGeneroProject definingProject, out IProjectEntry projEntry, bool function)
         {
             definingProject = null;
             projEntry = null;
@@ -102,7 +102,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             return collection;
         }
 
-        public IEnumerable<MemberResult> GetMembers(GeneroAst ast, MemberType memberType, bool function)
+        public IEnumerable<MemberResult> GetMembers(Genero4glAst ast, MemberType memberType, bool function)
         {
             return _collections.Values.Select(x => new MemberResult(x.Name, x, GeneroMemberType.Class, ast));
         }
@@ -194,19 +194,19 @@ namespace VSGenero.EditorExtensions.Intellisense
 
         public LocationInfo Location { get { return null; } }
 
-        public bool HasChildFunctions(GeneroAst ast)
+        public bool HasChildFunctions(Genero4glAst ast)
         {
             return _functions.Count > 0;
         }
 
-        public IAnalysisResult GetMember(string name, GeneroAst ast, out IGeneroProject definingProject, out IProjectEntry projEntry, bool function)
+        public IAnalysisResult GetMember(string name, Genero4glAst ast, out IGeneroProject definingProject, out IProjectEntry projEntry, bool function)
         {
             definingProject = null;
             projEntry = null;
             return GetFunction(name);
         }
 
-        public IEnumerable<MemberResult> GetMembers(GeneroAst ast, MemberType memberType, bool function)
+        public IEnumerable<MemberResult> GetMembers(Genero4glAst ast, MemberType memberType, bool function)
         {
             return _functions.Values.Select(x => new MemberResult(x.Name, x, GeneroMemberType.Method, ast));
         }
@@ -306,19 +306,19 @@ namespace VSGenero.EditorExtensions.Intellisense
 
         public LocationInfo Location { get { return null; } }
 
-        public bool HasChildFunctions(GeneroAst ast)
+        public bool HasChildFunctions(Genero4glAst ast)
         {
             return false;
         }
 
-        public IAnalysisResult GetMember(string name, GeneroAst ast, out IGeneroProject definingProject, out IProjectEntry projEntry, bool function)
+        public IAnalysisResult GetMember(string name, Genero4glAst ast, out IGeneroProject definingProject, out IProjectEntry projEntry, bool function)
         {
             definingProject = null;
             projEntry = null;
             return null;
         }
 
-        public IEnumerable<MemberResult> GetMembers(GeneroAst ast, MemberType memberType, bool function)
+        public IEnumerable<MemberResult> GetMembers(Genero4glAst ast, MemberType memberType, bool function)
         {
             return new List<MemberResult>();
         }

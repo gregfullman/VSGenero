@@ -6,7 +6,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using VSGenero.Analysis.Parsing.AST;
+using VSGenero.Analysis.Parsing.AST_4GL;
 using VSGenero.EditorExtensions;
 
 namespace VSGenero.Refactoring
@@ -14,7 +14,7 @@ namespace VSGenero.Refactoring
     class MethodExtractor
     {
         private readonly ITextView _view;
-        private readonly GeneroAst _ast;
+        private readonly Genero4glAst _ast;
 
         public MethodExtractor(ITextView textView)
         {

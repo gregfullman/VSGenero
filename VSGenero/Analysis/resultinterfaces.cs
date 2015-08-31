@@ -18,7 +18,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using VSGenero.Analysis.Parsing;
-using VSGenero.Analysis.Parsing.AST;
+using VSGenero.Analysis.Parsing.AST_4GL;
 
 namespace VSGenero.Analysis
 {
@@ -38,13 +38,13 @@ namespace VSGenero.Analysis
         string Documentation { get; }
         int LocationIndex { get; }
         LocationInfo Location { get; }
-        bool HasChildFunctions(GeneroAst ast);
+        bool HasChildFunctions(Genero4glAst ast);
         bool CanGetValueFromDebugger { get; }
         bool IsPublic { get; }
         string Typename { get; }
 
-        IAnalysisResult GetMember(string name, GeneroAst ast, out IGeneroProject definingProject, out IProjectEntry projectEntry, bool function);
-        IEnumerable<MemberResult> GetMembers(GeneroAst ast, MemberType memberType, bool function);
+        IAnalysisResult GetMember(string name, Genero4glAst ast, out IGeneroProject definingProject, out IProjectEntry projectEntry, bool function);
+        IEnumerable<MemberResult> GetMembers(Genero4glAst ast, MemberType memberType, bool function);
     }
 
     public enum DatabaseTableType

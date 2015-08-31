@@ -19,7 +19,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using VSGenero.Analysis.Parsing.AST;
+using VSGenero.Analysis.Parsing.AST_4GL;
 
 namespace VSGenero.Analysis
 {
@@ -36,7 +36,7 @@ namespace VSGenero.Analysis
         private readonly bool _shouldAnalyzeDir;
         //private readonly ModuleInfo _myScope;
         private IAnalysisCookie _cookie;
-        private GeneroAst _tree;
+        private Genero4glAst _tree;
         //private AnalysisUnit _unit;
         private int _analysisVersion;
         private Dictionary<object, object> _properties = new Dictionary<object, object>();
@@ -60,7 +60,7 @@ namespace VSGenero.Analysis
         public event EventHandler<EventArgs> OnNewParseTree;
         public event EventHandler<EventArgs> OnNewAnalysis;
 
-        public void UpdateTree(GeneroAst newAst, IAnalysisCookie newCookie)
+        public void UpdateTree(Genero4glAst newAst, IAnalysisCookie newCookie)
         {
             lock (this)
             {
@@ -96,7 +96,7 @@ namespace VSGenero.Analysis
             }
         }
 
-        public void GetTreeAndCookie(out GeneroAst tree, out IAnalysisCookie cookie)
+        public void GetTreeAndCookie(out Genero4glAst tree, out IAnalysisCookie cookie)
         {
             lock (this)
             {
@@ -113,7 +113,7 @@ namespace VSGenero.Analysis
             }
         }
 
-        public GeneroAst WaitForCurrentTree(int timeout = -1)
+        public Genero4glAst WaitForCurrentTree(int timeout = -1)
         {
             lock (this)
             {
@@ -198,7 +198,7 @@ namespace VSGenero.Analysis
 
         private void Parse(bool enqueOnly, CancellationToken cancel)
         {
-            GeneroAst tree;
+            Genero4glAst tree;
             IAnalysisCookie cookie;
             GetTreeAndCookie(out tree, out cookie);
             if (tree == null)
@@ -247,7 +247,7 @@ namespace VSGenero.Analysis
             _analysisVersion = -1;
         }
 
-        public GeneroAst Analysis
+        public Genero4glAst Analysis
         {
             get { return _tree; }
         }
@@ -278,7 +278,7 @@ namespace VSGenero.Analysis
 
         private HashSet<string> _lastImportedModules;
 
-        public void UpdateIncludesAndImports(string filename, GeneroAst ast)
+        public void UpdateIncludesAndImports(string filename, Genero4glAst ast)
         {
             if (_shouldAnalyzeDir && VSGeneroPackage.Instance.ProgramFileProvider != null)
             {
@@ -514,7 +514,7 @@ namespace VSGenero.Analysis
             get { return null; }
         }
 
-        public bool HasChildFunctions(GeneroAst ast)
+        public bool HasChildFunctions(Genero4glAst ast)
         {
             return false;
         }
@@ -526,7 +526,7 @@ namespace VSGenero.Analysis
 
         public bool IsPublic { get { return true; } }
 
-        internal IAnalysisResult GetMemberOfType(string name, GeneroAst ast, bool vars, bool types, bool consts, bool funcs, out IProjectEntry definingProjEntry)
+        internal IAnalysisResult GetMemberOfType(string name, Genero4glAst ast, bool vars, bool types, bool consts, bool funcs, out IProjectEntry definingProjEntry)
         {
             string projNamespace = string.Format("{0}", this.Name);
             string tempStart = string.Format("{0}.", projNamespace);
@@ -580,7 +580,7 @@ namespace VSGenero.Analysis
             return res;
         }
 
-        public IAnalysisResult GetMember(string name, GeneroAst ast, out IGeneroProject definingProject, out IProjectEntry projEntry, bool function)
+        public IAnalysisResult GetMember(string name, Genero4glAst ast, out IGeneroProject definingProject, out IProjectEntry projEntry, bool function)
         {
             definingProject = null;
             var res = GetMemberOfType(name, ast, true, true, true, true, out projEntry);
@@ -589,7 +589,7 @@ namespace VSGenero.Analysis
             return res;
         }
 
-        public IEnumerable<MemberResult> GetMembers(GeneroAst ast, MemberType memberType, bool function)
+        public IEnumerable<MemberResult> GetMembers(Genero4glAst ast, MemberType memberType, bool function)
         {
             string projNamespace = string.Format("{0}", this.Name);
             List<MemberResult> members = new List<MemberResult>();
@@ -735,7 +735,7 @@ namespace VSGenero.Analysis
         /// <summary>
         /// Returns the last parsed AST.
         /// </summary>
-        GeneroAst Analysis
+        Genero4glAst Analysis
         {
             get;
         }
@@ -754,15 +754,15 @@ namespace VSGenero.Analysis
         /// </summary>
         void BeginParsingTree();
 
-        void UpdateTree(GeneroAst ast, IAnalysisCookie fileCookie);
-        void GetTreeAndCookie(out GeneroAst ast, out IAnalysisCookie cookie);
-        void UpdateIncludesAndImports(string filename, GeneroAst ast);
+        void UpdateTree(Genero4glAst ast, IAnalysisCookie fileCookie);
+        void GetTreeAndCookie(out Genero4glAst ast, out IAnalysisCookie cookie);
+        void UpdateIncludesAndImports(string filename, Genero4glAst ast);
         bool DetectCircularImports();
         /// <summary>
         /// Returns the current tree if no parsing is currently pending, otherwise waits for the 
         /// current parse to finish and returns the up-to-date tree.
         /// </summary>
-        GeneroAst WaitForCurrentTree(int timeout = -1);
+        Genero4glAst WaitForCurrentTree(int timeout = -1);
 
         void SetProject(IGeneroProject project);
 

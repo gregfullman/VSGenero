@@ -82,7 +82,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                 list.Add(new MemberResult(new string(
     Enumerable.Repeat(chars, 8)
               .Select(s => s[random.Next(s.Length)])
-              .ToArray()), Analysis.Parsing.AST.GeneroMemberType.Variable, null));
+              .ToArray()), Analysis.Parsing.AST_4GL.GeneroMemberType.Variable, null));
             }
             _result = list;
         }

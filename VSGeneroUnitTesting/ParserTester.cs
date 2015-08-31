@@ -44,7 +44,7 @@ namespace VSGeneroUnitTesting
 
             using (TextReader tr = new StringReader(codeSample))
             {
-                Parser p = Parser.CreateParser(tr, po);
+                Genero4glParser p = Genero4glParser.CreateParser(tr, po);
                 var node = p.ParseFile();
                 int i = 0;
             }
@@ -56,7 +56,7 @@ namespace VSGeneroUnitTesting
             string path = @"..\..\ParserTests\EmptyFile.4gl";
             using (TextReader tr = new StreamReader(path))
             {
-                Parser p = Parser.CreateParser(tr, po);
+                Genero4glParser p = Genero4glParser.CreateParser(tr, po);
                 var node = p.ParseFile();
                 Assert.IsNotNull(node);
                 Assert.IsTrue(_errorSink.Errors.Count == 0);
@@ -70,7 +70,7 @@ namespace VSGeneroUnitTesting
             string path = @"..\..\ParserTests\TestFile1.4gl";
             using (TextReader tr = new StreamReader(path))
             {
-                Parser p = Parser.CreateParser(tr, po);
+                Genero4glParser p = Genero4glParser.CreateParser(tr, po);
                 var node = p.ParseFile();
                 int i = 0;
             }
@@ -82,7 +82,7 @@ namespace VSGeneroUnitTesting
             string path = @"..\..\ParserTests\RealLife1.4gl";
             using (TextReader tr = new StreamReader(path))
             {
-                Parser p = Parser.CreateParser(tr, po);
+                Genero4glParser p = Genero4glParser.CreateParser(tr, po);
                 var node = p.ParseFile();
                 int i = 0;
             }
@@ -94,7 +94,7 @@ namespace VSGeneroUnitTesting
             string path = @"..\..\ParserTests\RealLife2.4gl";
             using (TextReader tr = new StreamReader(path))
             {
-                Parser p = Parser.CreateParser(tr, po);
+                Genero4glParser p = Genero4glParser.CreateParser(tr, po);
                 var node = p.ParseFile();
                 int i = 0;
             }

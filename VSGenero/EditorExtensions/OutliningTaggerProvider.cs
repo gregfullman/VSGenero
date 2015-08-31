@@ -25,7 +25,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using VSGenero.Analysis;
 using VSGenero.Analysis.Parsing;
-using VSGenero.Analysis.Parsing.AST;
+using VSGenero.Analysis.Parsing.AST_4GL;
 using VSGenero.EditorExtensions.Intellisense;
 
 namespace VSGenero.EditorExtensions
@@ -102,7 +102,7 @@ namespace VSGenero.EditorExtensions
                         classifier.OnNewParseTree += OnNewParseTree;
                         _eventHooked = true;
                     }
-                    GeneroAst ast;
+                    Genero4glAst ast;
                     IAnalysisCookie cookie;
                     classifier.GetTreeAndCookie(out ast, out cookie);
                     SnapshotCookie snapCookie = cookie as SnapshotCookie;
@@ -138,7 +138,7 @@ namespace VSGenero.EditorExtensions
                 }
             }
 
-            private IEnumerable<ITagSpan<IOutliningRegionTag>> ProcessSuite(NormalizedSnapshotSpanCollection spans, GeneroAst ast, ModuleNode moduleNode, ITextSnapshot snapshot, bool isTopLevel)
+            private IEnumerable<ITagSpan<IOutliningRegionTag>> ProcessSuite(NormalizedSnapshotSpanCollection spans, Genero4glAst ast, ModuleNode moduleNode, ITextSnapshot snapshot, bool isTopLevel)
             {
                 if (moduleNode != null)
                 {
@@ -169,7 +169,7 @@ namespace VSGenero.EditorExtensions
                 }
             }
 
-            private void GetOutlinableResults(AstNode node, ref List<IOutlinableResult> outlinables)
+            private void GetOutlinableResults(AstNode4gl node, ref List<IOutlinableResult> outlinables)
             {
                 foreach(var child in node.Children)
                 {

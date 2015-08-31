@@ -31,7 +31,7 @@ using System.IO;
 using Microsoft.VisualStudio.VSCommon;
 using Microsoft.VisualStudio.VSCommon.Utilities;
 using VSGenero.Analysis;
-using VSGenero.Analysis.Parsing.AST;
+using VSGenero.Analysis.Parsing.AST_4GL;
 
 namespace VSGenero.Navigation
 {
@@ -568,7 +568,7 @@ namespace VSGenero.Navigation
                 }
             }
 
-            private static ImageListKind GetImageListKind(AstNode def)
+            private static ImageListKind GetImageListKind(AstNode4gl def)
             {
                 if (def is ReportBlockNode)
                     return ImageListKind.Report;

@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using VSGenero.Analysis.Parsing.AST;
+using VSGenero.Analysis.Parsing.AST_4GL;
 
 namespace VSGenero.Refactoring
 {
     class ExtractedMethodCreator
     {
-        private readonly GeneroAst _ast;
+        private readonly Genero4glAst _ast;
         //private readonly ScopeStatement[] _scopes;
         //private readonly List<PythonVariable> _inputVars, _outputVars;
         //private readonly SelectionTarget _target;
@@ -17,7 +17,7 @@ namespace VSGenero.Refactoring
         private readonly bool _insertTabs;
         private readonly string _newline;
 
-        public ExtractedMethodCreator(GeneroAst ast, /*ScopeStatement[] scopes, HashSet<PythonVariable> inputVariables, HashSet<PythonVariable> outputVariables, SelectionTarget target,*/ int indentSize, bool insertTabs, string newline)
+        public ExtractedMethodCreator(Genero4glAst ast, /*ScopeStatement[] scopes, HashSet<PythonVariable> inputVariables, HashSet<PythonVariable> outputVariables, SelectionTarget target,*/ int indentSize, bool insertTabs, string newline)
         {
             _ast = ast;
             //_scopes = scopes;

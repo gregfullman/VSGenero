@@ -77,6 +77,7 @@ namespace VSGenero.EditorExtensions
                 var trimmed = lineStr.Trim();
 
                 TokenKind alignWith = TokenKind.EndOfFile;
+                bool indentAfterAlign = false;
                 bool useContains = false;
                 if (trimmed.StartsWith("end", StringComparison.OrdinalIgnoreCase))
                 {
@@ -102,7 +103,8 @@ namespace VSGenero.EditorExtensions
                             var tok = Tokens.GetToken(word[0]);
                             if (tok != null && AutoIndent.SubBlockKeywords.ContainsKey(tok.Kind))
                             {
-                                alignWith = AutoIndent.SubBlockKeywords[tok.Kind];
+                                alignWith = AutoIndent.SubBlockKeywords[tok.Kind].Item1;
+                                indentAfterAlign = AutoIndent.SubBlockKeywords[tok.Kind].Item2;
                             }
                         }
                     }
@@ -152,6 +154,8 @@ namespace VSGenero.EditorExtensions
                     {
                         int indentSize = _options.GetIndentSize();
                         int desiredIndentation = AutoIndent.GetIndentation(prevLineStr, indentSize);
+                        if (indentAfterAlign)
+                            desiredIndentation += indentSize;
                         int currIndentation = AutoIndent.GetIndentation(lineStr, indentSize);
                         if (desiredIndentation != currIndentation)
                         {
