@@ -61,6 +61,11 @@ namespace VSGenero.EditorExtensions
         // This event gets raised if the classification of existing test changes.
         public event EventHandler<ClassificationChangedEventArgs> ClassificationChanged;
 
+        public IList<ClassificationSpan> GetClassificationSpans(ITextSnapshotLine line)
+        {
+            return GetClassificationSpans(new SnapshotSpan(line.Snapshot, new Span(line.Start.Position, line.Length)));
+        }
+
         /// <summary>
         /// This method classifies the given snapshot span.
         /// </summary>

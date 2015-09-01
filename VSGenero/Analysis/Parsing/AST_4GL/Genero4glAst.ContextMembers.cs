@@ -234,7 +234,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             Types = 4,
             Functions = 8,
             Dialogs = 16,
-            Reports = 32
+            Reports = 32,
+            Cursors = 64
         }
 
         private IEnumerable<MemberResult> GetDefinedMembers(int index, AstMemberType memberType)
@@ -375,7 +376,14 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                     members.Add(res);
                         }
 
-                        members.AddRange((_body as IModuleResult).FglImports.Select(x => new MemberResult(x, GeneroMemberType.Module, this)));
+                        if (memberType.HasFlag(AstMemberType.Cursors))
+                        {
+                            members.AddRange((_body as IModuleResult).Cursors.Select(x => new MemberResult(x.Value.Name, x.Value, GeneroMemberType.Cursor, this)));
+                        }
+                        else
+                        {
+                            members.AddRange((_body as IModuleResult).FglImports.Select(x => new MemberResult(x, GeneroMemberType.Module, this)));
+                        }
                     }
                 }
             }
@@ -830,7 +838,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
         private IEnumerable<MemberResult> GetInstanceCursors(int index)
         {
-            return new MemberResult[0];
+            return GetDefinedMembers(index, AstMemberType.Cursors);
         }
     }
 }

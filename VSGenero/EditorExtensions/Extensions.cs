@@ -441,6 +441,7 @@ namespace VSGenero.EditorExtensions
                 case GeneroMemberType.DbColumn: group = StandardGlyphGroup.GlyphGroupMapItem; break;
                 case GeneroMemberType.Dialog: group = StandardGlyphGroup.GlyphDialogId; break;
                 case GeneroMemberType.Report: group = StandardGlyphGroup.GlyphForwardType; break;
+                case GeneroMemberType.Cursor: group = StandardGlyphGroup.GlyphRecursion; break;
                 case GeneroMemberType.Function:
                 case GeneroMemberType.Method:
                 default:

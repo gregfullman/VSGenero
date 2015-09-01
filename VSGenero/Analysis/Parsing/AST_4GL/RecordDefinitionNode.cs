@@ -227,7 +227,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             }
             else
             {
-                return MemberDictionary.Values.Select(x => new MemberResult(x.Name, x, GeneroMemberType.Variable, ast));
+                List<MemberResult> dot = new List<MemberResult> { new MemberResult("*", GeneroMemberType.Variable, ast) };
+                return dot.Union(MemberDictionary.Values.Select(x => new MemberResult(x.Name, x, GeneroMemberType.Variable, ast)));
             }
             return new MemberResult[0];
         }

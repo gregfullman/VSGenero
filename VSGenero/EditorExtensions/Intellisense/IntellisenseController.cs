@@ -274,7 +274,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             var point = _textView.GetCaretPosition();
             if (point.HasValue)
             {
-                if (point.Value.Position <= 1 || _textView.TextSnapshot.Length == point.Value.Position) 
+                if (point.Value.Position <= 1 || _textView.TextSnapshot.Length == point.Value.Position)
                     return true;
                 string prevChar = _textView.TextSnapshot.GetText(new Span(point.Value.Position - 2, 1));
                 string nextChar = _textView.TextSnapshot.GetText(new Span(point.Value.Position, 1));
@@ -527,7 +527,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                     (set = _activeSession.CompletionSets[0] as FuzzyCompletionSet) != null &&
                     set.SelectSingleBest())
                 {
-                    if(_parentSpan == null)
+                    if (_parentSpan == null)
                         _parentSpan = GetCompletionParentSpan();
                     _activeSession.Commit();
                     if (_parentSpan != null)
@@ -596,7 +596,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                         // If not found, add it.
                         string complText = _activeSession.SelectedCompletionSet.ApplicableTo.GetText(_activeSession.TextView.TextBuffer.CurrentSnapshot);
                         // TODO: will have to see how the size of this affects performance...might need to cull out old entries (do we need to consider max int size?)
-                        if(IntellisenseExtensions.LastCommittedCompletions.ContainsKey(complText))
+                        if (IntellisenseExtensions.LastCommittedCompletions.ContainsKey(complText))
                         {
                             IntellisenseExtensions.LastCommittedCompletions[complText] = IntellisenseExtensions.LastCommittedCompletions.Count;
                         }
@@ -857,22 +857,33 @@ namespace VSGenero.EditorExtensions.Intellisense
 
                 if (_activeSession != null && !_activeSession.IsDismissed)
                 {
-                    if (_activeSession.SelectedCompletionSet.SelectionStatus.IsSelected &&
-                        (VSGeneroPackage.Instance.IntellisenseOptions4GLPage.CompletionCommittedBy.IndexOf(ch) != -1 ||
-                         (ch == ' ' && VSGeneroPackage.Instance.IntellisenseOptions4GLPage.SpaceCommitsIntellisense)))
+                    if (_activeSession.SelectedCompletionSet != null &&
+                        _activeSession.SelectedCompletionSet.Completions != null &&
+                        _activeSession.SelectedCompletionSet.Completions.Count > 0 &&
+                        _activeSession.SelectedCompletionSet.Completions[0].DisplayText == ch.ToString())
                     {
-                        if (_parentSpan == null)
-                            _parentSpan = GetCompletionParentSpan();
-                        _activeSession.Commit();
-                        if (_parentSpan != null)
-                        {
-                            RemoveParentSpan(_parentSpan);
-                            _parentSpan = null;
-                        }
+                        // Right now, the only instance where this will occur is for member lists with '*' at the top (for records).
+                        // We don't want to allow the * to commit or dismiss in this case.
                     }
-                    else if (!IsIdentifierChar(ch))
+                    else
                     {
-                        _activeSession.Dismiss();
+                        if (_activeSession.SelectedCompletionSet.SelectionStatus.IsSelected &&
+                            (VSGeneroPackage.Instance.IntellisenseOptions4GLPage.CompletionCommittedBy.IndexOf(ch) != -1 ||
+                             (ch == ' ' && VSGeneroPackage.Instance.IntellisenseOptions4GLPage.SpaceCommitsIntellisense)))
+                        {
+                            if (_parentSpan == null)
+                                _parentSpan = GetCompletionParentSpan();
+                            _activeSession.Commit();
+                            if (_parentSpan != null)
+                            {
+                                RemoveParentSpan(_parentSpan);
+                                _parentSpan = null;
+                            }
+                        }
+                        else if (!IsIdentifierChar(ch))
+                        {
+                            _activeSession.Dismiss();
+                        }
                     }
                 }
 
@@ -888,7 +899,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                 return res;
             }
 
-            if(_activeSession != null)
+            if (_activeSession != null)
             {
                 if (pguidCmdGroup == VSConstants.VSStd2K)
                 {
@@ -965,7 +976,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                     }
                 }
             }
-            else if(_sigHelpSession != null)
+            else if (_sigHelpSession != null)
             {
                 if (pguidCmdGroup == VSConstants.VSStd2K)
                 {
@@ -1014,7 +1025,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                             }
                             break;
                         case VSConstants.VSStd2KCmdID.TAB:
-                            if(IsPreviousCharacterWhitespace())
+                            if (IsPreviousCharacterWhitespace())
                             {
                                 return _oldTarget.Exec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
                             }
@@ -1040,11 +1051,11 @@ namespace VSGenero.EditorExtensions.Intellisense
                                     }
 
                                     string spanText = span.Value.GetText();
-                                    if(spanText == null || spanText.Length == 0)
+                                    if (spanText == null || spanText.Length == 0)
                                         return _oldTarget.Exec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
                                     // see if the text is a keyword...if so, don't bother with the public function snippetizer
                                     var tok = Tokens.GetToken(spanText);
-                                    if(tok != null || !(char.IsLetter(spanText[0]) || spanText[0] == '_'))
+                                    if (tok != null || !(char.IsLetter(spanText[0]) || spanText[0] == '_'))
                                         return _oldTarget.Exec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
 
                                     DynamicSnippet dynSnippet = null;
@@ -1155,7 +1166,7 @@ namespace VSGenero.EditorExtensions.Intellisense
         {
             try
             {
-                    // Insert the selected code snippet and start an expansion session
+                // Insert the selected code snippet and start an expansion session
                 IVsTextLines buffer;
                 _vsTextView.GetBuffer(out buffer);
 
@@ -1170,7 +1181,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                     null,
                     out _expansionSession);
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 // TODO: report the error?
             }

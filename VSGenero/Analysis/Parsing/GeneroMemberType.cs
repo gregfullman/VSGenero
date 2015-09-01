@@ -59,6 +59,7 @@ namespace VSGenero.Analysis.Parsing
         DbColumn,
         Namespace,
         Dialog,
-        Report
+        Report,
+        Cursor
     }
 }

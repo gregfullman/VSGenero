@@ -22,6 +22,8 @@ using System.Text;
 using System.Threading.Tasks;
 using VSGenero.Analysis.Parsing;
 using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
+using Microsoft.VisualStudio.Text.Classification;
+using Microsoft.VisualStudio.Language.StandardClassification;
 
 namespace VSGenero.EditorExtensions
 {
@@ -53,6 +55,7 @@ namespace VSGenero.EditorExtensions
     {
         private readonly IWpfTextView _textView;
         private readonly IEditorOptions _options;
+        private readonly Genero4glClassifier _classifier;
         private int _ignoreNextChange;
 
         public GeneroTextViewChangedListener(IWpfTextView textView)
@@ -61,6 +64,7 @@ namespace VSGenero.EditorExtensions
             _options = _textView.Options;
             _textView.Closed += _textView_Closed;
             _textView.TextBuffer.Changed += TextBuffer_Changed;
+            _classifier = textView.TextBuffer.GetGeneroClassifier();
         }
 
         void TextBuffer_Changed(object sender, TextContentChangedEventArgs e)
@@ -73,39 +77,35 @@ namespace VSGenero.EditorExtensions
                 !string.IsNullOrWhiteSpace(e.Changes[0].NewText))
             {
                 var line = e.After.GetLineFromPosition(_textView.Caret.Position.BufferPosition.Position);
+                var currLineTokens = _classifier.GetClassificationSpans(line);
+
                 var lineStr = line.GetText();
-                var trimmed = lineStr.Trim();
 
                 TokenKind alignWith = TokenKind.EndOfFile;
                 bool indentAfterAlign = false;
                 bool useContains = false;
-                if (trimmed.StartsWith("end", StringComparison.OrdinalIgnoreCase))
+
+                if(currLineTokens.Count > 0 && currLineTokens[0].ClassificationType.IsOfType(PredefinedClassificationTypeNames.Keyword))
                 {
-                    // get the last word in the line
-                    var word = trimmed.Split(new[] { ' ' });
-                    if (word.Length > 1)
+                    if(currLineTokens[0].Span.GetText().Equals("end", StringComparison.OrdinalIgnoreCase))
                     {
-                        var tok = Tokens.GetToken(word[word.Length - 1]);
-                        if (tok != null && AutoIndent.BlockKeywords.ContainsKey(tok.Kind))
+                        if(currLineTokens.Count > 1)
                         {
-                            useContains = AutoIndent.BlockKeywordsContainsCheck.Contains(tok.Kind);
-                            alignWith = tok.Kind;
+                            var tok = Tokens.GetToken(currLineTokens[1].Span.GetText());
+                            if (tok != null && AutoIndent.BlockKeywords.ContainsKey(tok.Kind))
+                            {
+                                useContains = AutoIndent.BlockKeywordsContainsCheck.Contains(tok.Kind);
+                                alignWith = tok.Kind;
+                            }
                         }
                     }
-                }
-                else
-                {
-                    if (trimmed.Length >= 4)
+                    else
                     {
-                        var word = trimmed.Split(new[] { ' ' });
-                        if (word.Length >= 1)
+                        var tok = Tokens.GetToken(currLineTokens[0].Span.GetText());
+                        if (tok != null && AutoIndent.SubBlockKeywords.ContainsKey(tok.Kind))
                         {
-                            var tok = Tokens.GetToken(word[0]);
-                            if (tok != null && AutoIndent.SubBlockKeywords.ContainsKey(tok.Kind))
-                            {
-                                alignWith = AutoIndent.SubBlockKeywords[tok.Kind].Item1;
-                                indentAfterAlign = AutoIndent.SubBlockKeywords[tok.Kind].Item2;
-                            }
+                            alignWith = AutoIndent.SubBlockKeywords[tok.Kind].Item1;
+                            indentAfterAlign = AutoIndent.SubBlockKeywords[tok.Kind].Item2;
                         }
                     }
                 }
@@ -119,31 +119,35 @@ namespace VSGenero.EditorExtensions
                     string prevLineStr = null;
                     // find the line that corresponds
                     bool inNestedBlock = false;
+
+                    IList<ClassificationSpan> lineTokens = null;
+
                     while (prevLineNo >= 0)
                     {
                         prevLine = e.After.GetLineFromLineNumber(prevLineNo);
                         prevLineStr = prevLine.GetText();
-                        var prevTrimmed = prevLineStr.Trim();
-                        if (prevTrimmed.StartsWith("#") || prevTrimmed.StartsWith("--"))
+                        lineTokens = _classifier.GetClassificationSpans(prevLine);
+
+                        if (lineTokens.Count > 0 && lineTokens[0].ClassificationType.IsOfType(PredefinedClassificationTypeNames.Keyword))
                         {
-                            prevLineNo--;
-                            continue;
-                        }
-                        else if (prevTrimmed.StartsWith("end", StringComparison.OrdinalIgnoreCase) && prevLineStr.TrimEnd().EndsWith(keyword, StringComparison.OrdinalIgnoreCase))
-                        {
-                            inNestedBlock = true;
-                        }
-                        else if ((!useContains && prevLineStr.TrimStart().StartsWith(keyword, StringComparison.OrdinalIgnoreCase)) ||
-                            (useContains && prevLineStr.Trim().Contains(keyword)))
-                        {
-                            if (inNestedBlock)
+                            if (lineTokens[0].Span.GetText().Equals("end", StringComparison.OrdinalIgnoreCase) &&
+                                lineTokens.Count > 1 &&
+                                lineTokens[1].Span.GetText().Equals(keyword, StringComparison.OrdinalIgnoreCase))
                             {
-                                inNestedBlock = false;
+                                inNestedBlock = true;
                             }
-                            else
+                            else if((!useContains && lineTokens[0].Span.GetText().Equals(keyword, StringComparison.OrdinalIgnoreCase)) ||
+                                    (useContains && lineTokens.Any(x => x.Span.GetText().Equals(keyword, StringComparison.OrdinalIgnoreCase))))
                             {
-                                found = true;
-                                break;
+                                if (inNestedBlock)
+                                {
+                                    inNestedBlock = false;
+                                }
+                                else
+                                {
+                                    found = true;
+                                    break;
+                                }
                             }
                         }
                         prevLineNo--;
