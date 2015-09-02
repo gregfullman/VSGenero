@@ -73,8 +73,8 @@ namespace VSGenero.EditorExtensions
             if (_textView != null &&
                 _textView.Caret.Position.BufferPosition.Position >= 0 &&
                 _textView.Caret.Position.BufferPosition.Position <= e.After.Length &&
-                _ignoreNextChange != _textView.Caret.Position.BufferPosition.Position &&
-                !string.IsNullOrWhiteSpace(e.Changes[0].NewText))
+                _ignoreNextChange != _textView.Caret.Position.BufferPosition.Position/* &&
+                !string.IsNullOrWhiteSpace(e.Changes[0].NewText)*/)
             {
                 var line = e.After.GetLineFromPosition(_textView.Caret.Position.BufferPosition.Position);
                 var currLineTokens = _classifier.GetClassificationSpans(line);
