@@ -76,6 +76,11 @@ namespace VSGenero.EditorExtensions
                 _ignoreNextChange != _textView.Caret.Position.BufferPosition.Position/* &&
                 !string.IsNullOrWhiteSpace(e.Changes[0].NewText)*/)
             {
+                if(e.Changes.Count == 0 || e.Changes[0].Delta < 0)
+                {
+                    return;
+                }
+
                 var line = e.After.GetLineFromPosition(_textView.Caret.Position.BufferPosition.Position);
                 var currLineTokens = _classifier.GetClassificationSpans(line);
 
@@ -118,7 +123,7 @@ namespace VSGenero.EditorExtensions
                     bool found = false;
                     string prevLineStr = null;
                     // find the line that corresponds
-                    bool inNestedBlock = false;
+                    int inNestedBlockCount = 0;
 
                     IList<ClassificationSpan> lineTokens = null;
 
@@ -134,14 +139,14 @@ namespace VSGenero.EditorExtensions
                                 lineTokens.Count > 1 &&
                                 lineTokens[1].Span.GetText().Equals(keyword, StringComparison.OrdinalIgnoreCase))
                             {
-                                inNestedBlock = true;
+                                inNestedBlockCount++;
                             }
                             else if((!useContains && lineTokens[0].Span.GetText().Equals(keyword, StringComparison.OrdinalIgnoreCase)) ||
                                     (useContains && lineTokens.Any(x => x.Span.GetText().Equals(keyword, StringComparison.OrdinalIgnoreCase))))
                             {
-                                if (inNestedBlock)
+                                if (inNestedBlockCount > 0)
                                 {
-                                    inNestedBlock = false;
+                                    inNestedBlockCount--;
                                 }
                                 else
                                 {
