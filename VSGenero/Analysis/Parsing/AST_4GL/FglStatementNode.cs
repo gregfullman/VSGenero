@@ -447,7 +447,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 case TokenKind.CreateKeyword:
                     {
                         CreateStatement createStmt;
-                        if((result = CreateStatement.TryParseNode(parser, out createStmt)))
+                        if((result = CreateStatement.TryParseNode(parser, out createStmt, containingModule)))
                         {
                             node = createStmt;
                         }

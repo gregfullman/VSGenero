@@ -513,6 +513,14 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 parser.ReportSyntaxError(cursorResult.LocationIndex, cursorResult.LocationIndex + cursorResult.Name.Length, string.Format("Module cursor {0} defined more than once.", cursorResult.Name), Severity.Error);
         }
 
+        public void BindTableResult(IAnalysisResult tableResult, IParser parser)
+        {
+            if (!Tables.ContainsKey(tableResult.Name))
+                Tables.Add(tableResult.Name, tableResult);
+            else
+                parser.ReportSyntaxError(tableResult.LocationIndex, tableResult.LocationIndex + tableResult.Name.Length, string.Format("Database table {0} defined more than once.", tableResult.Name), Severity.Error);
+        }
+
         public PrepareStatement PreparedCursorResolver(string prepIdent)
         {
             IAnalysisResult prepRes;
@@ -534,6 +542,17 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 if (_cursors == null)
                     _cursors = new Dictionary<string, IAnalysisResult>(StringComparer.OrdinalIgnoreCase);
                 return _cursors;
+            }
+        }
+
+        private Dictionary<string, IAnalysisResult> _tables;
+        public IDictionary<string, IAnalysisResult> Tables
+        {
+            get
+            {
+                if (_tables == null)
+                    _tables = new Dictionary<string, IAnalysisResult>(StringComparer.OrdinalIgnoreCase);
+                return _tables;
             }
         }
 

@@ -28,7 +28,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
     /// </summary>
     public class CreateStatement : FglStatement
     {
-        public static bool TryParseNode(Genero4glParser parser, out CreateStatement node)
+        public static bool TryParseNode(Genero4glParser parser, out CreateStatement node, IModuleResult containingModule)
         {
             node = null;
             bool result = true;
@@ -46,7 +46,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     case TokenKind.TableKeyword:
                     case TokenKind.TempKeyword:
                         CreateTableStatement tableNode;
-                        result = CreateTableStatement.TryParseNode(parser, out tableNode);
+                        result = CreateTableStatement.TryParseNode(parser, out tableNode, containingModule);
                         node = tableNode;
                         break;
                     default:
@@ -59,7 +59,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         }
     }
 
-    public class CreateTableStatement : CreateStatement
+    public class CreateTableStatement : CreateStatement, IAnalysisResult
     {
         public NameExpression TableName { get; private set; }
         public bool TempTable { get; private set; }
@@ -67,7 +67,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         public ExpressionNode ExtentSize { get; private set; }
         public ExpressionNode NextSize { get; private set; }
 
-        internal static bool TryParseNode(Genero4glParser parser, out CreateTableStatement node)
+        internal static bool TryParseNode(Genero4glParser parser, out CreateTableStatement node, IModuleResult containingModule)
         {
             node = null;
             bool result = false;
@@ -212,12 +212,79 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 }
                 else
                     parser.ReportSyntaxError("Expected left-paren in create table statement.");
+
+                containingModule.BindTableResult(node, parser);
             }
             return result;
         }
+
+        public string Scope
+        {
+            get
+            {
+                return string.Format("{0}table", TempTable ? "temp " : "");
+            }
+            set
+            {
+            }
+        }
+
+        public string Name
+        {
+            get { return TableName.Name; }
+        }
+
+        public int LocationIndex
+        {
+            get { return StartIndex; }
+        }
+
+        private LocationInfo _location = null;
+        public LocationInfo Location
+        {
+            get { return _location; }
+        }
+
+        public bool HasChildFunctions(Genero4glAst ast)
+        {
+            return false;
+        }
+
+        public bool CanGetValueFromDebugger
+        {
+            get { return false; }
+        }
+
+        public bool IsPublic
+        {
+            get { return true; }
+        }
+
+        public string Typename
+        {
+            get { return null; }
+        }
+
+        public IAnalysisResult GetMember(string name, Genero4glAst ast, out IGeneroProject definingProject, out IProjectEntry projectEntry, bool function)
+        {
+            definingProject = null;
+            projectEntry = null;
+            return this.Children.Values.Cast<CreatedTableColumn>().FirstOrDefault(x => x.ColumnName.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+        }
+
+        public IEnumerable<MemberResult> GetMembers(Genero4glAst ast, MemberType memberType, bool function)
+        {
+            return this.Children.Values.Cast<CreatedTableColumn>().Select(x => new MemberResult(x.ColumnName.Name, x, GeneroMemberType.DbColumn, SyntaxTree));
+        }
+
+        public override void PropagateSyntaxTree(Genero4glAst ast)
+        {
+            _location = ast.ResolveLocation(this);
+            base.PropagateSyntaxTree(ast);
+        }
     }
 
-    public class CreatedTableColumn : AstNode4gl
+    public class CreatedTableColumn : AstNode4gl, IAnalysisResult
     {
         public NameExpression ColumnName { get; private set; }
         public TypeReference DataType { get; private set; }
@@ -316,6 +383,65 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             }
 
             return result;
+        }
+
+        public string Scope
+        {
+            get
+            {
+                return "table column";
+            }
+            set
+            {
+            }
+        }
+
+        public string Name
+        {
+            get { return ColumnName.Name; }
+        }
+
+        public int LocationIndex
+        {
+            get { return StartIndex; }
+        }
+
+        private LocationInfo _location = null;
+        public LocationInfo Location
+        {
+            get { return _location; }
+        }
+
+        public bool HasChildFunctions(Genero4glAst ast)
+        {
+            return false;
+        }
+
+        public bool CanGetValueFromDebugger
+        {
+            get { return false; }
+        }
+
+        public bool IsPublic
+        {
+            get { return true; }
+        }
+
+        public string Typename
+        {
+            get { return null; }
+        }
+
+        public IAnalysisResult GetMember(string name, Genero4glAst ast, out IGeneroProject definingProject, out IProjectEntry projectEntry, bool function)
+        {
+            definingProject = null;
+            projectEntry = null;
+            return null;
+        }
+
+        public IEnumerable<MemberResult> GetMembers(Genero4glAst ast, MemberType memberType, bool function)
+        {
+            return new MemberResult[0];
         }
     }
 

@@ -140,11 +140,13 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
         private IEnumerable<MemberResult> GetDatabaseTables(int index, string token)
         {
+            List<MemberResult> results = new List<MemberResult>();
             if (_databaseProvider != null)
             {
-                return _databaseProvider.GetTables().Select(x => new MemberResult(x.Name, x, (x.TableType == DatabaseTableType.Table ? GeneroMemberType.DbTable : GeneroMemberType.DbView), this));
+                results.AddRange(_databaseProvider.GetTables().Select(x => new MemberResult(x.Name, x, (x.TableType == DatabaseTableType.Table ? GeneroMemberType.DbTable : GeneroMemberType.DbView), this)));
             }
-            return new List<MemberResult>();
+            results.AddRange(GetDefinedMembers(index, AstMemberType.Tables));
+            return results;
         }
 
         private IEnumerable<MemberResult> GetDatabaseTableColumns(int index, string token)
@@ -235,7 +237,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             Functions = 8,
             Dialogs = 16,
             Reports = 32,
-            Cursors = 64
+            Cursors = 64,
+            Tables = 128
         }
 
         private IEnumerable<MemberResult> GetDefinedMembers(int index, AstMemberType memberType)
@@ -376,9 +379,14 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                     members.Add(res);
                         }
 
-                        if (memberType.HasFlag(AstMemberType.Cursors))
+                        // Tables and cursors are module specific, and cannot be accessed via fgl import
+                        if (memberType.HasFlag(AstMemberType.Cursors) ||
+                            memberType.HasFlag(AstMemberType.Tables))
                         {
-                            members.AddRange((_body as IModuleResult).Cursors.Select(x => new MemberResult(x.Value.Name, x.Value, GeneroMemberType.Cursor, this)));
+                            if(memberType.HasFlag(AstMemberType.Cursors))
+                                members.AddRange((_body as IModuleResult).Cursors.Select(x => new MemberResult(x.Value.Name, x.Value, GeneroMemberType.Cursor, this)));
+                            if(memberType.HasFlag(AstMemberType.Tables))
+                                members.AddRange((_body as IModuleResult).Tables.Select(x => new MemberResult(x.Value.Name, x.Value, GeneroMemberType.DbTable, this)));
                         }
                         else
                         {

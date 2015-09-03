@@ -73,12 +73,14 @@ namespace VSGenero.Analysis
         IDictionary<string, IAnalysisResult> Constants { get; }
         IDictionary<string, IFunctionResult> Functions { get; }
         IDictionary<string, IAnalysisResult> Cursors { get; }
+        IDictionary<string, IAnalysisResult> Tables { get; }
         IDictionary<string, IAnalysisResult> GlobalVariables { get; }
         IDictionary<string, IAnalysisResult> GlobalTypes { get; }
         IDictionary<string, IAnalysisResult> GlobalConstants { get; }
 
         PrepareStatement PreparedCursorResolver(string prepIdent);
         void BindCursorResult(IAnalysisResult cursorResult, IParser parser);
+        void BindTableResult(IAnalysisResult tableResult, IParser parser);
     }
 
     public interface IFunctionResult : IAnalysisResult, IAnalysisResultContainer, IOutlinableResult
