@@ -73,8 +73,7 @@ namespace VSGenero.EditorExtensions
             if (_textView != null &&
                 _textView.Caret.Position.BufferPosition.Position >= 0 &&
                 _textView.Caret.Position.BufferPosition.Position <= e.After.Length &&
-                _ignoreNextChange != _textView.Caret.Position.BufferPosition.Position/* &&
-                !string.IsNullOrWhiteSpace(e.Changes[0].NewText)*/)
+                _ignoreNextChange != _textView.Caret.Position.BufferPosition.Position)
             {
                 if(e.Changes.Count == 0 || e.Changes[0].Delta < 0)
                 {
