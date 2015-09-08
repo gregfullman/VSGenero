@@ -26,6 +26,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         private static Dictionary<object, IEnumerable<ContextPossibilities>> _contextMap;
         private static Genero4glAst _instance;
         private static bool _includePublicFunctions;
+        private static bool _includeDatabaseTables;
         private static string _contextString;
 
         #region Context Map Init
@@ -3317,7 +3318,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
         public IEnumerable<MemberResult> GetContextMembers(int index, IReverseTokenizer revTokenizer, IFunctionInformationProvider functionProvider,
                                                            IDatabaseInformationProvider databaseProvider, IProgramFileProvider programFileProvider,
-                                                           out bool includePublicFunctions, string contextStr, 
+                                                           out bool includePublicFunctions, out bool includeDatabaseTables, string contextStr, 
                                                            GetMemberOptions options = GetMemberOptions.IntersectMultipleResults)
         {
             _instance = this;
@@ -3325,6 +3326,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             _databaseProvider = databaseProvider;
             _programFileProvider = programFileProvider;
             _includePublicFunctions = includePublicFunctions = false;    // this is a flag that the context determination logic sets if public functions should eventually be included in the set
+            _includeDatabaseTables = includeDatabaseTables = false;
             _contextString = contextStr;
 
             List<MemberResult> members = new List<MemberResult>();
@@ -3332,6 +3334,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             if (TryMemberAccess(index, revTokenizer, out members))
             {
                 _includePublicFunctions = false;
+                _includeDatabaseTables = false;
                 return members;
             }
             
@@ -3342,12 +3345,14 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             }
 
             includePublicFunctions = _includePublicFunctions;
+            includeDatabaseTables = _includeDatabaseTables;
             _includePublicFunctions = false;    // reset the flag
+            _includeDatabaseTables = false;
             _contextString = null;
             return members;
         }
 
-        private bool DetermineContext(int index, IReverseTokenizer revTokenizer, List<MemberResult> memberList)
+        private bool DetermineContext(int index, IReverseTokenizer revTokenizer, List<MemberResult> memberList, bool onlyVerifyEmptyContext = false)
         {
             var enumerator = revTokenizer.GetReversedTokens().Where(x => x.SourceSpan.Start.Index < index).GetEnumerator();
             while (true)
@@ -3373,8 +3378,15 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     IEnumerable<ContextPossibilities> matchingPossibilities;
                     if (matchContainer.TryMatchContextPossibility(tokInfo.SourceSpan.Start.Index, revTokenizer, out matchingPossibilities))
                     {
-                        foreach(var matchedPossible in matchingPossibilities)
-                            LoadPossibilitySet(index, matchedPossible, memberList);
+                        if (onlyVerifyEmptyContext)
+                        {
+                            return matchingPossibilities.All(x => x.SingleTokens.Length == 0 && x.SetProviders.Length == 0);
+                        }
+                        else
+                        {
+                            foreach (var matchedPossible in matchingPossibilities)
+                                LoadPossibilitySet(index, matchedPossible, memberList);
+                        }
                     }
 
                     return true;

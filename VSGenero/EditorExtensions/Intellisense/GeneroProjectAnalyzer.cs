@@ -981,8 +981,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                                                           IFunctionInformationProvider functionProvider, IDatabaseInformationProvider databaseProvider,
                                                           IProgramFileProvider programFileProvider)
         {
-            return TrySpecialCompletions(snapshot, span, point, options, functionProvider, databaseProvider, programFileProvider);
-            //GetNormalCompletionContext(snapshot, span, point, options);
+            return TryGetCompletions(options.AnalysisType, snapshot, span, point, options, functionProvider, databaseProvider, programFileProvider);
         }
 
         /// <summary>
@@ -1571,10 +1570,13 @@ namespace VSGenero.EditorExtensions.Intellisense
             return snapshot.CreateTrackingSpan(newSpan, SpanTrackingMode.EdgeInclusive);
         }
 
-        private static CompletionAnalysis TrySpecialCompletions(ITextSnapshot snapshot, ITrackingSpan span, ITrackingPoint point, CompletionOptions options,
-                                                                IFunctionInformationProvider functionProvider, IDatabaseInformationProvider databaseProvider,
-                                                                IProgramFileProvider programFileProvider)
+        private static CompletionAnalysis TryGetCompletions(CompletionAnalysisType completionsType, ITextSnapshot snapshot, ITrackingSpan span, ITrackingPoint point, CompletionOptions options,
+                                                            IFunctionInformationProvider functionProvider, IDatabaseInformationProvider databaseProvider,
+                                                            IProgramFileProvider programFileProvider)
         {
+            if (completionsType == CompletionAnalysisType.Test)
+                return new TestCompletionAnalysis(span, snapshot.TextBuffer, options);
+
             int currPos = point.GetPosition(snapshot);
             var snapSpan = span.GetSpan(snapshot);
             var buffer = snapshot.TextBuffer;
@@ -1636,33 +1638,46 @@ namespace VSGenero.EditorExtensions.Intellisense
             var entry = (IGeneroProjectEntry)buffer.GetAnalysis();
             if (entry != null && entry.Analysis != null)
             {
-                //var members = entry.Analysis.GetContextMembersByIndex(start, parser, functionProvider, databaseProvider, programFileProvider);
-                bool includePublicFunctions;
-                var members = entry.Analysis.GetContextMembers(start, parser, functionProvider, databaseProvider, programFileProvider, out includePublicFunctions, span.GetText(snapshot));
+                bool includePublicFunctions = false;
+                bool includeDatabaseTables = false;
+                IEnumerable<MemberResult> members = null;
+
+                if (completionsType == CompletionAnalysisType.Context)
+                    members = entry.Analysis.GetContextMembers(start, parser, functionProvider, databaseProvider, programFileProvider, 
+                                                               out includePublicFunctions, out includeDatabaseTables, span.GetText(snapshot));
+                else if (completionsType == CompletionAnalysisType.Normal)
+                    members = entry.Analysis.GetAllAvailableMembersByIndex(start, parser, out includePublicFunctions, out includeDatabaseTables);
+
                 if (members != null)
                 {
-                    Func<string, IEnumerable<MemberResult>> deferredLoadCallback = null;
-                    if(includePublicFunctions)
+                    List<Func<string, IEnumerable<MemberResult>>> deferredLoadCallback = new List<Func<string,IEnumerable<MemberResult>>>();
+                    if (includePublicFunctions)
                     {
-                        deferredLoadCallback = (str) =>
+                        deferredLoadCallback.Add((str) =>
+                        {
+                            if (functionProvider != null)
                             {
-                                if(functionProvider != null)
-                                {
-                                    return functionProvider.GetFunctionsStartingWith(str).Select(x => new MemberResult(x.Name, x, GeneroMemberType.Function, entry.Analysis));
-                                }
-                                return new MemberResult[0];
-                            };
+                                return functionProvider.GetFunctionsStartingWith(str).Select(x => new MemberResult(x.Name, x, GeneroMemberType.Function, entry.Analysis));
+                            }
+                            return new MemberResult[0];
+                        });
                     }
-                    return new ContextSensitiveCompletionAnalysis(members, span, buffer, options, deferredLoadCallback);
+                    if(includeDatabaseTables)
+                    {
+                        deferredLoadCallback.Add((str) =>
+                        {
+                            if (databaseProvider != null)
+                            {
+                                return databaseProvider.GetTables().Select(x => new MemberResult(x.Name, x, (x.TableType == DatabaseTableType.Table ? GeneroMemberType.DbTable : GeneroMemberType.DbView), entry.Analysis));
+                            }
+                            return new MemberResult[0];
+                        });
+                    }
+                    return new LiveCompletionAnalysis(members, span, buffer, options, deferredLoadCallback);
                 }
             }
 
             return CompletionAnalysis.EmptyCompletionContext;
-        }
-
-        private static CompletionAnalysis GetNormalCompletionContext(ITextSnapshot snapshot, ITrackingSpan applicableSpan, ITrackingPoint point, CompletionOptions options)
-        {
-            return new TestCompletionAnalysis(applicableSpan, snapshot.TextBuffer, options);
         }
 
         private static bool IsSpaceCompletion(ITextSnapshot snapshot, ITrackingPoint loc)

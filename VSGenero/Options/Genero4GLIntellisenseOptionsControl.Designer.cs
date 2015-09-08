@@ -29,44 +29,34 @@
         private void InitializeComponent()
         {
             this.groupBox1 = new System.Windows.Forms.GroupBox();
-            this.checkBoxSpaceTriggersCompletionList = new System.Windows.Forms.CheckBox();
             this.checkBoxCompletionList = new System.Windows.Forms.CheckBox();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.checkBoxNewLineOnFullyTypedWord = new System.Windows.Forms.CheckBox();
-            this.checkBoxEnterCommits = new System.Windows.Forms.CheckBox();
             this.checkBoxSpacebarCommits = new System.Windows.Forms.CheckBox();
             this.textBoxCommitChars = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
             this.checkBoxPreselectMRU = new System.Windows.Forms.CheckBox();
+            this.groupBox4 = new System.Windows.Forms.GroupBox();
+            this.radioButtonContextCompletionType = new System.Windows.Forms.RadioButton();
+            this.radioButtonNormalCompletionType = new System.Windows.Forms.RadioButton();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.groupBox3.SuspendLayout();
+            this.groupBox4.SuspendLayout();
             this.SuspendLayout();
             // 
             // groupBox1
             // 
             this.groupBox1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.groupBox1.Controls.Add(this.checkBoxSpaceTriggersCompletionList);
             this.groupBox1.Controls.Add(this.checkBoxCompletionList);
             this.groupBox1.Location = new System.Drawing.Point(4, 4);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(473, 70);
+            this.groupBox1.Size = new System.Drawing.Size(473, 43);
             this.groupBox1.TabIndex = 0;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Completion Lists";
-            // 
-            // checkBoxSpaceTriggersCompletionList
-            // 
-            this.checkBoxSpaceTriggersCompletionList.AutoSize = true;
-            this.checkBoxSpaceTriggersCompletionList.Location = new System.Drawing.Point(48, 42);
-            this.checkBoxSpaceTriggersCompletionList.Name = "checkBoxSpaceTriggersCompletionList";
-            this.checkBoxSpaceTriggersCompletionList.Size = new System.Drawing.Size(192, 17);
-            this.checkBoxSpaceTriggersCompletionList.TabIndex = 1;
-            this.checkBoxSpaceTriggersCompletionList.Text = "Allow space to show completion list";
-            this.checkBoxSpaceTriggersCompletionList.UseVisualStyleBackColor = true;
-            this.checkBoxSpaceTriggersCompletionList.CheckedChanged += new System.EventHandler(this.checkBoxSpaceTriggersCompletionList_CheckedChanged);
             // 
             // checkBoxCompletionList
             // 
@@ -77,20 +67,18 @@
             this.checkBoxCompletionList.TabIndex = 0;
             this.checkBoxCompletionList.Text = "Show completion list after a character is typed";
             this.checkBoxCompletionList.UseVisualStyleBackColor = true;
-            this.checkBoxCompletionList.CheckedChanged += new System.EventHandler(this.checkBoxCompletionList_CheckedChanged);
             // 
             // groupBox2
             // 
             this.groupBox2.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.groupBox2.Controls.Add(this.checkBoxNewLineOnFullyTypedWord);
-            this.groupBox2.Controls.Add(this.checkBoxEnterCommits);
             this.groupBox2.Controls.Add(this.checkBoxSpacebarCommits);
             this.groupBox2.Controls.Add(this.textBoxCommitChars);
             this.groupBox2.Controls.Add(this.label1);
-            this.groupBox2.Location = new System.Drawing.Point(4, 80);
+            this.groupBox2.Location = new System.Drawing.Point(4, 111);
             this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(473, 134);
+            this.groupBox2.Size = new System.Drawing.Size(473, 99);
             this.groupBox2.TabIndex = 1;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Selection In Completion List";
@@ -98,24 +86,13 @@
             // checkBoxNewLineOnFullyTypedWord
             // 
             this.checkBoxNewLineOnFullyTypedWord.AutoSize = true;
-            this.checkBoxNewLineOnFullyTypedWord.Location = new System.Drawing.Point(20, 108);
+            this.checkBoxNewLineOnFullyTypedWord.Location = new System.Drawing.Point(20, 78);
             this.checkBoxNewLineOnFullyTypedWord.Name = "checkBoxNewLineOnFullyTypedWord";
             this.checkBoxNewLineOnFullyTypedWord.Size = new System.Drawing.Size(250, 17);
             this.checkBoxNewLineOnFullyTypedWord.TabIndex = 4;
             this.checkBoxNewLineOnFullyTypedWord.Text = "Add new line on enter at end of fully typed word";
             this.checkBoxNewLineOnFullyTypedWord.UseVisualStyleBackColor = true;
             this.checkBoxNewLineOnFullyTypedWord.CheckedChanged += new System.EventHandler(this.checkBoxNewLineOnFullyTypedWord_CheckedChanged);
-            // 
-            // checkBoxEnterCommits
-            // 
-            this.checkBoxEnterCommits.AutoSize = true;
-            this.checkBoxEnterCommits.Location = new System.Drawing.Point(20, 84);
-            this.checkBoxEnterCommits.Name = "checkBoxEnterCommits";
-            this.checkBoxEnterCommits.Size = new System.Drawing.Size(158, 17);
-            this.checkBoxEnterCommits.TabIndex = 3;
-            this.checkBoxEnterCommits.Text = "Committed by pressing enter";
-            this.checkBoxEnterCommits.UseVisualStyleBackColor = true;
-            this.checkBoxEnterCommits.CheckedChanged += new System.EventHandler(this.checkBoxEnterCommits_CheckedChanged);
             // 
             // checkBoxSpacebarCommits
             // 
@@ -150,7 +127,7 @@
             // groupBox3
             // 
             this.groupBox3.Controls.Add(this.checkBoxPreselectMRU);
-            this.groupBox3.Location = new System.Drawing.Point(4, 220);
+            this.groupBox3.Location = new System.Drawing.Point(4, 214);
             this.groupBox3.Name = "groupBox3";
             this.groupBox3.Size = new System.Drawing.Size(473, 47);
             this.groupBox3.TabIndex = 2;
@@ -168,10 +145,46 @@
             this.checkBoxPreselectMRU.UseVisualStyleBackColor = true;
             this.checkBoxPreselectMRU.CheckedChanged += new System.EventHandler(this.checkBoxPreselectMRU_CheckedChanged);
             // 
+            // groupBox4
+            // 
+            this.groupBox4.Controls.Add(this.radioButtonContextCompletionType);
+            this.groupBox4.Controls.Add(this.radioButtonNormalCompletionType);
+            this.groupBox4.Location = new System.Drawing.Point(4, 47);
+            this.groupBox4.Name = "groupBox4";
+            this.groupBox4.Size = new System.Drawing.Size(473, 62);
+            this.groupBox4.TabIndex = 3;
+            this.groupBox4.TabStop = false;
+            this.groupBox4.Text = "Completion Type";
+            // 
+            // radioButtonContextCompletionType
+            // 
+            this.radioButtonContextCompletionType.AutoSize = true;
+            this.radioButtonContextCompletionType.Location = new System.Drawing.Point(20, 39);
+            this.radioButtonContextCompletionType.Name = "radioButtonContextCompletionType";
+            this.radioButtonContextCompletionType.Size = new System.Drawing.Size(162, 17);
+            this.radioButtonContextCompletionType.TabIndex = 1;
+            this.radioButtonContextCompletionType.TabStop = true;
+            this.radioButtonContextCompletionType.Text = "Context-Aware (experimental)";
+            this.radioButtonContextCompletionType.UseVisualStyleBackColor = true;
+            this.radioButtonContextCompletionType.CheckedChanged += new System.EventHandler(this.radioButtonContextCompletionType_CheckedChanged);
+            // 
+            // radioButtonNormalCompletionType
+            // 
+            this.radioButtonNormalCompletionType.AutoSize = true;
+            this.radioButtonNormalCompletionType.Location = new System.Drawing.Point(20, 19);
+            this.radioButtonNormalCompletionType.Name = "radioButtonNormalCompletionType";
+            this.radioButtonNormalCompletionType.Size = new System.Drawing.Size(234, 17);
+            this.radioButtonNormalCompletionType.TabIndex = 0;
+            this.radioButtonNormalCompletionType.TabStop = true;
+            this.radioButtonNormalCompletionType.Text = "Normal (include all keywords, members, etc.)";
+            this.radioButtonNormalCompletionType.UseVisualStyleBackColor = true;
+            this.radioButtonNormalCompletionType.CheckedChanged += new System.EventHandler(this.radioButtonNormalCompletionType_CheckedChanged);
+            // 
             // Genero4GLIntellisenseOptionsControl
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this.groupBox4);
             this.Controls.Add(this.groupBox3);
             this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.groupBox1);
@@ -183,6 +196,8 @@
             this.groupBox2.PerformLayout();
             this.groupBox3.ResumeLayout(false);
             this.groupBox3.PerformLayout();
+            this.groupBox4.ResumeLayout(false);
+            this.groupBox4.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -196,9 +211,10 @@
         private System.Windows.Forms.TextBox textBoxCommitChars;
         private System.Windows.Forms.CheckBox checkBoxSpacebarCommits;
         private System.Windows.Forms.CheckBox checkBoxNewLineOnFullyTypedWord;
-        private System.Windows.Forms.CheckBox checkBoxEnterCommits;
         private System.Windows.Forms.GroupBox groupBox3;
         private System.Windows.Forms.CheckBox checkBoxPreselectMRU;
-        private System.Windows.Forms.CheckBox checkBoxSpaceTriggersCompletionList;
+        private System.Windows.Forms.GroupBox groupBox4;
+        private System.Windows.Forms.RadioButton radioButtonContextCompletionType;
+        private System.Windows.Forms.RadioButton radioButtonNormalCompletionType;
     }
 }

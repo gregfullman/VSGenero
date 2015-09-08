@@ -23,28 +23,29 @@ using VSGenero.Analysis.Parsing;
 
 namespace VSGenero.EditorExtensions.Intellisense
 {
-    public class ContextSensitiveCompletionAnalysis : CompletionAnalysis
+    public class LiveCompletionAnalysis : CompletionAnalysis
     {
         private readonly IEnumerable<MemberResult> _result;
-        private readonly Func<string, IEnumerable<MemberResult>> _deferredLoadCallback;
+        private readonly List<Func<string, IEnumerable<MemberResult>>> _deferredLoadCallbacks;
 
-        public ContextSensitiveCompletionAnalysis(IEnumerable<MemberResult> result, ITrackingSpan span, ITextBuffer buffer, CompletionOptions options, Func<string, IEnumerable<MemberResult>> deferredLoadCallback = null)
+        public LiveCompletionAnalysis(IEnumerable<MemberResult> result, ITrackingSpan span, ITextBuffer buffer, CompletionOptions options, List<Func<string, IEnumerable<MemberResult>>> deferredLoadCallback = null)
             : base(span, buffer, options)
         {
             _result = result;
-            _deferredLoadCallback = deferredLoadCallback;
+            _deferredLoadCallbacks = deferredLoadCallback;
         }
 
         private IEnumerable<DynamicallyVisibleCompletion> DeferredLoadCompletions(string searchStr)
         {
-            if(_deferredLoadCallback != null)
+            if(_deferredLoadCallbacks != null)
             {
-                return _deferredLoadCallback(searchStr).Select(m =>
+                // call the load callbacks in parallel
+                return _deferredLoadCallbacks.AsParallel().SelectMany(x => x(searchStr).Select(m =>
                     {
                         var c = GeneroCompletion(GlyphService, m);
                         c.Visible = true;
                         return c;
-                    });
+                    }));
             }
             return new DynamicallyVisibleCompletion[0];
         }
@@ -58,7 +59,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                 _result.Select(m => GeneroCompletion(glyphService, m)),
                 _options,
                 CompletionComparer.UnderscoresLast,
-                (_deferredLoadCallback == null ? (Func<string, IEnumerable<DynamicallyVisibleCompletion>>) null : DeferredLoadCompletions));
+                ((_deferredLoadCallbacks == null || _deferredLoadCallbacks.Count == 0) ? (Func<string, IEnumerable<DynamicallyVisibleCompletion>>) null : DeferredLoadCompletions));
             return result;
         }
     }

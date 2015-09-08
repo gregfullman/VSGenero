@@ -20,12 +20,21 @@ using VSGenero.Analysis;
 
 namespace VSGenero.EditorExtensions.Intellisense
 {
+    public enum CompletionAnalysisType
+    {
+        Normal,
+        Context,
+        Test
+    }
+
     public class CompletionOptions
     {
         /// <summary>
         /// The set of options used by the analyzer.
         /// </summary>
         public GetMemberOptions MemberOptions { get; set; }
+
+        public CompletionAnalysisType AnalysisType { get; set; }
 
         /// <summary>
         /// Only show completions for members belonging to all potential types
@@ -146,6 +155,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             FilterCompletions = true;
             SearchMode = FuzzyMatchMode.Default;
             DeferredLoadPreCharacters = 2;
+            AnalysisType = CompletionAnalysisType.Context;
         }
 
         public CompletionOptions(GetMemberOptions options)
@@ -154,6 +164,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             FilterCompletions = true;
             SearchMode = FuzzyMatchMode.Default;
             DeferredLoadPreCharacters = 2;
+            AnalysisType = CompletionAnalysisType.Context;
         }
 
         /// <summary>
@@ -169,7 +180,8 @@ namespace VSGenero.EditorExtensions.Intellisense
                 IndentSize = IndentSize,
                 FilterCompletions = FilterCompletions,
                 SearchMode = SearchMode,
-                DeferredLoadPreCharacters = DeferredLoadPreCharacters
+                DeferredLoadPreCharacters = DeferredLoadPreCharacters,
+                AnalysisType = AnalysisType
             };
         }
 

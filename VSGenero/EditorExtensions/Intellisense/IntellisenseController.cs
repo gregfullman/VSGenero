@@ -906,8 +906,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                     switch ((VSConstants.VSStd2KCmdID)nCmdID)
                     {
                         case VSConstants.VSStd2KCmdID.RETURN:
-                            if (VSGeneroPackage.Instance.IntellisenseOptions4GLPage.EnterCommitsIntellisense &&
-                                !_activeSession.IsDismissed &&
+                            if (!_activeSession.IsDismissed &&
                                 _activeSession.SelectedCompletionSet.SelectionStatus.IsSelected)
                             {
 

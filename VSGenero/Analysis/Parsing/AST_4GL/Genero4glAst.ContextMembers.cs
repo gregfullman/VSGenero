@@ -8,7 +8,7 @@
  *
  * You must not remove this notice, or any other, from this software.
  *
- * ***************************************************************************/ 
+ * ***************************************************************************/
 
 using System;
 using System.Collections.Generic;
@@ -140,13 +140,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
         private IEnumerable<MemberResult> GetDatabaseTables(int index, string token)
         {
-            List<MemberResult> results = new List<MemberResult>();
-            if (_databaseProvider != null)
-            {
-                results.AddRange(_databaseProvider.GetTables().Select(x => new MemberResult(x.Name, x, (x.TableType == DatabaseTableType.Table ? GeneroMemberType.DbTable : GeneroMemberType.DbView), this)));
-            }
-            results.AddRange(GetDefinedMembers(index, AstMemberType.Tables));
-            return results;
+            return GetDefinedMembers(index, AstMemberType.Tables);
         }
 
         private IEnumerable<MemberResult> GetDatabaseTableColumns(int index, string token)
@@ -238,7 +232,9 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             Dialogs = 16,
             Reports = 32,
             Cursors = 64,
-            Tables = 128
+            Tables = 128,
+
+            All = Variables | Constants | Types | Functions | Dialogs | Reports | Cursors | Tables
         }
 
         private IEnumerable<MemberResult> GetDefinedMembers(int index, AstMemberType memberType)
@@ -298,11 +294,11 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         if (memberType.HasFlag(AstMemberType.Variables))
                         {
                             members.AddRange((containingNode as IFunctionResult).Variables.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Variable, this)));
-                            foreach(var varList in (containingNode as IFunctionResult).LimitedScopeVariables)
+                            foreach (var varList in (containingNode as IFunctionResult).LimitedScopeVariables)
                             {
-                                foreach(var item in varList.Value)
+                                foreach (var item in varList.Value)
                                 {
-                                    if(item.Item2.IsInSpan(index))
+                                    if (item.Item2.IsInSpan(index))
                                     {
                                         members.Add(new MemberResult(item.Item1.Name, item.Item1, GeneroMemberType.Instance, this));
                                         break;
@@ -383,9 +379,9 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         if (memberType.HasFlag(AstMemberType.Cursors) ||
                             memberType.HasFlag(AstMemberType.Tables))
                         {
-                            if(memberType.HasFlag(AstMemberType.Cursors))
+                            if (memberType.HasFlag(AstMemberType.Cursors))
                                 members.AddRange((_body as IModuleResult).Cursors.Select(x => new MemberResult(x.Value.Name, x.Value, GeneroMemberType.Cursor, this)));
-                            if(memberType.HasFlag(AstMemberType.Tables))
+                            if (memberType.HasFlag(AstMemberType.Tables))
                                 members.AddRange((_body as IModuleResult).Tables.Select(x => new MemberResult(x.Value.Name, x.Value, GeneroMemberType.DbTable, this)));
                         }
                         else
@@ -430,7 +426,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                     members.AddRange(modRes.GlobalConstants.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Constant, this)));
                                     members.AddRange(modRes.Constants.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Constant, this)));
                                 }
-                                if(memberType.HasFlag(AstMemberType.Dialogs))
+                                if (memberType.HasFlag(AstMemberType.Dialogs))
                                 {
                                     members.AddRange(modRes.Functions.Where(x => x.Value is DeclarativeDialogBlock)
                                                                      .Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Dialog, this)));
@@ -470,15 +466,10 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 _includePublicFunctions = true; // allow for deferred adding of public functions
             }
 
-            //if (funcs && _functionProvider != null)
-            //{
-            //    members.Add(new MemberResult(_functionProvider.Name, GeneroMemberType.Namespace, this));
-
-            //    if (_includePublicFunctions && !string.IsNullOrWhiteSpace(_contextString))
-            //    {
-            //        members.AddRange(_functionProvider.GetFunctionsStartingWith(_contextString).Select(x => new MemberResult(x.Name, x, GeneroMemberType.Function, this)));
-            //    }
-            //}
+            if(memberType.HasFlag(AstMemberType.Tables))
+            {
+                _includeDatabaseTables = true;  // allow for deferred adding of external database tables
+            }
 
             members.AddRange(this.ProjectEntry.GetIncludedFiles().Where(x => x.Analysis != null).SelectMany(x => x.Analysis.GetDefinedMembers(1, memberType)));
 
@@ -545,7 +536,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                             if (analysisRes != null)
                             {
                                 IEnumerable<MemberResult> memberList = analysisRes.GetMembers(this, memberType, !var[var.Length - 1].Equals(']'));
-                                if(memberList != null)
+                                if (memberList != null)
                                 {
                                     results.AddRange(memberList);
                                 }
@@ -764,6 +755,46 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         };
 
         #endregion
+
+        /// <summary>
+        /// Gets the available names at the given location.  This includes built-in variables, global variables, and locals.
+        /// </summary>
+        /// <param name="index">The 0-based absolute index into the file where the available mebmers should be looked up.</param>
+        public IEnumerable<MemberResult> GetAllAvailableMembersByIndex(int index, IReverseTokenizer revTokenizer, 
+                                                                        out bool includePublicFunctions, out bool includeDatabaseTables, 
+                                                                        GetMemberOptions options = GetMemberOptions.IntersectMultipleResults)
+        {
+            _includePublicFunctions = includePublicFunctions = false;    // this is a flag that the context determination logic sets if public functions should eventually be included in the set
+            _includeDatabaseTables = includeDatabaseTables = false;
+
+            List<MemberResult> members = new List<MemberResult>();
+            // First see if we have a member completion
+            if (TryMemberAccess(index, revTokenizer, out members))
+            {
+                _includePublicFunctions = false;
+                _includeDatabaseTables = false;
+            }
+            else
+            {
+                // Calling determine context here verifies that the context isn't in a position where completions should be shown at all.
+                if (!DetermineContext(index, revTokenizer, members, true))
+                {
+                    HashSet<MemberResult> res = new HashSet<MemberResult>();
+                    res.AddRange(GetKeywordMembers(options));
+                    res.AddRange(GetDefinedMembers(index, AstMemberType.All));
+                    includePublicFunctions = _includePublicFunctions;
+                    includeDatabaseTables = _includeDatabaseTables;
+                    _includePublicFunctions = false;    // reset the flag
+                    _includeDatabaseTables = false;
+                    return res;
+                }
+            }
+            includePublicFunctions = _includePublicFunctions;
+            includeDatabaseTables = _includeDatabaseTables;
+            _includePublicFunctions = false;    // reset the flag
+            _includeDatabaseTables = false;
+            return members;
+        }
 
         private static AstNode4gl GetContainingNode(AstNode4gl currentNode, int index)
         {

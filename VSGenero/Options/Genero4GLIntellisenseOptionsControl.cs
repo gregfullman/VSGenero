@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using VSGenero.EditorExtensions.Intellisense;
 
 namespace VSGenero.Options
 {
@@ -16,45 +17,20 @@ namespace VSGenero.Options
         {
             InitializeComponent();
             checkBoxCompletionList.Checked = VSGeneroPackage.Instance.IntellisenseOptions4GLPage.ShowCompletionList;
-            if(checkBoxCompletionList.Checked)
-            {
-                checkBoxSpaceTriggersCompletionList.Checked = VSGeneroPackage.Instance.IntellisenseOptions4GLPage.SpacebarShowsCompletionList;
-                checkBoxSpaceTriggersCompletionList.Enabled = true;
-            }
-            else
-            {
-                checkBoxSpaceTriggersCompletionList.Checked = false;
-                checkBoxSpaceTriggersCompletionList.Enabled = false;
-            }
-            checkBoxEnterCommits.Checked = VSGeneroPackage.Instance.IntellisenseOptions4GLPage.EnterCommitsIntellisense;
             checkBoxNewLineOnFullyTypedWord.Checked = VSGeneroPackage.Instance.IntellisenseOptions4GLPage.AddNewLineAtEndOfFullyTypedWord;
             checkBoxPreselectMRU.Checked = VSGeneroPackage.Instance.IntellisenseOptions4GLPage.PreSelectMRU;
             checkBoxSpacebarCommits.Checked = VSGeneroPackage.Instance.IntellisenseOptions4GLPage.SpaceCommitsIntellisense;
             textBoxCommitChars.Text = VSGeneroPackage.Instance.IntellisenseOptions4GLPage.CompletionCommittedBy;
-        }
-
-        private void checkBoxCompletionList_CheckedChanged(object sender, EventArgs e)
-        {
-            VSGeneroPackage.Instance.IntellisenseOptions4GLPage.ShowCompletionList = checkBoxCompletionList.Checked;
-            if (checkBoxCompletionList.Checked)
+            switch(VSGeneroPackage.Instance.IntellisenseOptions4GLPage.AnalysisType)
             {
-                checkBoxSpaceTriggersCompletionList.Enabled = true;
-            }
-            else
-            {
-                checkBoxSpaceTriggersCompletionList.Checked = false;
-                checkBoxSpaceTriggersCompletionList.Enabled = false;
+                case CompletionAnalysisType.Context: radioButtonContextCompletionType.Checked = true; break;
+                case CompletionAnalysisType.Normal: radioButtonNormalCompletionType.Checked = true; break;
             }
         }
 
         private void checkBoxSpacebarCommits_CheckedChanged(object sender, EventArgs e)
         {
             VSGeneroPackage.Instance.IntellisenseOptions4GLPage.SpaceCommitsIntellisense = checkBoxSpacebarCommits.Checked;
-        }
-
-        private void checkBoxEnterCommits_CheckedChanged(object sender, EventArgs e)
-        {
-            VSGeneroPackage.Instance.IntellisenseOptions4GLPage.EnterCommitsIntellisense = checkBoxEnterCommits.Checked;
         }
 
         private void checkBoxNewLineOnFullyTypedWord_CheckedChanged(object sender, EventArgs e)
@@ -72,9 +48,14 @@ namespace VSGenero.Options
             VSGeneroPackage.Instance.IntellisenseOptions4GLPage.CompletionCommittedBy = textBoxCommitChars.Text;
         }
 
-        private void checkBoxSpaceTriggersCompletionList_CheckedChanged(object sender, EventArgs e)
+        private void radioButtonNormalCompletionType_CheckedChanged(object sender, EventArgs e)
         {
-            VSGeneroPackage.Instance.IntellisenseOptions4GLPage.SpacebarShowsCompletionList = checkBoxSpaceTriggersCompletionList.Checked;
+            VSGeneroPackage.Instance.IntellisenseOptions4GLPage.AnalysisType = CompletionAnalysisType.Normal;
+        }
+
+        private void radioButtonContextCompletionType_CheckedChanged(object sender, EventArgs e)
+        {
+            VSGeneroPackage.Instance.IntellisenseOptions4GLPage.AnalysisType = CompletionAnalysisType.Context;
         }
     }
 }

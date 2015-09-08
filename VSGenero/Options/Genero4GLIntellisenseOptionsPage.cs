@@ -4,6 +4,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using VSGenero.EditorExtensions.Intellisense;
 
 namespace VSGenero.Options
 {
@@ -15,6 +16,7 @@ namespace VSGenero.Options
         private Genero4GLIntellisenseOptionsControl _window;
         private const string _defaultCompletionChars = "{}[]().,:;+-*/%&|^~=<>#'\"\\";
         private string _completionCommittedBy;
+        private CompletionAnalysisType _analysisType;
 
         public Genero4GLIntellisenseOptionsPage() : base("Intellisense")
         {
@@ -37,12 +39,6 @@ namespace VSGenero.Options
         {
             get { return _completionCommittedBy; }
             set { _completionCommittedBy = value; }
-        }
-
-        public bool EnterCommitsIntellisense
-        {
-            get { return _enterCommitsIntellisense; }
-            set { _enterCommitsIntellisense = value; }
         }
 
         public bool SpaceCommitsIntellisense
@@ -69,10 +65,10 @@ namespace VSGenero.Options
             set { _showCompletionList = value; }
         }
 
-        public bool SpacebarShowsCompletionList
+        public CompletionAnalysisType AnalysisType
         {
-            get { return _spacebarShowsCompletionList; }
-            set { _spacebarShowsCompletionList = value; }
+            get { return _analysisType; }
+            set { _analysisType = value; }
         }
 
         public override void ResetSettings()
@@ -84,6 +80,7 @@ namespace VSGenero.Options
             _showCompletionList = true;
             _spacebarShowsCompletionList = true;
             _preSelectMRU = true;
+            _analysisType = CompletionAnalysisType.Context;
         }
         
         private const string CompletionCommittedBySetting = "CompletionCommittedBy";
@@ -93,6 +90,7 @@ namespace VSGenero.Options
         private const string ShowCompletionListSetting = "ShowCompletionList";
         private const string SpacebarShowsCompletionListSetting = "SpacebarShowsCompletionList";
         private const string PreSelectMRUSetting = "PreSelectMRU";
+        private const string CompletionAnalysisTypeSetting = "ContextAnalysisType";
 
         public override void LoadSettingsFromStorage()
         {
@@ -103,7 +101,7 @@ namespace VSGenero.Options
             _showCompletionList = LoadBool(ShowCompletionListSetting) ?? true;
             _spacebarShowsCompletionList = LoadBool(SpacebarShowsCompletionListSetting) ?? true;
             _preSelectMRU = LoadBool(PreSelectMRUSetting) ?? true;
-
+            _analysisType = LoadEnum<CompletionAnalysisType>(CompletionAnalysisTypeSetting) ?? CompletionAnalysisType.Context;
         }
 
         public override void SaveSettingsToStorage()
@@ -115,6 +113,7 @@ namespace VSGenero.Options
             SaveBool(ShowCompletionListSetting, _showCompletionList);
             SaveBool(SpacebarShowsCompletionListSetting, _spacebarShowsCompletionList);
             SaveBool(PreSelectMRUSetting, _preSelectMRU);
+            SaveEnum<CompletionAnalysisType>(CompletionAnalysisTypeSetting, _analysisType);
         }
     }
 }

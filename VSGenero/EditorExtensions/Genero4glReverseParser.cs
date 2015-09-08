@@ -536,7 +536,7 @@ namespace VSGenero.EditorExtensions
                             {
                                 endCheck = _snapshot.Length - enumerator.Current.Span.End.Position;
                             }
-                            var nextTokens = _classifier.GetTokens(new SnapshotSpan(_snapshot, new Span(enumerator.Current.Span.End.Position - 1, endCheck))).ToList();
+                            var nextTokens = _classifier.GetTokens(new SnapshotSpan(_snapshot, new Span(enumerator.Current.Span.End.Position - 1, endCheck)), false).ToList();
                             int parenIndex = -1;
                             if (nextTokens.Count > 0)
                             {

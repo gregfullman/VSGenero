@@ -108,14 +108,6 @@ namespace VSGenero
             }
         }
 
-        public bool SpaceTriggersCompletion
-        {
-            get
-            {
-                return VSGeneroPackage.Instance.IntellisenseOptions4GLPage.SpacebarShowsCompletionList;
-            }
-        }
-
         public bool AutoListMembers
         {
             get
