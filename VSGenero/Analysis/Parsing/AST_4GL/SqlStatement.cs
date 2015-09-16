@@ -226,7 +226,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 if (!isStarOnly)
                 {
                     node.SelectAll = false;
-                    while (true)
+                    while (!parser.PeekToken(TokenKind.EndOfFile))
                     {
                         if (parser.PeekToken(TokenKind.CaseKeyword))
                         {

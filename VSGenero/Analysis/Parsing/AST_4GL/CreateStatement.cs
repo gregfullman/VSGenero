@@ -231,7 +231,12 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
         public string Name
         {
-            get { return TableName.Name; }
+            get 
+            {
+                if (TableName == null)
+                    return null;
+                return TableName.Name; 
+            }
         }
 
         public int LocationIndex

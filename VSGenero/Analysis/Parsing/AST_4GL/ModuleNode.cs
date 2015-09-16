@@ -515,10 +515,17 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
         public void BindTableResult(IAnalysisResult tableResult, IParser parser)
         {
-            if (!Tables.ContainsKey(tableResult.Name))
-                Tables.Add(tableResult.Name, tableResult);
+            if (string.IsNullOrWhiteSpace(tableResult.Name))
+            {
+                parser.ReportSyntaxError(tableResult.LocationIndex, tableResult.LocationIndex + 1, "Database table found with no name.", Severity.Error);
+            }
             else
-                parser.ReportSyntaxError(tableResult.LocationIndex, tableResult.LocationIndex + tableResult.Name.Length, string.Format("Database table {0} defined more than once.", tableResult.Name), Severity.Error);
+            {
+                if (!Tables.ContainsKey(tableResult.Name))
+                    Tables.Add(tableResult.Name, tableResult);
+                else
+                    parser.ReportSyntaxError(tableResult.LocationIndex, tableResult.LocationIndex + tableResult.Name.Length, string.Format("Database table {0} defined more than once.", tableResult.Name), Severity.Error);
+            }
         }
 
         public PrepareStatement PreparedCursorResolver(string prepIdent)
