@@ -28,12 +28,14 @@
     <VSCTDefinitions>DEV14;DEV14_OR_LATER;DEV12_OR_LATER;DEV11_OR_LATER</VSCTDefinitions>
     <MicrosoftBuildAssemblyVersion>14.0.0.0</MicrosoftBuildAssemblyVersion>
     <MicrosoftBuildAssemblyVersionSuffix>Core</MicrosoftBuildAssemblyVersionSuffix>
+    <AssemblyName>VSGenero2015</AssemblyName>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '12.0' ">
     <DefineConstants>$(DefineConstants);DEV12;DEV12_OR_LATER;DEV11_OR_LATER</DefineConstants>
     <VSCTDefinitions>DEV12;DEV12_OR_LATER;DEV11_OR_LATER</VSCTDefinitions>
     <MicrosoftBuildAssemblyVersion>12.0.0.0</MicrosoftBuildAssemblyVersion>
     <MicrosoftBuildAssemblyVersionSuffix>v12.0</MicrosoftBuildAssemblyVersionSuffix>
+    <AssemblyName>VSGenero</AssemblyName>
   </PropertyGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
@@ -78,7 +80,7 @@
     <GetVsixSourceItemsDependsOn>$(GetVsixSourceItemsDependsOn);GetVsixTemplateItems</GetVsixSourceItemsDependsOn>
     <DeployVSTemplates>false</DeployVSTemplates>
   </PropertyGroup>
-  <PropertyGroup>
+  <PropertyGroup Condition="">
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <SchemaVersion>2.0</SchemaVersion>
@@ -87,7 +89,6 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>VSGenero</RootNamespace>
-    <AssemblyName>VSGenero2015</AssemblyName>
     <SignAssembly>True</SignAssembly>
     <AssemblyOriginatorKeyFile>Key.snk</AssemblyOriginatorKeyFile>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
