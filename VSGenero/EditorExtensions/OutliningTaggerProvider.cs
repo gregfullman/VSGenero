@@ -169,14 +169,27 @@ namespace VSGenero.EditorExtensions
                 }
             }
 
-            private void GetOutlinableResults(AstNode4gl node, ref List<IOutlinableResult> outlinables)
+            private void GetOutlinableResults(AstNode4gl node, ref List<IOutlinableResult> outlinables, bool topLevel = true)
             {
+                if(topLevel &&
+                   (!VSGeneroPackage.Instance.AdvancedOptions4GLPage.MajorCollapseRegionsEnabled &&
+                    !VSGeneroPackage.Instance.AdvancedOptions4GLPage.MinorCollapseRegionsEnabled))
+                {
+                    // Skip outlining if neither are enabled
+                    return;
+                }
+
                 foreach(var child in node.Children)
                 {
-                    if (child.Value is IOutlinableResult)
-                        outlinables.Add(child.Value as IOutlinableResult);
+                    if ((topLevel && VSGeneroPackage.Instance.AdvancedOptions4GLPage.MajorCollapseRegionsEnabled) ||
+                        (!topLevel && VSGeneroPackage.Instance.AdvancedOptions4GLPage.MinorCollapseRegionsEnabled))
+                    {
+                        if (child.Value is IOutlinableResult)
+                            outlinables.Add(child.Value as IOutlinableResult);
+                    }
+
                     if (child.Value.Children.Count > 0)
-                        GetOutlinableResults(child.Value, ref outlinables);
+                        GetOutlinableResults(child.Value, ref outlinables, false);
                 }
             }
 
@@ -184,23 +197,26 @@ namespace VSGenero.EditorExtensions
             {
                 Stack<GeneroCodeRegion> regions = new Stack<GeneroCodeRegion>();
                 List<GeneroCodeRegion> regionList = new List<GeneroCodeRegion>();
-                foreach(var tok in regionTokens)
+                if (VSGeneroPackage.Instance.AdvancedOptions4GLPage.CustomCollapseRegionsEnabled)
                 {
-                    var commentStr = tok.Token.Value.ToString();
-                    if(commentStr.StartsWith("#region", StringComparison.OrdinalIgnoreCase))
+                    foreach (var tok in regionTokens)
                     {
-                        var codeRegion = new GeneroCodeRegion() { StartIndex = tok.Span.Start };
-                        int startIndex = 7;
-                        while (startIndex < commentStr.Length && char.IsWhiteSpace(commentStr[startIndex++]));
-                        codeRegion.DecoratorStart = tok.Span.Start + --startIndex;
-                        codeRegion.DecoratorEnd = tok.Span.End;
-                        regions.Push(codeRegion);
-                    }
-                    else if(regions.Count > 0)
-                    {
-                        var codeRegion = regions.Pop();
-                        codeRegion.EndIndex = tok.Span.End;
-                        regionList.Add(codeRegion);
+                        var commentStr = tok.Token.Value.ToString();
+                        if (commentStr.StartsWith("#region", StringComparison.OrdinalIgnoreCase))
+                        {
+                            var codeRegion = new GeneroCodeRegion() { StartIndex = tok.Span.Start };
+                            int startIndex = 7;
+                            while (startIndex < commentStr.Length && char.IsWhiteSpace(commentStr[startIndex++])) ;
+                            codeRegion.DecoratorStart = tok.Span.Start + --startIndex;
+                            codeRegion.DecoratorEnd = tok.Span.End;
+                            regions.Push(codeRegion);
+                        }
+                        else if (regions.Count > 0)
+                        {
+                            var codeRegion = regions.Pop();
+                            codeRegion.EndIndex = tok.Span.End;
+                            regionList.Add(codeRegion);
+                        }
                     }
                 }
                 return regionList;

@@ -19,6 +19,7 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio;
 using VSGenero.Navigation;
+using VSGenero.Options;
 
 namespace VSGenero
 {
@@ -71,10 +72,24 @@ namespace VSGenero
                     VSGeneroCodeWindowManager.ToggleNavigationBar(_preferences.fDropdownBar != 0);
                 }
             }
-            if (VSGeneroPackage.Instance.AdvancedOptions4GLPage.ShowFunctionParametersChanged)
+
+            var optionsChanged = VSGeneroPackage.Instance.AdvancedOptions4GLPage.OptionsChanged;
+
+            if (optionsChanged.HasFlag(AdvancedOptions.ShowFunctionParameters))
             {
                 VSGeneroCodeWindowManager.RefreshNavigationBar();
                 VSGeneroPackage.Instance.AdvancedOptions4GLPage.SetChangesApplied();
+            }
+            if(optionsChanged.HasFlag(AdvancedOptions.MajorCollapseRegions) ||
+               optionsChanged.HasFlag(AdvancedOptions.MinorCollapseRegions) ||
+               optionsChanged.HasFlag(AdvancedOptions.CustomCollapseRegions))
+            {
+                // TODO: update the outliner
+
+            }
+            if(optionsChanged.HasFlag(AdvancedOptions.SemanticErrorChecking))
+            {
+                // TODO: update the semantic error checker
             }
             return VSConstants.S_OK;
         }

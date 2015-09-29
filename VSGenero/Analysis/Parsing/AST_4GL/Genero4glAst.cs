@@ -227,7 +227,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         //    return res.ToArray();
         //}
 
-        public FunctionBlockNode GetContainingFunction(int index)
+        public FunctionBlockNode GetContainingFunction(int index, bool returnNextIfOutside)
         {
             AstNode4gl containingNode = null;
             List<int> keys = null;
@@ -249,6 +249,20 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
                 // TODO: need to handle multiple results of the same name
                 containingNode = _body.Children[key];
+                if (returnNextIfOutside && containingNode.EndIndex < index)
+                {
+                    // need to go to the next function
+                    searchIndex++;
+                    if (keys.Count > searchIndex)
+                    {
+                        key = keys[searchIndex];
+                        containingNode = _body.Children[key];
+                    }
+                    else
+                    {
+                        containingNode = null;
+                    }
+                }
             }
 
             if (containingNode != null &&

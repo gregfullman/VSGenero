@@ -7,17 +7,33 @@ using System.Threading.Tasks;
 
 namespace VSGenero.Options
 {
+    public enum AdvancedOptions
+    {
+        None = 0,
+        ShowFunctionParameters = 1,
+        MajorCollapseRegions = 2,
+        MinorCollapseRegions = 4,
+        CustomCollapseRegions = 8,
+        SemanticErrorChecking = 16
+    }
+
     [ComVisible(true)]
     public class Genero4GLAdvancedOptionsPage : GeneroDialogPage
     {
-        private bool _showFunctionParametersChanged;
         private Genero4GLAdvancedOptionsControl _window;
+
+        private AdvancedOptions _optionsChanged;
         private bool _showFunctionParameters;
+
+        private bool _majorCollapseRegionsEnabled;
+        private bool _minorCollapseRegionsEnabled;
+        private bool _customCollapseRegionsEnabled;
+        private bool _semanticErrorCheckingEnabled;
 
         public Genero4GLAdvancedOptionsPage()
             : base("Advanced")
         {
-            _showFunctionParametersChanged = false;
+            _optionsChanged = AdvancedOptions.None;
         }
 
         // replace the default UI of the dialog page w/ our own UI.
@@ -41,22 +57,74 @@ namespace VSGenero.Options
                 if (_showFunctionParameters != value)
                 {
                     _showFunctionParameters = value;
-                    _showFunctionParametersChanged = true;
+                    _optionsChanged |= AdvancedOptions.ShowFunctionParameters;
                 }
             }
         }
 
-        public bool ShowFunctionParametersChanged
+        public bool MajorCollapseRegionsEnabled
+        {
+            get { return _majorCollapseRegionsEnabled; }
+            set
+            {
+                if(_majorCollapseRegionsEnabled != value)
+                {
+                    _majorCollapseRegionsEnabled = value;
+                    _optionsChanged |= AdvancedOptions.MajorCollapseRegions;
+                }
+            }
+        }
+
+        public bool MinorCollapseRegionsEnabled
+        {
+            get { return _minorCollapseRegionsEnabled; }
+            set
+            {
+                if (_minorCollapseRegionsEnabled != value)
+                {
+                    _minorCollapseRegionsEnabled = value;
+                    _optionsChanged |= AdvancedOptions.MinorCollapseRegions;
+                }
+            }
+        }
+
+        public bool CustomCollapseRegionsEnabled
+        {
+            get { return _customCollapseRegionsEnabled; }
+            set
+            {
+                if (_customCollapseRegionsEnabled != value)
+                {
+                    _customCollapseRegionsEnabled = value;
+                    _optionsChanged |= AdvancedOptions.CustomCollapseRegions;
+                }
+            }
+        }
+
+        public bool SemanticErrorCheckingEnabled
+        {
+            get { return _semanticErrorCheckingEnabled; }
+            set
+            {
+                if (_semanticErrorCheckingEnabled != value)
+                {
+                    _semanticErrorCheckingEnabled = value;
+                    _optionsChanged |= AdvancedOptions.SemanticErrorChecking;
+                }
+            }
+        }
+
+        public AdvancedOptions OptionsChanged
         {
             get
             {
-                return _showFunctionParametersChanged;
+                return _optionsChanged;
             }
         }
 
         public void SetChangesApplied()
         {
-            _showFunctionParametersChanged = false;
+            _optionsChanged = AdvancedOptions.None;
         }
 
         public override void ResetSettings()
@@ -65,22 +133,34 @@ namespace VSGenero.Options
         }
 
         private const string ShowFunctionParametersSetting = "ShowFunctionParametersInList";
+        private const string MajorCollapseRegionsEnabledSetting = "MajorCollapseRegionsEnabled";
+        private const string MinorCollapseRegionsEnabledSetting = "MinorCollapseRegionsEnabled";
+        private const string CustomCollapseRegionsEnabledSetting = "CustomCollapseRegionsEnabled";
+        private const string SemanticErrorCheckingEnabledSetting = "SemanticErrorCheckingEnabled";
 
         public override void LoadSettingsFromStorage()
         {
             _showFunctionParameters = LoadBool(ShowFunctionParametersSetting) ?? true;
+            _minorCollapseRegionsEnabled = LoadBool(MinorCollapseRegionsEnabledSetting) ?? true;
+            _majorCollapseRegionsEnabled = LoadBool(MajorCollapseRegionsEnabledSetting) ?? true;
+            _customCollapseRegionsEnabled = LoadBool(CustomCollapseRegionsEnabledSetting) ?? true;
+            _semanticErrorCheckingEnabled = LoadBool(SemanticErrorCheckingEnabledSetting) ?? false;     // TODO: for right now, I'm defaulting the semantic error checking to false
 
-            if (_showFunctionParametersChanged)
+            if (_optionsChanged != AdvancedOptions.None)
             {
                 VSGeneroPackage.Instance.LangPrefs.OnUserPreferencesChanged2(null, null, null, null);
             }
 
-            _showFunctionParametersChanged = false;
+            _optionsChanged = AdvancedOptions.None;
         }
 
         public override void SaveSettingsToStorage()
         {
             SaveBool(ShowFunctionParametersSetting, _showFunctionParameters);
+            SaveBool(MinorCollapseRegionsEnabledSetting, _minorCollapseRegionsEnabled);
+            SaveBool(MajorCollapseRegionsEnabledSetting, _majorCollapseRegionsEnabled);
+            SaveBool(CustomCollapseRegionsEnabledSetting, _customCollapseRegionsEnabled);
+            SaveBool(SemanticErrorCheckingEnabledSetting, _semanticErrorCheckingEnabled);
         }
     }
 }

@@ -41,6 +41,7 @@ namespace VSGenero.Navigation
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly IVsCodeWindow _window;
+        private readonly ITextView _textView;
         private readonly ITextBuffer _textBuffer;
         private static readonly HashSet<VSGeneroCodeWindowManager> _windows = new HashSet<VSGeneroCodeWindowManager>();
         private uint _cookieVsCodeWindowEvents;
@@ -382,6 +383,19 @@ namespace VSGenero.Navigation
             return VSConstants.S_OK;
         }
 
+        private void ToggleWindowOutlining()
+        {
+            IWpfTextView tv;
+            if(_textBuffer.Properties.TryGetProperty(typeof(IWpfTextView), out tv))
+            {
+                var tagger = (tv as ITextView).GetOutliningTagger();
+                if(tagger != null)
+                {
+                    tagger.Enable();
+                }
+            }
+        }
+
         private static void OnIdle(object sender, ComponentManagerEventArgs e)
         {
             foreach (var window in _windows)
@@ -419,6 +433,14 @@ namespace VSGenero.Navigation
                 {
                     ErrorHandler.ThrowOnFailure(window.RemoveDropDownBar());
                 }
+            }
+        }
+
+        public static void ToggleOutlining()
+        {
+            foreach (var window in _windows)
+            {
+                window.ToggleWindowOutlining();
             }
         }
 

@@ -1194,13 +1194,16 @@ namespace VSGenero.EditorExtensions.Intellisense
                     _analysisQueue.Enqueue(pyEntry, AnalysisPriority.Normal);
                     pyEntry.UpdateIncludesAndImports(filename, ast);
 
-                    if (!pyEntry.CanErrorCheck)
+                    if (VSGeneroPackage.Instance.AdvancedOptions4GLPage.SemanticErrorCheckingEnabled)
                     {
-                        _waitingErrorCheckers.Enqueue(pyEntry);
-                    }
-                    else
-                    {
-                        CheckForErrors(pyEntry);
+                        if (!pyEntry.CanErrorCheck)
+                        {
+                            _waitingErrorCheckers.Enqueue(pyEntry);
+                        }
+                        else
+                        {
+                            CheckForErrors(pyEntry);
+                        }
                     }
                 }
             }
@@ -1260,13 +1263,16 @@ namespace VSGenero.EditorExtensions.Intellisense
                     pyProjEntry.UpdateTree(prevTree, prevCookie);
                 }
 
-                if (!pyProjEntry.CanErrorCheck)
+                if (VSGeneroPackage.Instance.AdvancedOptions4GLPage.SemanticErrorCheckingEnabled)
                 {
-                    _waitingErrorCheckers.Enqueue(pyProjEntry);
-                }
-                else
-                {
-                    CheckForErrors(pyProjEntry);
+                    if (!pyProjEntry.CanErrorCheck)
+                    {
+                        _waitingErrorCheckers.Enqueue(pyProjEntry);
+                    }
+                    else
+                    {
+                        CheckForErrors(pyProjEntry);
+                    }
                 }
             }
         }
@@ -1289,10 +1295,13 @@ namespace VSGenero.EditorExtensions.Intellisense
             }
             if (!projEntry.PreventErrorCheck)
             {
-                projEntry.Analysis.CheckForErrors((msg, start, end) =>
+                if (VSGeneroPackage.Instance.AdvancedOptions4GLPage.SemanticErrorCheckingEnabled)
                 {
-                    astErrors.Add(msg, projEntry.Analysis._lineLocations, start, end, ErrorCodes.SyntaxError, Severity.Error);
-                });
+                    projEntry.Analysis.CheckForErrors((msg, start, end) =>
+                    {
+                        astErrors.Add(msg, projEntry.Analysis._lineLocations, start, end, ErrorCodes.SyntaxError, Severity.Error);
+                    });
+                }
 
                 projEntry.IsErrorChecked = true;
                 // update any errors found
@@ -1316,17 +1325,20 @@ namespace VSGenero.EditorExtensions.Intellisense
                     IGeneroProjectEntry entry;
                     if(_waitingErrorCheckers.TryDequeue(out entry))
                     {
-                        if (!entry.PreventErrorCheck)
+                        if (VSGeneroPackage.Instance.AdvancedOptions4GLPage.SemanticErrorCheckingEnabled)
                         {
-                            if (entry.CanErrorCheck)
+                            if (!entry.PreventErrorCheck)
                             {
-                                // check the errors
-                                CheckForErrors(entry);
-                            }
-                            else
-                            {
-                                // defer for later
-                                tempQueue.Add(entry);
+                                if (entry.CanErrorCheck)
+                                {
+                                    // check the errors
+                                    CheckForErrors(entry);
+                                }
+                                else
+                                {
+                                    // defer for later
+                                    tempQueue.Add(entry);
+                                }
                             }
                         }
                     }
