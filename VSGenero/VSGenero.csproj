@@ -592,6 +592,7 @@
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Snippets\DynamicSnippet.cs" />
     <Compile Include="Snippets\ExpansionClient.cs" />
+    <Compile Include="Snippets\ICustomSnippetProvider.cs" />
     <Compile Include="Snippets\IPublicFunctionSnippetizer.cs" />
     <Compile Include="Snippets\RegisterSnippetsAttribute.cs" />
     <Compile Include="Snippets\SnippetGenerator.cs" />

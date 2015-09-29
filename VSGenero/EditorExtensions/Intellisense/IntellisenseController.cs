@@ -889,11 +889,29 @@ namespace VSGenero.EditorExtensions.Intellisense
 
                 int res = _oldTarget.Exec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
 
-                HandleChar((char)(ushort)System.Runtime.InteropServices.Marshal.GetObjectForNativeVariant(pvaIn));
+                HandleChar(ch);
 
                 if (_activeSession != null && !_activeSession.IsDismissed)
                 {
                     _activeSession.Filter();
+                }
+                else if(_provider._CustomSnippetProvider != null)
+                {
+                    // TODO: run the character through the custom snippet provider
+                    var customSnippet = _provider._CustomSnippetProvider.GetCustomSnippet(ch);
+                    if(customSnippet != null)
+                    {
+                        int startLine, startColumn, endLine, endColumn;
+                        _vsTextView.GetCaretPos(out startLine, out endColumn);
+                        startColumn = endColumn - customSnippet.ReplaceString.Length;
+                        endLine = startLine;
+
+                        MSXML.DOMDocument domDoc = new MSXML.DOMDocument();
+                        domDoc.loadXML(SnippetGenerator.GenerateSnippetXml(customSnippet.Snippet));
+                        MSXML.IXMLDOMNode node = domDoc;
+                        InsertCodeExpansion(node, startLine, startColumn, endLine, endColumn);
+                        return VSConstants.S_OK;
+                    }
                 }
 
                 return res;

@@ -52,6 +52,9 @@ namespace VSGenero.EditorExtensions.Intellisense
         internal IPublicFunctionSnippetizer _PublicFunctionSnippetizer = null;  // Set view MEF
 
         [Import(AllowDefault = true)]
+        internal ICustomSnippetProvider _CustomSnippetProvider = null;
+
+        [Import(AllowDefault = true)]
         internal IFunctionInformationProvider _PublicFunctionProvider = null;
 
         [Import(AllowDefault = true)]
