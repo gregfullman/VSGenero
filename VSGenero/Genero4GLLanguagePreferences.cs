@@ -75,7 +75,8 @@ namespace VSGenero
 
             var optionsChanged = VSGeneroPackage.Instance.AdvancedOptions4GLPage.OptionsChanged;
 
-            if (optionsChanged.HasFlag(AdvancedOptions.ShowFunctionParameters))
+            if (optionsChanged.HasFlag(AdvancedOptions.ShowFunctionParameters) ||
+                optionsChanged.HasFlag(AdvancedOptions.IncludeAllFunctions))
             {
                 VSGeneroCodeWindowManager.RefreshNavigationBar();
                 VSGeneroPackage.Instance.AdvancedOptions4GLPage.SetChangesApplied();

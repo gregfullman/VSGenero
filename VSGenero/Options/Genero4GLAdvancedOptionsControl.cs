@@ -16,6 +16,7 @@ namespace VSGenero.Options
         {
             InitializeComponent();
             checkBoxShowFunctionParams.Checked = VSGeneroPackage.Instance.AdvancedOptions4GLPage.ShowFunctionParametersInList;
+            checkBoxIncludeAllFunctions.Checked = VSGeneroPackage.Instance.AdvancedOptions4GLPage.IncludeAllFunctions;
             checkBoxMinorCollapseRegions.Checked = VSGeneroPackage.Instance.AdvancedOptions4GLPage.MinorCollapseRegionsEnabled;
             checkBoxMajorCollapseRegions.Checked = VSGeneroPackage.Instance.AdvancedOptions4GLPage.MajorCollapseRegionsEnabled;
             checkBoxCustomCollapseRegions.Checked = VSGeneroPackage.Instance.AdvancedOptions4GLPage.CustomCollapseRegionsEnabled;
@@ -45,6 +46,11 @@ namespace VSGenero.Options
         private void checkBoxSemanticErrorChecking_CheckedChanged(object sender, EventArgs e)
         {
             VSGeneroPackage.Instance.AdvancedOptions4GLPage.SemanticErrorCheckingEnabled = checkBoxSemanticErrorChecking.Checked;
+        }
+
+        private void checkBoxIncludeAllFunctions_CheckedChanged(object sender, EventArgs e)
+        {
+            VSGeneroPackage.Instance.AdvancedOptions4GLPage.IncludeAllFunctions = checkBoxIncludeAllFunctions.Checked;
         }
     }
 }

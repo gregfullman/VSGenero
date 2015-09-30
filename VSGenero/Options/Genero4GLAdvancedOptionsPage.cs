@@ -14,7 +14,8 @@ namespace VSGenero.Options
         MajorCollapseRegions = 2,
         MinorCollapseRegions = 4,
         CustomCollapseRegions = 8,
-        SemanticErrorChecking = 16
+        SemanticErrorChecking = 16,
+        IncludeAllFunctions = 32
     }
 
     [ComVisible(true)]
@@ -24,6 +25,7 @@ namespace VSGenero.Options
 
         private AdvancedOptions _optionsChanged;
         private bool _showFunctionParameters;
+        private bool _includeAllFunctions;
 
         private bool _majorCollapseRegionsEnabled;
         private bool _minorCollapseRegionsEnabled;
@@ -58,6 +60,19 @@ namespace VSGenero.Options
                 {
                     _showFunctionParameters = value;
                     _optionsChanged |= AdvancedOptions.ShowFunctionParameters;
+                }
+            }
+        }
+
+        public bool IncludeAllFunctions
+        {
+            get { return _includeAllFunctions; }
+            set
+            {
+                if (_includeAllFunctions != value)
+                {
+                    _includeAllFunctions = value;
+                    _optionsChanged |= AdvancedOptions.IncludeAllFunctions;
                 }
             }
         }
@@ -137,10 +152,12 @@ namespace VSGenero.Options
         private const string MinorCollapseRegionsEnabledSetting = "MinorCollapseRegionsEnabled";
         private const string CustomCollapseRegionsEnabledSetting = "CustomCollapseRegionsEnabled";
         private const string SemanticErrorCheckingEnabledSetting = "SemanticErrorCheckingEnabled";
+        private const string IncludeAllFunctionsSetting = "IncludeAllFunctions";
 
         public override void LoadSettingsFromStorage()
         {
             _showFunctionParameters = LoadBool(ShowFunctionParametersSetting) ?? true;
+            _includeAllFunctions = LoadBool(IncludeAllFunctionsSetting) ?? true;
             _minorCollapseRegionsEnabled = LoadBool(MinorCollapseRegionsEnabledSetting) ?? true;
             _majorCollapseRegionsEnabled = LoadBool(MajorCollapseRegionsEnabledSetting) ?? true;
             _customCollapseRegionsEnabled = LoadBool(CustomCollapseRegionsEnabledSetting) ?? true;
@@ -157,6 +174,7 @@ namespace VSGenero.Options
         public override void SaveSettingsToStorage()
         {
             SaveBool(ShowFunctionParametersSetting, _showFunctionParameters);
+            SaveBool(IncludeAllFunctionsSetting, _includeAllFunctions);
             SaveBool(MinorCollapseRegionsEnabledSetting, _minorCollapseRegionsEnabled);
             SaveBool(MajorCollapseRegionsEnabledSetting, _majorCollapseRegionsEnabled);
             SaveBool(CustomCollapseRegionsEnabledSetting, _customCollapseRegionsEnabled);

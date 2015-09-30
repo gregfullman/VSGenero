@@ -33,9 +33,10 @@
             this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.checkBoxSemanticErrorChecking = new System.Windows.Forms.CheckBox();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
-            this.checkBoxMajorCollapseRegions = new System.Windows.Forms.CheckBox();
-            this.checkBoxMinorCollapseRegions = new System.Windows.Forms.CheckBox();
             this.checkBoxCustomCollapseRegions = new System.Windows.Forms.CheckBox();
+            this.checkBoxMinorCollapseRegions = new System.Windows.Forms.CheckBox();
+            this.checkBoxMajorCollapseRegions = new System.Windows.Forms.CheckBox();
+            this.checkBoxIncludeAllFunctions = new System.Windows.Forms.CheckBox();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.groupBox3.SuspendLayout();
@@ -43,10 +44,11 @@
             // 
             // groupBox1
             // 
+            this.groupBox1.Controls.Add(this.checkBoxIncludeAllFunctions);
             this.groupBox1.Controls.Add(this.checkBoxShowFunctionParams);
             this.groupBox1.Location = new System.Drawing.Point(4, 4);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(473, 46);
+            this.groupBox1.Size = new System.Drawing.Size(473, 71);
             this.groupBox1.TabIndex = 0;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Navigation Bars";
@@ -65,7 +67,7 @@
             // groupBox2
             // 
             this.groupBox2.Controls.Add(this.checkBoxSemanticErrorChecking);
-            this.groupBox2.Location = new System.Drawing.Point(4, 147);
+            this.groupBox2.Location = new System.Drawing.Point(4, 169);
             this.groupBox2.Name = "groupBox2";
             this.groupBox2.Size = new System.Drawing.Size(473, 46);
             this.groupBox2.TabIndex = 1;
@@ -88,23 +90,23 @@
             this.groupBox3.Controls.Add(this.checkBoxCustomCollapseRegions);
             this.groupBox3.Controls.Add(this.checkBoxMinorCollapseRegions);
             this.groupBox3.Controls.Add(this.checkBoxMajorCollapseRegions);
-            this.groupBox3.Location = new System.Drawing.Point(4, 52);
+            this.groupBox3.Location = new System.Drawing.Point(4, 74);
             this.groupBox3.Name = "groupBox3";
             this.groupBox3.Size = new System.Drawing.Size(473, 89);
             this.groupBox3.TabIndex = 2;
             this.groupBox3.TabStop = false;
             this.groupBox3.Text = "Code Collapse/Expand";
             // 
-            // checkBoxMajorCollapseRegions
+            // checkBoxCustomCollapseRegions
             // 
-            this.checkBoxMajorCollapseRegions.AutoSize = true;
-            this.checkBoxMajorCollapseRegions.Location = new System.Drawing.Point(16, 20);
-            this.checkBoxMajorCollapseRegions.Name = "checkBoxMajorCollapseRegions";
-            this.checkBoxMajorCollapseRegions.Size = new System.Drawing.Size(319, 17);
-            this.checkBoxMajorCollapseRegions.TabIndex = 0;
-            this.checkBoxMajorCollapseRegions.Text = "Enable major collapse regions (functions, reports, globals, etc.)";
-            this.checkBoxMajorCollapseRegions.UseVisualStyleBackColor = true;
-            this.checkBoxMajorCollapseRegions.CheckedChanged += new System.EventHandler(this.checkBoxMajorCollapseRegions_CheckedChanged);
+            this.checkBoxCustomCollapseRegions.AutoSize = true;
+            this.checkBoxCustomCollapseRegions.Location = new System.Drawing.Point(16, 66);
+            this.checkBoxCustomCollapseRegions.Name = "checkBoxCustomCollapseRegions";
+            this.checkBoxCustomCollapseRegions.Size = new System.Drawing.Size(245, 17);
+            this.checkBoxCustomCollapseRegions.TabIndex = 2;
+            this.checkBoxCustomCollapseRegions.Text = "Enable C#-like \"#region/#endregion\" sections";
+            this.checkBoxCustomCollapseRegions.UseVisualStyleBackColor = true;
+            this.checkBoxCustomCollapseRegions.CheckedChanged += new System.EventHandler(this.checkBoxCustomCollapseRegions_CheckedChanged);
             // 
             // checkBoxMinorCollapseRegions
             // 
@@ -117,16 +119,27 @@
             this.checkBoxMinorCollapseRegions.UseVisualStyleBackColor = true;
             this.checkBoxMinorCollapseRegions.CheckedChanged += new System.EventHandler(this.checkBoxMinorCollapseRegions_CheckedChanged);
             // 
-            // checkBoxCustomCollapseRegions
+            // checkBoxMajorCollapseRegions
             // 
-            this.checkBoxCustomCollapseRegions.AutoSize = true;
-            this.checkBoxCustomCollapseRegions.Location = new System.Drawing.Point(16, 66);
-            this.checkBoxCustomCollapseRegions.Name = "checkBoxCustomCollapseRegions";
-            this.checkBoxCustomCollapseRegions.Size = new System.Drawing.Size(245, 17);
-            this.checkBoxCustomCollapseRegions.TabIndex = 2;
-            this.checkBoxCustomCollapseRegions.Text = "Enable C#-like \"#region/#endregion\" sections";
-            this.checkBoxCustomCollapseRegions.UseVisualStyleBackColor = true;
-            this.checkBoxCustomCollapseRegions.CheckedChanged += new System.EventHandler(this.checkBoxCustomCollapseRegions_CheckedChanged);
+            this.checkBoxMajorCollapseRegions.AutoSize = true;
+            this.checkBoxMajorCollapseRegions.Location = new System.Drawing.Point(16, 20);
+            this.checkBoxMajorCollapseRegions.Name = "checkBoxMajorCollapseRegions";
+            this.checkBoxMajorCollapseRegions.Size = new System.Drawing.Size(319, 17);
+            this.checkBoxMajorCollapseRegions.TabIndex = 0;
+            this.checkBoxMajorCollapseRegions.Text = "Enable major collapse regions (functions, reports, globals, etc.)";
+            this.checkBoxMajorCollapseRegions.UseVisualStyleBackColor = true;
+            this.checkBoxMajorCollapseRegions.CheckedChanged += new System.EventHandler(this.checkBoxMajorCollapseRegions_CheckedChanged);
+            // 
+            // checkBoxIncludeAllFunctions
+            // 
+            this.checkBoxIncludeAllFunctions.AutoSize = true;
+            this.checkBoxIncludeAllFunctions.Location = new System.Drawing.Point(16, 43);
+            this.checkBoxIncludeAllFunctions.Name = "checkBoxIncludeAllFunctions";
+            this.checkBoxIncludeAllFunctions.Size = new System.Drawing.Size(218, 17);
+            this.checkBoxIncludeAllFunctions.TabIndex = 1;
+            this.checkBoxIncludeAllFunctions.Text = "Include functions from all files in directory";
+            this.checkBoxIncludeAllFunctions.UseVisualStyleBackColor = true;
+            this.checkBoxIncludeAllFunctions.CheckedChanged += new System.EventHandler(this.checkBoxIncludeAllFunctions_CheckedChanged);
             // 
             // Genero4GLAdvancedOptionsControl
             // 
@@ -157,5 +170,6 @@
         private System.Windows.Forms.CheckBox checkBoxCustomCollapseRegions;
         private System.Windows.Forms.CheckBox checkBoxMinorCollapseRegions;
         private System.Windows.Forms.CheckBox checkBoxMajorCollapseRegions;
+        private System.Windows.Forms.CheckBox checkBoxIncludeAllFunctions;
     }
 }
