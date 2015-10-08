@@ -155,6 +155,14 @@ namespace VSGenero.EditorExtensions
                                     break;
                                 }
                             }
+                            else if(!useContains && 
+                                    keyword.Equals("function", StringComparison.OrdinalIgnoreCase) && 
+                                    lineTokens.Count > 1 &&
+                                    lineTokens[1].Span.GetText().Equals(keyword, StringComparison.OrdinalIgnoreCase))
+                            {
+                                found = true;
+                                break;
+                            }
                         }
                         prevLineNo--;
                     }
