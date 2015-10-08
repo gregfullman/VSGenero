@@ -71,6 +71,7 @@ namespace VSGenero.SqlSupport
                 int startIndex = matches[i].Index;
                 // does the match start with a quote?
                 bool startsWithQuote = false;
+                bool inSfmt = false;
                 if (matches[i].Value.StartsWith("\""))
                 {
                     startIndex++;
@@ -100,8 +101,23 @@ namespace VSGenero.SqlSupport
                             j++;
                         if (substr.Length > j && substr[j] != '\"')
                         {
-                            sb.Append("\n");
-                            j--;
+                            bool alreadyInSfmt = inSfmt;
+                            if(!alreadyInSfmt && substr.Substring(j, 4).Equals("sfmt", StringComparison.OrdinalIgnoreCase))
+                            {
+                                inSfmt = true;
+                            }
+                            // continue until the quote
+                            do
+                            {
+                                if(alreadyInSfmt && substr[j] == ')')
+                                {
+                                    inSfmt = false;
+                                }
+                                j++;
+                            }
+                            while (j < substr.Length && substr[j] != '\"');
+                            //sb.Append("\n");
+                            //j--;
                         }
                         sb.Append(" ");
                     }
@@ -113,6 +129,14 @@ namespace VSGenero.SqlSupport
                                !substr.Substring(j, 4).Equals("from", StringComparison.OrdinalIgnoreCase))
                             j++;
                         j--;
+                    }
+                    else if(inSfmt && substr[j] == '%' && j + 1 < substr.Length && char.IsNumber(substr[j + 1]))
+                    {
+                        // replace the sfmt placeholder with the _dynamicPlaceholder
+                        j++;
+                        while (j < substr.Length && char.IsNumber(substr[j]))
+                            j++;
+                        sb.Append(_dynamicPlaceholder);
                     }
                     else
                     {
