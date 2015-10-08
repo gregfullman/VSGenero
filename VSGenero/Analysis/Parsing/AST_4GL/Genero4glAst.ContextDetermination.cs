@@ -260,6 +260,12 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                             new ContextSetProvider[] { GetExpressionComponents },
                             new BackwardTokenSearchItem[] 
                             { new BackwardTokenSearchItem(TokenKind.ExitKeyword, false) }
+                        ),
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetStatementStartKeywords },
+                            new BackwardTokenSearchItem[]
+                            { new BackwardTokenSearchItem(TokenKind.EndKeyword) }
                         )
                     });
                     _contextMap.Add(TokenKind.ClearKeyword, new List<ContextPossibilities>
@@ -798,6 +804,14 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                             emptyTokenKindSet,
                             new ContextSetProvider[] { GetCursors },
                             emptyBackwardTokenSearchSet
+                        ),
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
+                            new ContextSetProvider[] { GetStatementStartKeywords },
+                            new BackwardTokenSearchItem[]
+                            {
+                                new BackwardTokenSearchItem(TokenKind.EndKeyword)
+                            }
                         )
                     });
                     _contextMap.Add(TokenKind.FormKeyword, new List<ContextPossibilities>
@@ -1006,7 +1020,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     {
                         new ContextPossibilities(
                             emptyTokenKindSet,
-                            new ContextSetProvider[] { GetStatementStartKeywords, GetPostUnaryOperators },
+                            new ContextSetProvider[] { GetStatementStartKeywords, GetPostUnaryOperators, GetBinaryOperatorKeywords },
                             new BackwardTokenSearchItem[] 
                             { 
                                 new BackwardTokenSearchItem(TokenKind.WhenKeyword),
@@ -1092,7 +1106,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         ),
                         new ContextPossibilities(
                             new TokenKind [] { TokenKind.ThenKeyword },
-                            emptyContextSetProviderSet,
+                            new ContextSetProvider[] { GetBinaryOperatorKeywords },
                             new BackwardTokenSearchItem[] 
                             { 
                                 new BackwardTokenSearchItem(TokenKind.IfKeyword)
@@ -2038,6 +2052,14 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                             new BackwardTokenSearchItem[] 
                             { 
                                 new BackwardTokenSearchItem(TokenKind.StepKeyword)
+                            }
+                        ),
+                        new ContextPossibilities(
+                            new TokenKind[] { TokenKind.ThenKeyword },
+                            new ContextSetProvider[] { GetBinaryOperatorKeywords },
+                            new BackwardTokenSearchItem[]
+                            {
+                                new BackwardTokenSearchItem(TokenKind.IfKeyword)
                             }
                         ),
                         new ContextPossibilities(
