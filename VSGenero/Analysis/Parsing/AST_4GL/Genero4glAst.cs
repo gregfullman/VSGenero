@@ -952,7 +952,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         IFunctionResult funcRes;
                         if (mod.Functions.TryGetValue(exprText, out funcRes))
                         {
-                            vars.Add(new AnalysisVariable(this.ResolveLocation(funcRes), VariableType.Definition));
+                            vars.Add(new AnalysisVariable(this.ResolveLocation(funcRes), VariableType.Definition, funcRes.Name, 1));
                         }
                     }
                 }
@@ -1007,7 +1007,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                     IFunctionResult funcRes;
                                     if (modRes.Functions.TryGetValue(exprText, out funcRes))
                                     {
-                                        vars.Add(new AnalysisVariable(projEntry.Value.Analysis.ResolveLocation(funcRes), VariableType.Definition));
+                                        vars.Add(new AnalysisVariable(projEntry.Value.Analysis.ResolveLocation(funcRes), VariableType.Definition, funcRes.Name, 1));
                                     }
                                 }
                             }
@@ -1028,7 +1028,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 var funcRes = _functionProvider.GetFunction(exprText);
                 if (funcRes != null)
                 {
-                    vars.AddRange(funcRes.Select(x => new AnalysisVariable(x.Location, VariableType.Definition)));
+                    vars.AddRange(funcRes.Select(x => new AnalysisVariable(x.Location, VariableType.Definition, x.Name, 2)));
                 }
             }
 

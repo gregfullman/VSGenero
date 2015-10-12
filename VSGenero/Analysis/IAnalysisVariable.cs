@@ -34,5 +34,8 @@ namespace VSGenero.Analysis
         {
             get;
         }
+
+        string Name { get; }
+        int Priority { get; }
     }
 }

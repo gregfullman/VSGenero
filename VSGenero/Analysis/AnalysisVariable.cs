@@ -28,6 +28,20 @@ namespace VSGenero.Analysis
             _type = type;
         }
 
+        /// <summary>
+        /// Constructor to be used in cases where duplicates might exist
+        /// </summary>
+        /// <param name="locInfo"></param>
+        /// <param name="type"></param>
+        /// <param name="name"></param>
+        /// <param name="priority"></param>
+        public AnalysisVariable(LocationInfo locInfo, VariableType type, string name, int priority)
+            : this(locInfo, type)
+        {
+            _name = name;
+            _priority = priority;
+        }
+
         private LocationInfo _location;
         public LocationInfo Location
         {
@@ -38,6 +52,20 @@ namespace VSGenero.Analysis
         public VariableType Type
         {
             get { return _type; }
+        }
+
+        private string _name;
+        public string Name
+        {
+            get { return _name; }
+            set { _name = value; }
+        }
+
+        private int _priority;
+        public int Priority
+        {
+            get { return _priority; }
+            set { _priority = value; }
         }
     }
 }

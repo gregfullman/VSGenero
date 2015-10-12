@@ -279,6 +279,8 @@ namespace VSGenero.Navigation
             definitions = new Dictionary<LocationInfo, SimpleLocationInfo>();
             values = new Dictionary<LocationInfo, SimpleLocationInfo>();
 
+            var priorityVariables = new Dictionary<string, IAnalysisVariable>(StringComparer.OrdinalIgnoreCase);
+
             foreach (var v in provider.Variables)
             {
                 if (v.Location.FilePath == null)
@@ -291,6 +293,24 @@ namespace VSGenero.Navigation
                 {
                     case VariableType.Definition:
                         values.Remove(v.Location);
+
+                        if(!string.IsNullOrWhiteSpace(v.Name) && v.Priority != 0)
+                        {
+                            IAnalysisVariable existing;
+                            if(priorityVariables.TryGetValue(v.Name, out existing))
+                            {
+                                if(existing.Priority <= v.Priority)
+                                {
+                                    break;
+                                }
+                                else
+                                {
+                                    priorityVariables.Remove(v.Name);
+                                }
+                            }
+                            priorityVariables.Add(v.Name, v);
+                        }
+
                         definitions[v.Location] = new SimpleLocationInfo(provider.Expression, v.Location, StandardGlyphGroup.GlyphGroupField);
                         break;
                     case VariableType.Reference:
