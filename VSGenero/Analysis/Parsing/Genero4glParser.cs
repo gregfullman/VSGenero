@@ -101,7 +101,9 @@ namespace VSGenero.Analysis.Parsing
                     AddExtraVerbatimText(node, _lookaheadWhiteSpace + _lookahead.Token.VerbatimImage);
                 }
                 AddCodeRegions(node);
+                AddNonCodeRegionComments(node);
                 _codeRegions.Clear();
+                _nonCodeRegionComments.Clear();
             }
             foreach (var keyValue in _attributes)
             {
@@ -135,6 +137,7 @@ namespace VSGenero.Analysis.Parsing
                 return CreateAst(moduleNode);
             }
             _codeRegions.Clear();
+            _nonCodeRegionComments.Clear();
             return null;
         }
 
@@ -221,6 +224,14 @@ namespace VSGenero.Analysis.Parsing
             TokenWithSpan[] arr = new TokenWithSpan[_codeRegions.Count];
             _codeRegions.CopyTo(arr);
             GetNodeAttributes(ret)[NodeAttributes.CodeRegions] = arr;
+        }
+
+        private void AddNonCodeRegionComments(AstNode4gl ret)
+        {
+            Debug.Assert(_verbatim);
+            TokenWithSpan[] arr = new TokenWithSpan[_nonCodeRegionComments.Count];
+            _nonCodeRegionComments.CopyTo(arr);
+            GetNodeAttributes(ret)[NodeAttributes.NonCodeRegionComments] = arr;
         }
 
         private void AddListWhiteSpace(AstNode4gl ret, string[] whiteSpace)

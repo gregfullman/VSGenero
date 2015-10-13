@@ -34,6 +34,7 @@ namespace VSGenero.Analysis.Parsing
         protected IProjectEntry _projectEntry;
         protected string _filename;
         protected List<TokenWithSpan> _codeRegions;
+        protected List<TokenWithSpan> _nonCodeRegionComments;
 
         public abstract IGeneroAst ParseFile();
 
@@ -100,6 +101,7 @@ namespace VSGenero.Analysis.Parsing
             Reset();
             //StatementFactory = new FglStatementFactory();
             _codeRegions = new List<TokenWithSpan>();
+            _nonCodeRegionComments = new List<TokenWithSpan>();
         }
 
         public void Reset()
@@ -276,6 +278,10 @@ namespace VSGenero.Analysis.Parsing
                            str.StartsWith("#endregion", StringComparison.OrdinalIgnoreCase))
                         {
                             _codeRegions.Add(commentTok);
+                        }
+                        else
+                        {
+                            _nonCodeRegionComments.Add(commentTok);
                         }
                     }
                 }

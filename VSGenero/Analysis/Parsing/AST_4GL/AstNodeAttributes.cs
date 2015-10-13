@@ -71,6 +71,11 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         public static readonly object CodeRegions = new object();
 
         /// <summary>
+        /// Value is a list of commented lines that are not #region/#endregion comments
+        /// </summary>
+        public static readonly object NonCodeRegionComments = new object();
+
+        /// <summary>
         /// The tuple expression was constructed without parenthesis.  The value doesn't matter, only the
         /// presence of the metadata indicates the value is set.
         /// </summary>

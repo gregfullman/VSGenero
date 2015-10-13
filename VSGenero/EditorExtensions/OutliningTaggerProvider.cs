@@ -34,23 +34,28 @@ namespace VSGenero.EditorExtensions
     [TagType(typeof(IOutliningRegionTag))]
     class OutliningTaggerProvider : ITaggerProvider
     {
+        [Import(AllowDefault = true)]
+        internal ICustomCommentOutliningProvider _CustomCommentOutliningProvider;
+
         #region ITaggerProvider Members
 
         public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
         {
-            return (ITagger<T>)(buffer.GetOutliningTagger() ?? new OutliningTagger(buffer));
+            return (ITagger<T>)(buffer.GetOutliningTagger() ?? new OutliningTagger(buffer, this));
         }
 
         #endregion
 
         internal class OutliningTagger : ITagger<IOutliningRegionTag>
         {
+            private readonly OutliningTaggerProvider _taggerProvider;
             private readonly ITextBuffer _buffer;
             private readonly Timer _timer;
             private bool _enabled, _eventHooked;
 
-            public OutliningTagger(ITextBuffer buffer)
+            public OutliningTagger(ITextBuffer buffer, OutliningTaggerProvider provider)
             {
+                _taggerProvider = provider;
                 _buffer = buffer;
                 _buffer.Properties[typeof(OutliningTagger)] = this;
                 if (VSGeneroPackage.Instance != null)
@@ -151,6 +156,17 @@ namespace VSGenero.EditorExtensions
 
                     List<IOutlinableResult> outlinables = new List<IOutlinableResult>();
                     GetOutlinableResults(moduleNode, ref outlinables);
+
+                    if(_taggerProvider._CustomCommentOutliningProvider != null)
+                    {
+                        TokenWithSpan[] commentLines = new TokenWithSpan[0];
+                        if (ast.TryGetAttribute(moduleNode, NodeAttributes.NonCodeRegionComments, out val))
+                        {
+                            commentLines = val as TokenWithSpan[];
+                            outlinables.AddRange(_taggerProvider._CustomCommentOutliningProvider.GetRegions(commentLines));
+                        }
+                    }
+
                     foreach (var child in outlinables.Union(GetRegions(regionTokens)))
                     {
                         SnapshotSpan? span = ShouldInclude(child, spans);
