@@ -402,11 +402,6 @@ namespace Microsoft.VisualStudioTools.Project
                 throw new ArgumentException(SR.GetString(SR.ParameterCannotBeNullOrEmpty, CultureInfo.CurrentUICulture), "newName");
             }
 
-            if (newItemId == VSConstants.VSITEMID_NIL)
-            {
-                throw new ArgumentNullException("newItemId");
-            }
-
             IVsRunningDocumentTable pRDT = site.GetService(typeof(SVsRunningDocumentTable)) as IVsRunningDocumentTable;
             IVsUIShellOpenDocument doc = site.GetService(typeof(SVsUIShellOpenDocument)) as IVsUIShellOpenDocument;
 
@@ -429,6 +424,10 @@ namespace Microsoft.VisualStudioTools.Project
                     try
                     {
                         ErrorHandler.ThrowOnFailure(pRDT.RenameDocument(oldName, newName, pHier, newItemId));
+                    }
+                    catch(Exception)
+                    {
+                        int i = 0;
                     }
                     finally
                     {

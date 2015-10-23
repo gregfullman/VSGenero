@@ -86,6 +86,15 @@ namespace Microsoft.VisualStudio.VSCommon
         private IOleComponentManager _compMgr;
         private DTEEvents _packageDTEEvents = null;
 
+        private static IVsActivityLog _activityLog;
+        public static IVsActivityLog ActivityLog
+        {
+            get
+            {
+                return _activityLog;
+            }
+        }
+
         protected VSCommonPackage()
         {
             if (_documentTable == null)
@@ -99,7 +108,6 @@ namespace Microsoft.VisualStudio.VSCommon
 
         protected override void Initialize()
         {
-            // From PythonTools CommonPackage
             var componentManager = _compMgr = (IOleComponentManager)GetService(typeof(SOleComponentManager));
             OLECRINFO[] crinfo = new OLECRINFO[1];
             crinfo[0].cbSize = (uint)Marshal.SizeOf(typeof(OLECRINFO));
@@ -107,6 +115,8 @@ namespace Microsoft.VisualStudio.VSCommon
             crinfo[0].grfcadvf = (uint)_OLECADVF.olecadvfModal | (uint)_OLECADVF.olecadvfRedrawOff | (uint)_OLECADVF.olecadvfWarningsOff;
             crinfo[0].uIdleTimeInterval = 0;
             ErrorHandler.ThrowOnFailure(componentManager.FRegisterComponent(this, crinfo, out _componentID));
+
+            _activityLog = GetService(typeof(SVsActivityLog)) as IVsActivityLog;
 
             base.Initialize();
             Instance = this;
@@ -291,6 +301,11 @@ namespace Microsoft.VisualStudio.VSCommon
             IVsTextView viewAdapter;
             IVsWindowFrame pWindowFrame;
             OpenDocument(filename, out viewAdapter, out pWindowFrame);
+        }
+
+        public static void RenameDocument(string oldFilename, string newFilename)
+        {
+            DocumentManager.RenameDocument(ServiceProvider.GlobalProvider, oldFilename, newFilename, (uint)VSConstants.VSITEMID.Nil);
         }
 
         private static void OpenDocument(string filename, out IVsTextView viewAdapter, out IVsWindowFrame pWindowFrame)

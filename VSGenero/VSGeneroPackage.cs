@@ -122,13 +122,13 @@ namespace VSGenero
     [ProvideLanguageExtension(typeof(VSGeneroINCLanguageInfo), VSGeneroConstants.FileExtensionINC)]
     [ProvideLanguageEditorOptionPage(typeof(Genero4GLIntellisenseOptionsPage), VSGeneroConstants.LanguageName4GL, "", "Intellisense", "113")]
     [ProvideLanguageEditorOptionPage(typeof(Genero4GLAdvancedOptionsPage), VSGeneroConstants.LanguageName4GL, "", "Advanced", "114")]
-    
+
     // This attribute is needed to let the shell know that this package exposes some menus.
     [ProvideMenuResource("Menus.ctmenu", 1)]
 
     // This causes the package to autoload when Visual Studio starts (guid for UICONTEXT_NoSolution)
     [ProvideAutoLoad("{adfc4e64-0397-11d1-9f4e-00a0c911004f}")]
-    
+
     [Guid(GuidList.guidVSGeneroPkgString)]
     public sealed class VSGeneroPackage : VSCommonPackage
     {
@@ -267,10 +267,11 @@ namespace VSGenero
 
             TestCompletionAnalysis.InitializeResults();
 
+            var dte2 = (DTE2)Package.GetGlobalService(typeof(SDTE));
+            var sp = new ServiceProvider(dte2 as Microsoft.VisualStudio.OLE.Interop.IServiceProvider);
             try
             {
-                var dte2 = (DTE2)Package.GetGlobalService(typeof(SDTE));
-                var sp = new ServiceProvider(dte2 as Microsoft.VisualStudio.OLE.Interop.IServiceProvider);
+
                 var mefContainer = sp.GetService(typeof(Microsoft.VisualStudio.ComponentModelHost.SComponentModel))
                                     as Microsoft.VisualStudio.ComponentModelHost.IComponentModel;
                 var exportSpec = mefContainer.DefaultExportProvider.GetExport<IBuildTaskProvider>();
@@ -280,9 +281,39 @@ namespace VSGenero
                 }
                 if (DefaultAnalyzer != null)
                 { }
+
             }
             catch (Exception)
             { }
+
+            //try
+            //{
+            //    var appId = new AppId(sp);
+            //    // This is a hack for the power tools extension
+            //    var extensionsDir = new DirectoryInfo(appId.GetUserExtensionsRootFolder());
+            //    if (extensionsDir != null)
+            //    {
+            //        var assemblies = extensionsDir.GetFiles("Microsoft.PowerToolsEx.BlockTagger.dll", SearchOption.AllDirectories);
+            //        if (assemblies.Length > 1)
+            //        {
+            //            var mainFile = assemblies.FirstOrDefault(x => x.Directory.GetFiles("ProPowerToolsOptions.pkgdef", SearchOption.TopDirectoryOnly).Length > 0);
+            //            if (mainFile != null)
+            //            {
+            //                for (int i = 0; i < assemblies.Length; i++)
+            //                {
+            //                    if (assemblies[i] != mainFile)
+            //                    {
+            //                        File.SetLastAccessTimeUtc(assemblies[i].FullName, mainFile.LastWriteTimeUtc);
+            //                    }
+            //                }
+            //            }
+            //        }
+            //    }
+            //}
+            //catch (Exception e)
+            //{
+
+            //}
         }
 
         #endregion
@@ -384,7 +415,7 @@ namespace VSGenero
         public IProgramFileProvider ProgramFileProvider
         {
             get { return _programFileProvider; }
-            set 
+            set
             {
                 lock (_programFileProviderLock)
                 {
@@ -421,7 +452,7 @@ namespace VSGenero
                 if (_programCodeContentTypes == null)
                 {
                     var regSvc = ComponentModel.GetService<IContentTypeRegistryService>();
-                    _programCodeContentTypes = new List<IContentType>(); 
+                    _programCodeContentTypes = new List<IContentType>();
                     _programCodeContentTypes.Add(regSvc.GetContentType(VSGeneroConstants.ContentType4GL));
                     _programCodeContentTypes.Add(regSvc.GetContentType(VSGeneroConstants.ContentTypeINC));
                     _programCodeContentTypes.Add(regSvc.GetContentType(VSGeneroConstants.ContentTypePER));
