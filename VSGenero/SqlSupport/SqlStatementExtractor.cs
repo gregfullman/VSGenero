@@ -8,10 +8,9 @@
  *
  * You must not remove this notice, or any other, from this software.
  *
- * ***************************************************************************/ 
+ * ***************************************************************************/
 
-using Microsoft.Data.Schema.ScriptDom;
-using Microsoft.Data.Schema.ScriptDom.Sql;
+using Microsoft.SqlServer.TransactSql.ScriptDom;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -31,7 +30,7 @@ namespace VSGenero.SqlSupport
 
         private const string _dynamicPlaceholder = "qm";
 
-        public static string GetText(this IScriptFragment fragment)
+        public static string GetText(this TSqlFragment fragment)
         {
             string script;
             _scriptGenerator.GenerateScript(fragment, out script);
@@ -58,13 +57,13 @@ namespace VSGenero.SqlSupport
         /// </summary>
         /// <param name="text"></param>
         /// <returns></returns>
-        public static IEnumerable<IScriptFragment> ExtractStatements(string text)
+        public static IEnumerable<TSqlFragment> ExtractStatements(string text)
         {
             // first replace all question marks with 'qm'
             text = text.Replace("?", _dynamicPlaceholder);
             text = text.Replace("\r\n", "\n");
 
-            List<IScriptFragment> fragments = new List<IScriptFragment>();
+            List<TSqlFragment> fragments = new List<TSqlFragment>();
             var matches = Regex.Matches(text, _regexStr, RegexOptions.IgnoreCase);
             for (int i = 0; i < matches.Count; i++)
             {

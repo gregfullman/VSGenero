@@ -359,8 +359,15 @@ namespace Microsoft.VisualStudio.VSCommon
 
             // Set the cursor at the beginning of the declaration.          
             int line, col;
-            ErrorHandler.ThrowOnFailure(viewAdapter.GetLineAndColumn(pos, out line, out col));
-            ErrorHandler.ThrowOnFailure(viewAdapter.SetCaretPos(line, col));
+            try
+            {
+                ErrorHandler.ThrowOnFailure(viewAdapter.GetLineAndColumn(pos, out line, out col));
+                ErrorHandler.ThrowOnFailure(viewAdapter.SetCaretPos(line, col));
+            }
+            catch(ArgumentException ae)
+            {
+                line = 1;
+            }
             // Make sure that the text is visible.
             viewAdapter.CenterLines(line, 1);
         }

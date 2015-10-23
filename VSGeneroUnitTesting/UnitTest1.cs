@@ -12,8 +12,6 @@
 
 using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.Data.Schema.ScriptDom.Sql;
-using Microsoft.Data.Schema.ScriptDom;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
