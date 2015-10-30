@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
   <Metadata>
-    <Identity Id="B91E53BD-B768-48D8-9A13-57EEF54EAAC4" Version="0.9.7.0" Language="en-US" Publisher="Greg Fullman" />
+    <Identity Id="B91E53BD-B768-48D8-9A13-57EEF54EAAC4" Version="0.9.7.1" Language="en-US" Publisher="Greg Fullman" />
     <DisplayName>VSGenero for VS2013</DisplayName>
     <Description>This is a Visual Studio plugin for the Genero BDL. It currently supports syntax highlighting and a list of functions with 4GL files.</Description>
     <MoreInfo>https://github.com/gregfullman/VSGenero/wiki</MoreInfo>
@@ -15,6 +15,7 @@
   <Dependencies>
     <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.5,)" />
     <Dependency Id="Microsoft.VisualStudio.MPF.12.0" DisplayName="Visual Studio MPF 12.0" d:Source="Installed" Version="[12.0]" />
+    <Dependency d:Source="Installed" Id="VSProPack.Microsoft.D67305A0-1A33-49E1-913B-8A8BC420750C" DisplayName="Productivity Power Tools 2013" Version="[12.0.30519.1,13.0)" d:InstallSource="Download" Location="https://visualstudiogallery.msdn.microsoft.com/dbcb8670-889e-4a54-a226-a48a15e4cace" />
   </Dependencies>
   <Assets>
     <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%;PkgdefProjectOutputGroup|" />
