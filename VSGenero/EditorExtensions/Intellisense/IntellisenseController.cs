@@ -34,6 +34,7 @@ using VSGenero.Analysis;
 using IServiceProvider = System.IServiceProvider;
 using VSGenero.Analysis.Parsing;
 using VSGenero.Analysis.Parsing.AST_4GL;
+using System.Runtime.InteropServices;
 
 namespace VSGenero.EditorExtensions.Intellisense
 {
@@ -905,11 +906,12 @@ namespace VSGenero.EditorExtensions.Intellisense
                         _vsTextView.GetCaretPos(out startLine, out endColumn);
                         startColumn = endColumn - customSnippet.ReplaceString.Length;
                         endLine = startLine;
+                        TextSpan ts = new TextSpan { iStartLine = startLine, iStartIndex = startColumn, iEndLine = endLine, iEndIndex = endColumn };
 
                         MSXML.DOMDocument domDoc = new MSXML.DOMDocument();
                         domDoc.loadXML(SnippetGenerator.GenerateSnippetXml(customSnippet.Snippet));
                         MSXML.IXMLDOMNode node = domDoc;
-                        InsertCodeExpansion(node, startLine, startColumn, endLine, endColumn);
+                        InsertCodeExpansion(node, customSnippet.Snippet.StaticSnippetString, ts, _textView.Caret.Position.BufferPosition.Position, customSnippet.ReplaceString.Length);
                         return VSConstants.S_OK;
                     }
                 }
@@ -1104,11 +1106,12 @@ namespace VSGenero.EditorExtensions.Intellisense
                                         _vsTextView.GetCaretPos(out startLine, out endColumn);
                                         startColumn = endColumn - spanText.Length;
                                         endLine = startLine;
+                                        TextSpan ts = new TextSpan { iStartLine = startLine, iStartIndex = startColumn, iEndLine = endLine, iEndIndex = endColumn };
 
                                         MSXML.DOMDocument domDoc = new MSXML.DOMDocument();
                                         domDoc.loadXML(SnippetGenerator.GenerateSnippetXml(dynSnippet));
                                         MSXML.IXMLDOMNode node = domDoc;
-                                        InsertCodeExpansion(node, startLine, startColumn, endLine, endColumn);
+                                        InsertCodeExpansion(node, dynSnippet.StaticSnippetString, ts, _textView.Caret.Position.BufferPosition.Position, spanText.Length);
                                         return VSConstants.S_OK;
                                     }
                                 }
@@ -1179,7 +1182,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             return _oldTarget.QueryStatus(ref pguidCmdGroup, cCmds, prgCmds, pCmdText);
         }
 
-        private void InsertCodeExpansion(MSXML.IXMLDOMNode customSnippet, int startLine, int startColumn, int endLine, int endColumn)
+        private void InsertCodeExpansion(MSXML.IXMLDOMNode customSnippet, string staticSnippetString, TextSpan replaceSpan, int caretIndex, int length)
         {
             try
             {
@@ -1192,11 +1195,27 @@ namespace VSGenero.EditorExtensions.Intellisense
 
                 vsExpansion.InsertSpecificExpansion(
                     customSnippet,
-                    new TextSpan { iStartIndex = startColumn, iEndIndex = endColumn, iEndLine = endLine, iStartLine = startLine },
+                    replaceSpan,
                     _expansionClient,
                     VSGeneroConstants.guidGenero4glLanguageServiceGuid,
                     null,
                     out _expansionSession);
+            }
+            catch(SEHException seh)
+            {
+                _textView.Properties.AddProperty(GeneroTextViewChangeProperties.SourceDocUpdateKey, true);
+
+                int start = caretIndex - length;
+                if(start < 0)
+                {
+                    start = 0;
+                }
+                SnapshotSpan snapSpan = new SnapshotSpan(_textView.TextSnapshot, new Span(start, length));
+                ITextEdit edit = _textView.TextBuffer.CreateEdit();
+                edit.Replace(snapSpan.Span, staticSnippetString);
+                edit.Apply();
+
+                _textView.Properties.RemoveProperty(GeneroTextViewChangeProperties.SourceDocUpdateKey);
             }
             catch (Exception e)
             {

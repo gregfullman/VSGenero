@@ -27,6 +27,8 @@ namespace VSGenero.Snippets
 
         public string Code { get; private set; }
 
+        public string StaticSnippetString { get; set; }
+
         private List<DynamicSnippetReplacement> _replacements;
         public List<DynamicSnippetReplacement> Replacements
         {

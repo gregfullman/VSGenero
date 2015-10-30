@@ -20,6 +20,11 @@ using System.Threading.Tasks;
 
 namespace VSGenero.EditorExtensions
 {
+    public static class GeneroTextViewChangeProperties
+    {
+        public const string SourceDocUpdateKey = "updating_source_doc";
+    }
+
     public interface IGeneroTextViewChangedListener
     {
         void SetTextView(IWpfTextView view);

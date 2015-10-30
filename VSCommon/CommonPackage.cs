@@ -353,14 +353,21 @@ namespace Microsoft.VisualStudio.VSCommon
         {
             IVsTextView viewAdapter;
             IVsWindowFrame pWindowFrame;
-            OpenDocument(filename, out viewAdapter, out pWindowFrame);
-
-            ErrorHandler.ThrowOnFailure(pWindowFrame.Show());
+            try
+            {
+                OpenDocument(filename, out viewAdapter, out pWindowFrame);
+                ErrorHandler.ThrowOnFailure(pWindowFrame.Show());
+            }
+            catch(ArgumentException ae)
+            {
+                return;
+            }
 
             // Set the cursor at the beginning of the declaration.          
             int line, col;
             try
             {
+                
                 ErrorHandler.ThrowOnFailure(viewAdapter.GetLineAndColumn(pos, out line, out col));
                 ErrorHandler.ThrowOnFailure(viewAdapter.SetCaretPos(line, col));
             }

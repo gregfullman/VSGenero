@@ -249,9 +249,11 @@
         <Reference Include="Microsoft.VisualStudio.Utilities, Version=$(VisualStudioVersion).0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
         <Reference Include="Microsoft.PowerToolsEx.BlockTagger">
           <HintPath>..\Binaries\ProductivityTools\VS2015\Microsoft.PowerToolsEx.BlockTagger.dll</HintPath>
+          <Private>False</Private>
         </Reference>
         <Reference Include="Microsoft.PowerToolsEx.BlockTaggerImpl">
           <HintPath>..\Binaries\ProductivityTools\VS2015\Microsoft.PowerToolsEx.BlockTaggerImpl.dll</HintPath>
+          <Private>False</Private>
         </Reference>
       </ItemGroup>
     </When>

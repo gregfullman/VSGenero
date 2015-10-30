@@ -281,39 +281,11 @@ namespace VSGenero
                 }
                 if (DefaultAnalyzer != null)
                 { }
-
             }
             catch (Exception)
             { }
 
-            //try
-            //{
-            //    var appId = new AppId(sp);
-            //    // This is a hack for the power tools extension
-            //    var extensionsDir = new DirectoryInfo(appId.GetUserExtensionsRootFolder());
-            //    if (extensionsDir != null)
-            //    {
-            //        var assemblies = extensionsDir.GetFiles("Microsoft.PowerToolsEx.BlockTagger.dll", SearchOption.AllDirectories);
-            //        if (assemblies.Length > 1)
-            //        {
-            //            var mainFile = assemblies.FirstOrDefault(x => x.Directory.GetFiles("ProPowerToolsOptions.pkgdef", SearchOption.TopDirectoryOnly).Length > 0);
-            //            if (mainFile != null)
-            //            {
-            //                for (int i = 0; i < assemblies.Length; i++)
-            //                {
-            //                    if (assemblies[i] != mainFile)
-            //                    {
-            //                        File.SetLastAccessTimeUtc(assemblies[i].FullName, mainFile.LastWriteTimeUtc);
-            //                    }
-            //                }
-            //            }
-            //        }
-            //    }
-            //}
-            //catch (Exception e)
-            //{
-
-            //}
+            
         }
 
         #endregion
