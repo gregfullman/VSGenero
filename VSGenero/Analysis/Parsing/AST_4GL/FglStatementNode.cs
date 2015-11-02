@@ -358,7 +358,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                                              limitedScopeVariableAdder, validExitKeywords, contextStatementFactories, endKeywords)))
                         {
                             node = menuStmt;
-                            limitedScopeVariableAdder(Genero4glAst.DialogVariable, node.StartIndex, node.EndIndex);
+                            if(limitedScopeVariableAdder != null)
+                                limitedScopeVariableAdder(Genero4glAst.DialogVariable, node.StartIndex, node.EndIndex);
                         }
                         break;
                     }
@@ -369,7 +370,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                                               limitedScopeVariableAdder, validExitKeywords, contextStatementFactories, endKeywords)))
                         {
                             node = inputStmt;
-                            limitedScopeVariableAdder(Genero4glAst.DialogVariable, node.StartIndex, node.EndIndex);
+                            if (limitedScopeVariableAdder != null)
+                                limitedScopeVariableAdder(Genero4glAst.DialogVariable, node.StartIndex, node.EndIndex);
                         }
                         break;
                     }
@@ -380,7 +382,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                                                   limitedScopeVariableAdder, validExitKeywords, contextStatementFactories, endKeywords)))
                         {
                             node = constructStmt;
-                            limitedScopeVariableAdder(Genero4glAst.DialogVariable, node.StartIndex, node.EndIndex);
+                            if (limitedScopeVariableAdder != null)
+                                limitedScopeVariableAdder(Genero4glAst.DialogVariable, node.StartIndex, node.EndIndex);
                         }
                         break;
                     }
@@ -400,7 +403,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                                                 limitedScopeVariableAdder, validExitKeywords, contextStatementFactories, endKeywords)))
                         {
                             node = dispStmt;
-                            limitedScopeVariableAdder(Genero4glAst.DialogVariable, node.StartIndex, node.EndIndex);
+                            if (limitedScopeVariableAdder != null)
+                                limitedScopeVariableAdder(Genero4glAst.DialogVariable, node.StartIndex, node.EndIndex);
                         }
                         break;
                     }
@@ -411,7 +415,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                                                   limitedScopeVariableAdder, validExitKeywords, contextStatementFactories, endKeywords)))
                         {
                             node = promptStmt;
-                            limitedScopeVariableAdder(Genero4glAst.DialogVariable, node.StartIndex, node.EndIndex);
+                            if (limitedScopeVariableAdder != null)
+                                limitedScopeVariableAdder(Genero4glAst.DialogVariable, node.StartIndex, node.EndIndex);
                         }
                         break;
                     }
@@ -422,7 +427,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                                                limitedScopeVariableAdder, validExitKeywords, contextStatementFactories, endKeywords)))
                         {
                             node = dialogBlock;
-                            limitedScopeVariableAdder(Genero4glAst.DialogVariable, node.StartIndex, node.EndIndex);
+                            if (limitedScopeVariableAdder != null)
+                                limitedScopeVariableAdder(Genero4glAst.DialogVariable, node.StartIndex, node.EndIndex);
                         }
                         break;
                     }
