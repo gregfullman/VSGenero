@@ -514,9 +514,9 @@ namespace VSGenero.EditorExtensions.Intellisense
         public void Clear(string filePath, string moniker, TaskLevel taskLevel = TaskLevel.All)
         {
             var remKeys = _errorSources.Where(x => x.Key.Filepath.StartsWith(filePath, StringComparison.OrdinalIgnoreCase)).Select(x => x.Key).ToList();
-            foreach (var key in remKeys)
+            for(int i = 0; i < remKeys.Count; i++)
             {
-                SendMessage(WorkerMessage.Clear(key.Filepath, moniker, taskLevel));
+                SendMessage(WorkerMessage.Clear(remKeys[i].Filepath, moniker, taskLevel));
             }
         }
 
