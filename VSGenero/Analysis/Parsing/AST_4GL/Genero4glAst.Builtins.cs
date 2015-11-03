@@ -98,6 +98,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 _systemMacros = new Dictionary<string, IAnalysisResult>(StringComparer.OrdinalIgnoreCase);
                 _systemMacros.Add("__LINE__", new SystemMacro("__LINE__", null));
                 _systemMacros.Add("__FILE__", new SystemMacro("__FILE__", null));
+                _systemMacros.Add("current", new SystemMacro("current", null));
             }
         }
         private static object _systemMacrosLock = new object();

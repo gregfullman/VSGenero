@@ -2792,6 +2792,14 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                             }
                         ),
                         new ContextPossibilities(
+                            new TokenKind[] { TokenKind.ToKeyword, TokenKind.LikeKeyword },
+                            emptyContextSetProviderSet,
+                            new BackwardTokenSearchItem[]
+                            {
+                                new BackwardTokenSearchItem(TokenKind.InitializeKeyword)
+                            }
+                        ),
+                        new ContextPossibilities(
                             emptyTokenKindSet,
                             new ContextSetProvider[] { GetExpressionComponents },
                             emptyBackwardTokenSearchSet

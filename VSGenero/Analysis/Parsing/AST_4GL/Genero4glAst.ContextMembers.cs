@@ -558,7 +558,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             TokenKind.DoubleEquals, TokenKind.LessThan, TokenKind.GreaterThan, TokenKind.LessThanOrEqual,
             TokenKind.GreaterThanOrEqual, TokenKind.Equals, TokenKind.NotEquals, TokenKind.NotEqualsLTGT,
             TokenKind.DoubleBar, TokenKind.Assign, TokenKind.AndKeyword, TokenKind.OrKeyword, TokenKind.ModKeyword,
-            TokenKind.UsingKeyword, TokenKind.AsKeyword, TokenKind.UnitsKeyword
+            TokenKind.UsingKeyword, TokenKind.AsKeyword, TokenKind.UnitsKeyword, TokenKind.IsKeyword
         };
 
         private static HashSet<TokenKind> _preUnaryOperators = new HashSet<TokenKind>
