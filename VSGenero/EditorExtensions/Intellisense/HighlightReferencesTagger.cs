@@ -147,8 +147,9 @@ namespace VSGenero.EditorExtensions.Intellisense
                                                          {
                                                              return false;
                                                          }
+                                                         return true;
                                                      }
-                                                     return true;
+                                                     return false;
                                                  })
                                              .Select(x => new IndexSpan(x.Location.Index, vars.Value.Name.Length));
                         if (references != null)

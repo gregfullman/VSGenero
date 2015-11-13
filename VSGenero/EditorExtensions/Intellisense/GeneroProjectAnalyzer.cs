@@ -796,8 +796,15 @@ namespace VSGenero.EditorExtensions.Intellisense
         {
             string normalizedPath = CommonUtils.NormalizeDirectoryPath(path);
             List<string> files = new List<string>();
-            files.AddRange(Directory.GetFiles(normalizedPath, "*.4gl").Where(x => string.IsNullOrWhiteSpace(excludeFile) ? true : !x.Equals(excludeFile, StringComparison.OrdinalIgnoreCase)));
-            ThreadPool.QueueUserWorkItem(x => { lock (_contentsLock) { AnalyzeDirectory(normalizedPath, excludeFile, ProjectEntryAnalyzed); } });
+            try
+            {
+                files.AddRange(Directory.GetFiles(normalizedPath, "*.4gl").Where(x => string.IsNullOrWhiteSpace(excludeFile) ? true : !x.Equals(excludeFile, StringComparison.OrdinalIgnoreCase)));
+                ThreadPool.QueueUserWorkItem(x => { lock (_contentsLock) { AnalyzeDirectory(normalizedPath, excludeFile, ProjectEntryAnalyzed); } });
+            }
+            catch (UnauthorizedAccessException)
+            {
+                // Nothing we can do here...
+            }
             return files;
         }
 
