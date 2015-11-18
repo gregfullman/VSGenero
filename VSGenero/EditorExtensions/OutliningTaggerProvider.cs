@@ -157,7 +157,7 @@ namespace VSGenero.EditorExtensions
                     List<IOutlinableResult> outlinables = new List<IOutlinableResult>();
                     GetOutlinableResults(moduleNode, ref outlinables);
 
-                    if(_taggerProvider._CustomCommentOutliningProvider != null)
+                    if (_taggerProvider._CustomCommentOutliningProvider != null)
                     {
                         TokenWithSpan[] commentLines = new TokenWithSpan[0];
                         if (ast.TryGetAttribute(moduleNode, NodeAttributes.NonCodeRegionComments, out val))
@@ -187,7 +187,7 @@ namespace VSGenero.EditorExtensions
 
             private void GetOutlinableResults(AstNode4gl node, ref List<IOutlinableResult> outlinables, bool topLevel = true)
             {
-                if(topLevel &&
+                if (topLevel &&
                    (!VSGeneroPackage.Instance.AdvancedOptions4GLPage.MajorCollapseRegionsEnabled &&
                     !VSGeneroPackage.Instance.AdvancedOptions4GLPage.MinorCollapseRegionsEnabled))
                 {
@@ -195,7 +195,7 @@ namespace VSGenero.EditorExtensions
                     return;
                 }
 
-                foreach(var child in node.Children)
+                foreach (var child in node.Children)
                 {
                     if ((topLevel && VSGeneroPackage.Instance.AdvancedOptions4GLPage.MajorCollapseRegionsEnabled) ||
                         (!topLevel && VSGeneroPackage.Instance.AdvancedOptions4GLPage.MinorCollapseRegionsEnabled))
@@ -248,13 +248,13 @@ namespace VSGenero.EditorExtensions
                     {
                         var headerLength = outlineResult.DecoratorEnd - outlineResult.DecoratorStart;
                         ITextSnapshotLine startLine;
-                        if((startLine = snapshot.GetLineFromPosition(outlineResult.DecoratorStart)).LineNumber !=
+                        if ((startLine = snapshot.GetLineFromPosition(outlineResult.DecoratorStart)).LineNumber !=
                            snapshot.GetLineNumberFromPosition(outlineResult.DecoratorEnd))
                         {
                             // the decorator range spans multiple lines, so we want to truncate that
                             headerLength = startLine.End.Position - outlineResult.DecoratorStart;
                         }
-                        
+
                         Span headerSpan = new Span(outlineResult.DecoratorStart, headerLength);
                         var span = GetFinalSpan(snapshot, outlineResult.StartIndex, length);
 

@@ -398,15 +398,15 @@ namespace VSGenero.EditorExtensions.Intellisense
                     _requeue = true;
                     _timer.Change(Timeout.Infinite, Timeout.Infinite);
                 }
-                else if (LineAndTextChanges(e))
-                {
-                    // user pressed enter, we should reque immediately
-                    Requeue();
-                }
+                //else if (LineAndTextChanges(e))
+                //{
+                //    // user pressed enter, we should reque immediately
+                //    Requeue();
+                //}
                 else
                 {
                     // parse if the user doesn't do anything for a while.
-                    _textChange = IncludesTextChanges(e);
+                    _textChange = LineAndTextChanges(e);// IncludesTextChanges(e);
                     _timer.Change(ReparseDelay, Timeout.Infinite);
                 }
             }

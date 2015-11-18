@@ -619,11 +619,8 @@
     <Compile Include="VSGeneroConstants.cs" />
     <Compile Include="VSGeneroPackage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ProductivityTools\BaseFilter.cs" />
     <Compile Include="ProductivityTools\DisposableTagger.cs" />
     <Compile Include="ProductivityTools\Genero4glBlockTaggerProvider.cs" />
-    <Compile Include="ProductivityTools\Genero4glParser.cs" />
-    <Compile Include="ProductivityTools\QuoteFilter.cs" />
   </ItemGroup>
   <ItemDefinitionGroup>
     <ZipProject>

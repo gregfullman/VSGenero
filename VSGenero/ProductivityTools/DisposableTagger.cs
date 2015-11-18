@@ -26,16 +26,16 @@ namespace VSGenero.ProductivityTools
     internal class DisposableTagger : ITagger<IBlockTag>, IDisposable
     {
         // Fields
-        private GenericBlockTagger _tagger;
+        private ITagger<IBlockTag> _tagger;
 
         // Events
         public event EventHandler<SnapshotSpanEventArgs> TagsChanged;
 
         // Methods
-        public DisposableTagger(GenericBlockTagger tagger)
+        public DisposableTagger(ITagger<IBlockTag> tagger)
         {
             this._tagger = tagger;
-            this._tagger.AddRef();
+            //this._tagger.AddRef();
             this._tagger.TagsChanged += new EventHandler<SnapshotSpanEventArgs>(this.OnTagsChanged);
         }
 
@@ -44,7 +44,7 @@ namespace VSGenero.ProductivityTools
             if (this._tagger != null)
             {
                 this._tagger.TagsChanged -= new EventHandler<SnapshotSpanEventArgs>(this.OnTagsChanged);
-                this._tagger.Release();
+                //this._tagger.Release();
                 this._tagger = null;
             }
         }
