@@ -30,7 +30,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
     /// 
     /// For more info, see: http://www.4js.com/online_documentation/fjs-fgl-manual-html/index.html#c_fgl_Exceptions_007.html
     /// </summary>
-    public class TryCatchStatement : FglStatement, IOutlinableResult
+    public class TryCatchStatement : FglStatement
     {
         public static bool TryParseNode(Genero4glParser parser, out TryCatchStatement defNode,
                                  IModuleResult containingModule,
@@ -72,6 +72,9 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                                 limitedScopeVariableAdder, validExitKeywords, contextStatementFactories, newEndKeywords) && catchBlock != null)
                     {
                         defNode.Children.Add(catchBlock.StartIndex, catchBlock);
+
+                        // add the catch block to the additional decorators
+                        defNode.AdditionalDecoratorRanges.Add(catchBlock.StartIndex, catchBlock.StartIndex + 5);
                     }
                 }
 
@@ -90,23 +93,12 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             return result;
         }
 
-        public bool CanOutline
+        public override bool CanOutline
         {
             get { return true; }
         }
 
-        public int DecoratorStart
-        {
-            get
-            {
-                return StartIndex;
-            }
-            set
-            {
-            }
-        }
-
-        public int DecoratorEnd { get; set; }
+        public override int DecoratorEnd { get; set; }
     }
 
     public class TryBlock : AstNode4gl

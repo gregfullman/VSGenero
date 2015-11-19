@@ -409,7 +409,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         }
     }
 
-    public class ReportFormatSection : AstNode4gl, IOutlinableResult
+    public class ReportFormatSection : AstNode4gl
     {
         private bool _canOutline;
         public NameExpression ReportVariable { get; private set; }
@@ -534,23 +534,12 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             return result;
         }
 
-        public bool CanOutline
+        public override bool CanOutline
         {
             get { return _canOutline; }
         }
 
-        public int DecoratorStart
-        {
-            get
-            {
-                return StartIndex;
-            }
-            set
-            {
-            }
-        }
-
-        public int DecoratorEnd { get; set; }
+        public override int DecoratorEnd { get; set; }
     }
 
     public class ReportStatementFactory

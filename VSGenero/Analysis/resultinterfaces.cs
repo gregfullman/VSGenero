@@ -103,5 +103,7 @@ namespace VSGenero.Analysis
         int EndIndex { get; set; }
         int DecoratorStart { get; set; }
         int DecoratorEnd { get; set; }
+
+        SortedList<int, int> AdditionalDecoratorRanges { get; }
     }
 }

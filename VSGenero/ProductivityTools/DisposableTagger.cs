@@ -45,6 +45,10 @@ namespace VSGenero.ProductivityTools
             {
                 this._tagger.TagsChanged -= new EventHandler<SnapshotSpanEventArgs>(this.OnTagsChanged);
                 //this._tagger.Release();
+                if(this._tagger is IDisposable)
+                {
+                    (this._tagger as IDisposable).Dispose();
+                }
                 this._tagger = null;
             }
         }

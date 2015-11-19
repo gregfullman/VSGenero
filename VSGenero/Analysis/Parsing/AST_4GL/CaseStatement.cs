@@ -18,7 +18,7 @@ using System.Threading.Tasks;
 
 namespace VSGenero.Analysis.Parsing.AST_4GL
 {
-    public class CaseStatement : FglStatement, IOutlinableResult
+    public class CaseStatement : FglStatement
     {
         public ExpressionNode ConditionExpression { get; private set; }
 
@@ -119,26 +119,15 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             return result;
         }
 
-        public bool CanOutline
+        public override bool CanOutline
         {
             get { return true; }
         }
 
-        public int DecoratorStart
-        {
-            get
-            {
-                return StartIndex;
-            }
-            set
-            {
-            }
-        }
-
-        public int DecoratorEnd { get; set; }
+        public override int DecoratorEnd { get; set; }
     }
 
-    public class WhenStatement : AstNode4gl, IOutlinableResult
+    public class WhenStatement : AstNode4gl
     {
         public ExpressionNode ConditionExpression { get; private set; }
 
@@ -204,26 +193,15 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             return result;
         }
 
-        public bool CanOutline
+        public override bool CanOutline
         {
             get { return true; }
         }
 
-        public int DecoratorStart
-        {
-            get
-            {
-                return StartIndex;
-            }
-            set
-            {
-            }
-        }
-
-        public int DecoratorEnd { get; set; }
+        public override int DecoratorEnd { get; set; }
     }
 
-    public class OtherwiseStatement : AstNode4gl, IOutlinableResult
+    public class OtherwiseStatement : AstNode4gl
     {
         public static bool TryParseNode(Genero4glParser parser, out OtherwiseStatement node,
                                         IModuleResult containingModule,
@@ -281,22 +259,11 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             return result;
         }
 
-        public bool CanOutline
+        public override bool CanOutline
         {
             get { return true; }
         }
 
-        public int DecoratorStart
-        {
-            get
-            {
-                return StartIndex;
-            }
-            set
-            {
-            }
-        }
-
-        public int DecoratorEnd { get; set; }
+        public override int DecoratorEnd { get; set; }
     }
 }

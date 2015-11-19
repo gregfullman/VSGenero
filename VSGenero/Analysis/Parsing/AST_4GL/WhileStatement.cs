@@ -18,7 +18,7 @@ using System.Threading.Tasks;
 
 namespace VSGenero.Analysis.Parsing.AST_4GL
 {
-    public class WhileStatement : FglStatement, IOutlinableResult
+    public class WhileStatement : FglStatement
     {
         public ExpressionNode ConditionExpression { get; private set; }
 
@@ -114,22 +114,11 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             return result;
         }
 
-        public bool CanOutline
+        public override bool CanOutline
         {
             get { return true; }
         }
 
-        public int DecoratorStart
-        {
-            get
-            {
-                return StartIndex;
-            }
-            set
-            {
-            }
-        }
-
-        public int DecoratorEnd { get; set; }
+        public override int DecoratorEnd { get; set; }
     }
 }

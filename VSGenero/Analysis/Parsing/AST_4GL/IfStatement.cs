@@ -18,7 +18,7 @@ using System.Threading.Tasks;
 
 namespace VSGenero.Analysis.Parsing.AST_4GL
 {
-    public class IfStatement : FglStatement, IOutlinableResult
+    public class IfStatement : FglStatement
     {
         public ExpressionNode ConditionExpression { get; private set; }
 
@@ -78,8 +78,13 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         if (ElseBlockContentsNode.TryParseNode(parser, out elseBlock, containingModule, prepStatementBinder, returnStatementBinder,
                                                                limitedScopeVariableAdder, validExitKeywords, contextStatementFactories, expressionOptions, newEndKeywords))
                         {
-                            if(elseBlock != null)
+                            if (elseBlock != null)
+                            {
                                 node.Children.Add(elseBlock.StartIndex, elseBlock);
+
+                                // Add the span of "else" to the additional decorators
+                                node.AdditionalDecoratorRanges.Add(elseBlock.StartIndex, elseBlock.StartIndex + 4);
+                            }
                         }
                     }
 
@@ -101,23 +106,12 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             return result;
         }
 
-        public bool CanOutline
+        public override bool CanOutline
         {
             get { return true; }
         }
 
-        public int DecoratorStart
-        {
-            get
-            {
-                return StartIndex;
-            }
-            set
-            {
-            }
-        }
-
-        public int DecoratorEnd { get; set; }
+        public override int DecoratorEnd { get; set; }
     }
 
     public class IfBlockContentsNode : AstNode4gl

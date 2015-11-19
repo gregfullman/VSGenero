@@ -549,6 +549,8 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="PkgCmdID.cs" />
+    <Compile Include="ProductivityTools\Genero4glCodeBlock.cs" />
+    <Compile Include="ProductivityTools\Genero4glMouseProcessor.cs" />
     <Compile Include="Project\Attributes.cs" />
     <Compile Include="Project\Genero4GLFileNode.cs" />
     <Compile Include="Project\GeneroEditorFactory.cs" />
@@ -792,7 +794,7 @@
     <UseCodebase>true</UseCodebase>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <UseVSHostingProcess>true</UseVSHostingProcess>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
   </PropertyGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

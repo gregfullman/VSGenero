@@ -18,7 +18,7 @@ using System.Threading.Tasks;
 
 namespace VSGenero.Analysis.Parsing.AST_4GL
 {
-    public class InputBlock : FglStatement, IOutlinableResult
+    public class InputBlock : FglStatement
     {
         public bool IsArray { get; private set; }
         public NameExpression ArrayName { get; private set; }
@@ -203,23 +203,12 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             return result;
         }
 
-        public bool CanOutline
+        public override bool CanOutline
         {
             get { return true; }
         }
 
-        public int DecoratorStart
-        {
-            get
-            {
-                return StartIndex;
-            }
-            set
-            {
-            }
-        }
-
-        public int DecoratorEnd { get; set; }
+        public override int DecoratorEnd { get; set; }
     }
 
     public enum InputControlBlockType
@@ -236,7 +225,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         Insert
     }
 
-    public class InputControlBlock : AstNode4gl, IOutlinableResult
+    public class InputControlBlock : AstNode4gl
     {
         public ExpressionNode IdleSeconds { get; private set; }
         public NameExpression ActionName { get; private set; }
@@ -352,8 +341,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                     node.IdleSeconds = idleExpr;
                                 else
                                     parser.ReportSyntaxError("Invalid idle-seconds found in input statement.");
-                                break;
                                 node.DecoratorEnd = parser.Token.Span.End;
+                                break;
                             case TokenKind.ActionKeyword:
                                 parser.NextToken();
                                 node.Type = InputControlBlockType.Action;
@@ -450,23 +439,12 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             return result;
         }
 
-        public bool CanOutline
+        public override bool CanOutline
         {
             get { return true; }
         }
 
-        public int DecoratorStart
-        {
-            get
-            {
-                return StartIndex;
-            }
-            set
-            {
-            }
-        }
-
-        public int DecoratorEnd { get; set; }
+        public override int DecoratorEnd { get; set; }
     }
 
     public class InputDialogStatementFactory

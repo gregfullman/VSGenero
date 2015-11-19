@@ -400,5 +400,16 @@ namespace VSGenero.EditorExtensions.Intellisense
         {
             get { return _dummyLimitDict; }
         }
+
+        private SortedList<int, int> _additionalDecoratorRanges;
+        public SortedList<int, int> AdditionalDecoratorRanges
+        {
+            get
+            {
+                if (_additionalDecoratorRanges == null)
+                    _additionalDecoratorRanges = new SortedList<int, int>();
+                return _additionalDecoratorRanges;
+            }
+        }
     }
 }

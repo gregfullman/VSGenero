@@ -49,7 +49,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         }
 
         private string _namespace;
-        public int DecoratorEnd { get; set; }
+        public override int DecoratorEnd { get; set; }
 
         public bool CanGetValueFromDebugger
         {
@@ -556,7 +556,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             }
         }
 
-        public bool CanOutline
+        public override bool CanOutline
         {
             get { return true; }
         }
@@ -597,18 +597,6 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         public string CompletionParentName
         {
             get { return null; }
-        }
-
-
-        public int DecoratorStart
-        {
-            get
-            {
-                return StartIndex;
-            }
-            set
-            {
-            }
         }
 
         public override void SetNamespace(string ns)

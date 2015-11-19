@@ -34,7 +34,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
     /// 
     /// For more info, see: http://www.4js.com/online_documentation/fjs-fgl-manual-html/index.html#c_fgl_Globals_003.html
     /// </summary>
-    public class GlobalsNode : AstNode4gl, IOutlinableResult
+    public class GlobalsNode : AstNode4gl
     {
         public string GlobalsFilename { get; private set; }
 
@@ -192,7 +192,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             }
         }
 
-        public int DecoratorEnd
+        public override int DecoratorEnd
         {
             get
             {
@@ -203,21 +203,9 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             }
         }
 
-        public bool CanOutline
+        public override bool CanOutline
         {
             get { return string.IsNullOrWhiteSpace(GlobalsFilename); }
-        }
-
-
-        public int DecoratorStart
-        {
-            get
-            {
-                return StartIndex;
-            }
-            set
-            {
-            }
         }
     }
 }

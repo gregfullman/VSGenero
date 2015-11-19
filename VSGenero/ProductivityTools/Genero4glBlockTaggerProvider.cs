@@ -28,13 +28,15 @@ using VSGenero.EditorExtensions;
 using VSGenero.Analysis.Parsing.AST_4GL;
 using VSGenero.EditorExtensions.Intellisense;
 using System.Diagnostics;
+using Microsoft.VisualStudio.Text.Editor;
+using System.Windows.Input;
 
 namespace VSGenero.ProductivityTools
 {
-    [TagType(typeof(IBlockTag)), Export(typeof(ITaggerProvider)), ContentType(VSGeneroConstants.LanguageName4GL)]
-    public class Genero4glBlockTaggerProvider : ITaggerProvider
+    [TagType(typeof(IBlockTag)), Export(typeof(IViewTaggerProvider)), ContentType(VSGeneroConstants.LanguageName4GL)]
+    public class Genero4glBlockTaggerProvider : IViewTaggerProvider
     {
-        public ITagger<T> CreateTagger<T>(Microsoft.VisualStudio.Text.ITextBuffer buffer) where T : ITag
+        public ITagger<T> CreateTagger<T>(ITextView textView, ITextBuffer buffer) where T : ITag
         {
             Func<Genero4glBlockTagger> creator = null;
             if (!(typeof(T) == typeof(IBlockTag)))
@@ -43,21 +45,23 @@ namespace VSGenero.ProductivityTools
             }
             if (creator == null)
             {
-                creator = () => new Genero4glBlockTagger(buffer, this);
+                creator = () => new Genero4glBlockTagger(textView, buffer, this);
             }
             return (new DisposableTagger(buffer.Properties.GetOrCreateSingletonProperty(typeof(Genero4glBlockTaggerProvider), creator)) as ITagger<T>);
         }
     }
 
-    internal class Genero4glBlockTagger : ITagger<IBlockTag>
+    public class Genero4glBlockTagger : ITagger<IBlockTag>, IDisposable
     {
         private readonly Genero4glBlockTaggerProvider _taggerProvider;
         private readonly ITextBuffer _buffer;
+        private readonly ITextView _textview;
         private readonly Timer _timer;
         private bool _eventHooked;
 
-        public Genero4glBlockTagger(ITextBuffer buffer, Genero4glBlockTaggerProvider provider)
+        public Genero4glBlockTagger(ITextView textview, ITextBuffer buffer, Genero4glBlockTaggerProvider provider)
         {
+            _textview = textview;
             _taggerProvider = provider;
             _buffer = buffer;
             _buffer.Properties[typeof(Genero4glBlockTagger)] = this;
@@ -96,14 +100,14 @@ namespace VSGenero.ProductivityTools
         {
             if (moduleNode != null)
             {
-                List<CodeBlock> outlinables = new List<CodeBlock>();
+                List<Genero4glCodeBlock> outlinables = new List<Genero4glCodeBlock>();
                 int level = 0;
-                CodeBlock block = new CodeBlock(null, BlockType.Root, null, new SnapshotSpan(snapshot, 0, snapshot.Length), 0, level);
-                GetOutlinableResults(spans, moduleNode, block, snapshot, level, ref outlinables);
+                Genero4glCodeBlock block = new Genero4glCodeBlock(this, _textview, null, BlockType.Root, null, level);
+                GetOutlinableResults(this, _textview, spans, moduleNode, block, snapshot, level, ref outlinables);
 
                 foreach (var child in outlinables)
                 {
-                    TagSpan<CodeBlock> tagSpan = new TagSpan<CodeBlock>(child.Span, child);
+                    TagSpan<Genero4glCodeBlock> tagSpan = new TagSpan<Genero4glCodeBlock>(child.Span, child);
                     if (tagSpan != null)
                     {
                         yield return tagSpan;
@@ -130,17 +134,17 @@ namespace VSGenero.ProductivityTools
             return false;
         }
 
-        private static void GetOutlinableResults(NormalizedSnapshotSpanCollection spans, AstNode4gl node, CodeBlock parent, ITextSnapshot snapshot, int level, ref List<CodeBlock> outlinables)
+        private static void GetOutlinableResults(Genero4glBlockTagger tagger, ITextView textView, NormalizedSnapshotSpanCollection spans, AstNode4gl node, Genero4glCodeBlock parent, ITextSnapshot snapshot, int level, ref List<Genero4glCodeBlock> outlinables)
         {
-            CodeBlock curr = null;
+            Genero4glCodeBlock curr = null;
             foreach (var child in node.Children)
             {
                 if (child.Value is IOutlinableResult)
                 {
                     var outRes = child.Value as IOutlinableResult;
-                    if (ShouldInclude(outRes, spans))
+                    if (outRes.CanOutline /*&& ShouldInclude(outRes, spans)*/)
                     {
-                        curr = GetCodeBlock(outRes, snapshot, parent, level + 1);
+                        curr = new Genero4glCodeBlock(tagger, textView, parent, GetBlockType(outRes), outRes, level + 1);
                         if (curr != null)
                             outlinables.Add(curr);
                     }
@@ -150,24 +154,12 @@ namespace VSGenero.ProductivityTools
                 {
                     if (curr == null)
                     {
-                        curr = new CodeBlock(parent, BlockType.Unknown, null, new SnapshotSpan(snapshot, 0, snapshot.Length), 0, level + 1);
+                        curr = new Genero4glCodeBlock(tagger, textView, parent, BlockType.Unknown, null, level + 1);
                     }
 
-                    GetOutlinableResults(spans, child.Value, curr, snapshot, level + 1, ref outlinables);
+                    GetOutlinableResults(tagger, textView, spans, child.Value, curr, snapshot, level + 1, ref outlinables);
                 }
             }
-        }
-
-        private static CodeBlock GetCodeBlock(IOutlinableResult outlinable, ITextSnapshot snapshot, CodeBlock parent, int level)
-        {
-            if (outlinable.DecoratorEnd <= outlinable.DecoratorStart)
-            {
-                return null;
-            }
-            SnapshotSpan statementSpan = new SnapshotSpan(snapshot, new Span(outlinable.DecoratorStart, (outlinable.DecoratorEnd - outlinable.DecoratorStart)));
-            string statement = statementSpan.GetText();
-            SnapshotSpan snapSpan = new SnapshotSpan(snapshot, new Span(outlinable.StartIndex, (outlinable.EndIndex - outlinable.StartIndex)));
-            return new CodeBlock(parent, GetBlockType(outlinable), statement, snapSpan, outlinable.StartIndex, level);
         }
 
         private static Dictionary<Type, BlockType> _statementToBlockMap = new Dictionary<Type, BlockType>()
@@ -225,6 +217,10 @@ namespace VSGenero.ProductivityTools
             {
                 tagsChanged(this, new SnapshotSpanEventArgs(new SnapshotSpan(snapshot, new Span(0, snapshot.Length))));
             }
+        }
+
+        public void Dispose()
+        {
         }
     }
 }

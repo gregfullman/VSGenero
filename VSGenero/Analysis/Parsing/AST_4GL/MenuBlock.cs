@@ -18,7 +18,7 @@ using System.Threading.Tasks;
 
 namespace VSGenero.Analysis.Parsing.AST_4GL
 {
-    public class MenuBlock : FglStatement, IOutlinableResult
+    public class MenuBlock : FglStatement
     {
         public string MenuTitle { get; private set; }
         public List<ExpressionNode> Attributes { get; private set; }
@@ -147,23 +147,12 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             return result;
         }
 
-        public bool CanOutline
+        public override bool CanOutline
         {
             get { return true; }
         }
 
-        public int DecoratorStart
-        {
-            get
-            {
-                return StartIndex;
-            }
-            set
-            {
-            }
-        }
-
-        public int DecoratorEnd { get; set; }
+        public override int DecoratorEnd { get; set; }
     }
 
     public class MenuStatementFactory
@@ -309,7 +298,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         }
     }
 
-    public class MenuOption : AstNode4gl, IOutlinableResult
+    public class MenuOption : AstNode4gl
     {
         public ExpressionNode OptionName { get; private set; }
         public ExpressionNode OptionComment { get; private set; }
@@ -486,22 +475,11 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             return result;
         }
 
-        public bool CanOutline
+        public override bool CanOutline
         {
             get { return true; }
         }
 
-        public int DecoratorStart
-        {
-            get
-            {
-                return StartIndex;
-            }
-            set
-            {
-            }
-        }
-
-        public int DecoratorEnd { get; set; }
+        public override int DecoratorEnd { get; set; }
     }
 }

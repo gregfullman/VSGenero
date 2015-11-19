@@ -154,7 +154,7 @@ namespace VSGenero.EditorExtensions
                         regionTokens = val as TokenWithSpan[];
                     }
 
-                    List<IOutlinableResult> outlinables = new List<IOutlinableResult>();
+                    var outlinables = new List<IOutlinableResult>();
                     GetOutlinableResults(moduleNode, ref outlinables);
 
                     if (_taggerProvider._CustomCommentOutliningProvider != null)
@@ -200,8 +200,11 @@ namespace VSGenero.EditorExtensions
                     if ((topLevel && VSGeneroPackage.Instance.AdvancedOptions4GLPage.MajorCollapseRegionsEnabled) ||
                         (!topLevel && VSGeneroPackage.Instance.AdvancedOptions4GLPage.MinorCollapseRegionsEnabled))
                     {
-                        if (child.Value is IOutlinableResult)
+                        if (child.Value is IOutlinableResult &&
+                            (child.Value as IOutlinableResult).CanOutline)
+                        {
                             outlinables.Add(child.Value as IOutlinableResult);
+                        }
                     }
 
                     if (child.Value.Children.Count > 0)
@@ -438,5 +441,16 @@ namespace VSGenero.EditorExtensions
         public int EndIndex { get; set; }
         public int DecoratorEnd { get; set; }
         public int DecoratorStart { get; set; }
+
+        private SortedList<int, int> _additionalDecoratorRanges;
+        public SortedList<int, int> AdditionalDecoratorRanges
+        {
+            get
+            {
+                if (_additionalDecoratorRanges == null)
+                    _additionalDecoratorRanges = new SortedList<int, int>();
+                return _additionalDecoratorRanges;
+            }
+        }
     }
 }

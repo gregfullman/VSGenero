@@ -18,7 +18,7 @@ using System.Threading.Tasks;
 
 namespace VSGenero.Analysis.Parsing.AST_4GL
 {
-    public class DisplayBlock : FglStatement, IOutlinableResult
+    public class DisplayBlock : FglStatement
     {
         public bool IsArray { get; private set; }
         public NameExpression ArrayName { get; private set; }
@@ -279,23 +279,12 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             return result;
         }
 
-        public bool CanOutline
+        public override bool CanOutline
         {
             get { return true; }
         }
 
-        public int DecoratorStart
-        {
-            get
-            {
-                return StartIndex;
-            }
-            set
-            {
-            }
-        }
-
-        public int DecoratorEnd { get; set; }
+        public override int DecoratorEnd { get; set; }
     }
 
     public class DisplayAttribute : AstNode4gl
@@ -427,7 +416,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         Key
     }
 
-    public class DisplayControlBlock : AstNode4gl, IOutlinableResult
+    public class DisplayControlBlock : AstNode4gl
     {
         public ExpressionNode IdleSeconds { get; private set; }
         public NameExpression ActionName { get; private set; }
@@ -668,23 +657,12 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             return result;
         }
 
-        public bool CanOutline
+        public override bool CanOutline
         {
             get { return true; }
         }
 
-        public int DecoratorStart
-        {
-            get
-            {
-                return StartIndex;
-            }
-            set
-            {
-            }
-        }
-
-        public int DecoratorEnd { get; set; }
+        public override int DecoratorEnd { get; set; }
     }
 
     public class DisplayStatementFactory

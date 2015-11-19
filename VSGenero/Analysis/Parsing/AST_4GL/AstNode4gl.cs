@@ -25,7 +25,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
     /// This is the class on which all other AST nodes are based.
     /// It provides a SnapshotSpan of itself.
     /// </summary>
-    public abstract class AstNode4gl
+    public abstract class AstNode4gl : IOutlinableResult
     {
         public AstNode4gl Parent { get; protected set; }
         public IndexSpan _span;
@@ -264,6 +264,47 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 if (_children == null)
                     _children = new SortedList<int, AstNode4gl>();
                 return _children;
+            }
+        }
+
+        public virtual bool CanOutline
+        {
+            get
+            {
+                return false;
+            }
+        }
+
+        public virtual int DecoratorStart
+        {
+            get
+            {
+                return StartIndex;
+            }
+            set
+            {
+            }
+        }
+
+        public virtual int DecoratorEnd
+        {
+            get
+            {
+                return EndIndex;
+            }
+            set
+            {
+            }
+        }
+
+        private SortedList<int, int> _additionalDecoratorRanges;
+        public SortedList<int, int> AdditionalDecoratorRanges
+        {
+            get
+            {
+                if (_additionalDecoratorRanges == null)
+                    _additionalDecoratorRanges = new SortedList<int, int>();
+                return _additionalDecoratorRanges;
             }
         }
 
