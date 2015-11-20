@@ -17,7 +17,9 @@ namespace VSGenero.ProductivityTools
     [ContentType(VSGeneroConstants.ContentType4GL)]
     [TextViewRole(PredefinedTextViewRoles.EmbeddedPeekTextView)]
     [TextViewRole(PredefinedTextViewRoles.PrimaryDocument)]
+#if DEV14_OR_LATER
     [TextViewRole(PredefinedTextViewRoles.Printable)]
+#endif
     public sealed class Genero4glMouseProcessorProvider : IMouseProcessorProvider
     {
         public IMouseProcessor GetAssociatedProcessor(IWpfTextView wpfTextView)
