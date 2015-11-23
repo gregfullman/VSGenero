@@ -104,8 +104,16 @@ namespace VSGenero.SqlSupport
                                                                 sqlCon.ChangeDatabase(database);
                                                                 connectionField.SetValue(connectionStrategyVal, sqlCon);
 
-                                                                UIConnectionInfo connInfo = new UIConnectionInfo() { ServerName = server, UserName = string.Format("{0}\\{1}", Environment.UserDomainName, Environment.UserName) };
-                                                                uiConnectionField.SetValue(connectionStrategyVal, connInfo);
+                                                                try
+                                                                {
+                                                                    UIConnectionInfo connInfo = new UIConnectionInfo() { ServerName = server, UserName = string.Format("{0}\\{1}", Environment.UserDomainName, Environment.UserName) };
+                                                                    uiConnectionField.SetValue(connectionStrategyVal, connInfo);
+                                                                }
+                                                                catch(ArgumentException ae)
+                                                                {
+                                                                    // In VS2015 this exception gets thrown, but everything works correctly.
+                                                                    // So for the time being, we'll just keep going
+                                                                }
 
                                                                 if (commandService != null)
                                                                 {

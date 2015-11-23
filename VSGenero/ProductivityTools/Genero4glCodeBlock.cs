@@ -159,9 +159,15 @@ namespace VSGenero.ProductivityTools
         {
             get
             {
-                if(_outlinable != null && _span == default(SnapshotSpan))
+                try
                 {
-                    _span = new SnapshotSpan(_textView.TextSnapshot, _outlinable.StartIndex, (_outlinable.EndIndex - _outlinable.StartIndex));
+                    if (_outlinable != null && _span == default(SnapshotSpan))
+                    {
+                        _span = new SnapshotSpan(_textView.TextSnapshot, _outlinable.StartIndex, (_outlinable.EndIndex - _outlinable.StartIndex));
+                    }
+                }
+                catch(Exception e)
+                {
                 }
                 return _span;
             }
