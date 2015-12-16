@@ -322,13 +322,13 @@ namespace VSGenero.EditorExtensions.Intellisense
                 {
                     snapshots[i] = buffers[i].CurrentSnapshot;
                 }
-            }
+            //}
 
-            _parser.ParseBuffers(this, IndentationInconsistencySeverity, snapshots);
-            Interlocked.Decrement(ref _queue._analysisPending);
+                _parser.ParseBuffers(this, IndentationInconsistencySeverity, snapshots);
+                Interlocked.Decrement(ref _queue._analysisPending);
 
-            lock (this)
-            {
+            //lock (this)
+            //{
                 _parsing = false;
                 if (_requeue)
                 {

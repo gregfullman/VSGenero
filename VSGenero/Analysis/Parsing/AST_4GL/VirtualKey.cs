@@ -81,12 +81,19 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                 parser.ReportSyntaxError("Invalid virtual key name found.");
                             }
                         }
-                        else if(Tokenizer.GetTokenInfo(parser.Token.Token).Category == TokenCategory.StringLiteral)
+                        else if (Tokenizer.GetTokenInfo(parser.Token.Token).Category == TokenCategory.StringLiteral)
                         {
                             // TODO: do we want to verify the key string?
                         }
+                        else if (name.Length == 1 &&
+                               char.IsLetterOrDigit(name[0]))
+                        {
+                            // I guess it's ok, even though the Genero documentation says otherwise...
+                        }
                         else
+                        { 
                             return false;
+                        }
                         break;
                     }
             }

@@ -513,7 +513,11 @@ namespace VSGenero.EditorExtensions.Intellisense
         /// </summary>
         public void Clear(string filePath, string moniker, TaskLevel taskLevel = TaskLevel.All)
         {
-            var remKeys = _errorSources.Where(x => x.Key.Filepath.StartsWith(filePath, StringComparison.OrdinalIgnoreCase)).Select(x => x.Key).ToList();
+            List<EntryKey> remKeys = null;
+            lock (_errorSources)
+            {
+                remKeys = _errorSources.Where(x => x.Key.Filepath.StartsWith(filePath, StringComparison.OrdinalIgnoreCase)).Select(x => x.Key).ToList();
+            }
             for(int i = 0; i < remKeys.Count; i++)
             {
                 SendMessage(WorkerMessage.Clear(remKeys[i].Filepath, moniker, taskLevel));
@@ -564,9 +568,12 @@ namespace VSGenero.EditorExtensions.Intellisense
         public void AddErrorSource(string filepath, string moniker)
         {
             var key = new EntryKey(filepath, moniker);
-            if (!_errorSources.ContainsKey(key))
+            lock(_errorSources)
             {
-                _errorSources[new EntryKey(filepath, moniker)] = new HashSet<ITextBuffer>();
+                if (!_errorSources.ContainsKey(key))
+                {
+                    _errorSources[new EntryKey(filepath, moniker)] = new HashSet<ITextBuffer>();
+                }
             }
         }
 

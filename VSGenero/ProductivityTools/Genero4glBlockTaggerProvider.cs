@@ -142,7 +142,8 @@ namespace VSGenero.ProductivityTools
                 if (child.Value is IOutlinableResult)
                 {
                     var outRes = child.Value as IOutlinableResult;
-                    if (outRes.CanOutline /*&& ShouldInclude(outRes, spans)*/)
+                    if (outRes.CanOutline /*&& ShouldInclude(outRes, spans)*/
+                        && outRes.EndIndex < textView.TextSnapshot.Length)
                     {
                         curr = new Genero4glCodeBlock(tagger, textView, parent, GetBlockType(outRes), outRes, level + 1);
                         if (curr != null)

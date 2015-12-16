@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.VisualStudio.Text.Editor;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,6 +15,6 @@ namespace VSGenero.Snippets
 
     public interface ICustomSnippetProvider
     {
-        TriggerDynamicSnippetEventArgs GetCustomSnippet(char c);
+        TriggerDynamicSnippetEventArgs GetCustomSnippet(ITextView textView, char c);
     }
 }

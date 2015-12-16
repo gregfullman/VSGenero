@@ -446,7 +446,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         if (ExpressionNode.TryGetExpressionNode(parser, out conditionalExpr, Genero4glAst.ValidStatementKeywords.Union(new List<TokenKind>
                         {
                             TokenKind.OrderKeyword
-                        }).ToList()))
+                        }).ToList(), new ExpressionParsingOptions { AllowAnythingForFunctionParams = true, AllowStarParam = true }))
                         {
                             node.GroupByCondition = conditionalExpr;
                         }

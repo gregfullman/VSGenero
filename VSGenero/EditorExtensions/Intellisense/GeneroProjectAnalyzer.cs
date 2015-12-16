@@ -798,12 +798,19 @@ namespace VSGenero.EditorExtensions.Intellisense
             List<string> files = new List<string>();
             try
             {
-                files.AddRange(Directory.GetFiles(normalizedPath, "*.4gl").Where(x => string.IsNullOrWhiteSpace(excludeFile) ? true : !x.Equals(excludeFile, StringComparison.OrdinalIgnoreCase)));
-                ThreadPool.QueueUserWorkItem(x => { lock (_contentsLock) { AnalyzeDirectory(normalizedPath, excludeFile, ProjectEntryAnalyzed); } });
+                if (Directory.Exists(normalizedPath))
+                {
+                    files.AddRange(Directory.GetFiles(normalizedPath, "*.4gl").Where(x => string.IsNullOrWhiteSpace(excludeFile) ? true : !x.Equals(excludeFile, StringComparison.OrdinalIgnoreCase)));
+                    ThreadPool.QueueUserWorkItem(x => { lock (_contentsLock) { AnalyzeDirectory(normalizedPath, excludeFile, ProjectEntryAnalyzed); } });
+                }
             }
             catch (UnauthorizedAccessException)
             {
                 // Nothing we can do here...
+            }
+            catch(DirectoryNotFoundException)
+            {
+                // Nothing we can do here...this usually happens on shutdown
             }
             return files;
         }
@@ -1223,29 +1230,37 @@ namespace VSGenero.EditorExtensions.Intellisense
             IGeneroProjectEntry pyProjEntry = analysis as IGeneroProjectEntry;
             pyProjEntry.IsErrorChecked = false;
             List<Genero4glAst> asts = new List<Genero4glAst>();
-            foreach (var snapshot in snapshots)
+            try
             {
-                if (pyProjEntry != null &&
-                    VSGeneroPackage.Instance.ProgramCodeContentTypes.Any(x => snapshot.TextBuffer.ContentType.IsOfType(x.TypeName)))
+                foreach (var snapshot in snapshots)
                 {
-                    Genero4glAst ast;
-                    CollectingErrorSink errorSink;
-                    List<TaskProviderItem> commentTasks;
-                    List<TaskProviderItem> commentErrors;
-                    var reader = new SnapshotSpanSourceCodeReader(new SnapshotSpan(snapshot, new Span(0, snapshot.Length)));
-                    ParseGeneroCode(snapshot, reader, indentationSeverity, pyProjEntry, out ast, out errorSink, out commentTasks, out commentErrors);
-                    if (ast != null)
+                    if (pyProjEntry != null &&
+                        VSGeneroPackage.Instance.ProgramCodeContentTypes.Any(x => snapshot.TextBuffer.ContentType.IsOfType(x.TypeName)))
                     {
-                        asts.Add(ast);
-                        pyProjEntry.UpdateIncludesAndImports(pyProjEntry.FilePath, ast);
-                        //if (pyProjEntry.DetectCircularImports())
-                        //{
-                        //    // TODO: add error(s) from the (to be defined) errors returned from the function
-                        //}
-                    }
+                        Genero4glAst ast;
+                        CollectingErrorSink errorSink;
+                        List<TaskProviderItem> commentTasks;
+                        List<TaskProviderItem> commentErrors;
+                        var reader = new SnapshotSpanSourceCodeReader(new SnapshotSpan(snapshot, new Span(0, snapshot.Length)));
+                        ParseGeneroCode(snapshot, reader, indentationSeverity, pyProjEntry, out ast, out errorSink, out commentTasks, out commentErrors);
+                        if (ast != null)
+                        {
+                            asts.Add(ast);
+                            pyProjEntry.UpdateIncludesAndImports(pyProjEntry.FilePath, ast);
+                            //if (pyProjEntry.DetectCircularImports())
+                            //{
+                            //    // TODO: add error(s) from the (to be defined) errors returned from the function
+                            //}
+                        }
 
-                    UpdateErrorsAndWarnings(analysis, snapshot, errorSink, TaskLevel.Syntax, commentTasks, commentErrors);
+                        UpdateErrorsAndWarnings(analysis, snapshot, errorSink, TaskLevel.Syntax, commentTasks, commentErrors);
+                    }
                 }
+            }
+            catch(InvalidOperationException)
+            {
+                // This typically happens when the snapshots collection changes
+                int i = 0;
             }
 
             if (pyProjEntry != null)

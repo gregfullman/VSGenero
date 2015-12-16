@@ -51,7 +51,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
                 node.DecoratorEnd = parser.Token.Span.End;
 
-                if(parser.PeekToken(TokenKind.AttributesKeyword))
+                if(parser.PeekToken(TokenKind.AttributesKeyword) ||
+                   parser.PeekToken(TokenKind.AttributeKeyword))
                 {
                     parser.NextToken();
                     if (parser.PeekToken(TokenKind.LeftParenthesis))
@@ -209,13 +210,13 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
     public class MenuStatement : FglStatement
     {
-        public List<NameExpression> OptionNames { get; private set; }
+        public List<ExpressionNode> OptionNames { get; private set; }
 
         public static bool TryParseNode(Genero4glParser parser, out MenuStatement node, bool returnFalseInsteadOfErrors = false)
         {
             node = new MenuStatement();
             node.StartIndex = parser.Token.Span.Start;
-            node.OptionNames = new List<NameExpression>();
+            node.OptionNames = new List<ExpressionNode>();
             bool result = true;
 
             switch(parser.PeekToken().Kind)
@@ -266,10 +267,19 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                 parser.NextToken();
                             else
                             {
-                                NameExpression name;
-                                while (NameExpression.TryParseNode(parser, out name))
+                                NameExpression nameExpr;
+                                ExpressionNode strExpr;
+                                while (true)
                                 {
-                                    node.OptionNames.Add(name);
+                                    if (NameExpression.TryParseNode(parser, out nameExpr))
+                                        node.OptionNames.Add(nameExpr);
+                                    else if (parser.PeekToken(TokenCategory.StringLiteral) &&
+                                            ExpressionNode.TryGetExpressionNode(parser, out strExpr, new List<TokenKind> { TokenKind.Comma }))
+                                    {
+                                        node.OptionNames.Add(strExpr);
+                                    }
+                                    else
+                                        break;
                                     if (!parser.PeekToken(TokenKind.Comma))
                                         break;
                                     parser.NextToken();

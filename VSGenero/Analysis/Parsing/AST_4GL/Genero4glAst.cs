@@ -70,6 +70,16 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             get { return _langVersion; }
         }
 
+        public string Filepath
+        {
+            get
+            {
+                if (_projEntry != null)
+                    return _projEntry.FilePath;
+                return _filename;
+            }
+        }
+
         public IGeneroProjectEntry ProjectEntry
         {
             get

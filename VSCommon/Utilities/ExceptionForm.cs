@@ -16,6 +16,7 @@ namespace Microsoft.VisualStudio.VSCommon.Utilities
     public partial class ExceptionForm : Form
     {
         private Exception _currentException;
+        private string _filename;
         private bool _generalPopulated, _stackTracePopulated, _innerExceptionPopulated, _otherPopulated;
 
         public ExceptionForm(Exception e)
@@ -29,12 +30,9 @@ namespace Microsoft.VisualStudio.VSCommon.Utilities
             // process the exception to display the information available.
             // Only do the general information for right now
             PopulateGeneralInfo();
-        }
 
-        private void buttonSave_Click(object sender, EventArgs e)
-        {
-            string filename = Path.Combine(Path.GetDirectoryName(Assembly.GetAssembly(typeof(ExceptionForm)).Location), string.Format("exception_info_{0}.txt", DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss")));
-            using (FileStream fs = new FileStream(filename, FileMode.Create))
+            _filename = Path.Combine(Path.GetDirectoryName(Assembly.GetAssembly(typeof(ExceptionForm)).Location), string.Format("exception_info_{0}.txt", DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss")));
+            using (FileStream fs = new FileStream(_filename, FileMode.Create))
             using (StreamWriter sw = new StreamWriter(fs))
             {
                 SaveGeneralInfo(sw);
@@ -45,8 +43,24 @@ namespace Microsoft.VisualStudio.VSCommon.Utilities
                 sw.WriteLine();
                 SaveOtherInfo(sw);
             }
+        }
 
-            Process.Start("notepad.exe", filename);
+        private void buttonSave_Click(object sender, EventArgs e)
+        {
+            //string filename = Path.Combine(Path.GetDirectoryName(Assembly.GetAssembly(typeof(ExceptionForm)).Location), string.Format("exception_info_{0}.txt", DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss")));
+            //using (FileStream fs = new FileStream(filename, FileMode.Create))
+            //using (StreamWriter sw = new StreamWriter(fs))
+            //{
+            //    SaveGeneralInfo(sw);
+            //    sw.WriteLine();
+            //    SaveStackTrace(sw);
+            //    sw.WriteLine();
+            //    SaveInnerException(sw);
+            //    sw.WriteLine();
+            //    SaveOtherInfo(sw);
+            //}
+
+            Process.Start("notepad.exe", _filename);
         }
 
         private void SaveGeneralInfo(StreamWriter sw)

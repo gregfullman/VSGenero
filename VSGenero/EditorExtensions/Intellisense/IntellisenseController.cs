@@ -899,7 +899,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                 else if(_provider._CustomSnippetProvider != null)
                 {
                     // TODO: run the character through the custom snippet provider
-                    var customSnippet = _provider._CustomSnippetProvider.GetCustomSnippet(ch);
+                    var customSnippet = _provider._CustomSnippetProvider.GetCustomSnippet(_textView, ch);
                     if(customSnippet != null)
                     {
                         int startLine, startColumn, endLine, endColumn;
