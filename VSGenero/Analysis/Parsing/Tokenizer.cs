@@ -1091,6 +1091,8 @@ namespace VSGenero.Analysis.Parsing
                 }
                 else if ((nlKind = ReadEolnOpt(ch)) > 0)//(ch == '\\')
                 {
+                    _newLineLocations.Add(CurrentIndex);
+
                     ch = NextChar();
 
                     if (ch == EOF)
