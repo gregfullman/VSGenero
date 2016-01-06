@@ -284,7 +284,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     {
                         new ContextPossibilities(
                             emptyTokenKindSet,
-                            new ContextSetProvider[] { GetCursors },
+                            new ContextSetProvider[] { GetDeclaredCursors },
                             emptyBackwardTokenSearchSet
                         )
                     });
@@ -445,7 +445,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         ),
                         new ContextPossibilities(
                             emptyTokenKindSet,
-                            new ContextSetProvider[] { GetCursors },
+                            new ContextSetProvider[] { GetDeclaredCursors },
                             new BackwardTokenSearchItem[] { new BackwardTokenSearchItem(TokenKind.FetchKeyword) }
                         ),
                     });
@@ -671,7 +671,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                             new TokenKind[] { 
                                 TokenKind.ImmediateKeyword
                             },
-                            new ContextSetProvider[] { GetCursors },
+                            new ContextSetProvider[] { GetPreparedCursors },
                             emptyBackwardTokenSearchSet
                         )
                     });
@@ -727,7 +727,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                 TokenKind.AbsoluteKeyword,
                                 TokenKind.RelativeKeyword,
                             },
-                            new ContextSetProvider[] { GetCursors },
+                            new ContextSetProvider[] { GetDeclaredCursors },
                             emptyBackwardTokenSearchSet
                         )
                     });
@@ -762,7 +762,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         ),
                         new ContextPossibilities(
                             emptyTokenKindSet,
-                            new ContextSetProvider[] { GetCursors },
+                            new ContextSetProvider[] { GetDeclaredCursors },
                             new BackwardTokenSearchItem[] 
                             { new BackwardTokenSearchItem(TokenKind.FetchKeyword) }
                         )
@@ -771,7 +771,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     {
                         new ContextPossibilities(
                             emptyTokenKindSet,
-                            new ContextSetProvider[] { GetCursors },
+                            new ContextSetProvider[] { GetDeclaredCursors },
                             emptyBackwardTokenSearchSet
                         )
                     });
@@ -788,7 +788,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                 TokenKind.SelectKeyword,
                                 TokenKind.SqlKeyword
                             },
-                            new ContextSetProvider[] { GetVariables },
+                            new ContextSetProvider[] { GetVariables, GetPreparedCursors },
                             new BackwardTokenSearchItem[] 
                             { new BackwardTokenSearchItem(new OrderedTokenSet(new object[] { TokenKind.CursorKeyword, TokenKind.DeclareKeyword })) }
                         ),
@@ -802,7 +802,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     {
                         new ContextPossibilities(
                             emptyTokenKindSet,
-                            new ContextSetProvider[] { GetCursors },
+                            new ContextSetProvider[] { GetPreparedCursors },
                             emptyBackwardTokenSearchSet
                         ),
                         new ContextPossibilities(
@@ -1372,6 +1372,14 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         ),
                         new ContextPossibilities(
                             emptyTokenKindSet,
+                            new ContextSetProvider[] { GetStatementStartKeywords },
+                            new BackwardTokenSearchItem[]
+                            {
+                                new BackwardTokenSearchItem(new OrderedTokenSet(new object[] { TokenKind.FromKeyword, TokenKind.PrepareKeyword }))
+                            }
+                        ),
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
                             new ContextSetProvider[] { GetBinaryOperatorKeywords, GetStatementStartKeywords, GetPostUnaryOperators },
                             new BackwardTokenSearchItem[] 
                             { 
@@ -1620,7 +1628,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     {
                         new ContextPossibilities(
                             emptyTokenKindSet,
-                            new ContextSetProvider[] { GetCursors },
+                            new ContextSetProvider[] { GetDeclaredCursors },
                             new BackwardTokenSearchItem[] 
                             { 
                                 new BackwardTokenSearchItem(TokenKind.FetchKeyword)
@@ -1953,7 +1961,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         ),
                         new ContextPossibilities(
                             emptyTokenKindSet,
-                            new ContextSetProvider[] { GetCursors },
+                            new ContextSetProvider[] { GetDeclaredCursors },
                             new BackwardTokenSearchItem[] 
                             { 
                                 new BackwardTokenSearchItem(TokenKind.FetchKeyword)
@@ -2124,7 +2132,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         ),
                         new ContextPossibilities(
                             emptyTokenKindSet,
-                            new ContextSetProvider[] { GetCursors },
+                            new ContextSetProvider[] { GetDeclaredCursors },
                             new BackwardTokenSearchItem[] 
                             { 
                                 new BackwardTokenSearchItem(TokenKind.CurrentKeyword)
@@ -2262,7 +2270,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     {
                         new ContextPossibilities(
                             emptyTokenKindSet,
-                            new ContextSetProvider[] { GetCursors },
+                            new ContextSetProvider[] { GetDeclaredCursors },
                             new BackwardTokenSearchItem[] 
                             { 
                                 new BackwardTokenSearchItem(TokenKind.FetchKeyword)
@@ -2284,7 +2292,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     {
                         new ContextPossibilities(
                             emptyTokenKindSet,
-                            new ContextSetProvider[] { GetCursors },
+                            new ContextSetProvider[] { GetDeclaredCursors },
                             new BackwardTokenSearchItem[] 
                             { 
                                 new BackwardTokenSearchItem(TokenKind.FetchKeyword)
@@ -2323,7 +2331,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     {
                         new ContextPossibilities(
                             emptyTokenKindSet,
-                            new ContextSetProvider[] { GetCursors },
+                            new ContextSetProvider[] { GetDeclaredCursors },
                             emptyBackwardTokenSearchSet
                         )
                     });
@@ -2864,6 +2872,14 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         ),
                         new ContextPossibilities(
                             emptyTokenKindSet,
+                            new ContextSetProvider[] { GetStatementStartKeywords },
+                            new BackwardTokenSearchItem[]
+                            {
+                                new BackwardTokenSearchItem(new OrderedTokenSet(new object[] { TokenKind.FromKeyword, TokenKind.PrepareKeyword }))
+                            }
+                        ),
+                        new ContextPossibilities(
+                            emptyTokenKindSet,
                             new ContextSetProvider[] { GetStatementStartKeywords, GetBinaryOperatorKeywords, GetPostUnaryOperators },
                             new BackwardTokenSearchItem[] 
                             { 
@@ -3332,7 +3348,25 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         {
             if (_instance != null)
             {
-                return _instance.GetInstanceCursors(index);
+                return _instance.GetInstanceCursors(index, AstMemberType.Cursors);
+            }
+            return new MemberResult[0];
+        }
+
+        private static IEnumerable<MemberResult> GetPreparedCursors(int index)
+        {
+            if (_instance != null)
+            {
+                return _instance.GetInstanceCursors(index, AstMemberType.PreparedCursors);
+            }
+            return new MemberResult[0];
+        }
+
+        private static IEnumerable<MemberResult> GetDeclaredCursors(int index)
+        {
+            if (_instance != null)
+            {
+                return _instance.GetInstanceCursors(index, AstMemberType.DeclaredCursors);
             }
             return new MemberResult[0];
         }

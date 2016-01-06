@@ -231,9 +231,11 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             Functions = 8,
             Dialogs = 16,
             Reports = 32,
-            Cursors = 64,
-            Tables = 128,
+            PreparedCursors = 64,
+            DeclaredCursors = 128,
+            Tables = 256,
 
+            Cursors = PreparedCursors | DeclaredCursors,
             All = Variables | Constants | Types | Functions | Dialogs | Reports | Cursors | Tables
         }
 
@@ -376,11 +378,14 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         }
 
                         // Tables and cursors are module specific, and cannot be accessed via fgl import
-                        if (memberType.HasFlag(AstMemberType.Cursors) ||
+                        if (memberType.HasFlag(AstMemberType.DeclaredCursors) ||
+                            memberType.HasFlag(AstMemberType.PreparedCursors) ||
                             memberType.HasFlag(AstMemberType.Tables))
                         {
-                            if (memberType.HasFlag(AstMemberType.Cursors))
-                                members.AddRange((_body as IModuleResult).Cursors.Select(x => new MemberResult(x.Value.Name, x.Value, GeneroMemberType.Cursor, this)));
+                            if (memberType.HasFlag(AstMemberType.DeclaredCursors))
+                                members.AddRange((_body as IModuleResult).Cursors.Where(x => x.Value is DeclareStatement).Select(x => new MemberResult(x.Value.Name, x.Value, GeneroMemberType.Cursor, this)));
+                            if (memberType.HasFlag(AstMemberType.PreparedCursors))
+                                members.AddRange((_body as IModuleResult).Cursors.Where(x => x.Value is PrepareStatement).Select(x => new MemberResult(x.Value.Name, x.Value, GeneroMemberType.Cursor, this)));
                             if (memberType.HasFlag(AstMemberType.Tables))
                                 members.AddRange((_body as IModuleResult).Tables.Select(x => new MemberResult(x.Value.Name, x.Value, GeneroMemberType.DbTable, this)));
                         }
@@ -870,14 +875,14 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         private IEnumerable<MemberResult> GetInstanceImportModules(int index)
         {
             if (_programFileProvider != null)
-                return _programFileProvider.GetAvailableImportModules().Select(x => new MemberResult(x, GeneroMemberType.Module, this));
+                return _programFileProvider.GetAvailableImportModules(Filepath).Select(x => new MemberResult(x, GeneroMemberType.Module, this));
             else
                 return new MemberResult[0];
         }
 
-        private IEnumerable<MemberResult> GetInstanceCursors(int index)
+        private IEnumerable<MemberResult> GetInstanceCursors(int index, AstMemberType type)
         {
-            return GetDefinedMembers(index, AstMemberType.Cursors);
+            return GetDefinedMembers(index, type);
         }
     }
 }
