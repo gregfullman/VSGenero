@@ -340,8 +340,6 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                             IAnalysisResult curRes = cursor as IAnalysisResult;
                             if (!defNode.Cursors.ContainsKey(curRes.Name))
                                 defNode.Cursors.Add(curRes.Name, curRes);
-                            else
-                                parser.ReportSyntaxError(curRes.LocationIndex, curRes.LocationIndex + curRes.Name.Length, string.Format("Module variable {0} defined more than once.", curRes.Name), Severity.Error);
                         }
                     }
                     else
