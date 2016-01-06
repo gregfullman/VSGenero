@@ -1203,19 +1203,22 @@ namespace VSGenero.EditorExtensions.Intellisense
             }
             catch(SEHException seh)
             {
-                _textView.Properties.AddProperty(GeneroTextViewChangeProperties.SourceDocUpdateKey, true);
-
-                int start = caretIndex - length;
-                if(start < 0)
+                if (!string.IsNullOrWhiteSpace(staticSnippetString))
                 {
-                    start = 0;
-                }
-                SnapshotSpan snapSpan = new SnapshotSpan(_textView.TextSnapshot, new Span(start, length));
-                ITextEdit edit = _textView.TextBuffer.CreateEdit();
-                edit.Replace(snapSpan.Span, staticSnippetString);
-                edit.Apply();
+                    _textView.Properties.AddProperty(GeneroTextViewChangeProperties.SourceDocUpdateKey, true);
 
-                _textView.Properties.RemoveProperty(GeneroTextViewChangeProperties.SourceDocUpdateKey);
+                    int start = caretIndex - length;
+                    if (start < 0)
+                    {
+                        start = 0;
+                    }
+                    SnapshotSpan snapSpan = new SnapshotSpan(_textView.TextSnapshot, new Span(start, length));
+                    ITextEdit edit = _textView.TextBuffer.CreateEdit();
+                    edit.Replace(snapSpan.Span, staticSnippetString);
+                    edit.Apply();
+
+                    _textView.Properties.RemoveProperty(GeneroTextViewChangeProperties.SourceDocUpdateKey);
+                }
             }
             catch (Exception e)
             {
