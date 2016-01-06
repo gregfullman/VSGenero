@@ -247,7 +247,7 @@ namespace VSGenero.EditorExtensions
                         break;
                     }
                     else if (token != null &&
-                     token.ClassificationType == revParser.Classifier.Provider.Keyword)
+                             token.ClassificationType == Genero4glClassifierProvider.Keyword)
                     {
                         var tok = Tokens.GetToken(token.Span.GetText());
                         if (tok != null && Genero4glAst.ValidStatementKeywords.Contains(tok.Kind))
@@ -271,10 +271,16 @@ namespace VSGenero.EditorExtensions
                 int cancelIndentStartingAt = -1;
                 TokenKind firstStatement = TokenKind.EndOfFile;
                 TokenKind latestIndentChangeToken = TokenKind.EndOfFile;
+                ClassificationSpan firstToken = null;
 
                 for (int i = 0; i < tokenStack.Count; i++)
                 {
                     var token = tokenStack[i];
+                    if(token != null && firstToken == null)
+                    {
+                        firstToken = token;
+                    }
+
                     if (token == null)
                     {
                         current.NeedsUpdate = true;
@@ -348,36 +354,42 @@ namespace VSGenero.EditorExtensions
                     if (token != null && current.ShouldIndentAfter && cancelIndent != null)
                     {
                         // Check to see if we have following tokens that would cancel the current indent.
+                        
                         var tok = Tokens.GetToken(token.Span.GetText());
-                        if (tok != null)
+                        var tokenCategory = token.ClassificationType;
+                        bool allPast = true;
+                        bool cancel = false;
+                        foreach (var ci in cancelIndent)
                         {
-                            bool allPast = true;
-                            bool cancel = false;
-                            foreach (var ci in cancelIndent)
+                            if (ci.TokensAhead < (i - cancelIndentStartingAt))
+                                continue;
+                            else
                             {
-                                if (ci.TokensAhead < (i - cancelIndentStartingAt))
-                                    continue;
-                                else
+                                allPast = false;
+                                if (ci.TokensAhead == (i - cancelIndentStartingAt))
                                 {
-                                    allPast = false;
-                                    if (ci.TokensAhead == (i - cancelIndentStartingAt))
+                                    if (ci.UseCategory && ci.CancelCategory != null)
+                                    {
+                                        cancel = tokenCategory == ci.CancelCategory;
+                                    }
+                                    else if(tok != null)
                                     {
                                         cancel = tok.Kind == ci.CancelToken;
-                                        if (cancel)
-                                            break;
                                     }
+                                    if (cancel)
+                                        break;
                                 }
                             }
-                            if (cancel)
-                            {
-                                current.ShouldIndentAfter = false;
-                            }
-                            if (cancel || allPast)
-                            {
-                                cancelIndent = null;
-                                cancelIndentStartingAt = -1;
-                                latestIndentChangeToken = TokenKind.EndOfFile;
-                            }
+                        }
+                        if (cancel)
+                        {
+                            current.ShouldIndentAfter = false;
+                        }
+                        if (cancel || allPast)
+                        {
+                            cancelIndent = null;
+                            cancelIndentStartingAt = -1;
+                            latestIndentChangeToken = TokenKind.EndOfFile;
                         }
                     }
 
@@ -387,7 +399,10 @@ namespace VSGenero.EditorExtensions
                     }
 
                     TokenKind tempChangeToken;
-                    if (token != null && indentStack.Count == 0 && ShouldIndentAfterKeyword(token, out tempChangeToken, out cancelIndent))
+                    if (token != null && 
+                        indentStack.Count == 0 && 
+                        firstToken == token && 
+                        ShouldIndentAfterKeyword(token, out tempChangeToken, out cancelIndent))
                     {                               // except in a grouping
                         if (latestIndentChangeToken != TokenKind.EndKeyword)
                         {
@@ -543,7 +558,10 @@ namespace VSGenero.EditorExtensions
 
         public static Dictionary<TokenKind, List<CancelIndent>> BlockKeywords = new Dictionary<TokenKind, List<CancelIndent>>
         {
-             { TokenKind.GlobalsKeyword, null },
+             { TokenKind.GlobalsKeyword, new List<CancelIndent>
+             {
+                new CancelIndent { UseCategory = true, CancelCategory = Genero4glClassifierProvider.StringLiteral, TokensAhead = 1 }
+             }},
              { TokenKind.RecordKeyword, new List<CancelIndent>
              {
                 new CancelIndent { CancelToken = TokenKind.LikeKeyword, TokensAhead = 1 }
@@ -565,7 +583,9 @@ namespace VSGenero.EditorExtensions
 
         public class CancelIndent
         {
+            public bool UseCategory { get; set; }
             public TokenKind CancelToken { get; set; }
+            public IClassificationType CancelCategory { get; set; }
             public int TokensAhead { get; set; }
         }
 

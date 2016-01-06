@@ -629,7 +629,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                     RemoveImportedProject(proj.Directory);
                     if (newProjectPath == null)
                     {
-                        newProjectPath = VSGeneroPackage.Instance.ProgramFileProvider.GetImportModuleFilename(projectName);
+                        newProjectPath = VSGeneroPackage.Instance.ProgramFileProvider.GetImportModuleFilename(projectName, proj.Directory);
                     }
                     var newProj = AddImportedProject(newProjectPath);
 
@@ -1640,12 +1640,12 @@ namespace VSGenero.EditorExtensions.Intellisense
                 if (currPos > lastClass.Span.Start.Position &&
                    currPos <= lastClass.Span.End.Position)
                 {
-                    if (lastClass.ClassificationType == classifier.Provider.Comment)
+                    if (lastClass.ClassificationType == Genero4glClassifierProvider.Comment)
                     {
                         // No completions in comments
                         return CompletionAnalysis.EmptyCompletionContext;
                     }
-                    else if (lastClass.ClassificationType == classifier.Provider.StringLiteral)
+                    else if (lastClass.ClassificationType == Genero4glClassifierProvider.StringLiteral)
                     {
 
                         // String completion
@@ -1662,7 +1662,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                 }
             }
             else if ((tokens = classifier.GetClassificationSpans(snapSpan.Start.GetContainingLine().ExtentIncludingLineBreak)).Count > 0 &&
-             tokens[0].ClassificationType == classifier.Provider.StringLiteral)
+             tokens[0].ClassificationType == Genero4glClassifierProvider.StringLiteral)
             {
                 // multi-line string, no string completions.
                 //return CompletionAnalysis.EmptyCompletionContext;

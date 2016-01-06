@@ -97,7 +97,6 @@ namespace VSGenero.EditorExtensions.Intellisense
                     _DatabaseInfoProvider.SetFilename(buffer.GetFilePath());
                 if (_ProgramFileProvider != null)
                 {
-                    _ProgramFileProvider.SetFilename(buffer.GetFilePath());
                     if (VSGeneroPackage.Instance.ProgramFileProvider == null)
                         VSGeneroPackage.Instance.ProgramFileProvider = _ProgramFileProvider;
                 }

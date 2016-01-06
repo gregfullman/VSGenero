@@ -88,8 +88,6 @@ namespace VSGenero.EditorExtensions.Intellisense
                     _provider._PublicFunctionProvider.SetFilename(filename);
                 if (_provider._DatabaseInfoProvider != null)
                     _provider._DatabaseInfoProvider.SetFilename(filename);
-                if (_provider._ProgramFileProvider != null)
-                    _provider._ProgramFileProvider.SetFilename(filename);
             }
 
             IGeneroProjectEntry analysisItem;

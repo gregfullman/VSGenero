@@ -66,8 +66,6 @@ namespace VSGenero.EditorExtensions.Intellisense
                 _provider._PublicFunctionProvider.SetFilename(_textBuffer.GetFilePath());
             if (_provider._DatabaseInfoProvider != null)
                 _provider._DatabaseInfoProvider.SetFilename(_textBuffer.GetFilePath());
-            if (_provider._ProgramFileProvider != null)
-                _provider._ProgramFileProvider.SetFilename(_textBuffer.GetFilePath());
             var vars = _textBuffer.CurrentSnapshot.AnalyzeExpression(
                 session.CreateTrackingSpan(_textBuffer),
                 false,

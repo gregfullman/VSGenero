@@ -67,8 +67,6 @@ namespace VSGenero.EditorExtensions.Intellisense
                 _provider._PublicFunctionProvider.SetFilename(textBuffer.GetFilePath());
             if (_provider._DatabaseInfoProvider != null)
                 _provider._DatabaseInfoProvider.SetFilename(textBuffer.GetFilePath());
-            if (_provider._ProgramFileProvider != null)
-                _provider._ProgramFileProvider.SetFilename(textBuffer.GetFilePath());
             
             var span = session.GetApplicableSpan(textBuffer);
             var triggerPoint = session.GetTriggerPoint(textBuffer);
@@ -80,13 +78,6 @@ namespace VSGenero.EditorExtensions.Intellisense
 
             if (completions == null || completions.Completions.Count == 0)
             {
-                //if (PythonToolsPackage.Instance != null &&
-                //    !session.TextView.GetAnalyzer().InterpreterFactory.IsAnalysisCurrent())
-                //{
-                //    // no completions, inform the user via the status bar that the analysis is not yet complete.
-                //    var statusBar = (IVsStatusbar)CommonPackage.GetGlobalService(typeof(SVsStatusbar));
-                //    statusBar.SetText(Resources.WarningAnalysisNotCurrent);
-                //}
                 return;
             }
             completionSets.Add(completions);

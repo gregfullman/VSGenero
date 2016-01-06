@@ -33,13 +33,13 @@ namespace VSGenero.EditorExtensions
     public class Genero4glClassifierProvider : IClassifierProvider
     {
         private Dictionary<TokenCategory, IClassificationType> _categoryMap;
-        private IClassificationType _comment;
-        private IClassificationType _stringLiteral;
-        private IClassificationType _keyword;
-        private IClassificationType _operator;
-        private IClassificationType _groupingClassification;
-        private IClassificationType _dotClassification;
-        private IClassificationType _commaClassification;
+        private static IClassificationType _comment;
+        private static IClassificationType _stringLiteral;
+        private static IClassificationType _keyword;
+        private static IClassificationType _operator;
+        private static IClassificationType _groupingClassification;
+        private static IClassificationType _dotClassification;
+        private static IClassificationType _commaClassification;
         private readonly IList<IContentType> _types;
 
         public Genero4glClassifierProvider(IClassificationTypeRegistryService classificationRegistry)
@@ -155,31 +155,31 @@ namespace VSGenero.EditorExtensions
             get { return _types; }
         }
 
-        public IClassificationType Comment {
+        public static IClassificationType Comment {
             get { return _comment; }
         }
 
-        public IClassificationType StringLiteral {
+        public static IClassificationType StringLiteral {
             get { return _stringLiteral; }
         }
 
-        public IClassificationType Keyword {
+        public static IClassificationType Keyword {
             get { return _keyword; }
         }
 
-        public IClassificationType Operator {
+        public static IClassificationType Operator {
             get { return _operator; }
         }
 
-        public IClassificationType GroupingClassification {
+        public static IClassificationType GroupingClassification {
             get { return _groupingClassification; }
         }
 
-        public IClassificationType DotClassification {
+        public static IClassificationType DotClassification {
             get { return _dotClassification; }
         }
 
-        public IClassificationType CommaClassification {
+        public static IClassificationType CommaClassification {
             get { return _commaClassification; }
         }
 

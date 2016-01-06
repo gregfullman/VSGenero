@@ -288,8 +288,7 @@ namespace VSGenero.Analysis
                     _lastImportedModules = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                 var modules = ast.GetImportedModules().ToList();
                 HashSet<string> currentlyImportedModules = new HashSet<string>(_lastImportedModules, StringComparer.OrdinalIgnoreCase);
-                VSGeneroPackage.Instance.ProgramFileProvider.SetFilename(filename);
-                foreach (var mod in modules.Select(x => VSGeneroPackage.Instance.ProgramFileProvider.GetImportModuleFilename(x)).Where(y => y != null))
+                foreach (var mod in modules.Select(x => VSGeneroPackage.Instance.ProgramFileProvider.GetImportModuleFilename(x, FilePath)).Where(y => y != null))
                 {
                     if (!_lastImportedModules.Contains(mod))
                     {
@@ -323,7 +322,7 @@ namespace VSGenero.Analysis
                 // next do includes
                 var includes = ast.GetIncludedFiles();
                 HashSet<string> currentlyIncludedFiles = new HashSet<string>(VSGeneroPackage.Instance.DefaultAnalyzer.GetIncludedFiles(this).Select(x => x.FilePath), StringComparer.OrdinalIgnoreCase);
-                foreach (var incl in includes.Select(x => VSGeneroPackage.Instance.ProgramFileProvider.GetIncludeFile(x)).Where(y => y != null))
+                foreach (var incl in includes.Select(x => VSGeneroPackage.Instance.ProgramFileProvider.GetIncludeFile(x, FilePath)).Where(y => y != null))
                 {
                     if (!VSGeneroPackage.Instance.DefaultAnalyzer.IsIncludeFileIncludedByProjectEntry(incl, this))
                     {

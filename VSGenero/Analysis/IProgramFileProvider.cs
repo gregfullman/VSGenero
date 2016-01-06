@@ -49,11 +49,10 @@ namespace VSGenero.Analysis
 
     public interface IProgramFileProvider
     {
-        void SetFilename(string filename);
         IEnumerable<string> GetProgramFilenames(string filename);
-        string GetImportModuleFilename(string importModule);
-        IEnumerable<string> GetAvailableImportModules();
-        string GetIncludeFile(string relativeFilename);
+        string GetImportModuleFilename(string importModule, string currentFilename);
+        IEnumerable<string> GetAvailableImportModules(string currentFilename);
+        string GetIncludeFile(string relativeFilename, string currentFilename);
 
         event EventHandler<ImportModuleLocationChangedEventArgs> ImportModuleLocationChanged;
         event EventHandler<IncludeFileLocationChangedEventArgs> IncludeFileLocationChanged;

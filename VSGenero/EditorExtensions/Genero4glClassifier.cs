@@ -264,7 +264,7 @@ namespace VSGenero.EditorExtensions
                         classifications.Add(
                             new ClassificationSpan(
                                 new SnapshotSpan(snapshot, multiStrSpan),
-                                _provider.StringLiteral
+                                Genero4glClassifierProvider.StringLiteral
                             )
                         );
                     }
@@ -294,7 +294,7 @@ namespace VSGenero.EditorExtensions
                         classifications.Add(
                             new ClassificationSpan(
                                 new SnapshotSpan(snapshot, multiStrSpan),
-                                _provider.Comment
+                                Genero4glClassifierProvider.Comment
                             )
                         );
                     }
@@ -555,21 +555,21 @@ namespace VSGenero.EditorExtensions
             {
                 if (token.Trigger == TokenTriggers.MemberSelect)
                 {
-                    classification = _provider.DotClassification;
+                    classification = Genero4glClassifierProvider.DotClassification;
                 }
             }
             else if (token.Category == TokenCategory.Grouping)
             {
                 if ((token.Trigger & TokenTriggers.MatchBraces) != 0)
                 {
-                    classification = _provider.GroupingClassification;
+                    classification = Genero4glClassifierProvider.GroupingClassification;
                 }
             }
             else if (token.Category == TokenCategory.Delimiter)
             {
                 if (token.Trigger == TokenTriggers.ParameterNext)
                 {
-                    classification = _provider.CommaClassification;
+                    classification = Genero4glClassifierProvider.CommaClassification;
                 }
             }
 

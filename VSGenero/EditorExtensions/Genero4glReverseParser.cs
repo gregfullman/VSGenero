@@ -130,7 +130,7 @@ namespace VSGenero.EditorExtensions
                 if (enumerator.Current.ClassificationType.IsOfType(PredefinedClassificationTypeNames.Identifier))
                 {
                     if (MoveNextSkipExplicitNewLines(enumerator) &&
-                        enumerator.Current.ClassificationType == Classifier.Provider.Keyword &&
+                        enumerator.Current.ClassificationType == Genero4glClassifierProvider.Keyword &&
                         enumerator.Current.Span.GetText() == "def")
                     {
                         return true;
@@ -150,7 +150,7 @@ namespace VSGenero.EditorExtensions
 
             while (MoveNextSkipExplicitNewLines(enumerator))
             {
-                if (enumerator.Current.ClassificationType == _classifier.Provider.Keyword)
+                if (enumerator.Current.ClassificationType == Genero4glClassifierProvider.Keyword)
                 {
                     if (enumerator.Current.Span.GetText() == "def" && groupingLevel == 0)
                     {
@@ -229,7 +229,7 @@ namespace VSGenero.EditorExtensions
             var enumerator = ReverseClassificationSpanEnumerator(_classifier, _span.GetSpan(_snapshot).End);
             if (enumerator.MoveNext())
             {
-                if (enumerator.Current != null && enumerator.Current.ClassificationType == this._classifier.Provider.StringLiteral)
+                if (enumerator.Current != null && enumerator.Current.ClassificationType == Genero4glClassifierProvider.StringLiteral)
                 {
                     return enumerator.Current.Span;
                 }
@@ -238,7 +238,7 @@ namespace VSGenero.EditorExtensions
                 while (ShouldSkipAsLastToken(lastToken, forCompletion) && enumerator.MoveNext())
                 {
                     // skip trailing new line if the user is hovering at the end of the line
-                    if ((lastToken == null && enumerator.Current != null && enumerator.Current.ClassificationType != Classifier.Provider.DotClassification) &&
+                    if ((lastToken == null && enumerator.Current != null && enumerator.Current.ClassificationType != Genero4glClassifierProvider.DotClassification) &&
                         (nesting + otherNesting == 0))
                     {
                         // new line out of a grouping...
@@ -261,14 +261,14 @@ namespace VSGenero.EditorExtensions
                             otherNesting != 0 ||
                             lastTokenWasDot ||
                             (enumerator.MoveNext() &&
-                             (IsExplicitLineJoin(enumerator.Current) || (enumerator.Current != null && enumerator.Current.ClassificationType == Classifier.Provider.DotClassification))
+                             (IsExplicitLineJoin(enumerator.Current) || (enumerator.Current != null && enumerator.Current.ClassificationType == Genero4glClassifierProvider.DotClassification))
                             )
                            )
                         {
                             if (enumerator.Current != null)
                             {
                                 // we're in a grouping, or the previous token is an explicit line join, we'll keep going.
-                                if (enumerator.Current.ClassificationType != Classifier.Provider.DotClassification)
+                                if (enumerator.Current.ClassificationType != Genero4glClassifierProvider.DotClassification)
                                 {
                                     continue;
                                 }
@@ -369,11 +369,11 @@ namespace VSGenero.EditorExtensions
                         lastTokenWasDot = false;
                     }
                     else if (/*token.ClassificationType == Classifier.Provider.Keyword ||*/   // We're going to exclude keywords from this logic...messing too many things up
-                             token.ClassificationType == Classifier.Provider.Operator)
+                             token.ClassificationType == Genero4glClassifierProvider.Operator)
                     {
                         lastTokenWasKeywordArgAssignment = false;
 
-                        if (token.ClassificationType == Classifier.Provider.Keyword && text == "lambda")
+                        if (token.ClassificationType == Genero4glClassifierProvider.Keyword && text == "lambda")
                         {
                             if (currentParamAtLastColon != -1)
                             {
@@ -425,7 +425,7 @@ namespace VSGenero.EditorExtensions
                                 // hovering directly over a keyword, don't provide a tooltip
                                 return null;
                             }
-                            else if ((nestingChanged || forCompletion) && token.ClassificationType == Classifier.Provider.Keyword && text == "def")
+                            else if ((nestingChanged || forCompletion) && token.ClassificationType == Genero4glClassifierProvider.Keyword && text == "def")
                             {
                                 return null;
                             }
@@ -433,7 +433,7 @@ namespace VSGenero.EditorExtensions
                             {
                                 if (enumerator.MoveNext())
                                 {
-                                    if (enumerator.Current.ClassificationType == _classifier.Provider.CommaClassification)
+                                    if (enumerator.Current.ClassificationType == Genero4glClassifierProvider.CommaClassification)
                                     {
                                         isParameterName = IsParameterNameComma(enumerator);
                                     }
@@ -445,9 +445,9 @@ namespace VSGenero.EditorExtensions
                             }
                             break;
                         }
-                        else if ((token.ClassificationType == Classifier.Provider.Keyword) &&
+                        else if ((token.ClassificationType == Genero4glClassifierProvider.Keyword) &&
                             //PythonKeywords.IsOnlyStatementKeyword(text)) ||
-                          (token.ClassificationType == Classifier.Provider.Operator && IsAssignmentOperator(text)))
+                          (token.ClassificationType == Genero4glClassifierProvider.Operator && IsAssignmentOperator(text)))
                         {
                             if (isSigHelp && text == "=")
                             {
@@ -464,7 +464,7 @@ namespace VSGenero.EditorExtensions
                                 break;
                             }
                         }
-                        else if (token.ClassificationType == Classifier.Provider.Keyword && (text == "if" || text == "else"))
+                        else if (token.ClassificationType == Genero4glClassifierProvider.Keyword && (text == "if" || text == "else"))
                         {
                             // if and else can be used in an expression context or a statement context
                             if (currentParamAtLastColon != -1)
@@ -480,13 +480,13 @@ namespace VSGenero.EditorExtensions
                         lastTokenWasCommaOrOperator = true;
                         lastTokenWasDot = false;
                     }
-                    else if (token.ClassificationType == Classifier.Provider.DotClassification)
+                    else if (token.ClassificationType == Genero4glClassifierProvider.DotClassification)
                     {
                         lastTokenWasCommaOrOperator = true;
                         lastTokenWasDot = true;
                         lastTokenWasKeywordArgAssignment = false;
                     }
-                    else if (token.ClassificationType == Classifier.Provider.CommaClassification)
+                    else if (token.ClassificationType == Genero4glClassifierProvider.CommaClassification)
                     {
                         lastTokenWasCommaOrOperator = true;
                         lastTokenWasKeywordArgAssignment = false;
@@ -505,7 +505,7 @@ namespace VSGenero.EditorExtensions
                             paramIndex++;
                         }
                     }
-                    else if (token.ClassificationType == Classifier.Provider.Comment)
+                    else if (token.ClassificationType == Genero4glClassifierProvider.Comment)
                     {
                         return null;
                     }
@@ -608,7 +608,7 @@ namespace VSGenero.EditorExtensions
             return lastToken == null || (
                 (lastToken.ClassificationType.Classification == PredefinedClassificationTypeNames.WhiteSpace &&
                     (lastToken.Span.GetText() == "\r\n" || lastToken.Span.GetText() == "\n" || lastToken.Span.GetText() == "\r")) ||
-                    (lastToken.ClassificationType == Classifier.Provider.DotClassification && !forCompletion));
+                    (lastToken.ClassificationType == Genero4glClassifierProvider.DotClassification && !forCompletion));
         }
 
         public Genero4glClassifier Classifier
