@@ -745,6 +745,9 @@
         <BackwardTokenSearchItem>
           <Token>where</Token>
         </BackwardTokenSearchItem>
+        <BackwardTokenSearchItem>
+          <Token>when</Token>
+        </BackwardTokenSearchItem>
       </BackwardSearchItems>
     </ContextPossibility>
     <ContextPossibility>
