@@ -44,6 +44,14 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             }
         }
 
+        public virtual GeneroLanguageVersion MinimumBdlVersion
+        {
+            get
+            {
+                return GeneroLanguageVersion.None;
+            }
+        }
+
         public virtual GeneroMemberType MemberType
         {
             get

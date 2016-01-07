@@ -20,6 +20,14 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 {
     public class DeclarativeDialogBlock : FunctionBlockNode
     {
+        public override GeneroLanguageVersion MinimumBdlVersion
+        {
+            get
+            {
+                return GeneroLanguageVersion.V250;
+            }
+        }
+
         private DialogBlock Dialog { get; set; }
 
         public static bool TryParseNode(Genero4glParser parser, out DeclarativeDialogBlock node, IModuleResult containingModule)

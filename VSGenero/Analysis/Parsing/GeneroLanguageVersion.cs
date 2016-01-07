@@ -25,7 +25,8 @@ namespace VSGenero.Analysis.Parsing
         V232,
         V240,
         V241,
-        V250
+        V250,
+        V300
     }
 
     public static class GeneroLanguageVersionExtensions
@@ -38,6 +39,7 @@ namespace VSGenero.Analysis.Parsing
                 case GeneroLanguageVersion.V240: return new Version(2, 40);
                 case GeneroLanguageVersion.V241: return new Version(2, 41);
                 case GeneroLanguageVersion.V250: return new Version(2, 50);
+                case GeneroLanguageVersion.V300: return new Version(3, 0);
                 default: return null;
             }
         }
@@ -53,6 +55,12 @@ namespace VSGenero.Analysis.Parsing
                         case 40: return GeneroLanguageVersion.V240;
                         case 41: return GeneroLanguageVersion.V241;
                         case 50: return GeneroLanguageVersion.V250;
+                        default: return GeneroLanguageVersion.None;
+                    }
+                case 3:
+                    switch(version.Minor)
+                    {
+                        case 0: return GeneroLanguageVersion.V300;
                         default: return GeneroLanguageVersion.None;
                     }
                 default:

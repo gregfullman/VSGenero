@@ -117,7 +117,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 		}, new List<string> {}),
 		new GeneroPackageClassMethod("dataAvailable", "base.Channel", false, "Tests if some data can be read from the channel.", new List<ParameterResult>
 		{
-		}, new List<string> {"boolean"}),
+		}, new List<string> {"boolean"}, GeneroLanguageVersion.V250),
 		new GeneroPackageClassMethod("readLine", "base.Channel", false, "Read a complete line from the channel.", new List<ParameterResult>
 		{
 		}, new List<string> {"string"}),
@@ -1066,7 +1066,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 		{
 			new ParameterResult("source", "", "string")
 		}, new List<string> {"string"})
-	}),
+	}, GeneroLanguageVersion.V250),
 	new GeneroPackageClass("JSONObject", "util", false, new List<GeneroPackageClassMethod>
 	{
 		new GeneroPackageClassMethod("create", "util.JSONObject", true, "Creates a new JSON object.", new List<ParameterResult>
@@ -1115,7 +1115,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 		{
 			new ParameterResult("dest", "", "record")
 		}, new List<string> {})
-	}),
+	}, GeneroLanguageVersion.V250),
 	new GeneroPackageClass("JSONArray", "util", false, new List<GeneroPackageClassMethod>
 	{
 		new GeneroPackageClassMethod("create", "util.JSONArray", true, "Creates a new JSON array object.", new List<ParameterResult>
@@ -1156,7 +1156,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 		{
 			new ParameterResult("dest", "", "dynamic record")
 		}, new List<string> {})
-	})
+	}, GeneroLanguageVersion.V250)
 }));
                     Packages.Add("os", new GeneroPackage("os", true, new List<GeneroPackageClass>
 {
@@ -1343,7 +1343,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 			new ParameterResult("name", "", "string"),
 			new ParameterResult("namespace", "", "string"),
 			new ParameterResult("state", "", "state-type")
-		}, new List<string> {"com.WebService"}),
+		}, new List<string> {"com.WebService"}, GeneroLanguageVersion.V240),
 		new GeneroPackageClassMethod("setComment", "com.WebService", false, "Defines the comment for the Web Service object.", new List<ParameterResult>
 		{
 			new ParameterResult("comment", "", "string")
@@ -1369,19 +1369,19 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 		{
 			new ParameterResult("fault", "", "fault-type"),
 			new ParameterResult("encoded", "", "boolean")
-		}, new List<string> {}),
+		}, new List<string> {}, GeneroLanguageVersion.V240),
 		new GeneroPackageClassMethod("registerWSDLHandler", "com.WebService", false, "Registers the function to be executed when a WSDL is generated.", new List<ParameterResult>
 		{
 			new ParameterResult("funcname", "", "string")
-		}, new List<string> {}),
+		}, new List<string> {}, GeneroLanguageVersion.V232),
 		new GeneroPackageClassMethod("registerInputRequestHandler", "com.WebService", false, "Registers the function to be executed on incoming SOAP requests.", new List<ParameterResult>
 		{
 			new ParameterResult("funcname", "", "string")
-		}, new List<string> {}),
+		}, new List<string> {}, GeneroLanguageVersion.V232),
 		new GeneroPackageClassMethod("registerOutputRequestHandler", "com.WebService", false, "Registers the function to be executed just before the SOAP response is forwarded to the client.", new List<ParameterResult>
 		{
 			new ParameterResult("funcname", "", "string")
-		}, new List<string> {}),
+		}, new List<string> {}, GeneroLanguageVersion.V232),
 		new GeneroPackageClassMethod("registerInputHTTPVariable", "com.WebService", false, "Registers the record variable for HTTP input.", new List<ParameterResult>
 		{
 			new ParameterResult("http-in", "", "http-in-type")
@@ -1394,7 +1394,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 		{
 			new ParameterResult("name", "", "string"),
 			new ParameterResult("value", "", "string")
-		}, new List<string> {})
+		}, new List<string> {}, GeneroLanguageVersion.V240)
 	}),
 	new GeneroPackageClass("WebOperation", "com", false, new List<GeneroPackageClassMethod>
 	{
@@ -1444,7 +1444,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 		{
 			new ParameterResult("fault", "", "fault-type"),
 			new ParameterResult("vsaaction", "", "string")
-		}, new List<string> {}),
+		}, new List<string> {}, GeneroLanguageVersion.V240),
 		new GeneroPackageClassMethod("setInputAction", "com.WebOperation", false, "Sets the WS-Addressing action identifier of the input operation.", new List<ParameterResult>
 		{
 			new ParameterResult("indent", "", "string")
@@ -1496,12 +1496,12 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 		new GeneroPackageClassMethod("SetFaultDetail", "com.WebServiceEngine", true, "Defines the published SOAP Fault.", new List<ParameterResult>
 		{
 			new ParameterResult("fault", "", "string")
-		}, new List<string> {}),
+		}, new List<string> {}, GeneroLanguageVersion.V240),
 		new GeneroPackageClassMethod("SetOption", "com.WebServiceEngine", true, "Sets an option for the Web Service engine.", new List<ParameterResult>
 		{
 			new ParameterResult("option", "", "string"),
 			new ParameterResult("value", "", "string")
-		}, new List<string> {}),
+		}, new List<string> {}, GeneroLanguageVersion.V240),
 		new GeneroPackageClassMethod("GetOption", "com.WebServiceEngine", true, "Returns the value of a Web Service engine option.", new List<ParameterResult>
 		{
 			new ParameterResult("option", "", "string")
@@ -1897,7 +1897,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 		}, new List<string> {"string"}),
 		new GeneroPackageClassMethod("CreateUUIDString", "com.Util", true, "Creates an UUID string (deprecated!)", new List<ParameterResult>
 		{
-		}, new List<string> {"string"}),
+		}, new List<string> {"string"}, GeneroLanguageVersion.V240),
 		new GeneroPackageClassMethod("UniqueApplicationInstance", "com.Util", true, "Creates a new random string (deprecated!).", new List<ParameterResult>
 		{
 			new ParameterResult("path", "", "string")
@@ -2060,7 +2060,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 		new GeneroPackageClassMethod("loadFromPipe", "xml.DomDocument", false, "Loads an XML Document into a DomDocument object from a PIPE.", new List<ParameterResult>
 		{
 			new ParameterResult("cmd", "", "string")
-		}, new List<string> {}),
+		}, new List<string> {}, GeneroLanguageVersion.V240),
 		new GeneroPackageClassMethod("save", "xml.DomDocument", false, "Saves a DomDocument object as an XML Document to a file or URL.", new List<ParameterResult>
 		{
 			new ParameterResult("url", "", "string")
@@ -2070,7 +2070,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 		}, new List<string> {"string"}),
 		new GeneroPackageClassMethod("saveToPipe", "xml.DomDocument", false, "Saves a DomDocument object as an XML Document to a PIPE.", new List<ParameterResult>
 		{
-		}, new List<string> {"string"}),
+		}, new List<string> {"string"}, GeneroLanguageVersion.V240),
 		new GeneroPackageClassMethod("setFeature", "xml.DomDocument", false, "Sets a feature for a DomDocument object.", new List<ParameterResult>
 		{
 			new ParameterResult("feature", "", "string"),
@@ -2381,7 +2381,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 		new GeneroPackageClassMethod("writeToPipe", "xml.StaxWriter", false, "Sets the output stream of the StaxWriter object to a PIPE, and starts the streaming.", new List<ParameterResult>
 		{
 			new ParameterResult("cmd", "", "string")
-		}, new List<string> {}),
+		}, new List<string> {}, GeneroLanguageVersion.V240),
 		new GeneroPackageClassMethod("close", "xml.StaxWriter", false, "Closes the StaxWriter streaming, and releases all associated resources.", new List<ParameterResult>
 		{
 		}, new List<string> {}),
@@ -2499,7 +2499,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 		new GeneroPackageClassMethod("readFromPipe", "xml.StaxReader", false, "Sets the input stream of the StaxReader object to a PIPE and starts the streaming.", new List<ParameterResult>
 		{
 			new ParameterResult("cmd", "", "string")
-		}, new List<string> {}),
+		}, new List<string> {}, GeneroLanguageVersion.V240),
 		new GeneroPackageClassMethod("close", "xml.StaxReader", false, "Closes the StaxReader streaming and releases all associated resources.", new List<ParameterResult>
 		{
 		}, new List<string> {}),
@@ -2661,12 +2661,12 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 		{
 			new ParameterResult("node", "", "xml.DomNode"),
 			new ParameterResult("stax", "", "xml.StaxWriter")
-		}, new List<string> {}),
+		}, new List<string> {}, GeneroLanguageVersion.V240),
 		new GeneroPackageClassMethod("StaxToDom", "xml.Serializer", true, "Serializes an XML element node into a DomNode object using a StaxReader object.", new List<ParameterResult>
 		{
 			new ParameterResult("stax", "", "xml.StaxWriter"),
 			new ParameterResult("node", "", "xml.DomNode")
-		}, new List<string> {}),
+		}, new List<string> {}, GeneroLanguageVersion.V240),
 		new GeneroPackageClassMethod("CreateXmlSchemas", "xml.Serializer", true, "Creates XML schemas corresponding to the given variable var, and fills the dynamic array ar with xml.DomDocument objects each representing an XML schema.", new List<ParameterResult>
 		{
 			new ParameterResult("var", "", "variable"),
@@ -2706,7 +2706,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 		}, new List<string> {"integer"}),
 		new GeneroPackageClassMethod("getSHA1", "xml.CryptoKey", false, "Returns the SHA1 encoded key identifier in a base64 encoded STRING.", new List<ParameterResult>
 		{
-		}, new List<string> {"string"}),
+		}, new List<string> {"string"}, GeneroLanguageVersion.V240),
 		new GeneroPackageClassMethod("setKey", "xml.CryptoKey", false, "Defines the value of a HMAC or Symmetric key.", new List<ParameterResult>
 		{
 			new ParameterResult("key", "", "string")
@@ -2756,7 +2756,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 		new GeneroPackageClassMethod("loadPublicFromString", "xml.CryptoKey", false, "Populate the current CryptoKey object with the passed public key.", new List<ParameterResult>
 		{
 			new ParameterResult("pubKeyStr", "", "string")
-		}, new List<string> {}),
+		}, new List<string> {}, GeneroLanguageVersion.V250),
 		new GeneroPackageClassMethod("savePrivate", "xml.CryptoKey", false, "Saves the private part of an asymmetric RSA CryptoKey object into a XML document according to the XKMS2.0 specification.", new List<ParameterResult>
 		{
 		}, new List<string> {"xml.DomDocument"}),
@@ -2765,7 +2765,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 		}, new List<string> {"xml.DomDocument"}),
 		new GeneroPackageClassMethod("savePublicToString", "xml.CryptoKey", false, "Save the current xml.CryptoKey's public part in the returned base64 string.", new List<ParameterResult>
 		{
-		}, new List<string> {"string"}),
+		}, new List<string> {"string"}, GeneroLanguageVersion.V250),
 		new GeneroPackageClassMethod("saveToString", "xml.CryptoKey", false, "Saves the CryptoKey object into a BASE64 string format.", new List<ParameterResult>
 		{
 		}, new List<string> {"string"}),
@@ -2793,7 +2793,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 		}, new List<string> {"string"}),
 		new GeneroPackageClassMethod("getThumbprintSHA1", "xml.CryptoX509", false, "Gets the SHA1 encoded thumbprint identifying this X509 certificate.", new List<ParameterResult>
 		{
-		}, new List<string> {"string"}),
+		}, new List<string> {"string"}, GeneroLanguageVersion.V240),
 		new GeneroPackageClassMethod("createPublicKey", "xml.CryptoX509", false, "Creates a new public CryptoKey object for the given url, from the public key embedded in a certificate.", new List<ParameterResult>
 		{
 			new ParameterResult("url", "", "string")
@@ -2874,7 +2874,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 		}, new List<string> {"string"}),
 		new GeneroPackageClassMethod("getSignatureMethod", "xml.Signature", false, "Returns the algorithm method of the signature.", new List<ParameterResult>
 		{
-		}, new List<string> {"string"}),
+		}, new List<string> {"string"}, GeneroLanguageVersion.V240),
 		new GeneroPackageClassMethod("createReference", "xml.Signature", false, "Creates a new reference that will be signed with the compute() method", new List<ParameterResult>
 		{
 			new ParameterResult("uri", "", "string"),
@@ -2944,13 +2944,13 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 		{
 			new ParameterResult("key", "", "xml.CryptoKey"),
 			new ParameterResult("strToSign", "", "string")
-		}, new List<string> {"string"}),
+		}, new List<string> {"string"}, GeneroLanguageVersion.V250),
 		new GeneroPackageClassMethod("verifyString", "xml.Signature", false, "Verify the signature is consistent with the given key and the original message.", new List<ParameterResult>
 		{
 			new ParameterResult("key", "", "xml.CryptoKey"),
 			new ParameterResult("signedStr", "", "string"),
 			new ParameterResult("signature", "", "string")
-		}, new List<string> {"int"})
+		}, new List<string> {"int"}, GeneroLanguageVersion.V250)
 	}),
 	new GeneroPackageClass("Encryption", "xml", false, new List<GeneroPackageClassMethod>
 	{
@@ -3165,7 +3165,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 			new ParameterResult("randBase64", "", "string")
 		}, new List<string> {"string"})
 	})
-}));
+}, GeneroLanguageVersion.V250));
                     #endregion
                     _packagesInitialized = true;
                 }
@@ -3190,13 +3190,20 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
         public bool IsPublic { get { return true; } }
 
-        public GeneroPackage(string name, bool extension, IEnumerable<GeneroPackageClass> classes)
+        public GeneroPackage(string name, bool extension, IEnumerable<GeneroPackageClass> classes, GeneroLanguageVersion minimumBdlVersion = GeneroLanguageVersion.None)
         {
             _name = name;
             _extensionPackage = extension;
             _classes = new Dictionary<string, GeneroPackageClass>(StringComparer.OrdinalIgnoreCase);
             foreach (var cls in classes)
                 _classes.Add(cls.Name, cls);
+            _minBdlVersion = minimumBdlVersion;
+        }
+
+        private readonly GeneroLanguageVersion _minBdlVersion;
+        public GeneroLanguageVersion MinimumBdlVersion
+        {
+            get { return _minBdlVersion; }
         }
 
         private const string _scope = "package";
@@ -3295,14 +3302,25 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
         public bool IsPublic { get { return true; } }
 
-        public GeneroPackageClass(string name, string parentPackage, bool isStatic, IEnumerable<GeneroPackageClassMethod> methods)
+        public GeneroPackageClass(string name, 
+                                  string parentPackage, 
+                                  bool isStatic, 
+                                  IEnumerable<GeneroPackageClassMethod> methods, 
+                                  GeneroLanguageVersion minimumBdlVersion = GeneroLanguageVersion.None)
         {
             _name = name;
             _parentPackage = parentPackage;
             _isStatic = isStatic;
             _methods = new Dictionary<string, GeneroPackageClassMethod>(StringComparer.OrdinalIgnoreCase);
+            _minBdlVersion = minimumBdlVersion;
             foreach (var method in methods)
                 _methods.Add(method.Name, method);
+        }
+
+        private readonly GeneroLanguageVersion _minBdlVersion;
+        public GeneroLanguageVersion MinimumBdlVersion
+        {
+            get { return _minBdlVersion; }
         }
 
         private const string _scope = "package class";
@@ -3387,7 +3405,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             get { return false; }
         }
 
-        public GeneroPackageClassMethod(string name, string parentClass, bool isStatic, string description, IEnumerable<ParameterResult> parameters, IEnumerable<string> returns)
+        public GeneroPackageClassMethod(string name, string parentClass, bool isStatic, string description, IEnumerable<ParameterResult> parameters, IEnumerable<string> returns,
+                                        GeneroLanguageVersion minimumBdlVersion = GeneroLanguageVersion.None)
         {
             _name = name;
             _parentClass = parentClass;
@@ -3395,6 +3414,13 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             _desc = description;
             _parameters = new List<ParameterResult>(parameters);
             _returns = new List<string>(returns);
+            _minBdlVersion = minimumBdlVersion;
+        }
+
+        private readonly GeneroLanguageVersion _minBdlVersion;
+        public GeneroLanguageVersion MinimumBdlVersion
+        {
+            get { return _minBdlVersion; }
         }
 
         public ParameterResult[] Parameters

@@ -255,13 +255,13 @@ new ParameterResult("epos", "", "integer"),
 {new ParameterResult("main-expr", "", "expression"),
 new ParameterResult("subst-expr", "", "expression"),
 }, new List<string> { "expression", },
-                    "Returns the second parameter if the first argument evaluates to NULL."));
+                    "Returns the second parameter if the first argument evaluates to NULL.", GeneroLanguageVersion.V240));
                     _systemFunctions.Add("iif", new BuiltinFunction("iif", null, new List<ParameterResult>
 {new ParameterResult("bool-expr", "", "expression"),
 new ParameterResult("true-expr", "", "expression"),
 new ParameterResult("false-expr", "", "expression"),
 }, new List<string> { "expression", },
-                    "Returns the second or third parameter according to the boolean expression given as first argument."));
+                    "Returns the second or third parameter according to the boolean expression given as first argument.", GeneroLanguageVersion.V240));
                     _systemFunctions.Add("ascii", new BuiltinFunction("ascii", null, new List<ParameterResult>
 {new ParameterResult("int-expr", "", "integer"),
 }, new List<string> { "char(1)", },
@@ -873,13 +873,23 @@ new ParameterResult("width", "", "integer"),
             get { return false; }
         }
 
-        public BuiltinFunction(string name, string nameSpace, IEnumerable<ParameterResult> parameters, IEnumerable<string> returns, string description)
+        public BuiltinFunction(string name, string nameSpace, IEnumerable<ParameterResult> parameters, IEnumerable<string> returns, string description, GeneroLanguageVersion minimumBdlVersion = GeneroLanguageVersion.None)
         {
             _name = name;
             _namespace = nameSpace;
             _description = description;
             _parameters = new List<ParameterResult>(parameters);
             _returns = new List<string>(returns);
+            _minBdlVersion = minimumBdlVersion;
+        }
+
+        private readonly GeneroLanguageVersion _minBdlVersion;
+        public GeneroLanguageVersion MinimumBdlVersion
+        {
+            get
+            {
+                return _minBdlVersion;
+            }
         }
 
         public ParameterResult[] Parameters
