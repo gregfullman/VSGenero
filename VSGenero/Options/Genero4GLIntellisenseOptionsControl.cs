@@ -14,6 +14,8 @@ namespace VSGenero.Options
 {
     public partial class Genero4GLIntellisenseOptionsControl : UserControl
     {
+        private Timer _timer;
+
         public Genero4GLIntellisenseOptionsControl()
         {
             InitializeComponent();
@@ -59,9 +61,60 @@ namespace VSGenero.Options
             VSGeneroPackage.Instance.IntellisenseOptions4GLPage.AnalysisType = CompletionAnalysisType.Context;
         }
 
-        private void buttonReloadContexts_Click(object sender, EventArgs e)
+        private async void buttonReloadContexts_Click(object sender, EventArgs e)
         {
-            Genero4glAst.ReloadContextMap();
+            bool success = await Genero4glAst.ReloadContextMap();
+            if(success)
+            {
+                labelReloadResult.Text = "Reload succeeded!";
+                labelReloadResult.ForeColor = Color.DarkGreen;
+                labelReloadResult.Visible = true;
+            }
+            else
+            {
+                labelReloadResult.Text = "Reload failed.";
+                labelReloadResult.ForeColor = Color.DarkRed;
+                labelReloadResult.Visible = true;
+            }
+
+            _timer = new Timer();
+            _timer.Interval = 5000;
+            _timer.Tick += _timer_Tick;
+            _timer.Start();
+        }
+
+        private void _timer_Tick(object sender, EventArgs e)
+        {
+            _timer.Stop();
+            _timer.Tick -= _timer_Tick;
+            if (labelReloadResult.Visible)
+                labelReloadResult.Visible = false;
+            if (labelDownloadResult.Visible)
+                labelDownloadResult.Visible = false;
+            _timer.Dispose();
+            _timer = null;
+        }
+
+        private async void buttonDownloadLatest_Click(object sender, EventArgs e)
+        {
+            bool success = await Genero4glAst.ReloadContextMap(true);
+            if (success)
+            {
+                labelDownloadResult.Text = "Download/update succeeded!";
+                labelDownloadResult.ForeColor = Color.DarkGreen;
+                labelDownloadResult.Visible = true;
+            }
+            else
+            {
+                labelDownloadResult.Text = "Download/update failed.";
+                labelDownloadResult.ForeColor = Color.DarkRed;
+                labelDownloadResult.Visible = true;
+            }
+
+            _timer = new Timer();
+            _timer.Interval = 5000;
+            _timer.Tick += _timer_Tick;
+            _timer.Start();
         }
     }
 }

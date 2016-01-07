@@ -31,25 +31,23 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
         #region Context Map Init
 
-        private static void InitializeContextMap()
+        public static async Task<bool> ReloadContextMap(bool downloadLatest = false)
         {
             lock (_contextMapLock)
             {
                 if (_contextMap == null)
-                {
                     _contextMap = new ContextCompletionMap();
-                    _contextMap.LoadFromXML();
-                }
             }
-        }
 
-        public static void ReloadContextMap()
-        {
+            if (downloadLatest)
+            {
+                if (!await _contextMap.DownloadLatestFile())
+                    return false;
+            }
+
             lock(_contextMapLock)
             {
-                if (_contextMap == null)
-                    _contextMap = new ContextCompletionMap();
-                _contextMap.LoadFromXML();
+                return _contextMap.LoadFromXML();
             }
         }
 

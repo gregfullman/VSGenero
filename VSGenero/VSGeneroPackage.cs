@@ -265,8 +265,6 @@ namespace VSGenero
                     new ExtractSqlStatementsCommand()
                 }, GuidList.guidVSGeneroCmdSet);
 
-            TestCompletionAnalysis.InitializeResults();
-
             var dte2 = (DTE2)Package.GetGlobalService(typeof(SDTE));
             var sp = new ServiceProvider(dte2 as Microsoft.VisualStudio.OLE.Interop.IServiceProvider);
             try

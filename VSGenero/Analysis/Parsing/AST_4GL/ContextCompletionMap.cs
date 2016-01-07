@@ -6,11 +6,13 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
+using System.Net;
 
 namespace VSGenero.Analysis.Parsing.AST_4GL
 {
     public class ContextCompletionMap
     {
+        private const string _githubFile = @"https://gitcdn.xyz/repo/gregfullman/VSGenero/master/VSGenero/CompletionContexts.xml";
         private readonly Dictionary<object, IEnumerable<ContextPossibilities>> _contextMap;
 
         public ContextCompletionMap()
@@ -28,14 +30,38 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             return _contextMap.TryGetValue(key, out value);
         }
 
-        internal void LoadFromXML()
+        private string _filename;
+        internal string Filename
         {
-            string filename = Path.Combine(Path.GetDirectoryName(Assembly.GetAssembly(typeof(ContextCompletionMap)).Location), "CompletionContexts.xml");
-            if(File.Exists(filename))
+            get
+            {
+                if (_filename == null)
+                    _filename = Path.Combine(Path.GetDirectoryName(Assembly.GetAssembly(typeof(ContextCompletionMap)).Location), "CompletionContexts.xml");
+                return _filename;
+            }
+        }
+
+        internal async Task<bool> DownloadLatestFile()
+        {
+            WebClient client = new WebClient();
+            try
+            {
+                await client.DownloadFileTaskAsync(_githubFile, Filename);
+                return true;
+            }
+            catch (Exception e)
+            {
+                return false;
+            }
+        }
+
+        internal bool LoadFromXML()
+        {
+            if(File.Exists(Filename))
             {
                 _contextMap.Clear();
                 XmlDocument contextXml = new XmlDocument();
-                contextXml.Load(filename);
+                contextXml.Load(Filename);
                 foreach(XmlNode contextEntry in contextXml.LastChild.ChildNodes)
                 {
                     if (contextEntry.Name == "ContextEntry")
@@ -60,8 +86,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         }
                         else
                         {
-                            int i = 0;
-                            // BAD!!!
+                            return false;
                         }
 
                         List<ContextPossibilities> possibilities = new List<ContextPossibilities>();
@@ -158,8 +183,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                                             }
                                                             else
                                                             {
-                                                                int i = 0;
-                                                                // BAD!!!
+                                                                return false;
                                                             }
 
                                                             if(tokenItem != null)
@@ -182,6 +206,11 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     }
                 }
             }
+            else
+            {
+                return false;
+            }
+            return true;
         }
 
         /// <summary>

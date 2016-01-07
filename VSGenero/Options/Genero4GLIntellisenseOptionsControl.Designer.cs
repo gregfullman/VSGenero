@@ -39,10 +39,14 @@
             this.groupBox3 = new System.Windows.Forms.GroupBox();
             this.checkBoxPreselectMRU = new System.Windows.Forms.CheckBox();
             this.groupBox4 = new System.Windows.Forms.GroupBox();
+            this.buttonReloadContexts = new System.Windows.Forms.Button();
             this.radioButtonContextCompletionType = new System.Windows.Forms.RadioButton();
             this.radioButtonNormalCompletionType = new System.Windows.Forms.RadioButton();
-            this.buttonReloadContexts = new System.Windows.Forms.Button();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
+            this.buttonDownloadLatest = new System.Windows.Forms.Button();
+            this.toolTip2 = new System.Windows.Forms.ToolTip(this.components);
+            this.labelReloadResult = new System.Windows.Forms.Label();
+            this.labelDownloadResult = new System.Windows.Forms.Label();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.groupBox3.SuspendLayout();
@@ -79,7 +83,7 @@
             this.groupBox2.Controls.Add(this.checkBoxSpacebarCommits);
             this.groupBox2.Controls.Add(this.textBoxCommitChars);
             this.groupBox2.Controls.Add(this.label1);
-            this.groupBox2.Location = new System.Drawing.Point(4, 141);
+            this.groupBox2.Location = new System.Drawing.Point(4, 171);
             this.groupBox2.Name = "groupBox2";
             this.groupBox2.Size = new System.Drawing.Size(473, 99);
             this.groupBox2.TabIndex = 1;
@@ -130,7 +134,7 @@
             // groupBox3
             // 
             this.groupBox3.Controls.Add(this.checkBoxPreselectMRU);
-            this.groupBox3.Location = new System.Drawing.Point(4, 244);
+            this.groupBox3.Location = new System.Drawing.Point(4, 274);
             this.groupBox3.Name = "groupBox3";
             this.groupBox3.Size = new System.Drawing.Size(473, 47);
             this.groupBox3.TabIndex = 2;
@@ -150,15 +154,29 @@
             // 
             // groupBox4
             // 
+            this.groupBox4.Controls.Add(this.labelDownloadResult);
+            this.groupBox4.Controls.Add(this.labelReloadResult);
+            this.groupBox4.Controls.Add(this.buttonDownloadLatest);
             this.groupBox4.Controls.Add(this.buttonReloadContexts);
             this.groupBox4.Controls.Add(this.radioButtonContextCompletionType);
             this.groupBox4.Controls.Add(this.radioButtonNormalCompletionType);
             this.groupBox4.Location = new System.Drawing.Point(4, 47);
             this.groupBox4.Name = "groupBox4";
-            this.groupBox4.Size = new System.Drawing.Size(473, 88);
+            this.groupBox4.Size = new System.Drawing.Size(473, 118);
             this.groupBox4.TabIndex = 3;
             this.groupBox4.TabStop = false;
             this.groupBox4.Text = "Completion Type";
+            // 
+            // buttonReloadContexts
+            // 
+            this.buttonReloadContexts.Location = new System.Drawing.Point(43, 59);
+            this.buttonReloadContexts.Name = "buttonReloadContexts";
+            this.buttonReloadContexts.Size = new System.Drawing.Size(158, 23);
+            this.buttonReloadContexts.TabIndex = 2;
+            this.buttonReloadContexts.Text = "Reload completion contexts";
+            this.toolTip1.SetToolTip(this.buttonReloadContexts, "Load latest changes to the Completion Context XML map");
+            this.buttonReloadContexts.UseVisualStyleBackColor = true;
+            this.buttonReloadContexts.Click += new System.EventHandler(this.buttonReloadContexts_Click);
             // 
             // radioButtonContextCompletionType
             // 
@@ -184,16 +202,37 @@
             this.radioButtonNormalCompletionType.UseVisualStyleBackColor = true;
             this.radioButtonNormalCompletionType.CheckedChanged += new System.EventHandler(this.radioButtonNormalCompletionType_CheckedChanged);
             // 
-            // buttonReloadContexts
+            // buttonDownloadLatest
             // 
-            this.buttonReloadContexts.Location = new System.Drawing.Point(43, 59);
-            this.buttonReloadContexts.Name = "buttonReloadContexts";
-            this.buttonReloadContexts.Size = new System.Drawing.Size(158, 23);
-            this.buttonReloadContexts.TabIndex = 2;
-            this.buttonReloadContexts.Text = "Reload Completion Contexts";
-            this.toolTip1.SetToolTip(this.buttonReloadContexts, "Load latest changes to the Completion Context XML map");
-            this.buttonReloadContexts.UseVisualStyleBackColor = true;
-            this.buttonReloadContexts.Click += new System.EventHandler(this.buttonReloadContexts_Click);
+            this.buttonDownloadLatest.Location = new System.Drawing.Point(43, 87);
+            this.buttonDownloadLatest.Name = "buttonDownloadLatest";
+            this.buttonDownloadLatest.Size = new System.Drawing.Size(158, 23);
+            this.buttonDownloadLatest.TabIndex = 3;
+            this.buttonDownloadLatest.Text = "Download latest contexts";
+            this.toolTip1.SetToolTip(this.buttonDownloadLatest, "Load latest changes to the Completion Context XML map");
+            this.toolTip2.SetToolTip(this.buttonDownloadLatest, "Download latest context changes from Github");
+            this.buttonDownloadLatest.UseVisualStyleBackColor = true;
+            this.buttonDownloadLatest.Click += new System.EventHandler(this.buttonDownloadLatest_Click);
+            // 
+            // labelReloadResult
+            // 
+            this.labelReloadResult.AutoSize = true;
+            this.labelReloadResult.Location = new System.Drawing.Point(206, 64);
+            this.labelReloadResult.Name = "labelReloadResult";
+            this.labelReloadResult.Size = new System.Drawing.Size(69, 13);
+            this.labelReloadResult.TabIndex = 4;
+            this.labelReloadResult.Text = "Reload result";
+            this.labelReloadResult.Visible = false;
+            // 
+            // labelDownloadResult
+            // 
+            this.labelDownloadResult.AutoSize = true;
+            this.labelDownloadResult.Location = new System.Drawing.Point(207, 92);
+            this.labelDownloadResult.Name = "labelDownloadResult";
+            this.labelDownloadResult.Size = new System.Drawing.Size(83, 13);
+            this.labelDownloadResult.TabIndex = 5;
+            this.labelDownloadResult.Text = "Download result";
+            this.labelDownloadResult.Visible = false;
             // 
             // Genero4GLIntellisenseOptionsControl
             // 
@@ -204,7 +243,7 @@
             this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.groupBox1);
             this.Name = "Genero4GLIntellisenseOptionsControl";
-            this.Size = new System.Drawing.Size(480, 303);
+            this.Size = new System.Drawing.Size(480, 327);
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
             this.groupBox2.ResumeLayout(false);
@@ -233,5 +272,9 @@
         private System.Windows.Forms.RadioButton radioButtonNormalCompletionType;
         private System.Windows.Forms.Button buttonReloadContexts;
         private System.Windows.Forms.ToolTip toolTip1;
+        private System.Windows.Forms.Button buttonDownloadLatest;
+        private System.Windows.Forms.ToolTip toolTip2;
+        private System.Windows.Forms.Label labelDownloadResult;
+        private System.Windows.Forms.Label labelReloadResult;
     }
 }
