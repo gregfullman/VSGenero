@@ -1,0 +1,108 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema id="CompletionContextSchema"
+    targetNamespace="CompletionContextSchema"
+    elementFormDefault="qualified"
+    xmlns="CompletionContextSchema"
+    xmlns:mstns="CompletionContextSchema"
+    xmlns:xs="http://www.w3.org/2001/XMLSchema"
+>
+  <xs:element name="ContextMap">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="ContextEntry" minOccurs="0" maxOccurs="unbounded">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="ContextPossibility" minOccurs="0" maxOccurs="unbounded">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="SingleTokens" minOccurs="0" maxOccurs="1">
+                      <xs:complexType>
+                        <xs:sequence>
+                          <xs:element name="Token" type="xs:string" minOccurs="1" maxOccurs="unbounded"/>
+                        </xs:sequence>
+                      </xs:complexType>
+                    </xs:element>
+                    <xs:element name="ContextSetProviders" minOccurs="0" maxOccurs="1">
+                      <xs:complexType>
+                        <xs:sequence>
+                          <xs:element name="Provider" minOccurs="1" maxOccurs="unbounded">
+                            <xs:simpleType>
+                              <!--This is a list of completion provider functions for Genero4glAst.
+                                  If a new provider is added in code, it must be added here as well.-->
+                              <xs:restriction base="xs:string">
+                                <xs:enumeration value="GetPostUnaryOperators"/>
+                                <xs:enumeration value="GetExpressionComponents"/>
+                                <xs:enumeration value="GetTypes"/>
+                                <xs:enumeration value="GetSystemTypes"/>
+                                <xs:enumeration value="GetFunctions"/>
+                                <xs:enumeration value="GetLabels"/>
+                                <xs:enumeration value="GetVariables"/>
+                                <xs:enumeration value="GetOptionsStartKeywords"/>
+                                <xs:enumeration value="GetDeclaredDialogs"/>
+                                <xs:enumeration value="GetReports"/>
+                                <xs:enumeration value="GetConstants"/>
+                                <xs:enumeration value="GetDatabaseTables"/>
+                                <xs:enumeration value="GetAvailableImportModules"/>
+                                <xs:enumeration value="GetStatementStartKeywords"/>
+                                <xs:enumeration value="GetCursors"/>
+                                <xs:enumeration value="GetPreparedCursors"/>
+                                <xs:enumeration value="GetDeclaredCursors"/>
+                                <xs:enumeration value="GetBinaryOperatorKeywords"/>
+                              </xs:restriction>
+                            </xs:simpleType>
+                          </xs:element>
+                        </xs:sequence>
+                      </xs:complexType>
+                    </xs:element>
+                    <xs:element name="BackwardSearchItems" minOccurs="0" maxOccurs="1">
+                      <xs:complexType>
+                        <xs:sequence>
+                          <xs:element name="BackwardTokenSearchItem" minOccurs="1" maxOccurs="unbounded">
+                            <xs:complexType>
+                              <xs:choice>
+                                <xs:element name="Token" type="xs:string"/>
+                                <xs:element name="OrderedTokenSet">
+                                  <xs:complexType>
+                                    <xs:sequence>
+                                      <xs:element name="Item" minOccurs="1" maxOccurs="unbounded">
+                                        <xs:complexType>
+                                          <xs:attribute name="Value" type="xs:string"/>
+                                          <xs:attribute name="Type">
+                                            <xs:simpleType>
+                                              <xs:restriction base="xs:string">
+                                                <xs:enumeration value="keyword"/>
+                                                <xs:enumeration value="category"/>
+                                              </xs:restriction>
+                                            </xs:simpleType>
+                                          </xs:attribute>
+                                        </xs:complexType>
+                                      </xs:element>
+                                    </xs:sequence>
+                                  </xs:complexType>
+                                </xs:element>
+                              </xs:choice>
+                              <xs:attribute name="Match" type="xs:boolean" default="true"/>
+                            </xs:complexType>
+                          </xs:element>
+                        </xs:sequence>
+                      </xs:complexType>
+                    </xs:element>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+            <xs:attribute name="Entry" type="xs:string"/>
+            <xs:attribute name="Type">
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:enumeration value="keyword"/>
+                  <xs:enumeration value="category"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

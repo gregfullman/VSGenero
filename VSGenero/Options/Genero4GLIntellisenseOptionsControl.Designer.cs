@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.checkBoxCompletionList = new System.Windows.Forms.CheckBox();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
@@ -40,6 +41,8 @@
             this.groupBox4 = new System.Windows.Forms.GroupBox();
             this.radioButtonContextCompletionType = new System.Windows.Forms.RadioButton();
             this.radioButtonNormalCompletionType = new System.Windows.Forms.RadioButton();
+            this.buttonReloadContexts = new System.Windows.Forms.Button();
+            this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.groupBox3.SuspendLayout();
@@ -76,7 +79,7 @@
             this.groupBox2.Controls.Add(this.checkBoxSpacebarCommits);
             this.groupBox2.Controls.Add(this.textBoxCommitChars);
             this.groupBox2.Controls.Add(this.label1);
-            this.groupBox2.Location = new System.Drawing.Point(4, 111);
+            this.groupBox2.Location = new System.Drawing.Point(4, 141);
             this.groupBox2.Name = "groupBox2";
             this.groupBox2.Size = new System.Drawing.Size(473, 99);
             this.groupBox2.TabIndex = 1;
@@ -127,7 +130,7 @@
             // groupBox3
             // 
             this.groupBox3.Controls.Add(this.checkBoxPreselectMRU);
-            this.groupBox3.Location = new System.Drawing.Point(4, 214);
+            this.groupBox3.Location = new System.Drawing.Point(4, 244);
             this.groupBox3.Name = "groupBox3";
             this.groupBox3.Size = new System.Drawing.Size(473, 47);
             this.groupBox3.TabIndex = 2;
@@ -147,11 +150,12 @@
             // 
             // groupBox4
             // 
+            this.groupBox4.Controls.Add(this.buttonReloadContexts);
             this.groupBox4.Controls.Add(this.radioButtonContextCompletionType);
             this.groupBox4.Controls.Add(this.radioButtonNormalCompletionType);
             this.groupBox4.Location = new System.Drawing.Point(4, 47);
             this.groupBox4.Name = "groupBox4";
-            this.groupBox4.Size = new System.Drawing.Size(473, 62);
+            this.groupBox4.Size = new System.Drawing.Size(473, 88);
             this.groupBox4.TabIndex = 3;
             this.groupBox4.TabStop = false;
             this.groupBox4.Text = "Completion Type";
@@ -180,6 +184,17 @@
             this.radioButtonNormalCompletionType.UseVisualStyleBackColor = true;
             this.radioButtonNormalCompletionType.CheckedChanged += new System.EventHandler(this.radioButtonNormalCompletionType_CheckedChanged);
             // 
+            // buttonReloadContexts
+            // 
+            this.buttonReloadContexts.Location = new System.Drawing.Point(43, 59);
+            this.buttonReloadContexts.Name = "buttonReloadContexts";
+            this.buttonReloadContexts.Size = new System.Drawing.Size(158, 23);
+            this.buttonReloadContexts.TabIndex = 2;
+            this.buttonReloadContexts.Text = "Reload Completion Contexts";
+            this.toolTip1.SetToolTip(this.buttonReloadContexts, "Load latest changes to the Completion Context XML map");
+            this.buttonReloadContexts.UseVisualStyleBackColor = true;
+            this.buttonReloadContexts.Click += new System.EventHandler(this.buttonReloadContexts_Click);
+            // 
             // Genero4GLIntellisenseOptionsControl
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -189,7 +204,7 @@
             this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.groupBox1);
             this.Name = "Genero4GLIntellisenseOptionsControl";
-            this.Size = new System.Drawing.Size(480, 270);
+            this.Size = new System.Drawing.Size(480, 303);
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
             this.groupBox2.ResumeLayout(false);
@@ -216,5 +231,7 @@
         private System.Windows.Forms.GroupBox groupBox4;
         private System.Windows.Forms.RadioButton radioButtonContextCompletionType;
         private System.Windows.Forms.RadioButton radioButtonNormalCompletionType;
+        private System.Windows.Forms.Button buttonReloadContexts;
+        private System.Windows.Forms.ToolTip toolTip1;
     }
 }

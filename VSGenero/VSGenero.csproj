@@ -344,6 +344,7 @@
     <Compile Include="Analysis\Parsing\AST_4GL\CaseStatement.cs" />
     <Compile Include="Analysis\Parsing\AST_4GL\CloseStatement.cs" />
     <Compile Include="Analysis\Parsing\AST_4GL\ConstructBlock.cs" />
+    <Compile Include="Analysis\Parsing\AST_4GL\ContextCompletionMap.cs" />
     <Compile Include="Analysis\Parsing\AST_4GL\ContinueStatement.cs" />
     <Compile Include="Analysis\Parsing\AST_4GL\CreateStatement.cs" />
     <Compile Include="Analysis\Parsing\AST_4GL\DeclareStatement.cs" />
@@ -667,6 +668,9 @@
     </When>
   </Choose>
   <ItemGroup>
+    <Content Include="CompletionContexts.xml">
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <Content Include="Snippets\CodeSnippets\Snippets\if.snippet">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
@@ -723,6 +727,9 @@
     </Content>
     <Compile Include="Analysis\Parsing\AST_4GL\Genero4glAst.ContextMembers.cs" />
     <Compile Include="Analysis\Parsing\AST_4GL\Genero4glAst.ErrorChecking.cs" />
+    <None Include="CompletionContextSchema.xsd">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="app.config" />
     <None Include="Genero4GL.xsd">
       <SubType>Designer</SubType>

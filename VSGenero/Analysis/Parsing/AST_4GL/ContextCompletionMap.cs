@@ -1,0 +1,331 @@
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Text;
+using System.Threading.Tasks;
+using System.Xml;
+
+namespace VSGenero.Analysis.Parsing.AST_4GL
+{
+    public class ContextCompletionMap
+    {
+        private readonly Dictionary<object, IEnumerable<ContextPossibilities>> _contextMap;
+
+        public ContextCompletionMap()
+        {
+            _contextMap = new Dictionary<object, IEnumerable<ContextPossibilities>>();
+        }
+
+        internal void Add(object key, IEnumerable<ContextPossibilities> contextPossibilities)
+        {
+            _contextMap.Add(key, contextPossibilities);
+        }
+
+        internal bool TryGetValue(object key, out IEnumerable<ContextPossibilities> value)
+        {
+            return _contextMap.TryGetValue(key, out value);
+        }
+
+        internal void LoadFromXML()
+        {
+            string filename = Path.Combine(Path.GetDirectoryName(Assembly.GetAssembly(typeof(ContextCompletionMap)).Location), "CompletionContexts.xml");
+            if(File.Exists(filename))
+            {
+                _contextMap.Clear();
+                XmlDocument contextXml = new XmlDocument();
+                contextXml.Load(filename);
+                foreach(XmlNode contextEntry in contextXml.LastChild.ChildNodes)
+                {
+                    if (contextEntry.Name == "ContextEntry")
+                    {
+                        // Get the entry key
+                        object key = null;
+                        if(contextEntry.Attributes["Type"].Value == "keyword")
+                        {
+                            var token = Tokens.GetToken(contextEntry.Attributes["Entry"].Value);
+                            if(token != null)
+                            {
+                                key = token.Kind;
+                            }
+                            else
+                            {
+                                key = Enum.Parse(typeof(TokenKind), contextEntry.Attributes["Entry"].Value);
+                            }
+                        }
+                        else if(contextEntry.Attributes["Type"].Value == "category")
+                        {
+                            key = Enum.Parse(typeof(TokenCategory), contextEntry.Attributes["Entry"].Value);
+                        }
+                        else
+                        {
+                            int i = 0;
+                            // BAD!!!
+                        }
+
+                        List<ContextPossibilities> possibilities = new List<ContextPossibilities>();
+                        foreach(XmlNode contextPossibility in contextEntry.ChildNodes)
+                        {
+                            var singleTokens = new List<TokenKind>();
+                            var setProviders = new List<ContextSetProvider>();
+                            var backwardItems = new List<BackwardTokenSearchItem>();
+
+                            foreach(XmlNode possibility in contextPossibility.ChildNodes)
+                            {
+                                switch(possibility.Name)
+                                {
+                                    case "SingleTokens":
+                                        {
+                                            foreach(XmlNode tokenNode in possibility.ChildNodes)
+                                            {
+                                                TokenKind tokenKind;
+                                                var token = Tokens.GetToken(tokenNode.InnerText);
+                                                if (token != null)
+                                                {
+                                                    tokenKind = token.Kind;
+                                                }
+                                                else
+                                                {
+                                                    tokenKind = (TokenKind)Enum.Parse(typeof(TokenKind), tokenNode.InnerText);
+                                                }
+                                                singleTokens.Add(tokenKind);
+                                            }
+                                        }
+                                        break;
+                                    case "ContextSetProviders":
+                                        {
+                                            foreach(XmlNode setProviderNode in possibility.ChildNodes)
+                                            {
+                                                MethodInfo provider = typeof(Genero4glAst).GetMethod(setProviderNode.InnerText, BindingFlags.NonPublic | BindingFlags.Static);
+                                                if(provider != null)
+                                                {
+                                                    var del = Delegate.CreateDelegate(typeof(ContextSetProvider), provider);
+                                                    if(del != null)
+                                                    {
+                                                        setProviders.Add(del as ContextSetProvider);
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        break;
+                                    case "BackwardSearchItems":
+                                        {
+                                            foreach(XmlNode backwardItemNode in possibility.ChildNodes)
+                                            {
+                                                if(backwardItemNode.Name == "BackwardTokenSearchItem" &&
+                                                   backwardItemNode.ChildNodes.Count == 1)
+                                                {
+                                                    bool match = true;
+                                                    if (backwardItemNode.Attributes["Match"] != null)
+                                                        match = bool.Parse(backwardItemNode.Attributes["Match"].Value);
+                                                    XmlNode backwardItem = backwardItemNode.ChildNodes[0];
+                                                    if(backwardItem.Name == "Token")
+                                                    {
+                                                        TokenKind tokenKind;
+                                                        var token = Tokens.GetToken(backwardItem.InnerText);
+                                                        if (token != null)
+                                                        {
+                                                            tokenKind = token.Kind;
+                                                        }
+                                                        else
+                                                        {
+                                                            tokenKind = (TokenKind)Enum.Parse(typeof(TokenKind), backwardItem.InnerText);
+                                                        }
+                                                        backwardItems.Add(new BackwardTokenSearchItem(tokenKind, match));
+                                                    }
+                                                    else if(backwardItem.Name == "OrderedTokenSet")
+                                                    {
+                                                        List<object> tokenSet = new List<object>();
+                                                        foreach(XmlNode tokenSetItem in backwardItem.ChildNodes)
+                                                        {
+                                                            object tokenItem = null;
+                                                            if (tokenSetItem.Attributes["Type"].Value == "keyword")
+                                                            {
+                                                                var token = Tokens.GetToken(tokenSetItem.Attributes["Value"].Value);
+                                                                if (token != null)
+                                                                {
+                                                                    tokenItem = token.Kind;
+                                                                }
+                                                                else
+                                                                {
+                                                                    tokenItem = Enum.Parse(typeof(TokenKind), tokenSetItem.Attributes["Value"].Value);
+                                                                }
+                                                            }
+                                                            else if (tokenSetItem.Attributes["Type"].Value == "category")
+                                                            {
+                                                                tokenItem = Enum.Parse(typeof(TokenCategory), tokenSetItem.Attributes["Value"].Value);
+                                                            }
+                                                            else
+                                                            {
+                                                                int i = 0;
+                                                                // BAD!!!
+                                                            }
+
+                                                            if(tokenItem != null)
+                                                            {
+                                                                tokenSet.Add(tokenItem);
+                                                            }
+                                                        }
+                                                        backwardItems.Add(new BackwardTokenSearchItem(new OrderedTokenSet(tokenSet), match));
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        break;
+                                }
+                            }
+                            possibilities.Add(new ContextPossibilities(singleTokens.ToArray(), setProviders.ToArray(), backwardItems.ToArray()));
+                        }
+                        // add to the dictionary
+                        _contextMap.Add(key, possibilities);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// This function is primarily here for testing purposes and exporting the initial
+        /// hardcoded map to xml.
+        /// </summary>
+        /// <param name="outputFile"></param>
+        internal void OutputMapToXML(string outputFile)
+        {
+            XmlDocument contextXml = new XmlDocument();
+            XmlElement rootElement;
+            rootElement = contextXml.DocumentElement;
+            if(rootElement == null)
+            {
+                rootElement = contextXml.CreateElement("ContextMap");
+                contextXml.AppendChild(rootElement);
+            }
+
+            XmlElement contextEntry;
+            foreach(var entry in _contextMap)
+            {
+                contextEntry = contextXml.CreateElement("ContextEntry");
+                string name = null;
+                string type = null;
+                if(entry.Key is TokenKind)
+                {
+                    if(!Tokens.TokenKinds.TryGetValue((TokenKind)entry.Key, out name))
+                    {
+                        name = Enum.GetName(typeof(TokenKind), (TokenKind)entry.Key);
+                    }
+                    type = "keyword";
+                }
+                else
+                {
+                    name = Enum.GetName(typeof(TokenCategory), (TokenCategory)entry.Key);
+                    type = "category";
+                }
+                contextEntry.Attributes.Append(CreateAttribute(contextXml, "Entry", name));
+                contextEntry.Attributes.Append(CreateAttribute(contextXml, "Type", type));
+
+                XmlElement contextPossibility;
+                foreach(var possibility in entry.Value)
+                {
+                    contextPossibility = contextXml.CreateElement("ContextPossibility");
+
+                    if(possibility.SingleTokens.Length > 0)
+                    {
+                        XmlElement singleTokens = contextXml.CreateElement("SingleTokens");
+                        XmlElement singleToken;
+                        foreach(var token in possibility.SingleTokens)
+                        {
+                            if (Tokens.TokenKinds.TryGetValue(token, out name))
+                            {
+                                singleToken = contextXml.CreateElement("Token");
+                                singleToken.InnerText = name;
+                                singleTokens.AppendChild(singleToken);
+                            }
+                        }
+                        contextPossibility.AppendChild(singleTokens);
+                    }
+
+                    if(possibility.SetProviders.Length > 0)
+                    {
+                        XmlElement setProviders = contextXml.CreateElement("ContextSetProviders");
+                        XmlElement setProvider;
+                        foreach(var provider in possibility.SetProviders)
+                        {
+                            setProvider = contextXml.CreateElement("Provider");
+                            setProvider.InnerText = provider.Method.Name;
+                            setProviders.AppendChild(setProvider);
+                        }
+                        contextPossibility.AppendChild(setProviders);
+                    }
+
+                    if(possibility.BackwardSearchItems.Length > 0)
+                    {
+                        XmlElement backwardSearchItems = contextXml.CreateElement("BackwardSearchItems");
+                        XmlElement backwardSearchItem;
+                        foreach(var searchItem in possibility.BackwardSearchItems)
+                        {
+                            backwardSearchItem = contextXml.CreateElement("BackwardTokenSearchItem");
+                            if(searchItem.SingleToken != null &&
+                               searchItem.SingleToken is TokenKind &&
+                               ((TokenKind)searchItem.SingleToken) != TokenKind.EndOfFile)
+                            {
+                                XmlElement searchItemToken = contextXml.CreateElement("Token");
+                                if (Tokens.TokenKinds.TryGetValue((TokenKind)searchItem.SingleToken, out name))
+                                {
+                                    searchItemToken.InnerText = name;
+                                }
+                                else
+                                {
+                                    searchItemToken.InnerText = Enum.GetName(typeof(TokenKind), (TokenKind)searchItem.SingleToken);
+                                }
+                                backwardSearchItem.AppendChild(searchItemToken);
+                            }
+                            else if(searchItem.TokenSet != null)
+                            {
+                                XmlElement searchItemSet = contextXml.CreateElement("OrderedTokenSet");
+                                XmlElement itemEle;
+                                foreach(var item in searchItem.TokenSet.Set)
+                                {
+                                    itemEle = contextXml.CreateElement("Item");
+                                    if (item is TokenKind)
+                                    {
+                                        if (!Tokens.TokenKinds.TryGetValue((TokenKind)item, out name))
+                                        {
+                                            name = Enum.GetName(typeof(TokenKind), (TokenKind)item);
+                                        }
+                                        type = "keyword";
+                                    }
+                                    else
+                                    {
+                                        name = Enum.GetName(typeof(TokenCategory), (TokenCategory)item);
+                                        type = "category";
+                                    }
+                                    itemEle.Attributes.Append(CreateAttribute(contextXml, "Value", name));
+                                    itemEle.Attributes.Append(CreateAttribute(contextXml, "Type", type));
+                                    searchItemSet.AppendChild(itemEle);
+                                }
+                                backwardSearchItem.AppendChild(searchItemSet);
+                            }
+                            else
+                            {
+                                // BAD!!
+                            }
+
+                            backwardSearchItems.AppendChild(backwardSearchItem);
+                        }
+                        contextPossibility.AppendChild(backwardSearchItems);
+                    }
+
+                    contextEntry.AppendChild(contextPossibility);
+                }
+                rootElement.AppendChild(contextEntry);
+            }
+            contextXml.Save(outputFile);
+        }
+
+        private static XmlAttribute CreateAttribute(XmlDocument document, string name, string value)
+        {
+            var attrib = document.CreateAttribute(name);
+            attrib.Value = value ?? "";
+            return attrib;
+        }
+    }
+}

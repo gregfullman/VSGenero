@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using VSGenero.EditorExtensions.Intellisense;
+using VSGenero.Analysis.Parsing.AST_4GL;
 
 namespace VSGenero.Options
 {
@@ -56,6 +57,11 @@ namespace VSGenero.Options
         private void radioButtonContextCompletionType_CheckedChanged(object sender, EventArgs e)
         {
             VSGeneroPackage.Instance.IntellisenseOptions4GLPage.AnalysisType = CompletionAnalysisType.Context;
+        }
+
+        private void buttonReloadContexts_Click(object sender, EventArgs e)
+        {
+            Genero4glAst.ReloadContextMap();
         }
     }
 }
