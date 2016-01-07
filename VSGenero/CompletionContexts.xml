@@ -273,7 +273,7 @@
         <Provider>GetExpressionComponents</Provider>
       </ContextSetProviders>
       <BackwardSearchItems>
-        <BackwardTokenSearchItem>
+        <BackwardTokenSearchItem Match="false">
           <Token>exit</Token>
         </BackwardTokenSearchItem>
       </BackwardSearchItems>
