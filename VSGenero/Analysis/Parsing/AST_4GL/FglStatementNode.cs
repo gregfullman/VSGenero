@@ -332,6 +332,15 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         }
                         break;
                     }
+                case TokenKind.ClearKeyword:
+                    {
+                        ClearStatement clearStmt;
+                        if((result = ClearStatement.TryParseNode(parser, out clearStmt)))
+                        {
+                            node = clearStmt;
+                        }
+                        break;
+                    }
                 case TokenKind.ForeachKeyword:
                     {
                         ForeachStatement foreachStmt;

@@ -217,6 +217,12 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     defNode.ArrayType = ArrayType.Java;
                     parser.NextToken();
 
+                    AttributeSpecifier attribSpec;
+                    if (AttributeSpecifier.TryParseNode(parser, out attribSpec))
+                    {
+                        defNode.Attribute = attribSpec;
+                    }
+
                     if (!parser.PeekToken(TokenKind.OfKeyword))
                         parser.ReportSyntaxError("Missing \"of\" keyword in array definition.");
                     else
@@ -270,7 +276,13 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     else
                         parser.NextToken();
 
-                    if(!parser.PeekToken(TokenKind.OfKeyword))
+                    AttributeSpecifier attribSpec;
+                    if (AttributeSpecifier.TryParseNode(parser, out attribSpec))
+                    {
+                        defNode.Attribute = attribSpec;
+                    }
+
+                    if (!parser.PeekToken(TokenKind.OfKeyword))
                         parser.ReportSyntaxError("Missing \"of\" keyword in array definition.");
                     else
                         parser.NextToken();

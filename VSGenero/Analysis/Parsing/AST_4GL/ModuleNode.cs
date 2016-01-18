@@ -521,8 +521,6 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             {
                 if (!Tables.ContainsKey(tableResult.Name))
                     Tables.Add(tableResult.Name, tableResult);
-                else
-                    parser.ReportSyntaxError(tableResult.LocationIndex, tableResult.LocationIndex + tableResult.Name.Length, string.Format("Database table {0} defined more than once.", tableResult.Name), Severity.Error);
             }
         }
 

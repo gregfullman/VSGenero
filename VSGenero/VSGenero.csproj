@@ -342,6 +342,7 @@
     <Compile Include="Analysis\Parsing\AST_4GL\AstNodeAttributes.cs" />
     <Compile Include="Analysis\Parsing\AST_4GL\CallStatement.cs" />
     <Compile Include="Analysis\Parsing\AST_4GL\CaseStatement.cs" />
+    <Compile Include="Analysis\Parsing\AST_4GL\ClearStatement.cs" />
     <Compile Include="Analysis\Parsing\AST_4GL\CloseStatement.cs" />
     <Compile Include="Analysis\Parsing\AST_4GL\ConstructBlock.cs" />
     <Compile Include="Analysis\Parsing\AST_4GL\ContextCompletionMap.cs" />
