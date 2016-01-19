@@ -153,7 +153,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                         if (references != null)
                         {
                             ITextSnapshot currentSnapshot = this.buffer.CurrentSnapshot;
-                            NormalizedSnapshotSpanCollection spans = new NormalizedSnapshotSpanCollection(references.Where(x => x.Start >= 0).Select(x => x.ToSnapshotSpan(currentSnapshot)));
+                            NormalizedSnapshotSpanCollection spans = new NormalizedSnapshotSpanCollection(references.Where(x => x.Start >= 0 && x.End < currentSnapshot.Length).Select(x => x.ToSnapshotSpan(currentSnapshot)));
                             if (this.highlightReferencesSpans != spans)
                             {
                                 this.highlightReferencesSpans = spans;
