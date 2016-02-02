@@ -149,12 +149,18 @@
   </ContextEntry>
   <ContextEntry Entry="attribute" Type="keyword">
     <ContextPossibility>
+      <ContextSetProviders>
+        <Provider>GetUiAttributes</Provider>
+      </ContextSetProviders>
       <BackwardSearchItems>
         <BackwardTokenSearchItem>
           <Token>message</Token>
         </BackwardTokenSearchItem>
         <BackwardTokenSearchItem>
           <Token>error</Token>
+        </BackwardTokenSearchItem>
+        <BackwardTokenSearchItem>
+          <Token>prompt</Token>
         </BackwardTokenSearchItem>
         <BackwardTokenSearchItem>
           <OrderedTokenSet>
@@ -174,12 +180,18 @@
   </ContextEntry>
   <ContextEntry Entry="attributes" Type="keyword">
     <ContextPossibility>
+      <ContextSetProviders>
+        <Provider>GetUiAttributes</Provider>
+      </ContextSetProviders>
       <BackwardSearchItems>
         <BackwardTokenSearchItem>
           <Token>message</Token>
         </BackwardTokenSearchItem>
         <BackwardTokenSearchItem>
           <Token>error</Token>
+        </BackwardTokenSearchItem>
+        <BackwardTokenSearchItem>
+          <Token>prompt</Token>
         </BackwardTokenSearchItem>
         <BackwardTokenSearchItem>
           <OrderedTokenSet>
@@ -450,6 +462,25 @@
       <BackwardSearchItems>
         <BackwardTokenSearchItem>
           <Token>values</Token>
+        </BackwardTokenSearchItem>
+      </BackwardSearchItems>
+    </ContextPossibility>
+    <ContextPossibility>
+      <ContextSetProviders>
+        <Provider>GetUiAttributes</Provider>
+      </ContextSetProviders>
+      <BackwardSearchItems>
+        <BackwardTokenSearchItem>
+          <OrderedTokenSet>
+            <Item Value="LeftParenthesis" Type="keyword"/>
+            <Item Value="attribute" Type="keyword"/>
+          </OrderedTokenSet>
+        </BackwardTokenSearchItem>
+        <BackwardTokenSearchItem>
+          <OrderedTokenSet>
+            <Item Value="LeftParenthesis" Type="keyword"/>
+            <Item Value="attributes" Type="keyword"/>
+          </OrderedTokenSet>
         </BackwardTokenSearchItem>
       </BackwardSearchItems>
     </ContextPossibility>
@@ -938,6 +969,20 @@
       <ContextSetProviders>
         <Provider>GetVariables</Provider>
       </ContextSetProviders>
+    </ContextPossibility>
+    <ContextPossibility>
+      <SingleTokens>
+        <Token>char</Token>
+        <Token>character</Token>
+      </SingleTokens>
+      <ContextSetProviders>
+        <Provider>GetVariables</Provider>
+      </ContextSetProviders>
+      <BackwardSearchItems>
+        <BackwardTokenSearchItem>
+          <Token>prompt</Token>
+        </BackwardTokenSearchItem>
+      </BackwardSearchItems>
     </ContextPossibility>
   </ContextEntry>
   <ContextEntry Entry="foreach" Type="keyword">
@@ -1596,6 +1641,12 @@
           </OrderedTokenSet>
         </BackwardTokenSearchItem>
         <BackwardTokenSearchItem>
+          <OrderedTokenSet>
+            <Item Value="for" Type="keyword" />
+            <Item Value="prompt" Type="keyword" />
+          </OrderedTokenSet>
+        </BackwardTokenSearchItem>
+        <BackwardTokenSearchItem>
           <Token>message</Token>
         </BackwardTokenSearchItem>
         <BackwardTokenSearchItem>
@@ -1603,6 +1654,9 @@
         </BackwardTokenSearchItem>
         <BackwardTokenSearchItem>
           <Token>menu</Token>
+        </BackwardTokenSearchItem>
+        <BackwardTokenSearchItem>
+          <Token>prompt</Token>
         </BackwardTokenSearchItem>
       </BackwardSearchItems>
     </ContextPossibility>
@@ -2209,6 +2263,12 @@
           </OrderedTokenSet>
         </BackwardTokenSearchItem>
         <BackwardTokenSearchItem>
+          <OrderedTokenSet>
+            <Item Value="for" Type="keyword" />
+            <Item Value="prompt" Type="keyword" />
+          </OrderedTokenSet>
+        </BackwardTokenSearchItem>
+        <BackwardTokenSearchItem>
           <Token>message</Token>
         </BackwardTokenSearchItem>
         <BackwardTokenSearchItem>
@@ -2216,6 +2276,9 @@
         </BackwardTokenSearchItem>
         <BackwardTokenSearchItem>
           <Token>menu</Token>
+        </BackwardTokenSearchItem>
+        <BackwardTokenSearchItem>
+          <Token>prompt</Token>
         </BackwardTokenSearchItem>
       </BackwardSearchItems>
     </ContextPossibility>
@@ -2876,6 +2939,19 @@
       <ContextSetProviders>
         <Provider>GetExpressionComponents</Provider>
       </ContextSetProviders>
+    </ContextPossibility>
+    <ContextPossibility>
+      <ContextSetProviders>
+        <Provider>GetUiAttributes</Provider>
+      </ContextSetProviders>
+      <BackwardSearchItems>
+        <BackwardTokenSearchItem>
+          <Token>attribute</Token>
+        </BackwardTokenSearchItem>
+        <BackwardTokenSearchItem>
+          <Token>attributes</Token>
+        </BackwardTokenSearchItem>
+      </BackwardSearchItems>
     </ContextPossibility>
   </ContextEntry>
   <ContextEntry Entry="LessThan" Type="keyword">
@@ -3589,6 +3665,13 @@
       </BackwardSearchItems>
     </ContextPossibility>
   </ContextEntry>
+  <ContextEntry Entry="prompt" Type="keyword">
+    <ContextPossibility>
+      <ContextSetProviders>
+        <Provider>GetExpressionComponents</Provider>
+      </ContextSetProviders>
+    </ContextPossibility>
+  </ContextEntry>
   <ContextEntry Entry="private" Type="keyword">
     <ContextPossibility>
       <SingleTokens>
@@ -3852,6 +3935,9 @@
         </BackwardTokenSearchItem>
         <BackwardTokenSearchItem>
           <Token>menu</Token>
+        </BackwardTokenSearchItem>
+        <BackwardTokenSearchItem>
+          <Token>prompt</Token>
         </BackwardTokenSearchItem>
         <BackwardTokenSearchItem>
           <OrderedTokenSet>
@@ -4276,6 +4362,16 @@
       </BackwardSearchItems>
     </ContextPossibility>
     <ContextPossibility>
+      <SingleTokens>
+        <Token>to</Token>
+      </SingleTokens>
+      <BackwardSearchItems>
+        <BackwardTokenSearchItem>
+          <Token>display</Token>
+        </BackwardTokenSearchItem>
+      </BackwardSearchItems>
+    </ContextPossibility>
+    <ContextPossibility>
       <ContextSetProviders>
         <Provider>GetExpressionComponents</Provider>
       </ContextSetProviders>
@@ -4360,6 +4456,9 @@
         </BackwardTokenSearchItem>
         <BackwardTokenSearchItem>
           <Token>menu</Token>
+        </BackwardTokenSearchItem>
+        <BackwardTokenSearchItem>
+          <Token>prompt</Token>
         </BackwardTokenSearchItem>
         <BackwardTokenSearchItem>
           <OrderedTokenSet>

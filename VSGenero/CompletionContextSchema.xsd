@@ -48,6 +48,7 @@
                                 <xs:enumeration value="GetPreparedCursors"/>
                                 <xs:enumeration value="GetDeclaredCursors"/>
                                 <xs:enumeration value="GetBinaryOperatorKeywords"/>
+                                <xs:enumeration value="GetUiAttributes"/>
                               </xs:restriction>
                             </xs:simpleType>
                           </xs:element>
