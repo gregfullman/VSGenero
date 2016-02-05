@@ -25,7 +25,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
         public static bool TryParseNode(Genero4glParser parser, out MenuBlock node,
                                  IModuleResult containingModule,
-                                 Action<PrepareStatement> prepStatementBinder = null,
+                                 List<Func<PrepareStatement, bool>> prepStatementBinders,
                                  Func<ReturnStatement, ParserResult> returnStatementBinder = null,
                                  Action<IAnalysisResult, int, int> limitedScopeVariableAdder = null,
                                  List<TokenKind> validExitKeywords = null,
@@ -97,12 +97,14 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         beforeDecEnd = parser.Token.Span.End;
                         FglStatement menuStmt;
                         List<FglStatement> stmts = new List<FglStatement>();
-                        while (MenuStatementFactory.TryGetStatement(parser, out menuStmt, containingModule, prepStatementBinder, returnStatementBinder, 
+                        prepStatementBinders.Insert(0, node.BindPrepareCursorFromIdentifier);
+                        while (MenuStatementFactory.TryGetStatement(parser, out menuStmt, containingModule, prepStatementBinders, returnStatementBinder, 
                                                                     limitedScopeVariableAdder, validExits, contextStatementFactories, newEndKeywords))
                         {
                             stmts.Add(menuStmt);
                             beforeEnd = menuStmt.EndIndex;
                         }
+                        prepStatementBinders.RemoveAt(0);
 
                         if (beforeEnd < 0)
                             beforeEnd = beforeDecEnd;
@@ -114,11 +116,12 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         parser.ReportSyntaxError("Expecting \"before\" keyword for menu block.");
                 }
 
+                prepStatementBinders.Insert(0, node.BindPrepareCursorFromIdentifier);
                 while (!parser.PeekToken(TokenKind.EndOfFile) &&
                        !(parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.MenuKeyword, 2)))
                 {
                     MenuOption menuOpt;
-                    if (MenuOption.TryParseNode(parser, out menuOpt, containingModule, prepStatementBinder, returnStatementBinder,
+                    if (MenuOption.TryParseNode(parser, out menuOpt, containingModule, prepStatementBinders, returnStatementBinder,
                                                 limitedScopeVariableAdder, validExits, contextStatementFactories, newEndKeywords) && menuOpt != null)
                     {
                         if (menuOpt.StartIndex < 0)
@@ -132,6 +135,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     else
                         parser.NextToken();
                 }
+                prepStatementBinders.RemoveAt(0);
 
                 if (!(parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.MenuKeyword, 2)))
                 {
@@ -174,7 +178,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
         public static bool TryGetStatement(Genero4glParser parser, out FglStatement node,
                                  IModuleResult containingModule,
-                                 Action<PrepareStatement> prepStatementBinder = null,
+                                 List<Func<PrepareStatement, bool>> prepStatementBinders,
                                  Func<ReturnStatement, ParserResult> returnStatementBinder = null,
                                  Action<IAnalysisResult, int, int> limitedScopeVariableAdder = null,
                                  List<TokenKind> validExitKeywords = null,
@@ -200,7 +204,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     TryGetMenuStatement(x, out testNode, true);
                     return testNode;
                 });
-                result = parser.StatementFactory.TryParseNode(parser, out node, containingModule, prepStatementBinder, 
+                result = parser.StatementFactory.TryParseNode(parser, out node, containingModule, prepStatementBinders, 
                                                               returnStatementBinder, limitedScopeVariableAdder, false, validExitKeywords, csfs, null, endKeywords);
             }
 
@@ -344,7 +348,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
         public static bool TryParseNode(Genero4glParser parser, out MenuOption node,
                                  IModuleResult containingModule,
-                                 Action<PrepareStatement> prepStatementBinder = null,
+                                 List<Func<PrepareStatement, bool>> prepStatementBinders,
                                  Func<ReturnStatement, ParserResult> returnStatementBinder = null,
                                  Action<IAnalysisResult, int, int> limitedScopeVariableAdder = null,
                                  List<TokenKind> validExitKeywords = null,
@@ -353,6 +357,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         {
             node = new MenuOption();
             bool result = true;
+            prepStatementBinders.Insert(0, node.BindPrepareCursorFromIdentifier);
 
             switch (parser.PeekToken().Kind)
             {
@@ -393,11 +398,11 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         {
                             getOptionName = true;
                         }
-                        
+
                         
                         // at this point we need to try to get a menu-statement. If it doesn't work, we have some other stuff to gather
                         FglStatement menuStmt = null;
-                        if (getOptionName || !MenuStatementFactory.TryGetStatement(parser, out menuStmt, containingModule, prepStatementBinder, returnStatementBinder, 
+                        if (getOptionName || !MenuStatementFactory.TryGetStatement(parser, out menuStmt, containingModule, prepStatementBinders, returnStatementBinder, 
                                                                                    limitedScopeVariableAdder, validExitKeywords, contextStatementFactories, endKeywords))
                         {
                             ExpressionNode optionName;
@@ -432,7 +437,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                             node.Children.Add(menuStmt.StartIndex, menuStmt);
                         }
 
-                        while (MenuStatementFactory.TryGetStatement(parser, out menuStmt, containingModule, prepStatementBinder, returnStatementBinder, 
+                        while (MenuStatementFactory.TryGetStatement(parser, out menuStmt, containingModule, prepStatementBinders, returnStatementBinder, 
                                                                     limitedScopeVariableAdder, validExitKeywords, contextStatementFactories, endKeywords))
                             if(menuStmt != null && !node.Children.ContainsKey(menuStmt.StartIndex))
                                 node.Children.Add(menuStmt.StartIndex, menuStmt);
@@ -453,7 +458,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                 parser.ReportSyntaxError("Invalid action-name found in menu option.");
                             node.DecoratorEnd = parser.Token.Span.End;
                             FglStatement menuStmt = null;
-                            while (MenuStatementFactory.TryGetStatement(parser, out menuStmt, containingModule, prepStatementBinder, returnStatementBinder, 
+                            while (MenuStatementFactory.TryGetStatement(parser, out menuStmt, containingModule, prepStatementBinders, returnStatementBinder, 
                                                                         limitedScopeVariableAdder, validExitKeywords, contextStatementFactories, endKeywords) && menuStmt != null)
                                 node.Children.Add(menuStmt.StartIndex, menuStmt);
                         }
@@ -467,7 +472,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                 parser.ReportSyntaxError("Invalid idle-seconds found in menu block.");
                             node.DecoratorEnd = parser.Token.Span.End;
                             FglStatement menuStmt = null;
-                            while (MenuStatementFactory.TryGetStatement(parser, out menuStmt, containingModule, prepStatementBinder, returnStatementBinder, 
+                            while (MenuStatementFactory.TryGetStatement(parser, out menuStmt, containingModule, prepStatementBinders, returnStatementBinder, 
                                                                         limitedScopeVariableAdder, validExitKeywords, contextStatementFactories, endKeywords) && menuStmt != null)
                                 node.Children.Add(menuStmt.StartIndex, menuStmt);
                         }
@@ -479,6 +484,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     result = false;
                     break;
             }
+            prepStatementBinders.RemoveAt(0);
 
             node.EndIndex = parser.Token.Span.End;
 

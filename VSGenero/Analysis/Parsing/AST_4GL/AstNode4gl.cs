@@ -334,6 +334,66 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             foreach (var child in Children)
                 child.Value.CheckForErrors(ast, errorFunc, deferredFunctionSearches, searchInFunctionProvider, isFunctionCallOrDefinition);
         }
+
+        protected bool BindPrepareCursorFromIdentifier(PrepareStatement prepStmt)
+        {
+            // If the prepare statement uses a variable from prepare from, that variable should have been encountered
+            // prior to the prepare statement. So we'll do a binary search in the children of this function to look for
+            // a LetStatement above the prepare statement where the prepare statement's from identifier was assigned. 
+            // If it can't be found, then we have to assume that the identifier was assigned outside of this function,
+            // and we have no real way to determining the cursor SQL text.
+            bool result = false;
+
+            if (prepStmt.Children.Count == 1)
+            {
+                StringExpressionNode strExpr = prepStmt.Children[prepStmt.Children.Keys[0]] as StringExpressionNode;
+                if (strExpr != null)
+                {
+                    prepStmt.SetSqlStatement(strExpr.LiteralValue);
+                }
+                else
+                {
+                    NameExpression exprNode = prepStmt.Children[prepStmt.Children.Keys[0]] as NameExpression;
+                    if (exprNode != null)
+                    {
+                        string ident = exprNode.Name;
+
+                        List<int> keys = Children.Select(x => x.Key).ToList();
+                        int searchIndex = keys.BinarySearch(prepStmt.StartIndex);
+                        if (searchIndex < 0)
+                        {
+                            searchIndex = ~searchIndex;
+                            if (searchIndex > 0)
+                                searchIndex--;
+                        }
+
+                        LetStatement letStmt = null;
+                        while (searchIndex >= 0 && searchIndex < keys.Count)
+                        {
+                            int key = keys[searchIndex];
+                            letStmt = Children[key] as LetStatement;
+                            if (letStmt != null)
+                            {
+                                // check for the LetStatement's identifier
+                                if (ident.Equals(letStmt.Variable.Name, StringComparison.OrdinalIgnoreCase))
+                                    break;
+                                else
+                                    letStmt = null;
+                            }
+                            searchIndex--;
+                        }
+
+                        if (letStmt != null)
+                        {
+                            // we have a match, bind the let statement's value
+                            prepStmt.SetSqlStatement(letStmt.GetLiteralValue());
+                            result = true;
+                        }
+                    }
+                }
+            }
+            return result;
+        }
     }
 
     //public class IndexSpanComparer : IComparer<IndexSpan>

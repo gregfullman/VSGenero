@@ -27,7 +27,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
         public static bool TryParserNode(Genero4glParser parser, out ForStatement node, 
                                         IModuleResult containingModule,
-                                        Action<PrepareStatement> prepStatementBinder = null,
+                                        List<Func<PrepareStatement, bool>> prepStatementBinders,
                                         Func<ReturnStatement, ParserResult> returnStatementBinder = null,
                                         Action<IAnalysisResult, int, int> limitedScopeVariableAdder = null,
                                         List<TokenKind> validExitKeywords = null,
@@ -122,11 +122,12 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     newEndKeywords.AddRange(endKeywords);
                 newEndKeywords.Add(TokenKind.ForKeyword);
 
+                prepStatementBinders.Insert(0, node.BindPrepareCursorFromIdentifier);
                 while (!parser.PeekToken(TokenKind.EndOfFile) &&
                       !(parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.ForKeyword, 2)))
                 {
                     FglStatement statement;
-                    if (parser.StatementFactory.TryParseNode(parser, out statement, containingModule, prepStatementBinder, 
+                    if (parser.StatementFactory.TryParseNode(parser, out statement, containingModule, prepStatementBinders, 
                                                              returnStatementBinder, limitedScopeVariableAdder, false, validExits, 
                                                              contextStatementFactories, expressionOptions, newEndKeywords) && statement != null)
                     {
@@ -156,6 +157,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         parser.NextToken();
                     }
                 }
+                prepStatementBinders.RemoveAt(0);
 
                 if (!(parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.ForKeyword, 2)))
                 {

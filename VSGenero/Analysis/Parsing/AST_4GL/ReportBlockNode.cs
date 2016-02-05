@@ -518,7 +518,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         {
                             // collect statements
                             FglStatement rptStmt;
-                            while (ReportStatementFactory.TryGetStatement(parser, out rptStmt, containingModule, reportNode, null, returnStatementBinder, 
+                            while (ReportStatementFactory.TryGetStatement(parser, out rptStmt, containingModule, reportNode, new List<Func<PrepareStatement, bool>>(), returnStatementBinder, 
                                                                           limitedScopeVariableAdder, validExitKeywords) && rptStmt != null)
                             {
                                 if (rptStmt.StartIndex < 0)
@@ -602,7 +602,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         public static bool TryGetStatement(Genero4glParser parser, out FglStatement node,
                                  IModuleResult containingModule,
                                  ReportBlockNode reportNode,
-                                 Action<PrepareStatement> prepStatementBinder = null,
+                                 List<Func<PrepareStatement, bool>> prepStatementBinders,
                                  Func<ReturnStatement, ParserResult> returnStatementBinder = null,
                                  Action<IAnalysisResult, int, int> limitedScopeVariableAdder = null,
                                  List<TokenKind> validExitKeywords = null,
@@ -622,7 +622,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     TryGetReportStatement(x, out testNode, reportNode, true);
                     return testNode;
                 });
-                result = parser.StatementFactory.TryParseNode(parser, out node, containingModule, prepStatementBinder, returnStatementBinder, 
+                result = parser.StatementFactory.TryParseNode(parser, out node, containingModule, prepStatementBinders, returnStatementBinder, 
                                                               limitedScopeVariableAdder, false, validExitKeywords, csfs,
                     new ExpressionParsingOptions
                     {

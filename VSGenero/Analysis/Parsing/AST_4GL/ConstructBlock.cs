@@ -30,7 +30,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
         public static bool TryParseNode(Genero4glParser parser, out ConstructBlock node,
                                  IModuleResult containingModule,
-                                 Action<PrepareStatement> prepStatementBinder = null,
+                                 List<Func<PrepareStatement, bool>> prepStatementBinders,
                                  Func<ReturnStatement, ParserResult> returnStatementBinder = null,
                                  Action<IAnalysisResult, int, int> limitedScopeVariableAdder = null,
                                  List<TokenKind> validExitKeywords = null,
@@ -156,7 +156,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
                 bool hasControlBlocks = false;
                 ConstructControlBlock icb;
-                while(ConstructControlBlock.TryParseNode(parser, out icb, containingModule, prepStatementBinder, returnStatementBinder, 
+                prepStatementBinders.Insert(0, node.BindPrepareCursorFromIdentifier);
+                while (ConstructControlBlock.TryParseNode(parser, out icb, containingModule, prepStatementBinders, returnStatementBinder, 
                                                          limitedScopeVariableAdder, validExits, contextStatementFactories, newEndKeywords) && icb != null)
                 {
                     if (icb.StartIndex < 0)
@@ -170,6 +171,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         break;
                     }
                 }
+                prepStatementBinders.RemoveAt(0);
 
                 if (hasControlBlocks ||
                     (parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.ConstructKeyword, 2)))
@@ -221,7 +223,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
         public static bool TryParseNode(Genero4glParser parser, out ConstructControlBlock node,
                                  IModuleResult containingModule,
-                                 Action<PrepareStatement> prepStatementBinder = null,
+                                 List<Func<PrepareStatement, bool>> prepStatementBinders,
                                  Func<ReturnStatement, ParserResult> returnStatementBinder = null,
                                  Action<IAnalysisResult, int, int> limitedScopeVariableAdder = null,
                                  List<TokenKind> validExitKeywords = null,
@@ -347,9 +349,11 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             {
                 // get the dialog statements
                 FglStatement inputStmt;
-                while (ConstructDialogStatementFactory.TryGetStatement(parser, out inputStmt, containingModule, prepStatementBinder, returnStatementBinder, 
+                prepStatementBinders.Insert(0, node.BindPrepareCursorFromIdentifier);
+                while (ConstructDialogStatementFactory.TryGetStatement(parser, out inputStmt, containingModule, prepStatementBinders, returnStatementBinder, 
                                                                        limitedScopeVariableAdder, validExitKeywords, contextStatementFactories, endKeywords) && inputStmt != null)
                     node.Children.Add(inputStmt.StartIndex, inputStmt);
+                prepStatementBinders.RemoveAt(0);
 
                 if (node.Type == ConstructControlBlockType.None && node.Children.Count == 0)
                     result = false;
@@ -377,7 +381,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
         public static bool TryGetStatement(Genero4glParser parser, out FglStatement node,
                                  IModuleResult containingModule,
-                                 Action<PrepareStatement> prepStatementBinder = null,
+                                 List<Func<PrepareStatement, bool>> prepStatementBinders,
                                  Func<ReturnStatement, ParserResult> returnStatementBinder = null,
                                  Action<IAnalysisResult, int, int> limitedScopeVariableAdder = null,
                                  List<TokenKind> validExitKeywords = null,
@@ -403,7 +407,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     TryGetConstructStatement(x, out testNode, true);
                     return testNode;
                 });
-                result = parser.StatementFactory.TryParseNode(parser, out node, containingModule, prepStatementBinder, 
+                result = parser.StatementFactory.TryParseNode(parser, out node, containingModule, prepStatementBinders, 
                                                               returnStatementBinder, limitedScopeVariableAdder, false, validExitKeywords, csfs, null, endKeywords);
             }
 

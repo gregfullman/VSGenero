@@ -131,7 +131,9 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         default:
                             {
                                 FglStatement statement;
-                                if (parser.StatementFactory.TryParseNode(parser, out statement, containingModule, defNode.BindPrepareCursorFromIdentifier, 
+                                List<Func<PrepareStatement, bool>> prepBinders = new List<Func<PrepareStatement, bool>>();
+                                prepBinders.Add(defNode.BindPrepareCursorFromIdentifier);
+                                if (parser.StatementFactory.TryParseNode(parser, out statement, containingModule, prepBinders, 
                                                                          defNode.StoreReturnStatement, defNode.AddLimitedScopeVariable, false, validExits, null, null, endKeywords) && statement != null)
                                 {
                                     AstNode4gl stmtNode = statement as AstNode4gl;

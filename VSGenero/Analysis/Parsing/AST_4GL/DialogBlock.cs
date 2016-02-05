@@ -148,7 +148,10 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 node.Dialog.Attributes = new List<DialogAttribute>();
                 node.Dialog.Subdialogs = new List<NameExpression>();
 
-                DialogBlock.BuildDialogBlock(parser, node.Dialog, containingModule);
+                List<Func<PrepareStatement, bool>> prepStatementBinders = new List<Func<PrepareStatement, bool>>();
+                prepStatementBinders.Insert(0, node.BindPrepareCursorFromIdentifier);
+                DialogBlock.BuildDialogBlock(parser, node.Dialog, containingModule, prepStatementBinders);
+                prepStatementBinders.RemoveAt(0);
 
                 foreach (var child in node.Dialog.Children)
                     node.Children.Add(child.Key, child.Value);
@@ -190,7 +193,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         public List<NameExpression> Subdialogs { get; internal set; }
 
         internal static void BuildDialogBlock(Genero4glParser parser, DialogBlock node, IModuleResult containingModule,
-                                 Action<PrepareStatement> prepStatementBinder = null,
+                                 List<Func<PrepareStatement, bool>> prepStatementBinders,
                                  Func<ReturnStatement, ParserResult> returnStatementBinder = null,
                                  Action<IAnalysisResult, int, int> limitedScopeVariableAdder = null,
                                  List<TokenKind> validExitKeywords = null,
@@ -234,14 +237,15 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 DialogStatementFactory.TryGetDialogStatement(x, out testNode, true);
                 return testNode;
             });
-            while(moreBlocks)
+            prepStatementBinders.Insert(0, node.BindPrepareCursorFromIdentifier);
+            while (moreBlocks)
             {
                 switch(parser.PeekToken().Kind)
                 {
                     case TokenKind.InputKeyword:
                         {
                             InputBlock inputBlock;
-                            if (InputBlock.TryParseNode(parser, out inputBlock, containingModule, prepStatementBinder, returnStatementBinder, 
+                            if (InputBlock.TryParseNode(parser, out inputBlock, containingModule, prepStatementBinders, returnStatementBinder, 
                                                         limitedScopeVariableAdder, validExitKeywords, csfs, endKeywords) && inputBlock != null)
                                 node.Children.Add(inputBlock.StartIndex, inputBlock);
                             else
@@ -251,7 +255,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     case TokenKind.ConstructKeyword:
                         {
                             ConstructBlock constructBlock;
-                            if (ConstructBlock.TryParseNode(parser, out constructBlock, containingModule, prepStatementBinder, returnStatementBinder, 
+                            if (ConstructBlock.TryParseNode(parser, out constructBlock, containingModule, prepStatementBinders, returnStatementBinder, 
                                                             limitedScopeVariableAdder, validExitKeywords, csfs, endKeywords) && constructBlock != null)
                                 node.Children.Add(constructBlock.StartIndex, constructBlock);
                             else
@@ -261,7 +265,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     case TokenKind.DisplayKeyword:
                         {
                             DisplayBlock dispBlock;
-                            if (DisplayBlock.TryParseNode(parser, out dispBlock, containingModule, prepStatementBinder, returnStatementBinder, 
+                            if (DisplayBlock.TryParseNode(parser, out dispBlock, containingModule, prepStatementBinders, returnStatementBinder, 
                                                           limitedScopeVariableAdder, validExitKeywords, csfs, endKeywords) && dispBlock != null)
                                 node.Children.Add(dispBlock.StartIndex, dispBlock);
                             else
@@ -283,6 +287,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         break;
                 }
             }
+            prepStatementBinders.RemoveAt(0);
 
             List<TokenKind> validExits = new List<TokenKind>();
             if (validExitKeywords != null)
@@ -295,11 +300,12 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             newEndKeywords.Add(TokenKind.DialogKeyword);
 
             // get the dialog control blocks
+            prepStatementBinders.Insert(0, node.BindPrepareCursorFromIdentifier);
             while (!parser.PeekToken(TokenKind.EndOfFile) &&
                     !(parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.DialogKeyword, 2)))
             {
                 DialogControlBlock icb;
-                if (DialogControlBlock.TryParseNode(parser, out icb, containingModule, prepStatementBinder, returnStatementBinder, 
+                if (DialogControlBlock.TryParseNode(parser, out icb, containingModule, prepStatementBinders, returnStatementBinder, 
                                                     limitedScopeVariableAdder, validExits, contextStatementFactories, newEndKeywords) && icb != null)
                 {
                     if (icb.StartIndex < 0)
@@ -313,11 +319,12 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 else
                     parser.NextToken();
             }
+            prepStatementBinders.RemoveAt(0);
         }
 
         public static bool TryParseNode(Genero4glParser parser, out DialogBlock node,
                                  IModuleResult containingModule,
-                                 Action<PrepareStatement> prepStatementBinder = null,
+                                 List<Func<PrepareStatement, bool>> prepStatementBinders,
                                  Func<ReturnStatement, ParserResult> returnStatementBinder = null,
                                  Action<IAnalysisResult, int, int> limitedScopeVariableAdder = null,
                                  List<TokenKind> validExitKeywords = null,
@@ -337,7 +344,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 node.StartIndex = parser.Token.Span.Start;
                 node.DecoratorEnd = parser.Token.Span.End;
 
-                BuildDialogBlock(parser, node, containingModule, prepStatementBinder, returnStatementBinder, limitedScopeVariableAdder, 
+                BuildDialogBlock(parser, node, containingModule, prepStatementBinders, returnStatementBinder, limitedScopeVariableAdder, 
                                  validExitKeywords, contextStatementFactories, endKeywords);
 
                 if (!(parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.DialogKeyword, 2)))
@@ -429,7 +436,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
         public static bool TryParseNode(Genero4glParser parser, out DialogControlBlock node,
                                  IModuleResult containingModule,
-                                 Action<PrepareStatement> prepStatementBinder = null,
+                                 List<Func<PrepareStatement, bool>> prepStatementBinders,
                                  Func<ReturnStatement, ParserResult> returnStatementBinder = null,
                                  Action<IAnalysisResult, int, int> limitedScopeVariableAdder = null,
                                  List<TokenKind> validExitKeywords = null,
@@ -569,9 +576,11 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             {
                 // get the dialog statements
                 FglStatement inputStmt;
-                while (DialogStatementFactory.TryGetStatement(parser, out inputStmt, containingModule, prepStatementBinder, returnStatementBinder, 
+                prepStatementBinders.Insert(0, node.BindPrepareCursorFromIdentifier);
+                while (DialogStatementFactory.TryGetStatement(parser, out inputStmt, containingModule, prepStatementBinders, returnStatementBinder, 
                                                               limitedScopeVariableAdder, validExitKeywords, contextStatementFactories, endKeywords) && inputStmt != null)
                     node.Children.Add(inputStmt.StartIndex, inputStmt);
+                prepStatementBinders.RemoveAt(0);
 
                 if (node.Type == DialogControlBlockType.None && node.Children.Count == 0)
                     result = false;
@@ -597,7 +606,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
         public static bool TryGetStatement(Genero4glParser parser, out FglStatement node,
                                  IModuleResult containingModule,
-                                 Action<PrepareStatement> prepStatementBinder = null,
+                                 List<Func<PrepareStatement, bool>> prepStatementBinders,
                                  Func<ReturnStatement, ParserResult> returnStatementBinder = null,
                                  Action<IAnalysisResult, int, int> limitedScopeVariableAdder = null,
                                  List<TokenKind> validExitKeywords = null,
@@ -623,7 +632,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     TryGetDialogStatement(x, out testNode, true);
                     return testNode;
                 });
-                result = parser.StatementFactory.TryParseNode(parser, out node, containingModule, prepStatementBinder, 
+                result = parser.StatementFactory.TryParseNode(parser, out node, containingModule, prepStatementBinders, 
                                                               returnStatementBinder, limitedScopeVariableAdder, false, validExitKeywords, csfs, null, endKeywords);
             }
 

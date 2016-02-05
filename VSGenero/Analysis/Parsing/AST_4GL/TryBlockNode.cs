@@ -34,7 +34,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
     {
         public static bool TryParseNode(Genero4glParser parser, out TryCatchStatement defNode,
                                  IModuleResult containingModule,
-                                 Action<PrepareStatement> prepStatementBinder = null,
+                                 List<Func<PrepareStatement, bool>> prepStatementBinders,
                                  Func<ReturnStatement, ParserResult> returnStatementBinder = null,
                                  Action<IAnalysisResult, int, int> limitedScopeVariableAdder = null,
                                  List<TokenKind> validExitKeywords = null,
@@ -57,8 +57,10 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     newEndKeywords.AddRange(endKeywords);
                 newEndKeywords.Add(TokenKind.TryKeyword);
 
+                prepStatementBinders.Insert(0, defNode.BindPrepareCursorFromIdentifier);
+
                 TryBlock tryBlock;
-                if (TryBlock.TryParseNode(parser, out tryBlock, containingModule, prepStatementBinder, returnStatementBinder,
+                if (TryBlock.TryParseNode(parser, out tryBlock, containingModule, prepStatementBinders, returnStatementBinder,
                                           limitedScopeVariableAdder, validExitKeywords, contextStatementFactories, newEndKeywords) && tryBlock != null)
                 {
                     defNode.Children.Add(tryBlock.StartIndex, tryBlock);
@@ -68,7 +70,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 {
                     parser.NextToken();
                     CatchBlock catchBlock;
-                    if (CatchBlock.TryParseNode(parser, out catchBlock, containingModule, prepStatementBinder, returnStatementBinder,
+                    if (CatchBlock.TryParseNode(parser, out catchBlock, containingModule, prepStatementBinders, returnStatementBinder,
                                                 limitedScopeVariableAdder, validExitKeywords, contextStatementFactories, newEndKeywords) && catchBlock != null)
                     {
                         defNode.Children.Add(catchBlock.StartIndex, catchBlock);
@@ -77,6 +79,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         defNode.AdditionalDecoratorRanges.Add(catchBlock.StartIndex, catchBlock.StartIndex + 5);
                     }
                 }
+
+                prepStatementBinders.RemoveAt(0);
 
                 if(parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.TryKeyword, 2))
                 {
@@ -105,7 +109,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
     {
         public static bool TryParseNode(Genero4glParser parser, out TryBlock node,
                                  IModuleResult containingModule,
-                                 Action<PrepareStatement> prepStatementBinder = null,
+                                 List<Func<PrepareStatement, bool>> prepStatementBinders,
                                  Func<ReturnStatement, ParserResult> returnStatementBinder = null,
                                  Action<IAnalysisResult, int, int> limitedScopeVariableAdder = null,
                                  List<TokenKind> validExitKeywords = null,
@@ -114,12 +118,13 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         {
             node = new TryBlock();
             node.StartIndex = parser.Token.Span.Start;
+            prepStatementBinders.Insert(0, node.BindPrepareCursorFromIdentifier);
             while (!parser.PeekToken(TokenKind.EndOfFile) &&
                    !parser.PeekToken(TokenKind.CatchKeyword) &&
                    !(parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.TryKeyword, 2)))
             {
                 FglStatement statement;
-                if (parser.StatementFactory.TryParseNode(parser, out statement, containingModule, prepStatementBinder, returnStatementBinder, 
+                if (parser.StatementFactory.TryParseNode(parser, out statement, containingModule, prepStatementBinders, returnStatementBinder, 
                                                          limitedScopeVariableAdder, false, validExitKeywords, contextStatementFactories, null, endKeywords) && statement != null)
                 {
                     AstNode4gl stmtNode = statement as AstNode4gl;
@@ -134,6 +139,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     parser.NextToken();
                 }
             }
+            prepStatementBinders.RemoveAt(0);
             node.EndIndex = parser.Token.Span.End;
             return true;
         }
@@ -143,7 +149,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
     {
         public static bool TryParseNode(Genero4glParser parser, out CatchBlock node,
                                  IModuleResult containingModule,
-                                 Action<PrepareStatement> prepStatementBinder = null,
+                                 List<Func<PrepareStatement, bool>> prepStatementBinders,
                                  Func<ReturnStatement, ParserResult> returnStatementBinder = null,
                                  Action<IAnalysisResult, int, int> limitedScopeVariableAdder = null,
                                  List<TokenKind> validExitKeywords = null,
@@ -152,11 +158,12 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         {
             node = new CatchBlock();
             node.StartIndex = parser.Token.Span.Start;
+            prepStatementBinders.Insert(0, node.BindPrepareCursorFromIdentifier);
             while (!parser.PeekToken(TokenKind.EndOfFile) &&
                    !(parser.PeekToken(TokenKind.EndKeyword) && parser.PeekToken(TokenKind.TryKeyword, 2)))
             {
                 FglStatement statement;
-                if (parser.StatementFactory.TryParseNode(parser, out statement, containingModule, prepStatementBinder, 
+                if (parser.StatementFactory.TryParseNode(parser, out statement, containingModule, prepStatementBinders, 
                                                          returnStatementBinder, limitedScopeVariableAdder, false, validExitKeywords, 
                                                          contextStatementFactories, null, endKeywords) && statement != null)
                 {
@@ -172,6 +179,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     parser.NextToken();
                 }
             }
+            prepStatementBinders.RemoveAt(0);
             node.EndIndex = parser.Token.Span.End;
             return true;
         }

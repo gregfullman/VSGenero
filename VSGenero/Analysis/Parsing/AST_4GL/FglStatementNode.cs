@@ -27,9 +27,10 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
     public class FglStatementFactory
     {
-        public bool TryParseNode(Genero4glParser parser, out FglStatement node,
+        public bool TryParseNode(Genero4glParser parser, 
+                                 out FglStatement node,
                                  IModuleResult containingModule,
-                                 Action<PrepareStatement> prepStatementBinder = null,
+                                 List<Func<PrepareStatement, bool>> prepStatementBinders,
                                  Func<ReturnStatement, ParserResult> returnStatementBinder = null,
                                  Action<IAnalysisResult, int, int> limitedScopeVariableAdder = null,
                                  bool returnStatementsOnly = false,
@@ -103,12 +104,9 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         if ((result = PrepareStatement.TryParseNode(parser, out prepStmt, containingModule)))
                         {
                             node = prepStmt;
-                            if (prepStatementBinder != null)
-                                prepStatementBinder(prepStmt);
-                            else
-                            {
-                                int i = 0;
-                            }
+                            foreach (var binder in prepStatementBinders)
+                                if (binder(prepStmt))
+                                    break;
                         }
                         break;
                     }
@@ -150,7 +148,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 case TokenKind.IfKeyword:
                     {
                         IfStatement ifStmt;
-                        if ((result = IfStatement.TryParseNode(parser, out ifStmt, containingModule, prepStatementBinder, returnStatementBinder, 
+                        if ((result = IfStatement.TryParseNode(parser, out ifStmt, containingModule, prepStatementBinders, returnStatementBinder, 
                                                                limitedScopeVariableAdder, validExitKeywords, contextStatementFactories, expressionOptions, endKeywords)))
                         {
                             node = ifStmt;
@@ -160,7 +158,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 case TokenKind.WhileKeyword:
                     {
                         WhileStatement whileStmt;
-                        if ((result = WhileStatement.TryParseNode(parser, out whileStmt, containingModule, prepStatementBinder, returnStatementBinder, 
+                        if ((result = WhileStatement.TryParseNode(parser, out whileStmt, containingModule, prepStatementBinders, returnStatementBinder, 
                                                                   limitedScopeVariableAdder, validExitKeywords, contextStatementFactories, expressionOptions, endKeywords)))
                         {
                             node = whileStmt;
@@ -197,7 +195,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 case TokenKind.ForKeyword:
                     {
                         ForStatement forStmt;
-                        if ((result = ForStatement.TryParserNode(parser, out forStmt, containingModule, prepStatementBinder, returnStatementBinder, 
+                        if ((result = ForStatement.TryParserNode(parser, out forStmt, containingModule, prepStatementBinders, returnStatementBinder, 
                                                                  limitedScopeVariableAdder, validExitKeywords, contextStatementFactories, expressionOptions, endKeywords)))
                         {
                             node = forStmt;
@@ -207,7 +205,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 case TokenKind.CaseKeyword:
                     {
                         CaseStatement caseStmt;
-                        if ((result = CaseStatement.TryParseNode(parser, out caseStmt, containingModule, prepStatementBinder, returnStatementBinder, 
+                        if ((result = CaseStatement.TryParseNode(parser, out caseStmt, containingModule, prepStatementBinders, returnStatementBinder, 
                                                                  limitedScopeVariableAdder, validExitKeywords, contextStatementFactories, expressionOptions, endKeywords)))
                         {
                             node = caseStmt;
@@ -271,7 +269,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 case TokenKind.TryKeyword:
                     {
                         TryCatchStatement tryStmt;
-                        if ((result = TryCatchStatement.TryParseNode(parser, out tryStmt, containingModule, prepStatementBinder, returnStatementBinder, 
+                        if ((result = TryCatchStatement.TryParseNode(parser, out tryStmt, containingModule, prepStatementBinders, returnStatementBinder, 
                                                                      limitedScopeVariableAdder, validExitKeywords, contextStatementFactories, endKeywords)))
                         {
                             node = tryStmt;
@@ -344,7 +342,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 case TokenKind.ForeachKeyword:
                     {
                         ForeachStatement foreachStmt;
-                        if ((result = ForeachStatement.TryParseNode(parser, out foreachStmt, containingModule, prepStatementBinder, returnStatementBinder, 
+                        if ((result = ForeachStatement.TryParseNode(parser, out foreachStmt, containingModule, prepStatementBinders, returnStatementBinder, 
                                                                     limitedScopeVariableAdder, validExitKeywords, contextStatementFactories, endKeywords)))
                         {
                             node = foreachStmt;
@@ -363,7 +361,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 case TokenKind.MenuKeyword:
                     {
                         MenuBlock menuStmt;
-                        if ((result = MenuBlock.TryParseNode(parser, out menuStmt, containingModule, prepStatementBinder, returnStatementBinder, 
+                        if ((result = MenuBlock.TryParseNode(parser, out menuStmt, containingModule, prepStatementBinders, returnStatementBinder, 
                                                              limitedScopeVariableAdder, validExitKeywords, contextStatementFactories, endKeywords)))
                         {
                             node = menuStmt;
@@ -375,7 +373,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 case TokenKind.InputKeyword:
                     {
                         InputBlock inputStmt;
-                        if ((result = InputBlock.TryParseNode(parser, out inputStmt, containingModule, prepStatementBinder, returnStatementBinder, 
+                        if ((result = InputBlock.TryParseNode(parser, out inputStmt, containingModule, prepStatementBinders, returnStatementBinder, 
                                                               limitedScopeVariableAdder, validExitKeywords, contextStatementFactories, endKeywords)))
                         {
                             node = inputStmt;
@@ -387,7 +385,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 case TokenKind.ConstructKeyword:
                     {
                         ConstructBlock constructStmt;
-                        if ((result = ConstructBlock.TryParseNode(parser, out constructStmt, containingModule, prepStatementBinder, returnStatementBinder, 
+                        if ((result = ConstructBlock.TryParseNode(parser, out constructStmt, containingModule, prepStatementBinders, returnStatementBinder, 
                                                                   limitedScopeVariableAdder, validExitKeywords, contextStatementFactories, endKeywords)))
                         {
                             node = constructStmt;
@@ -408,7 +406,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 case TokenKind.DisplayKeyword:
                     {
                         DisplayBlock dispStmt;
-                        if ((result = DisplayBlock.TryParseNode(parser, out dispStmt, containingModule, prepStatementBinder, returnStatementBinder, 
+                        if ((result = DisplayBlock.TryParseNode(parser, out dispStmt, containingModule, prepStatementBinders, returnStatementBinder, 
                                                                 limitedScopeVariableAdder, validExitKeywords, contextStatementFactories, endKeywords)))
                         {
                             node = dispStmt;
@@ -420,7 +418,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 case TokenKind.PromptKeyword:
                     {
                         PromptStatement promptStmt;
-                        if((result = PromptStatement.TryParseNode(parser, out promptStmt, containingModule, prepStatementBinder, returnStatementBinder, 
+                        if((result = PromptStatement.TryParseNode(parser, out promptStmt, containingModule, prepStatementBinders, returnStatementBinder, 
                                                                   limitedScopeVariableAdder, validExitKeywords, contextStatementFactories, endKeywords)))
                         {
                             node = promptStmt;
@@ -432,7 +430,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 case TokenKind.DialogKeyword:
                     {
                         DialogBlock dialogBlock;
-                        if ((result = DialogBlock.TryParseNode(parser, out dialogBlock, containingModule, prepStatementBinder, returnStatementBinder, 
+                        if ((result = DialogBlock.TryParseNode(parser, out dialogBlock, containingModule, prepStatementBinders, returnStatementBinder, 
                                                                limitedScopeVariableAdder, validExitKeywords, contextStatementFactories, endKeywords)))
                         {
                             node = dialogBlock;
