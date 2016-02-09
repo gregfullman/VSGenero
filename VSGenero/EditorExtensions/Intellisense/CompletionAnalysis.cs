@@ -93,7 +93,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             return compl;
         }
 
-        internal Genero4glAst GetAnalysisEntry()
+        internal GeneroAst GetAnalysisEntry()
         {
             var entry = (IGeneroProjectEntry)TextBuffer.GetAnalysis();
             return entry != null ? entry.Analysis : null;

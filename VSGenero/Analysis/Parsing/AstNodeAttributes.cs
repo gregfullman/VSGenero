@@ -17,7 +17,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace VSGenero.Analysis.Parsing.AST_4GL
+namespace VSGenero.Analysis.Parsing
 {
     internal static class NodeAttributes
     {
@@ -102,7 +102,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
         public static readonly object Variable = new object();
 
-        public static void AddVariableReference(this AstNode4gl node, Genero4glAst ast, bool bindNames, object reference)
+        public static void AddVariableReference(this AstNode node, GeneroAst ast, bool bindNames, object reference)
         {
             if (bindNames)
             {
@@ -110,17 +110,17 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             }
         }
 
-        public static string GetProceedingWhiteSpace(this AstNode4gl node, Genero4glAst ast)
+        public static string GetProceedingWhiteSpace(this AstNode node, GeneroAst ast)
         {
             return GetWhiteSpace(node, ast, NodeAttributes.PreceedingWhiteSpace);
         }
 
-        public static string GetProceedingWhiteSpaceDefaultNull(this AstNode4gl node, Genero4glAst ast)
+        public static string GetProceedingWhiteSpaceDefaultNull(this AstNode node, GeneroAst ast)
         {
             return GetWhiteSpace(node, ast, NodeAttributes.PreceedingWhiteSpace, null);
         }
 
-        private static string GetWhiteSpace(AstNode4gl node, Genero4glAst ast, object kind, string defaultValue = " ")
+        private static string GetWhiteSpace(AstNode node, GeneroAst ast, object kind, string defaultValue = " ")
         {
             object whitespace;
             if (ast.TryGetAttribute(node, kind, out whitespace))
@@ -133,47 +133,47 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             }
         }
 
-        public static string GetSecondWhiteSpace(this AstNode4gl node, Genero4glAst ast)
+        public static string GetSecondWhiteSpace(this AstNode node, GeneroAst ast)
         {
             return GetWhiteSpace(node, ast, NodeAttributes.SecondPreceedingWhiteSpace);
         }
 
-        public static string GetSecondWhiteSpaceDefaultNull(this AstNode4gl node, Genero4glAst ast)
+        public static string GetSecondWhiteSpaceDefaultNull(this AstNode node, GeneroAst ast)
         {
             return GetWhiteSpace(node, ast, NodeAttributes.SecondPreceedingWhiteSpace, null);
         }
 
-        public static string GetThirdWhiteSpace(this AstNode4gl node, Genero4glAst ast)
+        public static string GetThirdWhiteSpace(this AstNode node, GeneroAst ast)
         {
             return GetWhiteSpace(node, ast, NodeAttributes.ThirdPreceedingWhiteSpace);
         }
 
-        public static string GetThirdWhiteSpaceDefaultNull(this AstNode4gl node, Genero4glAst ast)
+        public static string GetThirdWhiteSpaceDefaultNull(this AstNode node, GeneroAst ast)
         {
             return GetWhiteSpace(node, ast, NodeAttributes.ThirdPreceedingWhiteSpace, null);
         }
 
-        public static string GetFourthWhiteSpace(this AstNode4gl node, Genero4glAst ast)
+        public static string GetFourthWhiteSpace(this AstNode node, GeneroAst ast)
         {
             return GetWhiteSpace(node, ast, NodeAttributes.FourthPreceedingWhiteSpace);
         }
 
-        public static string GetFourthWhiteSpaceDefaultNull(this AstNode4gl node, Genero4glAst ast)
+        public static string GetFourthWhiteSpaceDefaultNull(this AstNode node, GeneroAst ast)
         {
             return GetWhiteSpace(node, ast, NodeAttributes.FourthPreceedingWhiteSpace, null);
         }
 
-        public static string GetFifthWhiteSpace(this AstNode4gl node, Genero4glAst ast)
+        public static string GetFifthWhiteSpace(this AstNode node, GeneroAst ast)
         {
             return GetWhiteSpace(node, ast, NodeAttributes.FifthPreceedingWhiteSpace);
         }
 
-        public static string GetExtraVerbatimText(this AstNode4gl node, Genero4glAst ast)
+        public static string GetExtraVerbatimText(this AstNode node, GeneroAst ast)
         {
             return GetWhiteSpace(node, ast, NodeAttributes.ExtraVerbatimText, null);
         }
 
-        public static bool IsAltForm(this AstNode4gl node, Genero4glAst ast)
+        public static bool IsAltForm(this AstNode node, GeneroAst ast)
         {
             object dummy;
             if (ast.TryGetAttribute(node, NodeAttributes.IsAltFormValue, out dummy))
@@ -186,7 +186,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             }
         }
 
-        public static bool IsMissingCloseGrouping(this AstNode4gl node, Genero4glAst ast)
+        public static bool IsMissingCloseGrouping(this AstNode node, GeneroAst ast)
         {
             object dummy;
             if (ast.TryGetAttribute(node, NodeAttributes.ErrorMissingCloseGrouping, out dummy))
@@ -199,7 +199,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             }
         }
 
-        public static bool IsIncompleteNode(this AstNode4gl node, Genero4glAst ast)
+        public static bool IsIncompleteNode(this AstNode node, GeneroAst ast)
         {
             object dummy;
             if (ast.TryGetAttribute(node, NodeAttributes.ErrorIncompleteNode, out dummy))
@@ -212,7 +212,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             }
         }
 
-        public static string[] GetListWhiteSpace(this AstNode4gl node, Genero4glAst ast)
+        public static string[] GetListWhiteSpace(this AstNode node, GeneroAst ast)
         {
             object whitespace;
             if (ast.TryGetAttribute(node, NodeAttributes.ListWhiteSpace, out whitespace))
@@ -225,7 +225,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             }
         }
 
-        public static string[] GetNamesWhiteSpace(this AstNode4gl node, Genero4glAst ast)
+        public static string[] GetNamesWhiteSpace(this AstNode node, GeneroAst ast)
         {
             object whitespace;
             if (ast.TryGetAttribute(node, NodeAttributes.NamesWhiteSpace, out whitespace))
@@ -238,7 +238,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             }
         }
 
-        public static string[] GetVerbatimNames(this AstNode4gl node, Genero4glAst ast)
+        public static string[] GetVerbatimNames(this AstNode node, GeneroAst ast)
         {
             object names;
             if (ast.TryGetAttribute(node, NodeAttributes.VerbatimNames, out names))
@@ -251,7 +251,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             }
         }
 
-        public static string GetVerbatimImage(this AstNode4gl node, Genero4glAst ast)
+        public static string GetVerbatimImage(this AstNode node, GeneroAst ast)
         {
             object image;
             if (ast.TryGetAttribute(node, NodeAttributes.VerbatimImage, out image))

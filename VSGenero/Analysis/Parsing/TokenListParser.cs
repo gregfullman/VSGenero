@@ -99,7 +99,7 @@ namespace VSGenero.Analysis.Parsing
             ErrorSink.Add(message, null, start, end, errorCode, severity);
         }
 
-        public IGeneroAst ParseFile()
+        public GeneroAst ParseFile()
         {
             return null;
         }

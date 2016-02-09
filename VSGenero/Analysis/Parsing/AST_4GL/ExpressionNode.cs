@@ -669,7 +669,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             IGeneroProject dummyProj;
             IProjectEntry dummyProjEntry;
             bool dummy;
-            var result = Genero4glAst.GetValueByIndex(Function.Name, Function.IndexSpan.Start, ast, out dummyProj, out dummyProjEntry, out dummy, Genero4glAst.FunctionProviderSearchMode.Search, true);
+            var result = Genero4glAst.GetValueByIndex(Function.Name, Function.IndexSpan.Start, ast, out dummyProj, out dummyProjEntry, out dummy, FunctionProviderSearchMode.Search, true);
             if (result != null)
             {
                 return result.Typename;
@@ -693,9 +693,9 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             "com.WebOperation.CreateRPCStyle"
         };
 
-        public override void CheckForErrors(Genero4glAst ast, Action<string, int, int> errorFunc,
+        public override void CheckForErrors(GeneroAst ast, Action<string, int, int> errorFunc,
                                             Dictionary<string, List<int>> deferredFunctionSearches,
-                                            Genero4glAst.FunctionProviderSearchMode searchInFunctionProvider = Genero4glAst.FunctionProviderSearchMode.NoSearch, bool isFunctionCallOrDefinition = false)
+                                            FunctionProviderSearchMode searchInFunctionProvider = FunctionProviderSearchMode.NoSearch, bool isFunctionCallOrDefinition = false)
         {
             // 1) Check parameters for errors
             //      - undefined identifier
@@ -706,7 +706,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             // Check for the function name
             if (Function != null)
             {
-                Function.CheckForErrors(ast, errorFunc, deferredFunctionSearches, Genero4glAst.FunctionProviderSearchMode.Deferred, true);
+                Function.CheckForErrors(ast, errorFunc, deferredFunctionSearches, FunctionProviderSearchMode.Deferred, true);
             }
 
             if (Parameters != null)
@@ -731,11 +731,11 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                             if (Function.ResolvedResult is AstNode4gl &&
                                (Function.ResolvedResult as AstNode4gl).StartIndex >= 0)
                             {
-                                var useAst = ast;
+                                var useAst = ast as Genero4glAst;
                                 if((Function.ResolvedResult as AstNode4gl).SyntaxTree != null &&
                                     (Function.ResolvedResult as AstNode4gl).SyntaxTree != ast)
                                 {
-                                    useAst = (Function.ResolvedResult as AstNode4gl).SyntaxTree;
+                                    useAst = (Function.ResolvedResult as AstNode4gl).SyntaxTree as Genero4glAst;
                                 }
                                 // need to retrieve the variable and then get its type
                                 var resVar = Genero4glAst.GetValueByIndex(param.Name, (Function.ResolvedResult as AstNode4gl).StartIndex, useAst, out proj, out projEntry, out isDeferred);
@@ -749,7 +749,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         else
                         {
                             // TODO: eventually, this needs to handle system types
-                            var resType = Genero4glAst.GetValueByIndex(typeName, StartIndex, ast, out proj, out projEntry, out isDeferred);
+                            var resType = Genero4glAst.GetValueByIndex(typeName, StartIndex, ast as Genero4glAst, out proj, out projEntry, out isDeferred);
                             if (resType != null &&
                                resType is TypeDefinitionNode &&
                                (resType as TypeDefinitionNode).TypeRef != null)
@@ -760,7 +760,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
                         if (typeRef != null && typeRef.IsRecord)
                         {
-                            int recFieldCount = (typeRef.Children[typeRef.Children.Keys[0]] as RecordDefinitionNode).GetMembers(ast, Analysis.MemberType.All, false).Count();
+                            int recFieldCount = (typeRef.Children[typeRef.Children.Keys[0]] as RecordDefinitionNode).GetMembers(ast as Genero4glAst, Analysis.MemberType.All, false).Count();
                             if (recFieldCount > 0)
                                 totalRequiredParams += recFieldCount;
                             else
@@ -780,7 +780,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         if (param is NameExpression)
                         {
                             var nameParam = param as NameExpression;
-                            nameParam.CheckForErrors(ast, errorFunc, deferredFunctionSearches, Genero4glAst.FunctionProviderSearchMode.Deferred);
+                            nameParam.CheckForErrors(ast, errorFunc, deferredFunctionSearches, FunctionProviderSearchMode.Deferred);
                             if (nameParam.ResolvedResult != null)
                             {
                                 if (nameParam.ResolvedResult is TypeDefinitionNode) // Check for any invalid parameters TODO: others
@@ -814,7 +814,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                             if((param as NameExpression).Name.EndsWith(".*"))
                                             {
                                                 // need to get the number of fields in the record, as they count toward our passed parameter total
-                                                int recFieldCount = (typeRef.Children[typeRef.Children.Keys[0]] as RecordDefinitionNode).GetMembers(ast, Analysis.MemberType.All, false).Count();
+                                                int recFieldCount = (typeRef.Children[typeRef.Children.Keys[0]] as RecordDefinitionNode).GetMembers(ast as Genero4glAst, Analysis.MemberType.All, false).Count();
                                                 if (recFieldCount > 0)
                                                     totalParameters += (recFieldCount - 1); // minus 1 so we can do the increment below   
                                             }
@@ -831,7 +831,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                                 if (!_allowedNonStarRecordParamFunctions.Contains(Function.Name))
                                                 {
                                                     // need to get the number of fields in the record, as they count toward our passed parameter total
-                                                    int recFieldCount = (typeRef.Children[typeRef.Children.Keys[0]] as RecordDefinitionNode).GetMembers(ast, Analysis.MemberType.All, false).Count();
+                                                    int recFieldCount = (typeRef.Children[typeRef.Children.Keys[0]] as RecordDefinitionNode).GetMembers(ast as Genero4glAst, Analysis.MemberType.All, false).Count();
                                                     if (recFieldCount > 0)
                                                         totalParameters += (recFieldCount - 1); // minus 1 so we can do the increment below    
                                                 }

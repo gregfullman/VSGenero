@@ -378,7 +378,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                             for (int i = 0; i < retStmt.Returns.Count; i++)
                             {
                                 var ret = retStmt.Returns[i];
-                                string type = ret.GetExpressionType(SyntaxTree);
+                                string type = ret.GetExpressionType(SyntaxTree as Genero4glAst);
                                 _returns[i] = type;
                             }
                         }
@@ -574,7 +574,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             }
         }
 
-        public override void PropagateSyntaxTree(Genero4glAst ast)
+        public override void PropagateSyntaxTree(GeneroAst ast)
         {
             // set location
             _location = ast.ResolveLocation(this);
@@ -582,9 +582,9 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             base.PropagateSyntaxTree(ast);
         }
 
-        public override void CheckForErrors(Genero4glAst ast, Action<string, int, int> errorFunc,
+        public override void CheckForErrors(GeneroAst ast, Action<string, int, int> errorFunc,
                                             Dictionary<string, List<int>> deferredFunctionSearches,
-                                            Genero4glAst.FunctionProviderSearchMode searchInFunctionProvider = Genero4glAst.FunctionProviderSearchMode.NoSearch, bool isFunctionCallOrDefinition = false)
+                                            FunctionProviderSearchMode searchInFunctionProvider = FunctionProviderSearchMode.NoSearch, bool isFunctionCallOrDefinition = false)
         {
             if (_arguments != null)
             {

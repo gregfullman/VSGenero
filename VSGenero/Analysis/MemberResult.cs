@@ -27,10 +27,10 @@ namespace VSGenero.Analysis
         private string _completion;
         private readonly Func<GeneroMemberType> _type;
         private readonly Func<IAnalysisResult> _var;
-        private readonly Genero4glAst _ast;
+        private readonly GeneroAst _ast;
         private readonly string _documentation;
 
-        public MemberResult(string name, IAnalysisResult var, GeneroMemberType type, Genero4glAst ast)
+        public MemberResult(string name, IAnalysisResult var, GeneroMemberType type, GeneroAst ast)
         {
             _documentation = null;
             _name = _completion = name;
@@ -40,7 +40,7 @@ namespace VSGenero.Analysis
             _type = () => type;
         }
 
-        public MemberResult(string name, GeneroMemberType type, Genero4glAst ast)
+        public MemberResult(string name, GeneroMemberType type, GeneroAst ast)
         {
             _documentation = null;
             _name = _completion = name;
@@ -49,7 +49,7 @@ namespace VSGenero.Analysis
             _ast = ast;
         }
 
-        public MemberResult(string name, string documentation, GeneroMemberType type, Genero4glAst ast)
+        public MemberResult(string name, string documentation, GeneroMemberType type, GeneroAst ast)
         {
             _documentation = documentation;
             _name = _completion = name;

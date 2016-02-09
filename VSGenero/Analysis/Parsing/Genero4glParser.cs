@@ -25,8 +25,6 @@ namespace VSGenero.Analysis.Parsing
 {
     public class Genero4glParser : GeneroParser
     {
-        private Dictionary<AstNode4gl, Dictionary<object, object>> _attributes = new Dictionary<AstNode4gl, Dictionary<object, object>>();  // attributes for each node, currently just round tripping information
-
         public readonly FglStatementFactory StatementFactory;
 
         #region Construction
@@ -85,7 +83,7 @@ namespace VSGenero.Analysis.Parsing
 
         #endregion
 
-        public override IGeneroAst ParseFile()
+        public override GeneroAst ParseFile()
         {
             return ParseFileWorker();
         }
@@ -140,133 +138,5 @@ namespace VSGenero.Analysis.Parsing
             _nonCodeRegionComments.Clear();
             return null;
         }
-
-        #region Verbatim AST support
-
-        private void AddPreceedingWhiteSpace(AstNode4gl ret)
-        {
-            AddPreceedingWhiteSpace(ret, _tokenWhiteSpace);
-        }
-
-        private Dictionary<object, object> GetNodeAttributes(AstNode4gl node)
-        {
-            Dictionary<object, object> attrs;
-            if (!_attributes.TryGetValue(node, out attrs))
-            {
-                _attributes[node] = attrs = new Dictionary<object, object>();
-            }
-            return attrs;
-        }
-
-        private void AddVerbatimName(Name name, AstNode4gl ret)
-        {
-            if (_verbatim && name.RealName != name.VerbatimName)
-            {
-                GetNodeAttributes(ret)[NodeAttributes.VerbatimImage] = name.VerbatimName;
-            }
-        }
-
-        private void AddVerbatimImage(AstNode4gl ret, string image)
-        {
-            if (_verbatim)
-            {
-                GetNodeAttributes(ret)[NodeAttributes.VerbatimImage] = image;
-            }
-        }
-
-        private List<string> MakeWhiteSpaceList()
-        {
-            return _verbatim ? new List<string>() : null;
-        }
-
-        private void AddPreceedingWhiteSpace(AstNode4gl ret, string whiteSpace)
-        {
-            Debug.Assert(_verbatim);
-            GetNodeAttributes(ret)[NodeAttributes.PreceedingWhiteSpace] = whiteSpace;
-        }
-
-        private void AddSecondPreceedingWhiteSpace(AstNode4gl ret, string whiteSpace)
-        {
-            if (_verbatim)
-            {
-                Debug.Assert(_verbatim);
-                GetNodeAttributes(ret)[NodeAttributes.SecondPreceedingWhiteSpace] = whiteSpace;
-            }
-        }
-
-        private void AddThirdPreceedingWhiteSpace(AstNode4gl ret, string whiteSpace)
-        {
-            Debug.Assert(_verbatim);
-            GetNodeAttributes(ret)[NodeAttributes.ThirdPreceedingWhiteSpace] = whiteSpace;
-        }
-
-        private void AddFourthPreceedingWhiteSpace(AstNode4gl ret, string whiteSpace)
-        {
-            Debug.Assert(_verbatim);
-            GetNodeAttributes(ret)[NodeAttributes.FourthPreceedingWhiteSpace] = whiteSpace;
-        }
-
-        private void AddFifthPreceedingWhiteSpace(AstNode4gl ret, string whiteSpace)
-        {
-            Debug.Assert(_verbatim);
-            GetNodeAttributes(ret)[NodeAttributes.FifthPreceedingWhiteSpace] = whiteSpace;
-        }
-
-        private void AddExtraVerbatimText(AstNode4gl ret, string text)
-        {
-            Debug.Assert(_verbatim);
-            GetNodeAttributes(ret)[NodeAttributes.ExtraVerbatimText] = text;
-        }
-
-        private void AddCodeRegions(AstNode4gl ret)
-        {
-            Debug.Assert(_verbatim);
-            TokenWithSpan[] arr = new TokenWithSpan[_codeRegions.Count];
-            _codeRegions.CopyTo(arr);
-            GetNodeAttributes(ret)[NodeAttributes.CodeRegions] = arr;
-        }
-
-        private void AddNonCodeRegionComments(AstNode4gl ret)
-        {
-            Debug.Assert(_verbatim);
-            TokenWithSpan[] arr = new TokenWithSpan[_nonCodeRegionComments.Count];
-            _nonCodeRegionComments.CopyTo(arr);
-            GetNodeAttributes(ret)[NodeAttributes.NonCodeRegionComments] = arr;
-        }
-
-        private void AddListWhiteSpace(AstNode4gl ret, string[] whiteSpace)
-        {
-            Debug.Assert(_verbatim);
-            GetNodeAttributes(ret)[NodeAttributes.ListWhiteSpace] = whiteSpace;
-        }
-
-        private void AddNamesWhiteSpace(AstNode4gl ret, string[] whiteSpace)
-        {
-            Debug.Assert(_verbatim);
-            GetNodeAttributes(ret)[NodeAttributes.NamesWhiteSpace] = whiteSpace;
-        }
-
-        private void AddVerbatimNames(AstNode4gl ret, string[] names)
-        {
-            Debug.Assert(_verbatim);
-            GetNodeAttributes(ret)[NodeAttributes.VerbatimNames] = names;
-        }
-
-        private void AddIsAltForm(AstNode4gl expr)
-        {
-            GetNodeAttributes(expr)[NodeAttributes.IsAltFormValue] = NodeAttributes.IsAltFormValue;
-        }
-
-        private void AddErrorMissingCloseGrouping(AstNode4gl expr)
-        {
-            GetNodeAttributes(expr)[NodeAttributes.ErrorMissingCloseGrouping] = NodeAttributes.ErrorMissingCloseGrouping;
-        }
-
-        private void AddErrorIsIncompleteNode(AstNode4gl expr)
-        {
-            GetNodeAttributes(expr)[NodeAttributes.ErrorIncompleteNode] = NodeAttributes.ErrorIncompleteNode;
-        }
-
-        #endregion
     }
 }

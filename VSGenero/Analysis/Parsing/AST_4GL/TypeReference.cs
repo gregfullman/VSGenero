@@ -596,7 +596,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             get { return null; }
         }
 
-        public override void CheckForErrors(Genero4glAst ast, Action<string, int, int> errorFunc, Dictionary<string, List<int>> deferredFunctionSearches, Genero4glAst.FunctionProviderSearchMode searchInFunctionProvider = Genero4glAst.FunctionProviderSearchMode.NoSearch, bool isFunctionCallOrDefinition = false)
+        public override void CheckForErrors(GeneroAst ast, Action<string, int, int> errorFunc, Dictionary<string, List<int>> deferredFunctionSearches, FunctionProviderSearchMode searchInFunctionProvider = FunctionProviderSearchMode.NoSearch, bool isFunctionCallOrDefinition = false)
         {
             if (Children.Count > 0)
             {
@@ -618,7 +618,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     IGeneroProject dummyProj;
                     IProjectEntry dummyProjEntry;
                     bool isDeferred;
-                    var res = Genero4glAst.GetValueByIndex(_typeNameString, StartIndex, ast, out dummyProj, out dummyProjEntry, out isDeferred, Genero4glAst.FunctionProviderSearchMode.NoSearch, false, true, false, false);
+                    var res = Genero4glAst.GetValueByIndex(_typeNameString, StartIndex, ast as Genero4glAst, out dummyProj, out dummyProjEntry, out isDeferred, FunctionProviderSearchMode.NoSearch, false, true, false, false);
                     if(res == null)
                     {
                         errorFunc(string.Format("Type {0} not found.", _typeNameString), StartIndex, EndIndex);

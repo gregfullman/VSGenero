@@ -18,6 +18,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using VSGenero.Analysis;
+using VSGenero.Analysis.Parsing;
 using VSGenero.Analysis.Parsing.AST_4GL;
 
 namespace VSGenero.EditorExtensions.Intellisense
@@ -28,7 +29,7 @@ namespace VSGenero.EditorExtensions.Intellisense
     public class ExpressionAnalysis
     {
         private readonly string _expr;
-        private readonly Genero4glAst _analysis;
+        private readonly GeneroAst _analysis;
         private readonly ITrackingSpan _span;
         private readonly int _index;
         private readonly GeneroProjectAnalyzer _analyzer;
@@ -39,7 +40,7 @@ namespace VSGenero.EditorExtensions.Intellisense
         private readonly bool _isFunctionCallOrDefinition;
         public static readonly ExpressionAnalysis Empty = new ExpressionAnalysis(null, "", null, 0, null, null, null, null, null, false);
 
-        internal ExpressionAnalysis(GeneroProjectAnalyzer analyzer, string expression, Genero4glAst analysis, int index, ITrackingSpan span, ITextSnapshot snapshot,
+        internal ExpressionAnalysis(GeneroProjectAnalyzer analyzer, string expression, GeneroAst analysis, int index, ITrackingSpan span, ITextSnapshot snapshot,
                                     IFunctionInformationProvider functionProvider, IDatabaseInformationProvider databaseProvider, IProgramFileProvider programFileProvider,
                                     bool isFunctionCallOrDefinition)
         {
@@ -113,7 +114,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                             IGeneroProject dummyProj;
                             IProjectEntry projEntry;
                             return _analysis.GetValueByIndex(_expr, TranslatedIndex, _functionProvider, _databaseProvider, _programFileProvider, _isFunctionCallOrDefinition, 
-                                                             out dummyProj, out projEntry, Genero4glAst.FunctionProviderSearchMode.Search);
+                                                             out dummyProj, out projEntry, FunctionProviderSearchMode.Search);
                         }
                     }
                 }

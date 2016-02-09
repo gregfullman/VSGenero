@@ -211,7 +211,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
         #endregion
 
-        public IEnumerable<MemberResult> GetContextMembers(int index, IReverseTokenizer revTokenizer, IFunctionInformationProvider functionProvider,
+        public override IEnumerable<MemberResult> GetContextMembers(int index, IReverseTokenizer revTokenizer, IFunctionInformationProvider functionProvider,
                                                            IDatabaseInformationProvider databaseProvider, IProgramFileProvider programFileProvider,
                                                            out bool includePublicFunctions, out bool includeDatabaseTables, string contextStr, 
                                                            GetMemberOptions options = GetMemberOptions.IntersectMultipleResults)

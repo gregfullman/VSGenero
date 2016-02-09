@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace VSGenero.Analysis.Parsing
+namespace VSGenero.Analysis.Parsing.AST_PER
 {
-    public interface IGeneroAst
+    public abstract class AstNodePer : AstNode
     {
     }
 }

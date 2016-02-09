@@ -95,16 +95,16 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
         public IAnalysisResult ResolvedResult { get; private set; }
 
-        public override void CheckForErrors(Genero4glAst ast, Action<string, int, int> errorFunc,
+        public override void CheckForErrors(GeneroAst ast, Action<string, int, int> errorFunc,
                                             Dictionary<string, List<int>> deferredFunctionSearches,
-                                            Genero4glAst.FunctionProviderSearchMode searchInFunctionProvider = Genero4glAst.FunctionProviderSearchMode.NoSearch, 
+                                            FunctionProviderSearchMode searchInFunctionProvider = FunctionProviderSearchMode.NoSearch, 
                                             bool isFunctionCallOrDefinition = false)
         {
             // Check to see if the _firstPiece exists
             IGeneroProject proj;
             IProjectEntry projEntry;
             string searchStr = _firstPiece;
-            if (searchInFunctionProvider != Genero4glAst.FunctionProviderSearchMode.NoSearch ||
+            if (searchInFunctionProvider != FunctionProviderSearchMode.NoSearch ||
                 isFunctionCallOrDefinition)
             {
                 StringBuilder sb = new StringBuilder(searchStr);
@@ -124,7 +124,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             }
             bool isDeferred;
             // TODO: need to defer database lookups too
-            var res = Genero4glAst.GetValueByIndex(searchStr, StartIndex, ast, out proj, out projEntry, out isDeferred, searchInFunctionProvider, isFunctionCallOrDefinition);
+            var res = Genero4glAst.GetValueByIndex(searchStr, StartIndex, ast as Genero4glAst, out proj, out projEntry, out isDeferred, searchInFunctionProvider, isFunctionCallOrDefinition);
             if(res == null)
             {
                 if (isDeferred)

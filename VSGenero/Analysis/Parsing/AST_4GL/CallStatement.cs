@@ -82,9 +82,9 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             return result;
         }
 
-        public override void CheckForErrors(Genero4glAst ast, Action<string, int, int> errorFunc,
+        public override void CheckForErrors(GeneroAst ast, Action<string, int, int> errorFunc,
                                             Dictionary<string, List<int>> deferredFunctionSearches,
-                                            Genero4glAst.FunctionProviderSearchMode searchInFunctionProvider = Genero4glAst.FunctionProviderSearchMode.NoSearch, bool isFunctionCallOrDefinition = false)
+                                            FunctionProviderSearchMode searchInFunctionProvider = FunctionProviderSearchMode.NoSearch, bool isFunctionCallOrDefinition = false)
         {
             // 1) Check to make sure the function call is valid
             if(Function != null)

@@ -107,7 +107,7 @@ namespace VSGenero.EditorExtensions
                         classifier.OnNewParseTree += OnNewParseTree;
                         _eventHooked = true;
                     }
-                    Genero4glAst ast;
+                    GeneroAst ast;
                     IAnalysisCookie cookie;
                     classifier.GetTreeAndCookie(out ast, out cookie);
                     SnapshotCookie snapCookie = cookie as SnapshotCookie;
@@ -143,7 +143,7 @@ namespace VSGenero.EditorExtensions
                 }
             }
 
-            private IEnumerable<ITagSpan<IOutliningRegionTag>> ProcessSuite(NormalizedSnapshotSpanCollection spans, Genero4glAst ast, ModuleNode moduleNode, ITextSnapshot snapshot, bool isTopLevel)
+            private IEnumerable<ITagSpan<IOutliningRegionTag>> ProcessSuite(NormalizedSnapshotSpanCollection spans, GeneroAst ast, ModuleNode moduleNode, ITextSnapshot snapshot, bool isTopLevel)
             {
                 if (moduleNode != null)
                 {
@@ -185,7 +185,7 @@ namespace VSGenero.EditorExtensions
                 }
             }
 
-            private void GetOutlinableResults(AstNode4gl node, ref List<IOutlinableResult> outlinables, bool topLevel = true)
+            private void GetOutlinableResults(AstNode node, ref List<IOutlinableResult> outlinables, bool topLevel = true)
             {
                 if (topLevel &&
                    (!VSGeneroPackage.Instance.AdvancedOptions4GLPage.MajorCollapseRegionsEnabled &&

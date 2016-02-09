@@ -11,6 +11,8 @@ namespace VSGenero.Analysis.Parsing
 {
     public abstract class GeneroParser : IDisposable, IParser
     {
+        protected Dictionary<AstNode, Dictionary<object, object>> _attributes = new Dictionary<AstNode, Dictionary<object, object>>();  // attributes for each node, currently just round tripping information
+
         // immutable properties:
         protected readonly Tokenizer _tokenizer;
 
@@ -36,7 +38,7 @@ namespace VSGenero.Analysis.Parsing
         protected List<TokenWithSpan> _codeRegions;
         protected List<TokenWithSpan> _nonCodeRegionComments;
 
-        public abstract IGeneroAst ParseFile();
+        public abstract GeneroAst ParseFile();
 
         public string Filename
         {
@@ -78,6 +80,8 @@ namespace VSGenero.Analysis.Parsing
             get { return _tokenizer; }
         }
 
+        #region Construction
+
         protected GeneroParser(Tokenizer tokenizer, ErrorSink errorSink, bool verbatim, bool bindRefs, ParserOptions options)
         {
             Contract.Assert(tokenizer != null);
@@ -103,6 +107,13 @@ namespace VSGenero.Analysis.Parsing
             _codeRegions = new List<TokenWithSpan>();
             _nonCodeRegionComments = new List<TokenWithSpan>();
         }
+
+        //public static GeneroParser CreateParser(TextReader reader, ParserOptions parserOptions, IProjectEntry projEntry = null, string filename = null)
+        //{
+
+        //}
+
+        #endregion
 
         public void Reset()
         {
@@ -516,5 +527,133 @@ namespace VSGenero.Analysis.Parsing
                 return null;
             }
         }
+
+        protected Dictionary<object, object> GetNodeAttributes(AstNode node)
+        {
+            Dictionary<object, object> attrs;
+            if (!_attributes.TryGetValue(node, out attrs))
+            {
+                _attributes[node] = attrs = new Dictionary<object, object>();
+            }
+            return attrs;
+        }
+
+        #region Verbatim AST support
+
+        protected void AddPreceedingWhiteSpace(AstNode ret)
+        {
+            AddPreceedingWhiteSpace(ret, _tokenWhiteSpace);
+        }
+
+        protected void AddVerbatimName(Name name, AstNode ret)
+        {
+            if (_verbatim && name.RealName != name.VerbatimName)
+            {
+                GetNodeAttributes(ret)[NodeAttributes.VerbatimImage] = name.VerbatimName;
+            }
+        }
+
+        protected void AddVerbatimImage(AstNode ret, string image)
+        {
+            if (_verbatim)
+            {
+                GetNodeAttributes(ret)[NodeAttributes.VerbatimImage] = image;
+            }
+        }
+
+        protected List<string> MakeWhiteSpaceList()
+        {
+            return _verbatim ? new List<string>() : null;
+        }
+
+        protected void AddPreceedingWhiteSpace(AstNode ret, string whiteSpace)
+        {
+            Debug.Assert(_verbatim);
+            GetNodeAttributes(ret)[NodeAttributes.PreceedingWhiteSpace] = whiteSpace;
+        }
+
+        protected void AddSecondPreceedingWhiteSpace(AstNode ret, string whiteSpace)
+        {
+            if (_verbatim)
+            {
+                Debug.Assert(_verbatim);
+                GetNodeAttributes(ret)[NodeAttributes.SecondPreceedingWhiteSpace] = whiteSpace;
+            }
+        }
+
+        protected void AddThirdPreceedingWhiteSpace(AstNode ret, string whiteSpace)
+        {
+            Debug.Assert(_verbatim);
+            GetNodeAttributes(ret)[NodeAttributes.ThirdPreceedingWhiteSpace] = whiteSpace;
+        }
+
+        protected void AddFourthPreceedingWhiteSpace(AstNode ret, string whiteSpace)
+        {
+            Debug.Assert(_verbatim);
+            GetNodeAttributes(ret)[NodeAttributes.FourthPreceedingWhiteSpace] = whiteSpace;
+        }
+
+        protected void AddFifthPreceedingWhiteSpace(AstNode ret, string whiteSpace)
+        {
+            Debug.Assert(_verbatim);
+            GetNodeAttributes(ret)[NodeAttributes.FifthPreceedingWhiteSpace] = whiteSpace;
+        }
+
+        protected void AddExtraVerbatimText(AstNode ret, string text)
+        {
+            Debug.Assert(_verbatim);
+            GetNodeAttributes(ret)[NodeAttributes.ExtraVerbatimText] = text;
+        }
+
+        protected void AddCodeRegions(AstNode ret)
+        {
+            Debug.Assert(_verbatim);
+            TokenWithSpan[] arr = new TokenWithSpan[_codeRegions.Count];
+            _codeRegions.CopyTo(arr);
+            GetNodeAttributes(ret)[NodeAttributes.CodeRegions] = arr;
+        }
+
+        protected void AddNonCodeRegionComments(AstNode ret)
+        {
+            Debug.Assert(_verbatim);
+            TokenWithSpan[] arr = new TokenWithSpan[_nonCodeRegionComments.Count];
+            _nonCodeRegionComments.CopyTo(arr);
+            GetNodeAttributes(ret)[NodeAttributes.NonCodeRegionComments] = arr;
+        }
+
+        protected void AddListWhiteSpace(AstNode ret, string[] whiteSpace)
+        {
+            Debug.Assert(_verbatim);
+            GetNodeAttributes(ret)[NodeAttributes.ListWhiteSpace] = whiteSpace;
+        }
+
+        protected void AddNamesWhiteSpace(AstNode ret, string[] whiteSpace)
+        {
+            Debug.Assert(_verbatim);
+            GetNodeAttributes(ret)[NodeAttributes.NamesWhiteSpace] = whiteSpace;
+        }
+
+        protected void AddVerbatimNames(AstNode ret, string[] names)
+        {
+            Debug.Assert(_verbatim);
+            GetNodeAttributes(ret)[NodeAttributes.VerbatimNames] = names;
+        }
+
+        protected void AddIsAltForm(AstNode expr)
+        {
+            GetNodeAttributes(expr)[NodeAttributes.IsAltFormValue] = NodeAttributes.IsAltFormValue;
+        }
+
+        protected void AddErrorMissingCloseGrouping(AstNode expr)
+        {
+            GetNodeAttributes(expr)[NodeAttributes.ErrorMissingCloseGrouping] = NodeAttributes.ErrorMissingCloseGrouping;
+        }
+
+        protected void AddErrorIsIncompleteNode(AstNode expr)
+        {
+            GetNodeAttributes(expr)[NodeAttributes.ErrorIncompleteNode] = NodeAttributes.ErrorIncompleteNode;
+        }
+
+        #endregion
     }
 }

@@ -30,7 +30,7 @@ namespace VSGenero.Analysis.Parsing
         void ReportSyntaxError(int start, int end, string message, Severity severity = Severity.Error);
         void ReportSyntaxError(int start, int end, string message, int errorCode, Severity severity = Severity.Error);
 
-        IGeneroAst ParseFile();
+        GeneroAst ParseFile();
         Token NextToken();
         Token PeekToken(uint aheadBy = 1);
         TokenWithSpan PeekTokenWithSpan(uint aheadBy = 1);

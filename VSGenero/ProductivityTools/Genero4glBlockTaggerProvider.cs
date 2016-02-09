@@ -30,6 +30,7 @@ using VSGenero.EditorExtensions.Intellisense;
 using System.Diagnostics;
 using Microsoft.VisualStudio.Text.Editor;
 using System.Windows.Input;
+using VSGenero.Analysis.Parsing;
 
 namespace VSGenero.ProductivityTools
 {
@@ -80,7 +81,7 @@ namespace VSGenero.ProductivityTools
                     classifier.OnNewParseTree += OnNewParseTree;
                     _eventHooked = true;
                 }
-                Genero4glAst ast;
+                GeneroAst ast;
                 IAnalysisCookie cookie;
                 classifier.GetTreeAndCookie(out ast, out cookie);
                 SnapshotCookie snapCookie = cookie as SnapshotCookie;
@@ -96,7 +97,7 @@ namespace VSGenero.ProductivityTools
             return new ITagSpan<IBlockTag>[0];
         }
 
-        private IEnumerable<ITagSpan<IBlockTag>> ProcessSuite(NormalizedSnapshotSpanCollection spans, Genero4glAst ast, ModuleNode moduleNode, ITextSnapshot snapshot, bool isTopLevel)
+        private IEnumerable<ITagSpan<IBlockTag>> ProcessSuite(NormalizedSnapshotSpanCollection spans, GeneroAst ast, ModuleNode moduleNode, ITextSnapshot snapshot, bool isTopLevel)
         {
             if (moduleNode != null)
             {
@@ -134,7 +135,7 @@ namespace VSGenero.ProductivityTools
             return false;
         }
 
-        private static void GetOutlinableResults(Genero4glBlockTagger tagger, ITextView textView, NormalizedSnapshotSpanCollection spans, AstNode4gl node, Genero4glCodeBlock parent, ITextSnapshot snapshot, int level, ref List<Genero4glCodeBlock> outlinables)
+        private static void GetOutlinableResults(Genero4glBlockTagger tagger, ITextView textView, NormalizedSnapshotSpanCollection spans, AstNode node, Genero4glCodeBlock parent, ITextSnapshot snapshot, int level, ref List<Genero4glCodeBlock> outlinables)
         {
             Genero4glCodeBlock curr = null;
             foreach (var child in node.Children)

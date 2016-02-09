@@ -19,9 +19,6 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudioTools;
 using VSGenero;
 using Microsoft.VisualStudio.Shell.Interop;
-#if DEV11_OR_LATER
-using Microsoft.VisualStudio.Shell.Interop;
-#endif
 
 namespace VSGenero.Project
 {

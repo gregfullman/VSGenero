@@ -611,7 +611,20 @@ namespace VSGenero.EditorExtensions.Intellisense
                 projEntry = proj;
                 foreach (var file in files)
                 {
-                    projEntry.ProjectEntries.AddOrUpdate(file, new GeneroProjectEntry(null, file, (importer == null ? null : importer.Cookie), true), (x, y) => y);
+                    GeneroProjectEntry entry = null;
+                    switch (Path.GetExtension(file).ToLower())
+                    {
+                        case VSGeneroConstants.FileExtension4GL:
+                            entry = new Genero4glProjectEntry(null, file, (importer == null ? null : importer.Cookie), true);
+                            break;
+                        case VSGeneroConstants.FileExtensionPER:
+                            entry = new GeneroPerProjectEntry(null, file, (importer == null ? null : importer.Cookie), true);
+                            break;
+                        default:
+                            entry = new GeneroProjectEntry(null, file, (importer == null ? null : importer.Cookie), true);
+                            break;
+                    }
+                    projEntry.ProjectEntries.AddOrUpdate(file, entry, (x, y) => y);
                 }
             }
             return projEntry;
@@ -693,7 +706,18 @@ namespace VSGenero.EditorExtensions.Intellisense
                         shouldAnalyzePath = ShouldAnalyzePath(filename);
                         string moduleName = null;   // TODO: get module name from provider (if provider is null, take the file's directory name)
                         IAnalysisCookie cookie = null;
-                        entry = new GeneroProjectEntry(moduleName, filename, cookie, shouldAnalyzePath);
+                        switch(extension.ToLower())
+                        {
+                            case VSGeneroConstants.FileExtension4GL:
+                                entry = new Genero4glProjectEntry(moduleName, filename, cookie, shouldAnalyzePath);
+                                break;
+                            case VSGeneroConstants.FileExtensionPER:
+                                entry = new GeneroPerProjectEntry(moduleName, filename, cookie, shouldAnalyzePath);
+                                break;
+                            default:
+                                entry = new GeneroProjectEntry(moduleName, filename, cookie, shouldAnalyzePath);
+                                break;
+                        }
                     }
 
                     if (entry != null)
@@ -720,7 +744,18 @@ namespace VSGenero.EditorExtensions.Intellisense
                             shouldAnalyzePath = ShouldAnalyzePath(filename);
                             string moduleName = null;   // TODO: get module name from provider (if provider is null, take the file's directory name)
                             IAnalysisCookie cookie = null;
-                            entry = new GeneroProjectEntry(moduleName, filename, cookie, shouldAnalyzePath);
+                            switch (extension.ToLower())
+                            {
+                                case VSGeneroConstants.FileExtension4GL:
+                                    entry = new Genero4glProjectEntry(moduleName, filename, cookie, shouldAnalyzePath);
+                                    break;
+                                case VSGeneroConstants.FileExtensionPER:
+                                    entry = new GeneroPerProjectEntry(moduleName, filename, cookie, shouldAnalyzePath);
+                                    break;
+                                default:
+                                    entry = new GeneroProjectEntry(moduleName, filename, cookie, shouldAnalyzePath);
+                                    break;
+                            }
                         }
                     }
                     if (entry != null)
@@ -896,7 +931,18 @@ namespace VSGenero.EditorExtensions.Intellisense
                     {
                         string moduleName = null;   // TODO: get module name from provider (if provider is null, take the file's directory name)
                         IAnalysisCookie cookie = null;
-                        entry = new GeneroProjectEntry(moduleName, path, cookie, true);
+                        switch(Path.GetExtension(path).ToLower())
+                        {
+                            case VSGeneroConstants.FileExtension4GL:
+                                entry = new Genero4glProjectEntry(moduleName, path, cookie, true);
+                                break;
+                            case VSGeneroConstants.FileExtensionPER:
+                                entry = new GeneroPerProjectEntry(moduleName, path, cookie, true);
+                                break;
+                            default:
+                                entry = new GeneroProjectEntry(moduleName, path, cookie, true);
+                                break;
+                        }
                     }
 
                     if (entry != null)
@@ -915,7 +961,18 @@ namespace VSGenero.EditorExtensions.Intellisense
                         {
                             string moduleName = null;   // TODO: get module name from provider (if provider is null, take the file's directory name)
                             IAnalysisCookie cookie = null;
-                            entry = new GeneroProjectEntry(moduleName, path, cookie, true);
+                            switch (Path.GetExtension(path).ToLower())
+                            {
+                                case VSGeneroConstants.FileExtension4GL:
+                                    entry = new Genero4glProjectEntry(moduleName, path, cookie, true);
+                                    break;
+                                case VSGeneroConstants.FileExtensionPER:
+                                    entry = new GeneroPerProjectEntry(moduleName, path, cookie, true);
+                                    break;
+                                default:
+                                    entry = new GeneroProjectEntry(moduleName, path, cookie, true);
+                                    break;
+                            }
                         }
                     }
                     if (entry != null)
@@ -1064,7 +1121,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             return new SignatureAnalysis(text, paramIndex, new ISignature[0]);
         }
 
-        internal static int TranslateIndex(int index, ITextSnapshot fromSnapshot, Genero4glAst toAnalysisSnapshot)
+        internal static int TranslateIndex(int index, ITextSnapshot fromSnapshot, GeneroAst toAnalysisSnapshot)
         {
             return index;
         }
@@ -1279,7 +1336,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                 else
                 {
                     // indicate that we are done parsing.
-                    Genero4glAst prevTree;
+                    GeneroAst prevTree;
                     IAnalysisCookie prevCookie;
                     pyProjEntry.GetTreeAndCookie(out prevTree, out prevCookie);
                     pyProjEntry.UpdateTree(prevTree, prevCookie);

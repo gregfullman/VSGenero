@@ -21,69 +21,25 @@ using System.Threading.Tasks;
 
 namespace VSGenero.Analysis.Parsing.AST_4GL
 {
-    public partial class Genero4glAst : ILocationResolver
+    public partial class Genero4glAst : GeneroAst
     {
-        private readonly GeneroLanguageVersion _langVersion;
-        private readonly AstNode4gl _body;
-        internal readonly int[] _lineLocations;
-        private readonly IProjectEntry _projEntry;
-        private readonly string _filename;
-
-        private readonly Dictionary<AstNode4gl, Dictionary<object, object>> _attributes = new Dictionary<AstNode4gl, Dictionary<object, object>>();
-
         public Genero4glAst(AstNode4gl body, int[] lineLocations, GeneroLanguageVersion langVersion = GeneroLanguageVersion.None, IProjectEntry projEntry = null, string filename = null)
+            : base(body, lineLocations, langVersion, projEntry, filename)
         {
-            if (body == null)
-            {
-                throw new ArgumentNullException("body");
-            }
-            _langVersion = langVersion;
-            _body = body;
-            _lineLocations = lineLocations;
-            _projEntry = projEntry;
-
             ReloadContextMap();
             InitializeBuiltins();
             InitializeImportedPackages();   // for this instance
             InitializePackages();
 
-            if (_body is ModuleNode)
+            if (body is ModuleNode)
             {
-                foreach (var import in (_body as ModuleNode).CExtensionImports)
+                foreach (var import in (body as ModuleNode).CExtensionImports)
                 {
                     if (_importedPackages.ContainsKey(import))
                     {
                         _importedPackages[import] = true;
                     }
                 }
-            }
-        }
-
-        public AstNode4gl Body
-        {
-            get { return _body; }
-        }
-
-        public GeneroLanguageVersion LanguageVersion
-        {
-            get { return _langVersion; }
-        }
-
-        public string Filepath
-        {
-            get
-            {
-                if (_projEntry != null)
-                    return _projEntry.FilePath;
-                return _filename;
-            }
-        }
-
-        public IGeneroProjectEntry ProjectEntry
-        {
-            get
-            {
-                return _projEntry as IGeneroProjectEntry;
             }
         }
 
@@ -98,143 +54,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
         public IEnumerable<string> GetIncludedFiles()
         {
-            return Body.IncludeFiles.Keys;
+            return (Body as AstNode4gl).IncludeFiles.Keys;
         }
-
-        internal bool TryGetAttribute(AstNode4gl node, object key, out object value)
-        {
-            Dictionary<object, object> nodeAttrs;
-            if (_attributes.TryGetValue(node, out nodeAttrs))
-            {
-                return nodeAttrs.TryGetValue(key, out value);
-            }
-            else
-            {
-                value = null;
-            }
-            return false;
-        }
-
-        internal void SetAttribute(AstNode4gl node, object key, object value)
-        {
-            Dictionary<object, object> nodeAttrs;
-            if (!_attributes.TryGetValue(node, out nodeAttrs))
-            {
-                nodeAttrs = _attributes[node] = new Dictionary<object, object>();
-            }
-            nodeAttrs[key] = value;
-        }
-
-        /// <summary>
-        /// Copies attributes that apply to one node and makes them available for the other node.
-        /// </summary>
-        /// <param name="from"></param>
-        /// <param name="to"></param>
-        public void CopyAttributes(AstNode4gl from, AstNode4gl to)
-        {
-            Dictionary<object, object> nodeAttrs;
-            if (_attributes.TryGetValue(from, out nodeAttrs))
-            {
-                _attributes[to] = new Dictionary<object, object>(nodeAttrs);
-            }
-        }
-
-        internal SourceLocation IndexToLocation(int index)
-        {
-            if (index == -1)
-            {
-                return SourceLocation.Invalid;
-            }
-
-            var locs = _lineLocations;
-            int match = Array.BinarySearch(locs, index);
-            if (match < 0)
-            {
-                // If our index = -1, it means we're on the first line.
-                if (match == -1)
-                {
-                    return new SourceLocation(index, 1, index + 1);
-                }
-
-                // If we couldn't find an exact match for this line number, get the nearest
-                // matching line number less than this one
-                match = ~match - 1;
-            }
-            return new SourceLocation(index, match + 2, index - locs[match] + 1);
-        }
-
-        LocationInfo ILocationResolver.ResolveLocation(IProjectEntry project, object location)
-        {
-            IAnalysisResult result = location as IAnalysisResult;
-            if (result != null)
-            {
-                var locIndex = result.LocationIndex;
-                var loc = IndexToLocation(locIndex);
-                return new LocationInfo(project, loc.Line, loc.Column, locIndex);
-            }
-            return null;
-        }
-
-        private LocationInfo ResolveLocationInternal(IGeneroProject project, IProjectEntry projectEntry, object location)
-        {
-            IAnalysisResult result = location as IAnalysisResult;
-            if (result != null)
-            {
-                IProjectEntry projEntry = projectEntry;
-                IAnalysisResult trueRes = result;
-                if (projEntry == null)
-                {
-                    if (project is GeneroProject)
-                    {
-                        trueRes = (project as GeneroProject).GetMemberOfType(result.Name, this, true, true, true, true, out projEntry);
-                    }
-                }
-
-                if (projEntry != null && projEntry is IGeneroProjectEntry)
-                {
-                    var ast = (projEntry as IGeneroProjectEntry).Analysis;
-                    var locIndex = trueRes.LocationIndex;
-                    var loc = ast.IndexToLocation(locIndex);
-                    return new LocationInfo(projEntry, loc.Line, loc.Column, locIndex);
-                }
-            }
-            return null;
-        }
-
-        public LocationInfo ResolveLocation(object location)
-        {
-            IAnalysisResult result = location as IAnalysisResult;
-            if (result != null)
-            {
-                if (result.Location != null)
-                {
-                    return result.Location;
-                }
-                else
-                {
-                    var locIndex = result.LocationIndex;
-                    var loc = IndexToLocation(locIndex);
-                    return _projEntry == null ?
-                        new LocationInfo(_filename, loc.Line, loc.Column, locIndex) :
-                        new LocationInfo(_projEntry, loc.Line, loc.Column, locIndex);
-                }
-            }
-            return null;
-        }
-
-        //public MemberResult[] GetModules(bool topLevelOnly = false)
-        //{
-        //    List<MemberResult> res = new List<MemberResult>();
-
-        //    return res.ToArray();
-        //}
-
-        //public MemberResult[] GetModuleMembers(string[] names, bool includeMembers = false)
-        //{
-        //    var res = new List<MemberResult>();
-
-        //    return res.ToArray();
-        //}
 
         public FunctionBlockNode GetContainingFunction(int index, bool returnNextIfOutside)
         {
@@ -257,7 +78,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 key = keys[searchIndex];
 
                 // TODO: need to handle multiple results of the same name
-                containingNode = _body.Children[key];
+                containingNode = Body.Children[key] as AstNode4gl;
                 if (returnNextIfOutside && containingNode.EndIndex < index)
                 {
                     // need to go to the next function
@@ -265,7 +86,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     if (keys.Count > searchIndex)
                     {
                         key = keys[searchIndex];
-                        containingNode = _body.Children[key];
+                        containingNode = Body.Children[key] as AstNode4gl;
                     }
                     else
                     {
@@ -287,7 +108,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         /// </summary>
         /// <param name="exprText">The expression to get signatures for.</param>
         /// <param name="index">The 0-based absolute index into the file.</param>
-        public IEnumerable<IFunctionResult> GetSignaturesByIndex(string exprText, int index, IReverseTokenizer revTokenizer, IFunctionInformationProvider functionProvider)
+        public override IEnumerable<IFunctionResult> GetSignaturesByIndex(string exprText, int index, IReverseTokenizer revTokenizer, IFunctionInformationProvider functionProvider)
         {
             _functionProvider = functionProvider;
 
@@ -367,15 +188,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             return null;
         }
 
-        public enum FunctionProviderSearchMode
-        {
-            NoSearch,
-            Search,
-            Deferred
-        }
-
         public static IAnalysisResult GetValueByIndex(string exprText, int index, Genero4glAst ast, out IGeneroProject definingProject, out IProjectEntry projectEntry, out bool isDeferredFunction,
-                                                      Genero4glAst.FunctionProviderSearchMode searchInFunctionProvider = Genero4glAst.FunctionProviderSearchMode.NoSearch, bool isFunctionCallOrDefinition = false,
+                                                      FunctionProviderSearchMode searchInFunctionProvider = FunctionProviderSearchMode.NoSearch, bool isFunctionCallOrDefinition = false,
                                                       bool getTypes = true, bool getVariables = true, bool getConstants = true)
         {
             isDeferredFunction = false;
@@ -385,7 +199,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             //_databaseProvider = databaseProvider;
             //_programFileProvider = programFileProvider;
 
-            AstNode4gl containingNode = null;
+            AstNode containingNode = null;
             if (ast != null)
             {
                 containingNode = GetContainingNode(ast.Body, index);
@@ -788,7 +602,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     // I.e. no namespaces
                     if (lookForFunctions && dotPiece == exprText)   
                     {
-                        if (searchInFunctionProvider == Genero4glAst.FunctionProviderSearchMode.Search)
+                        if (searchInFunctionProvider == FunctionProviderSearchMode.Search)
                         {
                             if (res == null && ast != null && ast._functionProvider != null)
                             {
@@ -804,7 +618,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                 }
                             }
                         }
-                        else if (searchInFunctionProvider == Genero4glAst.FunctionProviderSearchMode.Deferred)
+                        else if (searchInFunctionProvider == FunctionProviderSearchMode.Deferred)
                         {
                             isDeferredFunction = true;
                         }
@@ -824,11 +638,11 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         /// </summary>
         /// <param name="exprText">The expression to determine the result of.</param>
         /// <param name="index">The 0-based absolute index into the file where the expression should be evaluated within the module.</param>
-        public IAnalysisResult GetValueByIndex(string exprText, int index, IFunctionInformationProvider functionProvider,
+        public override IAnalysisResult GetValueByIndex(string exprText, int index, IFunctionInformationProvider functionProvider,
                                                IDatabaseInformationProvider databaseProvider, IProgramFileProvider programFileProvider,
                                                bool isFunctionCallOrDefinition,
                                                out IGeneroProject definingProject, out IProjectEntry projectEntry, 
-                                               Genero4glAst.FunctionProviderSearchMode searchInFunctionProvider = Genero4glAst.FunctionProviderSearchMode.NoSearch)
+                                               FunctionProviderSearchMode searchInFunctionProvider = FunctionProviderSearchMode.NoSearch)
         {
             _functionProvider = functionProvider;
             _databaseProvider = databaseProvider;
@@ -848,7 +662,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         /// 
         /// index is a 0-based absolute index into the file.
         /// </summary>
-        public IEnumerable<IAnalysisVariable> GetVariablesByIndex(string exprText, int index, IFunctionInformationProvider functionProvider,
+        public override IEnumerable<IAnalysisVariable> GetVariablesByIndex(string exprText, int index, IFunctionInformationProvider functionProvider,
                                                                   IDatabaseInformationProvider databaseProvider, IProgramFileProvider programFileProvider,
                                                                   bool isFunctionCallOrDefinition)
         {
@@ -859,19 +673,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             List<IAnalysisVariable> vars = new List<IAnalysisVariable>();
 
             _body.SetNamespace(null);
-            // do a binary search to determine what node we're in
-            List<int> keys = _body.Children.Select(x => x.Key).ToList();
-            int searchIndex = keys.BinarySearch(index);
-            if (searchIndex < 0)
-            {
-                searchIndex = ~searchIndex;
-                if (searchIndex > 0)
-                    searchIndex--;
-            }
-
-            int key = keys[searchIndex];
-
-            AstNode4gl containingNode = _body.Children[key];
+            AstNode containingNode = GetContainingNode(_body, index);
             if (containingNode != null)
             {
                 if (!isFunctionCallOrDefinition)

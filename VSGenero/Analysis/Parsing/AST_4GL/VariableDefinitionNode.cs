@@ -237,7 +237,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             return result;
         }
 
-        public override void CheckForErrors(Genero4glAst ast, Action<string, int, int> errorFunc, Dictionary<string, List<int>> deferredFunctionSearches, Genero4glAst.FunctionProviderSearchMode searchInFunctionProvider = Genero4glAst.FunctionProviderSearchMode.NoSearch, bool isFunctionCallOrDefinition = false)
+        public override void CheckForErrors(GeneroAst ast, Action<string, int, int> errorFunc, Dictionary<string, List<int>> deferredFunctionSearches, FunctionProviderSearchMode searchInFunctionProvider = FunctionProviderSearchMode.NoSearch, bool isFunctionCallOrDefinition = false)
         {
             // This will do error checking on the type reference
             base.CheckForErrors(ast, errorFunc, deferredFunctionSearches, searchInFunctionProvider, isFunctionCallOrDefinition);

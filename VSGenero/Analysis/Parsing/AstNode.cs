@@ -7,13 +7,21 @@ using VSGenero.Analysis.Parsing.AST_4GL;
 
 namespace VSGenero.Analysis.Parsing
 {
-    public abstract class AstNode
+    public abstract class AstNode : IOutlinableResult
     {
         public AstNode Parent { get; protected set; }
         public IndexSpan _span;
         public bool IsComplete { get; protected set; }
 
-        internal Genero4glAst SyntaxTree { get; set; }
+        internal GeneroAst SyntaxTree { get; set; }
+
+        public virtual GeneroLanguageVersion MinimumBdlVersion
+        {
+            get
+            {
+                return GeneroLanguageVersion.None;
+            }
+        }
 
         public virtual GeneroMemberType MemberType
         {
@@ -84,6 +92,7 @@ namespace VSGenero.Analysis.Parsing
             foreach (var child in Children.Values)
                 child.SetNamespace(ns);
         }
+
         //public string ToCodeString(GeneroAst ast)
         //{
         //    return ToCodeString(ast, CodeFormattingOptions.Default);
@@ -96,22 +105,29 @@ namespace VSGenero.Analysis.Parsing
         //    return res.ToString();
         //}
 
-        public abstract void PropagateSyntaxTree(IGeneroAst ast);
+        public virtual void PropagateSyntaxTree(GeneroAst ast)
+        {
+            SyntaxTree = ast;
+            foreach (var child in Children)
+            {
+                child.Value.PropagateSyntaxTree(ast);
+            }
+        }
 
-        //public SourceLocation GetStart(Genero4glAst parent)
-        //{
-        //    return parent.IndexToLocation(StartIndex);
-        //}
+        public SourceLocation GetStart(GeneroAst parent)
+        {
+            return parent.IndexToLocation(StartIndex);
+        }
 
-        //public SourceLocation GetEnd(Genero4glAst parent)
-        //{
-        //    return parent.IndexToLocation(EndIndex);
-        //}
+        public SourceLocation GetEnd(GeneroAst parent)
+        {
+            return parent.IndexToLocation(EndIndex);
+        }
 
-        //public SourceSpan GetSpan(Genero4glAst parent)
-        //{
-        //    return new SourceSpan(GetStart(parent), GetEnd(parent));
-        //}
+        public SourceSpan GetSpan(GeneroAst parent)
+        {
+            return new SourceSpan(GetStart(parent), GetEnd(parent));
+        }
 
         //public static void CopyLeadingWhiteSpace(Genero4glAst parentNode, AstNode fromNode, AstNode toNode)
         //{
@@ -231,6 +247,47 @@ namespace VSGenero.Analysis.Parsing
             }
         }
 
+        public virtual bool CanOutline
+        {
+            get
+            {
+                return false;
+            }
+        }
+
+        public virtual int DecoratorStart
+        {
+            get
+            {
+                return StartIndex;
+            }
+            set
+            {
+            }
+        }
+
+        public virtual int DecoratorEnd
+        {
+            get
+            {
+                return EndIndex;
+            }
+            set
+            {
+            }
+        }
+
+        private SortedList<int, int> _additionalDecoratorRanges;
+        public SortedList<int, int> AdditionalDecoratorRanges
+        {
+            get
+            {
+                if (_additionalDecoratorRanges == null)
+                    _additionalDecoratorRanges = new SortedList<int, int>();
+                return _additionalDecoratorRanges;
+            }
+        }
+
         public virtual void FindAllReferences(IAnalysisResult item, List<IndexSpan> referenceList)
         {
         }
@@ -241,9 +298,9 @@ namespace VSGenero.Analysis.Parsing
         /// </summary>
         /// <param name="ast"></param>
         /// <param name="errors"></param>
-        public virtual void CheckForErrors(IGeneroAst ast, Action<string, int, int> errorFunc,
+        public virtual void CheckForErrors(GeneroAst ast, Action<string, int, int> errorFunc,
                                            Dictionary<string, List<int>> deferredFunctionSearches,
-                                           Genero4glAst.FunctionProviderSearchMode searchInFunctionProvider = Genero4glAst.FunctionProviderSearchMode.NoSearch,
+                                           FunctionProviderSearchMode searchInFunctionProvider = FunctionProviderSearchMode.NoSearch,
                                            bool isFunctionCallOrDefinition = false)
         {
             foreach (var child in Children)

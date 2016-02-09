@@ -129,10 +129,6 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
         #region Member Provider Helpers
 
-        internal IFunctionInformationProvider _functionProvider;
-        internal IDatabaseInformationProvider _databaseProvider;
-        internal IProgramFileProvider _programFileProvider;
-
         private IEnumerable<MemberResult> GetAdditionalUserDefinedTypes(int index, string token)
         {
             return GetDefinedMembers(index, AstMemberType.Types);
@@ -156,39 +152,26 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         {
             // do a binary search to determine what node we're in
             IAnalysisResult type = null;
-            if (_body.Children.Count > 0)
+
+            _body.SetNamespace(null);
+            // TODO: need to handle multiple results of the same name
+            AstNode containingNode = GetContainingNode(_body, index);
+            if (containingNode != null)
             {
-                List<int> keys = _body.Children.Select(x => x.Key).ToList();
-                int searchIndex = keys.BinarySearch(index);
-                if (searchIndex < 0)
+                if (containingNode is IFunctionResult)
                 {
-                    searchIndex = ~searchIndex;
-                    if (searchIndex > 0)
-                        searchIndex--;
+                    if ((containingNode as IFunctionResult).Types.TryGetValue(typeName, out type))
+                    {
+                        return type;
+                    }
                 }
 
-                int key = keys[searchIndex];
-
-                _body.SetNamespace(null);
-                // TODO: need to handle multiple results of the same name
-                AstNode4gl containingNode = _body.Children[key];
-                if (containingNode != null)
+                if (_body is IModuleResult)
                 {
-                    if (containingNode is IFunctionResult)
+                    if ((_body as IModuleResult).Types.TryGetValue(typeName, out type) ||
+                        (_body as IModuleResult).GlobalTypes.TryGetValue(typeName, out type))
                     {
-                        if ((containingNode as IFunctionResult).Types.TryGetValue(typeName, out type))
-                        {
-                            return type;
-                        }
-                    }
-
-                    if (_body is IModuleResult)
-                    {
-                        if ((_body as IModuleResult).Types.TryGetValue(typeName, out type) ||
-                            (_body as IModuleResult).GlobalTypes.TryGetValue(typeName, out type))
-                        {
-                            return type;
-                        }
+                        return type;
                     }
                 }
             }
@@ -223,23 +206,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             return type;
         }
 
-        private enum AstMemberType
-        {
-            Variables = 1,
-            Constants = 2,
-            Types = 4,
-            Functions = 8,
-            Dialogs = 16,
-            Reports = 32,
-            PreparedCursors = 64,
-            DeclaredCursors = 128,
-            Tables = 256,
-
-            Cursors = PreparedCursors | DeclaredCursors,
-            All = Variables | Constants | Types | Functions | Dialogs | Reports | Cursors | Tables
-        }
-
-        private IEnumerable<MemberResult> GetDefinedMembers(int index, AstMemberType memberType)
+        public override IEnumerable<MemberResult> GetDefinedMembers(int index, AstMemberType memberType)
         {
             HashSet<MemberResult> members = new HashSet<MemberResult>();
 
@@ -272,127 +239,111 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 }
             }
 
-            // do a binary search to determine what node we're in
-            if (_body.Children.Count > 0)
+            // TODO: need to handle multiple results of the same name
+            AstNode containingNode = GetContainingNode(_body, index);
+            if (containingNode != null)
             {
-                _body.SetNamespace(null);
-                List<int> keys = _body.Children.Select(x => x.Key).ToList();
-                int searchIndex = keys.BinarySearch(index);
-                if (searchIndex < 0)
+                if (containingNode is IFunctionResult)
                 {
-                    searchIndex = ~searchIndex;
-                    if (searchIndex > 0)
-                        searchIndex--;
-                }
-
-                int key = keys[searchIndex];
-
-                // TODO: need to handle multiple results of the same name
-                AstNode4gl containingNode = _body.Children[key];
-                if (containingNode != null)
-                {
-                    if (containingNode is IFunctionResult)
+                    if (memberType.HasFlag(AstMemberType.Variables))
                     {
-                        if (memberType.HasFlag(AstMemberType.Variables))
+                        members.AddRange((containingNode as IFunctionResult).Variables.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Variable, this)));
+                        foreach (var varList in (containingNode as IFunctionResult).LimitedScopeVariables)
                         {
-                            members.AddRange((containingNode as IFunctionResult).Variables.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Variable, this)));
-                            foreach (var varList in (containingNode as IFunctionResult).LimitedScopeVariables)
+                            foreach (var item in varList.Value)
                             {
-                                foreach (var item in varList.Value)
+                                if (item.Item2.IsInSpan(index))
                                 {
-                                    if (item.Item2.IsInSpan(index))
-                                    {
-                                        members.Add(new MemberResult(item.Item1.Name, item.Item1, GeneroMemberType.Instance, this));
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                        if (memberType.HasFlag(AstMemberType.Types))
-                            members.AddRange((containingNode as IFunctionResult).Types.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Class, this)));
-                        if (memberType.HasFlag(AstMemberType.Constants))
-                            members.AddRange((containingNode as IFunctionResult).Constants.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Constant, this)));
-                        if (memberType.HasFlag(AstMemberType.Functions))
-                        {
-                            foreach (var res in (containingNode as IFunctionResult).Variables/*.Where(x => x.Value.HasChildFunctions(this))
-                                                                                            */.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Variable, this)))
-                                if (!members.Contains(res))
-                                    members.Add(res);
-
-                            foreach (var varList in (containingNode as IFunctionResult).LimitedScopeVariables)
-                            {
-                                foreach (var item in varList.Value)
-                                {
-                                    if (item.Item2.IsInSpan(index))
-                                    {
-                                        members.Add(new MemberResult(item.Item1.Name, item.Item1, GeneroMemberType.Instance, this));
-                                        break;
-                                    }
+                                    members.Add(new MemberResult(item.Item1.Name, item.Item1, GeneroMemberType.Instance, this));
+                                    break;
                                 }
                             }
                         }
                     }
-
-                    if (_body is IModuleResult)
+                    if (memberType.HasFlag(AstMemberType.Types))
+                        members.AddRange((containingNode as IFunctionResult).Types.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Class, this)));
+                    if (memberType.HasFlag(AstMemberType.Constants))
+                        members.AddRange((containingNode as IFunctionResult).Constants.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Constant, this)));
+                    if (memberType.HasFlag(AstMemberType.Functions))
                     {
-                        // check for module vars, types, and constants (and globals defined in this module)
-                        if (memberType.HasFlag(AstMemberType.Variables))
-                        {
-                            members.AddRange((_body as IModuleResult).Variables.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Variable, this)));
-                            members.AddRange((_body as IModuleResult).GlobalVariables.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Variable, this)));
-                        }
-                        if (memberType.HasFlag(AstMemberType.Types))
-                        {
-                            members.AddRange((_body as IModuleResult).Types.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Class, this)));
-                            members.AddRange((_body as IModuleResult).GlobalTypes.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Class, this)));
-                        }
-                        if (memberType.HasFlag(AstMemberType.Constants))
-                        {
-                            members.AddRange((_body as IModuleResult).Constants.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Constant, this)));
-                            members.AddRange((_body as IModuleResult).GlobalConstants.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Constant, this)));
-                        }
-                        if (memberType.HasFlag(AstMemberType.Dialogs))
-                        {
-                            members.AddRange((_body as IModuleResult).Functions.Where(x => x.Value is DeclarativeDialogBlock)
-                                                             .Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Dialog, this)));
-                            members.AddRange((_body as IModuleResult).FglImports.Select(x => new MemberResult(x, GeneroMemberType.Module, this)));
-                        }
-                        if (memberType.HasFlag(AstMemberType.Reports))
-                        {
-                            members.AddRange((_body as IModuleResult).Functions.Where(x => x.Value is ReportBlockNode)
-                                                             .Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Report, this)));
-                        }
-                        if (memberType.HasFlag(AstMemberType.Functions))
-                        {
-                            members.AddRange((_body as IModuleResult).Functions
-                                                                     .Where(x => !(x.Value is ReportBlockNode) && !(x.Value is DeclarativeDialogBlock))
-                                                                     .Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Method, this)));
-                            foreach (var res in (_body as IModuleResult).Variables/*.Where(x => x.Value.HasChildFunctions(this))
+                        foreach (var res in (containingNode as IFunctionResult).Variables/*.Where(x => x.Value.HasChildFunctions(this))
                                                                                             */.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Variable, this)))
-                                if (!members.Contains(res))
-                                    members.Add(res);
-                            foreach (var res in (_body as IModuleResult).GlobalVariables/*.Where(x => x.Value.HasChildFunctions(this))
-                                                                                            */.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Variable, this)))
-                                if (!members.Contains(res))
-                                    members.Add(res);
-                        }
+                            if (!members.Contains(res))
+                                members.Add(res);
 
-                        // Tables and cursors are module specific, and cannot be accessed via fgl import
-                        if (memberType.HasFlag(AstMemberType.DeclaredCursors) ||
-                            memberType.HasFlag(AstMemberType.PreparedCursors) ||
-                            memberType.HasFlag(AstMemberType.Tables))
+                        foreach (var varList in (containingNode as IFunctionResult).LimitedScopeVariables)
                         {
-                            if (memberType.HasFlag(AstMemberType.DeclaredCursors))
-                                members.AddRange((_body as IModuleResult).Cursors.Where(x => x.Value is DeclareStatement).Select(x => new MemberResult(x.Value.Name, x.Value, GeneroMemberType.Cursor, this)));
-                            if (memberType.HasFlag(AstMemberType.PreparedCursors))
-                                members.AddRange((_body as IModuleResult).Cursors.Where(x => x.Value is PrepareStatement).Select(x => new MemberResult(x.Value.Name, x.Value, GeneroMemberType.Cursor, this)));
-                            if (memberType.HasFlag(AstMemberType.Tables))
-                                members.AddRange((_body as IModuleResult).Tables.Select(x => new MemberResult(x.Value.Name, x.Value, GeneroMemberType.DbTable, this)));
+                            foreach (var item in varList.Value)
+                            {
+                                if (item.Item2.IsInSpan(index))
+                                {
+                                    members.Add(new MemberResult(item.Item1.Name, item.Item1, GeneroMemberType.Instance, this));
+                                    break;
+                                }
+                            }
                         }
-                        else
-                        {
-                            members.AddRange((_body as IModuleResult).FglImports.Select(x => new MemberResult(x, GeneroMemberType.Module, this)));
-                        }
+                    }
+                }
+
+                if (_body is IModuleResult)
+                {
+                    // check for module vars, types, and constants (and globals defined in this module)
+                    if (memberType.HasFlag(AstMemberType.Variables))
+                    {
+                        members.AddRange((_body as IModuleResult).Variables.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Variable, this)));
+                        members.AddRange((_body as IModuleResult).GlobalVariables.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Variable, this)));
+                    }
+                    if (memberType.HasFlag(AstMemberType.Types))
+                    {
+                        members.AddRange((_body as IModuleResult).Types.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Class, this)));
+                        members.AddRange((_body as IModuleResult).GlobalTypes.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Class, this)));
+                    }
+                    if (memberType.HasFlag(AstMemberType.Constants))
+                    {
+                        members.AddRange((_body as IModuleResult).Constants.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Constant, this)));
+                        members.AddRange((_body as IModuleResult).GlobalConstants.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Constant, this)));
+                    }
+                    if (memberType.HasFlag(AstMemberType.Dialogs))
+                    {
+                        members.AddRange((_body as IModuleResult).Functions.Where(x => x.Value is DeclarativeDialogBlock)
+                                                         .Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Dialog, this)));
+                        members.AddRange((_body as IModuleResult).FglImports.Select(x => new MemberResult(x, GeneroMemberType.Module, this)));
+                    }
+                    if (memberType.HasFlag(AstMemberType.Reports))
+                    {
+                        members.AddRange((_body as IModuleResult).Functions.Where(x => x.Value is ReportBlockNode)
+                                                         .Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Report, this)));
+                    }
+                    if (memberType.HasFlag(AstMemberType.Functions))
+                    {
+                        members.AddRange((_body as IModuleResult).Functions
+                                                                 .Where(x => !(x.Value is ReportBlockNode) && !(x.Value is DeclarativeDialogBlock))
+                                                                 .Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Method, this)));
+                        foreach (var res in (_body as IModuleResult).Variables/*.Where(x => x.Value.HasChildFunctions(this))
+                                                                                            */.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Variable, this)))
+                            if (!members.Contains(res))
+                                members.Add(res);
+                        foreach (var res in (_body as IModuleResult).GlobalVariables/*.Where(x => x.Value.HasChildFunctions(this))
+                                                                                            */.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Variable, this)))
+                            if (!members.Contains(res))
+                                members.Add(res);
+                    }
+
+                    // Tables and cursors are module specific, and cannot be accessed via fgl import
+                    if (memberType.HasFlag(AstMemberType.DeclaredCursors) ||
+                        memberType.HasFlag(AstMemberType.PreparedCursors) ||
+                        memberType.HasFlag(AstMemberType.Tables))
+                    {
+                        if (memberType.HasFlag(AstMemberType.DeclaredCursors))
+                            members.AddRange((_body as IModuleResult).Cursors.Where(x => x.Value is DeclareStatement).Select(x => new MemberResult(x.Value.Name, x.Value, GeneroMemberType.Cursor, this)));
+                        if (memberType.HasFlag(AstMemberType.PreparedCursors))
+                            members.AddRange((_body as IModuleResult).Cursors.Where(x => x.Value is PrepareStatement).Select(x => new MemberResult(x.Value.Name, x.Value, GeneroMemberType.Cursor, this)));
+                        if (memberType.HasFlag(AstMemberType.Tables))
+                            members.AddRange((_body as IModuleResult).Tables.Select(x => new MemberResult(x.Value.Name, x.Value, GeneroMemberType.DbTable, this)));
+                    }
+                    else
+                    {
+                        members.AddRange((_body as IModuleResult).FglImports.Select(x => new MemberResult(x, GeneroMemberType.Module, this)));
                     }
                 }
             }
@@ -765,7 +716,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         /// Gets the available names at the given location.  This includes built-in variables, global variables, and locals.
         /// </summary>
         /// <param name="index">The 0-based absolute index into the file where the available mebmers should be looked up.</param>
-        public IEnumerable<MemberResult> GetAllAvailableMembersByIndex(int index, IReverseTokenizer revTokenizer, 
+        public override IEnumerable<MemberResult> GetAllAvailableMembersByIndex(int index, IReverseTokenizer revTokenizer, 
                                                                         out bool includePublicFunctions, out bool includeDatabaseTables, 
                                                                         GetMemberOptions options = GetMemberOptions.IntersectMultipleResults)
         {
@@ -799,28 +750,6 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             _includePublicFunctions = false;    // reset the flag
             _includeDatabaseTables = false;
             return members;
-        }
-
-        private static AstNode4gl GetContainingNode(AstNode4gl currentNode, int index)
-        {
-            AstNode4gl containingNode = null;
-            if (currentNode.Children.Count > 0)
-            {
-                List<int> keys = currentNode.Children.Select(x => x.Key).ToList();
-                int searchIndex = keys.BinarySearch(index);
-                if (searchIndex < 0)
-                {
-                    searchIndex = ~searchIndex;
-                    if (searchIndex > 0)
-                        searchIndex--;
-                }
-
-                int key = keys[searchIndex];
-
-                // TODO: need to handle multiple results of the same name
-                containingNode = currentNode.Children[key];
-            }
-            return containingNode;
         }
 
         private IEnumerable<MemberResult> GetInstanceExpressionComponents(int index)

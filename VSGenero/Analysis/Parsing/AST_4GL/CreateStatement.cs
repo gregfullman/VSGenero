@@ -282,7 +282,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             return this.Children.Values.Cast<CreatedTableColumn>().Select(x => new MemberResult(x.ColumnName.Name, x, GeneroMemberType.DbColumn, SyntaxTree));
         }
 
-        public override void PropagateSyntaxTree(Genero4glAst ast)
+        public override void PropagateSyntaxTree(GeneroAst ast)
         {
             _location = ast.ResolveLocation(this);
             base.PropagateSyntaxTree(ast);

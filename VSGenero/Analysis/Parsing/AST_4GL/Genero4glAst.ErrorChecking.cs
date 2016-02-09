@@ -8,7 +8,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 {
     public partial class Genero4glAst
     {
-        public void CheckForErrors(Action<string, int, int> errorFunc)
+        public override void CheckForErrors(Action<string, int, int> errorFunc)
         {
             Dictionary<string, List<int>> deferredFunctionSearches = new Dictionary<string, List<int>>(StringComparer.OrdinalIgnoreCase);
             Body.CheckForErrors(this, errorFunc, deferredFunctionSearches);
