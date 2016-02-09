@@ -26,19 +26,56 @@ namespace VSGenero.Analysis.Parsing
 
         private readonly ParserOptions _options;
         private bool _parsingStarted;
-        protected TextReader _sourceReader;
+        protected internal TextReader _sourceReader;
         protected int _errorCode;
         protected readonly bool _verbatim;                            // true if we're in verbatim mode and the ASTs can be turned back into source code, preserving white space / comments
         private readonly bool _bindReferences;                      // true if we should bind the references in the ASTs
         protected string _tokenWhiteSpace, _lookaheadWhiteSpace;      // the whitespace for the current and lookahead tokens as provided from the parser
         protected List<string> _lookaheadWhiteSpaces = new List<string>();
 
-        protected IProjectEntry _projectEntry;
-        protected string _filename;
+        protected internal IProjectEntry _projectEntry;
+        protected internal string _filename;
         protected List<TokenWithSpan> _codeRegions;
         protected List<TokenWithSpan> _nonCodeRegionComments;
 
-        public abstract GeneroAst ParseFile();
+        public GeneroAst ParseFile()
+        {
+            return ParseFileWorker();
+        }
+
+        private GeneroAst ParseFileWorker()
+        {
+            StartParsing();
+            var ast = CreateAst();
+            _codeRegions.Clear();
+            _nonCodeRegionComments.Clear();
+            return ast;
+        }
+
+        protected abstract GeneroAst CreateAst();
+
+        protected void UpdateNodeAndTree(AstNode node, GeneroAst ast)
+        {
+            node.PropagateSyntaxTree(ast);
+            if (_verbatim)
+            {
+                if (_lookahead.Token != null)
+                {
+                    AddExtraVerbatimText(node, _lookaheadWhiteSpace + _lookahead.Token.VerbatimImage);
+                }
+                AddCodeRegions(node);
+                AddNonCodeRegionComments(node);
+                _codeRegions.Clear();
+                _nonCodeRegionComments.Clear();
+            }
+            foreach (var keyValue in _attributes)
+            {
+                foreach (var nodeAttr in keyValue.Value)
+                {
+                    ast.SetAttribute(keyValue.Key, nodeAttr.Key, nodeAttr.Value);
+                }
+            }
+        }
 
         public string Filename
         {
@@ -107,11 +144,6 @@ namespace VSGenero.Analysis.Parsing
             _codeRegions = new List<TokenWithSpan>();
             _nonCodeRegionComments = new List<TokenWithSpan>();
         }
-
-        //public static GeneroParser CreateParser(TextReader reader, ParserOptions parserOptions, IProjectEntry projEntry = null, string filename = null)
-        //{
-
-        //}
 
         #endregion
 

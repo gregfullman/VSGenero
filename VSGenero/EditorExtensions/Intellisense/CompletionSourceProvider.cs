@@ -24,7 +24,12 @@ using VSGenero.Analysis;
 
 namespace VSGenero.EditorExtensions.Intellisense
 {
-    [Export(typeof(ICompletionSourceProvider)), ContentType(VSGeneroConstants.ContentType4GL), ContentType(VSGeneroConstants.ContentTypeINC), Order, Name("CompletionProvider")]
+    [Export(typeof(ICompletionSourceProvider)), 
+     ContentType(VSGeneroConstants.ContentType4GL), 
+     ContentType(VSGeneroConstants.ContentTypeINC), 
+     ContentType(VSGeneroConstants.ContentTypePER),
+     Order, 
+     Name("CompletionProvider")]
     internal class CompletionSourceProvider : ICompletionSourceProvider
     {
         [Import]

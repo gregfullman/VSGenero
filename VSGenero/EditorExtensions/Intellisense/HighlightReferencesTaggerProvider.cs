@@ -28,6 +28,7 @@ namespace VSGenero.EditorExtensions.Intellisense
 {
     [ContentType(VSGeneroConstants.ContentType4GL)]
     [ContentType(VSGeneroConstants.ContentTypeINC)]
+    [ContentType(VSGeneroConstants.ContentTypePER)]
     [Name("Genero Highlight References Tagger Provider")]
     [TagType(typeof(TextMarkerTag))]
     [Export(typeof(IViewTaggerProvider))]

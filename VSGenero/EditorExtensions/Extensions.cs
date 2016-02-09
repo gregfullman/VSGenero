@@ -36,6 +36,40 @@ namespace VSGenero.EditorExtensions
 {
     public static class Extensions
     {
+        internal static Type GetParserType(this ITextSnapshot snapshot)
+        {
+            if (snapshot != null &&
+               snapshot.TextBuffer != null)
+            {
+                var path = snapshot.TextBuffer.GetFilePath();
+                if (path != null)
+                {
+                    switch (Path.GetExtension(path).ToLower())
+                    {
+                        case VSGeneroConstants.FileExtension4GL:
+                        case VSGeneroConstants.FileExtensionINC:
+                            return typeof(Genero4glParser);
+                        case VSGeneroConstants.FileExtensionPER:
+                            return typeof(GeneroPerParser);
+                    }
+                }
+            }
+            return null;
+        }
+
+        internal static Type GetParserType(string filename)
+        {
+            switch (Path.GetExtension(filename).ToLower())
+            {
+                case VSGeneroConstants.FileExtension4GL:
+                case VSGeneroConstants.FileExtensionINC:
+                    return typeof(Genero4glParser);
+                case VSGeneroConstants.FileExtensionPER:
+                    return typeof(GeneroPerParser);
+            }
+            return null;
+        }
+
         internal static void GotoSource(this LocationInfo location)
         {
             if (location.Line > 0 && location.Column > 0)

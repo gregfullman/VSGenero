@@ -24,7 +24,12 @@ using VSGenero.Analysis;
 
 namespace VSGenero.EditorExtensions.Intellisense
 {
-    [Export(typeof(IQuickInfoSourceProvider)), ContentType(VSGeneroConstants.ContentType4GL), ContentType(VSGeneroConstants.ContentTypeINC), Order, Name("Genero 4GL Quick Info Source")]
+    [Export(typeof(IQuickInfoSourceProvider)), 
+     ContentType(VSGeneroConstants.ContentType4GL), 
+     ContentType(VSGeneroConstants.ContentTypeINC),
+     ContentType(VSGeneroConstants.ContentTypePER),
+     Order, 
+     Name("Genero Quick Info Source")]
     class QuickInfoSourceProvider : IQuickInfoSourceProvider
     {
         [Import(AllowDefault = true)]

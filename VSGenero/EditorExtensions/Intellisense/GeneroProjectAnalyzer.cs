@@ -1195,9 +1195,9 @@ namespace VSGenero.EditorExtensions.Intellisense
 
         //}
 
-        internal Genero4glAst ParseSnapshot(ITextSnapshot snapshot)
+        internal GeneroAst ParseSnapshot(ITextSnapshot snapshot)
         {
-            using (var parser = Genero4glParser.CreateParser(
+            using (var parser = GeneroParserFactory.CreateParser(snapshot.GetParserType(),
                 new SnapshotSpanSourceCodeReader(
                     new SnapshotSpan(snapshot, 0, snapshot.Length)
                 ),
@@ -1242,7 +1242,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             if ((pyEntry = projectEntry as IGeneroProjectEntry) != null)
             {
                 pyEntry.IsErrorChecked = false;
-                Genero4glAst ast;
+                GeneroAst ast;
                 CollectingErrorSink errorSink;
                 List<TaskProviderItem> commentTasks;
                 List<TaskProviderItem> commentErrors;
@@ -1286,7 +1286,7 @@ namespace VSGenero.EditorExtensions.Intellisense
 
             IGeneroProjectEntry pyProjEntry = analysis as IGeneroProjectEntry;
             pyProjEntry.IsErrorChecked = false;
-            List<Genero4glAst> asts = new List<Genero4glAst>();
+            List<GeneroAst> asts = new List<GeneroAst>();
             try
             {
                 foreach (var snapshot in snapshots)
@@ -1294,7 +1294,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                     if (pyProjEntry != null &&
                         VSGeneroPackage.Instance.ProgramCodeContentTypes.Any(x => snapshot.TextBuffer.ContentType.IsOfType(x.TypeName)))
                     {
-                        Genero4glAst ast;
+                        GeneroAst ast;
                         CollectingErrorSink errorSink;
                         List<TaskProviderItem> commentTasks;
                         List<TaskProviderItem> commentErrors;
@@ -1324,7 +1324,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             {
                 if (asts.Count > 0)
                 {
-                    Genero4glAst finalAst = null;
+                    GeneroAst finalAst = null;
                     if (asts.Count == 1)
                     {
                         finalAst = asts[0];
@@ -1585,7 +1585,7 @@ namespace VSGenero.EditorExtensions.Intellisense
 
 
         private void ParseGeneroCode(ITextSnapshot snapshot, Stream content, Severity indentationSeverity, IProjectEntry entry, 
-                                     out Genero4glAst ast, out CollectingErrorSink errorSink, out List<TaskProviderItem> commentTasks,
+                                     out GeneroAst ast, out CollectingErrorSink errorSink, out List<TaskProviderItem> commentTasks,
                                      out List<TaskProviderItem> commentErrors)
         {
             ast = null;
@@ -1603,14 +1603,14 @@ namespace VSGenero.EditorExtensions.Intellisense
             options.ProcessComment += (sender, e) => ProcessComment(entry, tasks, errTasks, snapshot, e.Span, e.Text);
 
 
-            using (var parser = Genero4glParser.CreateParser(content, options, entry))
+            using (var parser = GeneroParserFactory.CreateParser(snapshot.GetParserType(), content, options, entry))
             {
                 ast = ParseOneFile(ast, parser);
             }
         }
 
         private void ParseGeneroCode(ITextSnapshot snapshot, TextReader content, Severity indentationSeverity, IProjectEntry entry, 
-                                     out Genero4glAst ast, out CollectingErrorSink errorSink, out List<TaskProviderItem> commentTasks,
+                                     out GeneroAst ast, out CollectingErrorSink errorSink, out List<TaskProviderItem> commentTasks,
                                      out List<TaskProviderItem> commentErrors)
         {
             ast = null;
@@ -1627,19 +1627,19 @@ namespace VSGenero.EditorExtensions.Intellisense
             };
             options.ProcessComment += (sender, e) => ProcessComment(entry, tasks, errTasks, snapshot, e.Span, e.Text);
 
-            using (var parser = Genero4glParser.CreateParser(content, options, entry))
+            using (var parser = GeneroParserFactory.CreateParser(snapshot.GetParserType(), content, options, entry))
             {
                 ast = ParseOneFile(ast, parser);
             }
         }
 
-        private static Genero4glAst ParseOneFile(Genero4glAst ast, Genero4glParser parser)
+        private static GeneroAst ParseOneFile(GeneroAst ast, GeneroParser parser)
         {
             if (parser != null)
             {
                 try
                 {
-                    ast = (Genero4glAst)parser.ParseFile();
+                    ast = parser.ParseFile();
                 }
                 catch (Exception e)
                 {
@@ -1892,8 +1892,8 @@ namespace VSGenero.EditorExtensions.Intellisense
             try
             {
                 // TODO: need to handle .per and .inc files as well.
-                foreach (string filename in Directory.EnumerateFiles(dir, "*.*").Where(x => x.EndsWith(".4gl", StringComparison.OrdinalIgnoreCase) /*||
-                                                                                            x.EndsWith(".per", StringComparison.OrdinalIgnoreCase)*/))
+                foreach (string filename in Directory.EnumerateFiles(dir, "*.*").Where(x => x.EndsWith(VSGeneroConstants.FileExtension4GL, StringComparison.OrdinalIgnoreCase) ||
+                                                                                            x.EndsWith(VSGeneroConstants.FileExtensionPER, StringComparison.OrdinalIgnoreCase)))
                 {
                     if (_excludeFile != null && filename.Equals(_excludeFile, StringComparison.OrdinalIgnoreCase))
                     {

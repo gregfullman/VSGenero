@@ -71,7 +71,8 @@ namespace VSGenero.EditorExtensions.Intellisense
             textView.Properties.AddProperty(typeof(IntellisenseController), this);  // added so our key processors can get back to us
 
             if (_textView.TextBuffer.ContentType.IsOfType(VSGeneroConstants.ContentType4GL) ||
-                _textView.TextBuffer.ContentType.IsOfType(VSGeneroConstants.ContentTypeINC))
+                _textView.TextBuffer.ContentType.IsOfType(VSGeneroConstants.ContentTypeINC) ||
+                _textView.TextBuffer.ContentType.IsOfType(VSGeneroConstants.ContentTypePER))
             {
                 try
                 {

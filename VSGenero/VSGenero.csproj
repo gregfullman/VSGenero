@@ -352,6 +352,7 @@
     <Compile Include="Analysis\Parsing\AST_4GL\SystemMacro.cs" />
     <Compile Include="Analysis\Parsing\AST_PER\AstNodePer.cs" />
     <Compile Include="Analysis\Parsing\AST_PER\GeneroPerAst.cs" />
+    <Compile Include="Analysis\Parsing\AST_PER\ModuleNode.cs" />
     <Compile Include="Analysis\Parsing\Enumerations.cs" />
     <Compile Include="Analysis\Parsing\AstNode.cs" />
     <Compile Include="Analysis\Parsing\AST_4GL\AcceptStatement.cs" />
@@ -414,6 +415,8 @@
     <Compile Include="Analysis\GetMemberOptions.cs" />
     <Compile Include="Analysis\Interfaces\IAnalysisVariable.cs" />
     <Compile Include="Analysis\Parsing\GeneroParser.cs" />
+    <Compile Include="Analysis\Parsing\GeneroParserFactory.cs" />
+    <Compile Include="Analysis\Parsing\GeneroPerParser.cs" />
     <Compile Include="Analysis\Parsing\IParser.cs" />
     <Compile Include="Analysis\Parsing\TokenListParser.cs" />
     <Compile Include="Analysis\ResultInterfaces.cs" />

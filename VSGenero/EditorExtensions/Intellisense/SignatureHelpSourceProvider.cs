@@ -24,7 +24,12 @@ using VSGenero.Analysis;
 
 namespace VSGenero.EditorExtensions.Intellisense
 {
-    [Export(typeof(ISignatureHelpSourceProvider)), ContentType(VSGeneroConstants.ContentType4GL), ContentType(VSGeneroConstants.ContentTypeINC), Order, Name("Genero Signature Help Source")]
+    [Export(typeof(ISignatureHelpSourceProvider)), 
+     ContentType(VSGeneroConstants.ContentType4GL), 
+     ContentType(VSGeneroConstants.ContentTypeINC), 
+     ContentType(VSGeneroConstants.ContentTypePER),
+     Order, 
+     Name("Genero Signature Help Source")]
     class SignatureHelpSourceProvider : ISignatureHelpSourceProvider
     {
         [Import(AllowDefault = true)]

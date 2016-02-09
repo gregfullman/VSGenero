@@ -29,88 +29,24 @@ namespace VSGenero.Analysis.Parsing
 
         #region Construction
 
-        private Genero4glParser(Tokenizer tokenizer, ErrorSink errorSink, bool verbatim, bool bindRefs, ParserOptions options)
+        public Genero4glParser(Tokenizer tokenizer, ErrorSink errorSink, bool verbatim, bool bindRefs, ParserOptions options)
             : base(tokenizer, errorSink, verbatim, bindRefs, options)
         {
             StatementFactory = new FglStatementFactory();
         }
 
-        public static Genero4glParser CreateParser(TextReader reader, IProjectEntry projEntry = null, string filename = null)
-        {
-            return CreateParser(reader, null, projEntry, filename);
-        }
-
-        public static Genero4glParser CreateParser(TextReader reader, ParserOptions parserOptions, IProjectEntry projEntry = null, string filename = null)
-        {
-            if (reader == null)
-            {
-                throw new ArgumentNullException("reader");
-            }
-
-            var options = parserOptions ?? ParserOptions.Default;
-
-            Genero4glParser result = null;
-            Tokenizer tokenizer = new Tokenizer(options.ErrorSink,
-                                                (options.Verbatim ? TokenizerOptions.Verbatim : TokenizerOptions.None) | TokenizerOptions.GroupingRecovery,
-                                                (span, text) => options.RaiseProcessComment(result, new CommentEventArgs(span, text)));
-
-            tokenizer.Initialize(null, reader, SourceLocation.MinValue);
-            tokenizer.IndentationInconsistencySeverity = options.IndentationInconsistencySeverity;
-
-            result = new Genero4glParser(tokenizer,
-                options.ErrorSink ?? ErrorSink.Null,
-                options.Verbatim,
-                options.BindReferences,
-                options
-            );
-            result._projectEntry = projEntry;
-            result._filename = filename;
-
-            result._sourceReader = reader;
-            return result;
-        }
-
-        /// <summary>
-        /// Creates a new parser from a seekable stream including scanning the BOM or looking for a # coding: comment to detect the appropriate coding.
-        /// </summary>
-        public static Genero4glParser CreateParser(Stream stream, ParserOptions parserOptions = null, IProjectEntry projEntry = null)
-        {
-            var options = parserOptions ?? ParserOptions.Default;
-            var reader = new StreamReader(stream, true);
-
-            return CreateParser(reader, options, projEntry);
-        }
-
         #endregion
 
-        public override GeneroAst ParseFile()
+        protected override GeneroAst CreateAst()
         {
-            return ParseFileWorker();
-        }
-
-        private Genero4glAst CreateAst(AstNode4gl node)
-        {
-            var ast = new Genero4glAst(node, _tokenizer.GetLineLocations(), GeneroLanguageVersion.None, _projectEntry, _filename);
-            node.PropagateSyntaxTree(ast);
-            if (_verbatim)
+            ModuleNode moduleNode = null;
+            if (ModuleNode.TryParseNode(this, out moduleNode))
             {
-                if (_lookahead.Token != null)
-                {
-                    AddExtraVerbatimText(node, _lookaheadWhiteSpace + _lookahead.Token.VerbatimImage);
-                }
-                AddCodeRegions(node);
-                AddNonCodeRegionComments(node);
-                _codeRegions.Clear();
-                _nonCodeRegionComments.Clear();
+                var ast = new Genero4glAst(moduleNode, _tokenizer.GetLineLocations(), GeneroLanguageVersion.None, _projectEntry, _filename);
+                UpdateNodeAndTree(moduleNode, ast);
+                return ast;
             }
-            foreach (var keyValue in _attributes)
-            {
-                foreach (var nodeAttr in keyValue.Value)
-                {
-                    ast.SetAttribute(keyValue.Key, nodeAttr.Key, nodeAttr.Value);
-                }
-            }
-            return ast;
+            return null;
         }
 
         public bool ParseSingleFunction(out FunctionBlockNode functionNode, bool abbreviatedParse, out string remainingReadText, out int[] lineLocations)
@@ -123,20 +59,6 @@ namespace VSGenero.Analysis.Parsing
             remainingReadText = _tokenizer.GetRemainingReadText(bufPos);
             lineLocations = _tokenizer.GetLineLocations();
             return result;
-        }
-
-        private Genero4glAst ParseFileWorker()
-        {
-            StartParsing();
-
-            ModuleNode moduleNode = null;
-            if (ModuleNode.TryParseNode(this, out moduleNode))
-            {
-                return CreateAst(moduleNode);
-            }
-            _codeRegions.Clear();
-            _nonCodeRegionComments.Clear();
-            return null;
         }
     }
 }
