@@ -76,7 +76,6 @@ namespace VSGenero.Analysis
                     // delete the leftovers
                     foreach (var include in currentlyIncludedFiles)
                     {
-                        IGeneroProjectEntry dummy;
                         VSGeneroPackage.Instance.DefaultAnalyzer.RemoveIncludedFile(include, this);
                     }
                 }
