@@ -57,8 +57,10 @@ namespace VSGenero.ProductivityTools
         private readonly Genero4glBlockTaggerProvider _taggerProvider;
         private readonly ITextBuffer _buffer;
         private readonly ITextView _textview;
-        private readonly Timer _timer;
+        private Timer _timer;
         private bool _eventHooked;
+        private bool _disposed;
+        private object _disposedLock = new object();
 
         public Genero4glBlockTagger(ITextView textview, ITextBuffer buffer, Genero4glBlockTaggerProvider provider)
         {
@@ -197,35 +199,56 @@ namespace VSGenero.ProductivityTools
 
         private void OnNewParseTree(object sender, EventArgs e)
         {
-            IGeneroProjectEntry classifier;
-            if (_buffer.TryGetAnalysis(out classifier))
+            lock(_disposedLock)
             {
-                _timer.Change(300, Timeout.Infinite);
+                if (!_disposed)
+                {
+                    IGeneroProjectEntry classifier;
+                    if (_buffer.TryGetAnalysis(out classifier))
+                    {
+                        if (_timer != null)
+                            _timer.Change(300, Timeout.Infinite);
+                    }
+                }
             }
         }
 
         private void TagUpdate(object unused)
         {
-            _timer.Change(Timeout.Infinite, Timeout.Infinite);
-            var snapshot = _buffer.CurrentSnapshot;
-            var tagsChanged = TagsChanged;
-            if (tagsChanged != null)
+            lock(_disposedLock)
             {
-                tagsChanged(this, new SnapshotSpanEventArgs(new SnapshotSpan(snapshot, new Span(0, snapshot.Length))));
+                if (!_disposed)
+                {
+                    if (_timer != null)
+                        _timer.Change(Timeout.Infinite, Timeout.Infinite);
+                    var snapshot = _buffer.CurrentSnapshot;
+                    var tagsChanged = TagsChanged;
+                    if (tagsChanged != null)
+                    {
+                        tagsChanged(this, new SnapshotSpanEventArgs(new SnapshotSpan(snapshot, new Span(0, snapshot.Length))));
+                    }
+                }
             }
         }
 
         public void Dispose()
         {
-            IGeneroProjectEntry classifier;
-            if (_buffer.TryGetAnalysis(out classifier))
+            lock(_disposedLock)
             {
-                classifier.OnNewAnalysis -= OnNewParseTree;
+                _disposed = true;
+                IGeneroProjectEntry classifier;
+                if (_buffer.TryGetAnalysis(out classifier))
+                {
+                    classifier.OnNewAnalysis -= OnNewParseTree;
+                }
+                if (_buffer.Properties.ContainsProperty(typeof(Genero4glBlockTagger)))
+                    _buffer.Properties.RemoveProperty(typeof(Genero4glBlockTagger));
+                if (_timer != null)
+                {
+                    _timer.Dispose();
+                    _timer = null;
+                }
             }
-            if (_buffer.Properties.ContainsProperty(typeof(Genero4glBlockTagger)))
-                _buffer.Properties.RemoveProperty(typeof(Genero4glBlockTagger));
-            if (_timer != null)
-                _timer.Dispose();
         }
     }
 }
