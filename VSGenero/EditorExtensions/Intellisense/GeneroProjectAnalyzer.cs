@@ -354,7 +354,7 @@ namespace VSGenero.EditorExtensions.Intellisense
 
         internal void StopMonitoringTextBuffer(BufferParser bufferParser)
         {
-            bufferParser.StopMonitoring();
+            bufferParser.Dispose();
             lock (_openFiles)
             {
                 _openFiles.Remove(bufferParser);
@@ -403,9 +403,8 @@ namespace VSGenero.EditorExtensions.Intellisense
                                         }
                                     }
 
-                                    foreach (var kvp in proj.ProjectEntries)
-                                        kvp.Value.PreventErrorCheck = true;
-                                    proj.ProjectEntries.Clear();
+                                    // Calling the project's Dispose method takes care of cleaning up its project entries
+                                    proj.Dispose();
 
                                     // unload any import modules that are not referenced by anything else.
                                     UnloadImportedModules(proj);
@@ -426,6 +425,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             }
         }
 
+        #region Include Files Support
 
         // includes
         private readonly object _includeFilesLock = new object();
@@ -553,6 +553,9 @@ namespace VSGenero.EditorExtensions.Intellisense
                                     _includersToIncludesMap[includer].Remove(includeEntry);
                             }
                         }
+
+                        // This include file is no longer referenced, so dispose it
+                        includeEntry.Dispose();
                     }
                 }
             }
@@ -582,7 +585,11 @@ namespace VSGenero.EditorExtensions.Intellisense
                         {
                             HashSet<IGeneroProjectEntry> dummy;
                             _includesToIncludersMap.TryRemove(includeEntry, out dummy);
-                            _includeFiles.TryRemove(includeFile, out includeEntry);
+                            if(_includeFiles.TryRemove(includeFile, out includeEntry))
+                            {
+                                // This include file is no longer referenced, so dispose it
+                                includeEntry.Dispose();
+                            }
                         }
                     }
 
@@ -593,12 +600,17 @@ namespace VSGenero.EditorExtensions.Intellisense
                         if (_includersToIncludesMap[includer].Count == 0)
                         {
                             HashSet<IGeneroProjectEntry> dummy;
-                            _includersToIncludesMap.TryRemove(includer, out dummy);
+                            if(!_includersToIncludesMap.TryRemove(includer, out dummy))
+                            {
+                                int i = 0;
+                            }
                         }
                     }
                 }
             }
         }
+
+        #endregion
 
         internal IGeneroProject AddImportedProject(string projectPath, IGeneroProjectEntry importer = null)
         {
@@ -909,8 +921,12 @@ namespace VSGenero.EditorExtensions.Intellisense
                                     RemoveIncludedFile(includeFile.FilePath, remProj2Entry);
                             }
                         }
-                        foreach(var item in refList[i].ProjectEntries)
-                            item.Value.PreventErrorCheck = true;
+
+                        // Dispose of the project entries in this referenced project
+                        foreach (var item in refList[i].ProjectEntries)
+                            item.Value.Dispose();
+                        refList[i].ProjectEntries.Clear();
+
                         _errorProvider.Clear(refList[i].Directory, ParserTaskMoniker);
                         _errorProvider.ClearErrorSource(refList[i].Directory);
                     }
@@ -1600,13 +1616,13 @@ namespace VSGenero.EditorExtensions.Intellisense
                 IndentationInconsistencySeverity = indentationSeverity,
                 BindReferences = true
             };
-            options.ProcessComment += (sender, e) => ProcessComment(entry, tasks, errTasks, snapshot, e.Span, e.Text);
-
-
+            EventHandler<CommentEventArgs> commentProcessor = (sender, e) => ProcessComment(entry, tasks, errTasks, snapshot, e.Span, e.Text);
+            options.ProcessComment += commentProcessor;
             using (var parser = GeneroParserFactory.CreateParser(snapshot.GetParserType(), content, options, entry))
             {
                 ast = ParseOneFile(ast, parser);
             }
+            options.ProcessComment -= commentProcessor;
         }
 
         private void ParseGeneroCode(ITextSnapshot snapshot, TextReader content, Severity indentationSeverity, IProjectEntry entry, 
@@ -1625,12 +1641,13 @@ namespace VSGenero.EditorExtensions.Intellisense
                 IndentationInconsistencySeverity = indentationSeverity, 
                 BindReferences = true 
             };
-            options.ProcessComment += (sender, e) => ProcessComment(entry, tasks, errTasks, snapshot, e.Span, e.Text);
-
+            EventHandler<CommentEventArgs> commentProcessor = (sender, e) => ProcessComment(entry, tasks, errTasks, snapshot, e.Span, e.Text);
+            options.ProcessComment += commentProcessor;
             using (var parser = GeneroParserFactory.CreateParser(snapshot.GetParserType(), content, options, entry))
             {
                 ast = ParseOneFile(ast, parser);
             }
+            options.ProcessComment -= commentProcessor;
         }
 
         private static GeneroAst ParseOneFile(GeneroAst ast, GeneroParser parser)
@@ -1943,20 +1960,39 @@ namespace VSGenero.EditorExtensions.Intellisense
 
         public void Dispose()
         {
-            foreach (var proj in _projects.Values)
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if(disposing)
             {
-                foreach (var entry in proj.ProjectEntries.Values)
+                foreach (var proj in _projects.Values)
                 {
-                    _errorProvider.Clear(entry.FilePath, ParserTaskMoniker);
-                    //_errorProvider.Clear(entry, UnresolvedImportMoniker);
-                    _commentTaskProvider.Clear(entry.FilePath, ParserTaskMoniker);
+                    foreach (var entry in proj.ProjectEntries.Values)
+                    {
+                        _errorProvider.Clear(entry.FilePath, ParserTaskMoniker);
+                        //_errorProvider.Clear(entry, UnresolvedImportMoniker);
+                        _commentTaskProvider.Clear(entry.FilePath, ParserTaskMoniker);
+                    }
+
+                    // TODO: dispose of error providers for referenced projects
+                    int i = 0;
                 }
 
-                // TODO: dispose of error providers for referenced projects
-                int i = 0;
+                if (_analysisQueue != null)
+                {
+                    _analysisQueue.Stop();
+                    _analysisQueue.Dispose();
+                }
+                if(_queueActivityEvent != null)
+                {
+                    _queueActivityEvent.Dispose();
+                }
+                if (_waitingErrorCheckingTimer != null)
+                    _waitingErrorCheckingTimer.Dispose();
             }
-
-            _analysisQueue.Stop();
         }
     }
 }

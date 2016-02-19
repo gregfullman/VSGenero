@@ -138,12 +138,6 @@ namespace VSGenero.EditorExtensions.Intellisense
 
         public void PropagateAnalyzer(ITextBuffer subjectBuffer)
         {
-            int i = 0;
-            //PythonReplEvaluator replEvaluator;
-            //if (_textView.Properties.TryGetProperty<PythonReplEvaluator>(typeof(PythonReplEvaluator), out replEvaluator))
-            //{
-            //    subjectBuffer.Properties.AddProperty(typeof(VsProjectAnalyzer), replEvaluator.ReplAnalyzer);
-            //}
         }
 
         public void DisconnectSubjectBuffer(ITextBuffer subjectBuffer)
@@ -173,11 +167,9 @@ namespace VSGenero.EditorExtensions.Intellisense
                 throw new ArgumentException("Not attached to specified text view", "textView");
             }
 
-            //_textView.MouseHover -= TextViewMouseHover;
+            // Remove this IntellisenseController from the text view's properties
             _textView.Properties.RemoveProperty(typeof(IntellisenseController));
-
             DetachKeyboardFilter();
-
             _bufferParser = null;
         }
 
@@ -629,6 +621,8 @@ namespace VSGenero.EditorExtensions.Intellisense
         {
             // We've just been told that our active session was dismissed.  We should remove all references to it.
             _sigHelpSession.Dismissed -= OnSignatureSessionDismissed;
+            if (_sigHelpSession.Properties.ContainsProperty(typeof(Genero4glFunctionSignature)))
+                _sigHelpSession.Properties.RemoveProperty(typeof(Genero4glFunctionSignature));
             _sigHelpSession = null;
         }
 

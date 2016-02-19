@@ -10,7 +10,7 @@ namespace VSGenero.Analysis
     /// Represents a file which is capable of being analyzed.  Can be cast to other project entry types
     /// for more functionality.  See also IGeneroProjectEntry
     /// </summary>
-    public interface IProjectEntry : IAnalyzable
+    public interface IProjectEntry : IAnalyzable, IDisposable
     {
         /// <summary>
         /// Returns true if the project entry has been parsed and analyzed.
@@ -54,5 +54,15 @@ namespace VSGenero.Analysis
         /// Implementors of this method must ensure this method is thread safe.
         /// </summary>
         void RemovedFromProject();
+
+        /// <summary>
+        /// Event fired when analysis is stopped.
+        /// </summary>
+        event EventHandler AnalysisStopped;
+
+        /// <summary>
+        /// To be called when the analysis of this entry is stopped.
+        /// </summary>
+        void OnAnalysisStopped();
     }
 }

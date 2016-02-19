@@ -10,7 +10,7 @@ namespace VSGenero.Analysis
     /// <summary>
     /// Represents a group of files that can be analyzed
     /// </summary>
-    public interface IGeneroProject
+    public interface IGeneroProject : IDisposable
     {
         IGeneroProject AddImportedModule(string path, IGeneroProjectEntry importer);
         void RemoveImportedModule(string path);

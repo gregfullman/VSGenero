@@ -38,7 +38,7 @@ using VSGenero.Refactoring;
 
 namespace VSGenero.Navigation
 {
-    public sealed class EditFilter : IOleCommandTarget
+    public sealed class EditFilter : IOleCommandTarget, IDisposable
     {
         private readonly ITextView _textView;
         private readonly IEditorOperations _editorOps;
@@ -52,11 +52,10 @@ namespace VSGenero.Navigation
         {
             _serviceProvider = serviceProvider;
             _textView = textView;
-            _textView.Properties[typeof(EditFilter)] = this;
             _editorOps = editorOps;
 
             Genero4glClassifier classifier;
-            if (_textView.TextBuffer.Properties.TryGetProperty<Genero4glClassifier>(typeof(Genero4glClassifier), out classifier))
+            if (_textView.TextBuffer.Properties.TryGetProperty(typeof(Genero4glClassifier), out classifier))
             {
                 _functionProvider = classifier.Provider._PublicFunctionProvider;
                 _databaseProvider = classifier.Provider._DatabaseInfoProvider;
@@ -74,6 +73,16 @@ namespace VSGenero.Navigation
             }
         }
 
+        public void DetachKeyboardFilter(IVsTextView vsTextView)
+        {
+            vsTextView.RemoveCommandFilter(this);
+        }
+
+        public void Dispose()
+        {
+            // Nothing to clean up right now...
+        }
+
         public enum GetLocationOptions
         {
             Definitions = 1,
@@ -89,7 +98,7 @@ namespace VSGenero.Navigation
             IFunctionInformationProvider funcProvider = null;
             IDatabaseInformationProvider dbProvider = null;
             IProgramFileProvider progfileProvider = null;
-            if (textView.TextBuffer.Properties.TryGetProperty<Genero4glClassifier>(typeof(Genero4glClassifier), out classifier))
+            if (textView.TextBuffer.Properties.TryGetProperty(typeof(Genero4glClassifier), out classifier))
             {
                 funcProvider = classifier.Provider._PublicFunctionProvider;
                 dbProvider = classifier.Provider._DatabaseInfoProvider;

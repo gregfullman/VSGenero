@@ -259,5 +259,24 @@ namespace VSGenero.Analysis
 
             return members;
         }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if(disposing)
+            {
+                foreach (var projEntry in ProjectEntries)
+                {
+                    if (projEntry.Value != null)
+                        projEntry.Value.Dispose();
+                }
+                ProjectEntries.Clear();
+            }
+        }
     }
 }

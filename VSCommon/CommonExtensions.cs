@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.VSCommon
         public static string GetFilePath(this ITextBuffer textBuffer)
         {
             ITextDocument textDocument;
-            if (textBuffer.Properties.TryGetProperty<ITextDocument>(typeof(ITextDocument), out textDocument))
+            if (textBuffer.Properties.TryGetProperty(typeof(ITextDocument), out textDocument))
             {
                 return textDocument.FilePath;
             }

@@ -25,7 +25,7 @@ using VSGenero.Analysis.Parsing;
 
 namespace VSGenero.EditorExtensions
 {
-    public class Genero4glClassifier : IClassifier
+    public class Genero4glClassifier : IClassifier, IDisposable
     {
         private readonly TokenCache _tokenCache;
         private readonly Genero4glClassifierProvider _provider;
@@ -45,6 +45,14 @@ namespace VSGenero.EditorExtensions
             _tokenCache = new TokenCache();
             _provider = provider;
             _buffer = buffer;
+        }
+
+        public void Dispose()
+        {
+            _tokenCache.Clear();
+            _buffer.Changed -= BufferChanged;
+            _buffer.ContentTypeChanged -= BufferContentTypeChanged;
+            _buffer.Properties.RemoveProperty(typeof(Genero4glClassifier));
         }
 
         internal void NewVersion()
@@ -609,7 +617,7 @@ namespace VSGenero.EditorExtensions
         public static Genero4glClassifier GetGeneroClassifier(this ITextBuffer buffer)
         {
             Genero4glClassifier res;
-            if (buffer.Properties.TryGetProperty<Genero4glClassifier>(typeof(Genero4glClassifier), out res))
+            if (buffer.Properties.TryGetProperty(typeof(Genero4glClassifier), out res))
             {
                 return res;
             }

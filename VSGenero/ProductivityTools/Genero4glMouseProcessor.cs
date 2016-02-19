@@ -29,8 +29,20 @@ namespace VSGenero.ProductivityTools
             {
                 mouseProcessor = new Genero4glMouseProcessor(wpfTextView);
                 wpfTextView.Properties.AddProperty(typeof(Genero4glMouseProcessor), mouseProcessor);
+                wpfTextView.Closed += WpfTextView_Closed;
             }
             return mouseProcessor;
+        }
+
+        private void WpfTextView_Closed(object sender, EventArgs e)
+        {
+            var wpfTextView = sender as IWpfTextView;
+            if(wpfTextView != null)
+            {
+                wpfTextView.Closed -= WpfTextView_Closed;
+                if(wpfTextView.Properties.ContainsProperty(typeof(Genero4glMouseProcessor)))
+                    wpfTextView.Properties.RemoveProperty(typeof(Genero4glMouseProcessor));
+            }
         }
     }
 

@@ -80,13 +80,12 @@ namespace VSGenero.EditorExtensions.Intellisense
 
         internal static IntellisenseControllerProvider Instance { get; private set; }
 
-        readonly Dictionary<ITextView, Tuple<BufferParser, GeneroProjectAnalyzer>> _hookedCloseEvents =
-        new Dictionary<ITextView, Tuple<BufferParser, GeneroProjectAnalyzer>>();
+        readonly Dictionary<ITextView, Tuple<BufferParser, GeneroProjectAnalyzer>> _hookedCloseEvents = new Dictionary<ITextView, Tuple<BufferParser, GeneroProjectAnalyzer>>();
 
         public IIntellisenseController TryCreateIntellisenseController(ITextView textView, IList<ITextBuffer> subjectBuffers)
         {
             IntellisenseController controller;
-            if (!textView.Properties.TryGetProperty<IntellisenseController>(typeof(IntellisenseController), out controller))
+            if (!textView.Properties.TryGetProperty(typeof(IntellisenseController), out controller))
             {
                 controller = new IntellisenseController(this, textView, _ServiceProvider);
             }
@@ -103,10 +102,6 @@ namespace VSGenero.EditorExtensions.Intellisense
                 {
                     if (VSGeneroPackage.Instance.ProgramFileProvider == null)
                         VSGeneroPackage.Instance.ProgramFileProvider = _ProgramFileProvider;
-                }
-                foreach (var subjBuf in subjectBuffers)
-                {
-                    controller.PropagateAnalyzer(subjBuf);
                 }
 
                 var entry = analyzer.MonitorTextBuffer(textView, buffer);

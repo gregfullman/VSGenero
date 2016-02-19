@@ -25,7 +25,7 @@ using VSGenero.Analysis.Parsing;
 
 namespace VSGenero.EditorExtensions.Intellisense
 {
-    public class HighlightReferencesTagger : ITagger<TextMarkerTag>
+    public class HighlightReferencesTagger : ITagger<TextMarkerTag>, IDisposable
     {
         // Fields
         private readonly Timer _timer;
@@ -281,5 +281,10 @@ namespace VSGenero.EditorExtensions.Intellisense
             }
         }
 
+        public void Dispose()
+        {
+            if (_timer != null)
+                _timer.Dispose();
+        }
     }
 }

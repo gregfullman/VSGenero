@@ -202,8 +202,9 @@ namespace VSGenero.Navigation
                 var factory = VSGeneroPackage.ComponentModel.GetService<IEditorOperationsFactoryService>();
                 var editFilter = new EditFilter(wpfTextView, factory.GetEditorOperations(wpfTextView), _serviceProvider);
                 editFilter.AttachKeyboardFilter(vsTextView);
-                //new TextViewFilter(_serviceProvider, vsTextView);
+                
                 wpfTextView.GotAggregateFocus += OnTextViewGotAggregateFocus;
+                wpfTextView.Properties[typeof(EditFilter)] = editFilter;
             }
             return VSConstants.S_OK;
         }
@@ -228,6 +229,12 @@ namespace VSGenero.Navigation
                 ((IVsCodeWindowEvents)this).OnCloseView(textView);
             }
 
+            if (_textBuffer.Properties.ContainsProperty(typeof(IVsTextView)))
+                _textBuffer.Properties.RemoveProperty(typeof(IVsTextView));
+
+            if (_textBuffer.Properties.ContainsProperty(typeof(IWpfTextView)))
+                _textBuffer.Properties.RemoveProperty(typeof(IWpfTextView));
+
             return RemoveDropDownBar();
         }
 
@@ -247,11 +254,7 @@ namespace VSGenero.Navigation
             if (_client != null)
             {
                 IVsDropdownBarManager manager = (IVsDropdownBarManager)_window;
-                //GeneroFileParserManager fpm;
-                //if (_textBuffer.Properties.TryGetProperty(typeof(GeneroFileParserManager), out fpm))
-                //{
-                //    fpm.CancelParsing();
-                //}
+                
                 _client.Unregister();
                 // A buffer may have multiple DropDownBarClients, given one may open multiple CodeWindows
                 // over a single buffer using Window/New Window
@@ -274,6 +277,8 @@ namespace VSGenero.Navigation
                     if (instancesOpen == 0)
                     {
                         string filePath = _textBuffer.GetFilePath();
+
+
 
                         //// remove the file parser manager from the buffer (hang onto it for unregistration)
                         //var delFpm = VSGeneroPackage.Instance.RemoveBufferFileParserManager(_textBuffer);
@@ -361,6 +366,14 @@ namespace VSGenero.Navigation
             if (wpfTextView != null)
             {
                 wpfTextView.GotAggregateFocus -= OnTextViewGotAggregateFocus;
+
+                EditFilter editFilter;
+                if(wpfTextView.Properties.TryGetProperty(typeof(EditFilter), out editFilter))
+                {
+                    editFilter.DetachKeyboardFilter(pView);
+                    editFilter.Dispose();
+                    wpfTextView.Properties.RemoveProperty(typeof(EditFilter));
+                }
             }
             return VSConstants.S_OK;
         }

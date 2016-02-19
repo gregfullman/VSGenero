@@ -46,7 +46,7 @@ namespace VSGenero.EditorExtensions
 
         #endregion
 
-        internal class OutliningTagger : ITagger<IOutliningRegionTag>
+        internal class OutliningTagger : ITagger<IOutliningRegionTag>, IDisposable
         {
             private readonly OutliningTaggerProvider _taggerProvider;
             private readonly ITextBuffer _buffer;
@@ -306,6 +306,12 @@ namespace VSGenero.EditorExtensions
                     }
                 }
                 return null;
+            }
+
+            public void Dispose()
+            {
+                if (_timer != null)
+                    _timer.Dispose();
             }
 
             public event EventHandler<SnapshotSpanEventArgs> TagsChanged;

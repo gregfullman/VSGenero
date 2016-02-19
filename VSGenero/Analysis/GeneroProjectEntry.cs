@@ -44,6 +44,16 @@ namespace VSGenero.Analysis
 
         public event EventHandler<EventArgs> OnNewParseTree;
         public event EventHandler<EventArgs> OnNewAnalysis;
+        public event EventHandler AnalysisStopped;
+
+        public void OnAnalysisStopped()
+        {
+            var stoppedEvent = AnalysisStopped;
+            if(stoppedEvent != null)
+            {
+                stoppedEvent(this, new EventArgs());
+            }
+        }
 
         public void UpdateTree(GeneroAst newAst, IAnalysisCookie newCookie)
         {
@@ -273,6 +283,14 @@ namespace VSGenero.Analysis
         public bool DetectCircularImports()
         {
             return false;
+        }
+
+        public void Dispose()
+        {
+            PreventErrorCheck = true;
+            OnAnalysisStopped();
+            if (_curWaiter != null)
+                _curWaiter.Dispose();
         }
 
         public bool CanErrorCheck

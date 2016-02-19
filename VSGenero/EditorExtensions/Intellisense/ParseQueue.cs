@@ -69,7 +69,6 @@ namespace VSGenero.EditorExtensions.Intellisense
 
                 var curSnapshot = buffer.CurrentSnapshot;
                 var severity = Severity.Ignore;
-                bufferParser.EnqueingEntry();
                 EnqueWorker(() =>
                 {
                     _parser.ParseBuffers(bufferParser, severity, curSnapshot);
@@ -165,7 +164,7 @@ namespace VSGenero.EditorExtensions.Intellisense
         }
     }
 
-    class BufferParser
+    class BufferParser : IDisposable
     {
         internal GeneroProjectAnalyzer _parser;
         private readonly ParseQueue _queue;
@@ -196,27 +195,8 @@ namespace VSGenero.EditorExtensions.Intellisense
         {
             get
             {
-                //if (PythonToolsPackage.Instance != null)
-                //{
-                //    return PythonToolsPackage.Instance.DebuggingOptionsPage.IndentationInconsistencySeverity;
-                //}
                 return Severity.Ignore;
             }
-        }
-
-        public void StopMonitoring()
-        {
-            foreach (var buffer in _buffers)
-            {
-                buffer.ChangedLowPriority -= BufferChangedLowPriority;
-                buffer.Properties.RemoveProperty(typeof(BufferParser));
-                if (_document != null)
-                {
-                    _document.EncodingChanged -= EncodingChanged;
-                    _document = null;
-                }
-            }
-            _timer.Dispose();
         }
 
         public Dispatcher Dispatcher
@@ -231,9 +211,7 @@ namespace VSGenero.EditorExtensions.Intellisense
         {
             get
             {
-                return _buffers.ToArray();//.Where(
-                //    x => !x.Properties.ContainsProperty(PythonReplEvaluator.InputBeforeReset)
-                //).ToArray();
+                return _buffers.ToArray();
             }
         }
 
@@ -271,22 +249,61 @@ namespace VSGenero.EditorExtensions.Intellisense
             subjectBuffer.Properties.RemoveProperty(typeof(IProjectEntry));
             subjectBuffer.Properties.RemoveProperty(typeof(BufferParser));
             subjectBuffer.ChangedLowPriority -= BufferChangedLowPriority;
+
+            var classifier = subjectBuffer.GetGeneroClassifier();
+            if (classifier != null)
+            {
+                classifier.Dispose();
+            }
         }
 
         private void InitBuffer(ITextBuffer buffer)
         {
+            buffer.Properties.AddProperty(typeof(IProjectEntry), _currentProjEntry);
             buffer.Properties.AddProperty(typeof(BufferParser), this);
             buffer.ChangedLowPriority += BufferChangedLowPriority;
-            buffer.Properties.AddProperty(typeof(IProjectEntry), _currentProjEntry);
 
             if (_document != null)
             {
                 _document.EncodingChanged -= EncodingChanged;
                 _document = null;
             }
-            if (buffer.Properties.TryGetProperty<ITextDocument>(typeof(ITextDocument), out _document) && _document != null)
+            if (buffer.Properties.TryGetProperty(typeof(ITextDocument), out _document) && _document != null)
             {
                 _document.EncodingChanged += EncodingChanged;
+            }
+        }
+
+        public void Dispose()
+        {
+            StopMonitoring();
+            if(_currentProjEntry != null)
+            {
+                _currentProjEntry.OnAnalysisStopped();
+            }
+            if (_timer != null)
+                _timer.Dispose();
+        }
+
+        public void StopMonitoring()
+        {
+            foreach (var buffer in _buffers)
+            {
+                buffer.ChangedLowPriority -= BufferChangedLowPriority;
+                buffer.Properties.RemoveProperty(typeof(BufferParser));
+                buffer.Properties.RemoveProperty(typeof(IProjectEntry));
+
+                var classifier = buffer.GetGeneroClassifier();
+                if(classifier != null)
+                {
+                    classifier.Dispose();
+                }
+
+                if (_document != null)
+                {
+                    _document.EncodingChanged -= EncodingChanged;
+                    _document = null;
+                }
             }
         }
 
@@ -310,7 +327,6 @@ namespace VSGenero.EditorExtensions.Intellisense
             {
                 if (_parsing)
                 {
-                    NotReparsing();
                     Interlocked.Decrement(ref _queue._analysisPending);
                     return;
                 }
@@ -322,13 +338,10 @@ namespace VSGenero.EditorExtensions.Intellisense
                 {
                     snapshots[i] = buffers[i].CurrentSnapshot;
                 }
-            //}
 
                 _parser.ParseBuffers(this, IndentationInconsistencySeverity, snapshots);
                 Interlocked.Decrement(ref _queue._analysisPending);
 
-            //lock (this)
-            //{
                 _parsing = false;
                 if (_requeue)
                 {
@@ -338,36 +351,6 @@ namespace VSGenero.EditorExtensions.Intellisense
             }
         }
 
-        /// <summary>
-        /// Called when we decide we need to re-parse a buffer but before we start the buffer.
-        /// </summary>
-        internal void EnqueingEntry()
-        {
-            lock (this)
-            {
-                //IPythonProjectEntry pyEntry = _currentProjEntry as IPythonProjectEntry;
-                //if (pyEntry != null)
-                //{
-                //    pyEntry.BeginParsingTree();
-                //}
-            }
-        }
-
-        /// <summary>
-        /// Called when we race and are not actually re-parsing a buffer, balances the calls
-        /// of BeginParsingTree when we aren't parsing.
-        /// </summary>
-        private void NotReparsing()
-        {
-            lock (this)
-            {
-                //IPythonProjectEntry pyEntry = _currentProjEntry as IPythonProjectEntry;
-                //if (pyEntry != null)
-                //{
-                //    pyEntry.UpdateTree(null, null);
-                //}
-            }
-        }
 
         internal void EncodingChanged(object sender, EncodingChangedEventArgs e)
         {
@@ -398,11 +381,6 @@ namespace VSGenero.EditorExtensions.Intellisense
                     _requeue = true;
                     _timer.Change(Timeout.Infinite, Timeout.Infinite);
                 }
-                //else if (LineAndTextChanges(e))
-                //{
-                //    // user pressed enter, we should reque immediately
-                //    Requeue();
-                //}
                 else
                 {
                     // parse if the user doesn't do anything for a while.
@@ -421,7 +399,6 @@ namespace VSGenero.EditorExtensions.Intellisense
         private void RequeueWorker()
         {
             Interlocked.Increment(ref _queue._analysisPending);
-            EnqueingEntry();
             ThreadPool.QueueUserWorkItem(ReparseWorker);
         }
 
@@ -466,6 +443,8 @@ namespace VSGenero.EditorExtensions.Intellisense
             }
             return mixedChanges;
         }
+
+        
 
         internal ITextDocument Document
         {

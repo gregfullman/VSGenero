@@ -38,7 +38,7 @@ namespace VSGenero
     /// Factory for creating our editor
     /// </summary>
     [Guid("F26A6EE9-3CE6-4885-B62D-382F4DD3A50E")]
-    public class EditorFactory : IVsEditorFactory
+    public class EditorFactory : IVsEditorFactory, IDisposable
     {
         #region const
         internal static readonly Guid guidEditorFactory = new Guid("{F26A6EE9-3CE6-4885-B62D-382F4DD3A50E}");
@@ -331,6 +331,11 @@ namespace VSGenero
             ErrorHandler.ThrowOnFailure(window.GetEditorCaption(READONLYSTATUS.ROSTATUS_Unknown, out editorCaption));
             cmdUI = VSConstants.GUID_TextEditorFactory;
             return Marshal.GetIUnknownForObject(window);
+        }
+
+        public void Dispose()
+        {
+            serviceProvider.Dispose();
         }
 
         #endregion

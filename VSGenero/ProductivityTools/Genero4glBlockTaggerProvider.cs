@@ -119,12 +119,6 @@ namespace VSGenero.ProductivityTools
 
         private static bool ShouldInclude(IOutlinableResult result, NormalizedSnapshotSpanCollection spans)
         {
-            //if (spans.Count == 1 && spans[0].Length == spans[0].Snapshot.Length)
-            //{
-            //    // we're processing the entire snapshot
-            //    return spans[0];
-            //}
-
             for (int i = 0; i < spans.Count; i++)
             {
                 if (spans[i].IntersectsWith(Span.FromBounds(result.StartIndex, result.EndIndex)))
@@ -223,6 +217,15 @@ namespace VSGenero.ProductivityTools
 
         public void Dispose()
         {
+            IGeneroProjectEntry classifier;
+            if (_buffer.TryGetAnalysis(out classifier))
+            {
+                classifier.OnNewAnalysis -= OnNewParseTree;
+            }
+            if (_buffer.Properties.ContainsProperty(typeof(Genero4glBlockTagger)))
+                _buffer.Properties.RemoveProperty(typeof(Genero4glBlockTagger));
+            if (_timer != null)
+                _timer.Dispose();
         }
     }
 }

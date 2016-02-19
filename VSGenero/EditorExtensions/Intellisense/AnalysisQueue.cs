@@ -158,9 +158,13 @@ namespace VSGenero.EditorExtensions.Intellisense
 
         #region IDisposable Members
 
-        void IDisposable.Dispose()
+        public void Dispose()
         {
             Stop();
+            if (_cancel != null)
+                _cancel.Dispose();
+            if (_workEvent != null)
+                _workEvent.Dispose();
         }
 
         #endregion
