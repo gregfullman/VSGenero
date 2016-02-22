@@ -168,7 +168,9 @@ namespace VSGenero.EditorExtensions.Intellisense
     {
         internal GeneroProjectAnalyzer _parser;
         private readonly ParseQueue _queue;
-        private readonly Timer _timer;
+        private bool _disposed;
+        private object _disposedLock = new object();
+        private Timer _timer;
         private readonly Dispatcher _dispatcher;
         private IList<ITextBuffer> _buffers;
         private bool _parsing, _requeue, _textChange;
@@ -276,13 +278,20 @@ namespace VSGenero.EditorExtensions.Intellisense
 
         public void Dispose()
         {
-            StopMonitoring();
-            if(_currentProjEntry != null)
+            lock(this)
             {
-                _currentProjEntry.OnAnalysisStopped();
+                _disposed = true;
+                StopMonitoring();
+                if (_currentProjEntry != null)
+                {
+                    _currentProjEntry.OnAnalysisStopped();
+                }
+                if (_timer != null)
+                {
+                    _timer.Dispose();
+                    _timer = null;
+                }
             }
-            if (_timer != null)
-                _timer.Dispose();
         }
 
         public void StopMonitoring()
@@ -356,15 +365,19 @@ namespace VSGenero.EditorExtensions.Intellisense
         {
             lock (this)
             {
-                if (_parsing)
+                if (!_disposed)
                 {
-                    // we are currently parsing, just reque when we complete
-                    _requeue = true;
-                    _timer.Change(Timeout.Infinite, Timeout.Infinite);
-                }
-                else
-                {
-                    Requeue();
+                    if (_parsing)
+                    {
+                        // we are currently parsing, just reque when we complete
+                        _requeue = true;
+                        if(_timer != null)
+                            _timer.Change(Timeout.Infinite, Timeout.Infinite);
+                    }
+                    else
+                    {
+                        Requeue();
+                    }
                 }
             }
         }
@@ -374,26 +387,35 @@ namespace VSGenero.EditorExtensions.Intellisense
             lock (this)
             {
                 // only immediately re-parse on line changes after we've seen a text change.
-
-                if (_parsing)
+                if (!_disposed && _timer != null)
                 {
-                    // we are currently parsing, just reque when we complete
-                    _requeue = true;
-                    _timer.Change(Timeout.Infinite, Timeout.Infinite);
-                }
-                else
-                {
-                    // parse if the user doesn't do anything for a while.
-                    _textChange = LineAndTextChanges(e);// IncludesTextChanges(e);
-                    _timer.Change(ReparseDelay, Timeout.Infinite);
+                    if (_parsing)
+                    {
+                        // we are currently parsing, just reque when we complete
+                        _requeue = true;
+                        _timer.Change(Timeout.Infinite, Timeout.Infinite);
+                    }
+                    else
+                    {
+                        // parse if the user doesn't do anything for a while.
+                        _textChange = LineAndTextChanges(e);// IncludesTextChanges(e);
+                        _timer.Change(ReparseDelay, Timeout.Infinite);
+                    }
                 }
             }
         }
 
         internal void Requeue()
         {
-            RequeueWorker();
-            _timer.Change(Timeout.Infinite, Timeout.Infinite);
+            lock(this)
+            {
+                if (!_disposed)
+                {
+                    RequeueWorker();
+                    if(_timer != null)
+                        _timer.Change(Timeout.Infinite, Timeout.Infinite);
+                }
+            }
         }
 
         private void RequeueWorker()

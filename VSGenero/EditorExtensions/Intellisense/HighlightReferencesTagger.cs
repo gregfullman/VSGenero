@@ -28,7 +28,9 @@ namespace VSGenero.EditorExtensions.Intellisense
     public class HighlightReferencesTagger : ITagger<TextMarkerTag>, IDisposable
     {
         // Fields
-        private readonly Timer _timer;
+        private bool _disposed;
+        private object _disposeLock = new object();
+        private Timer _timer;
         private readonly ITextBuffer buffer;
         private static readonly NormalizedSnapshotSpanCollection emptyCollection = new NormalizedSnapshotSpanCollection();
         private NormalizedSnapshotSpanCollection highlightReferencesSpans;
@@ -64,17 +66,28 @@ namespace VSGenero.EditorExtensions.Intellisense
 
         void textView_LayoutChanged(object sender, TextViewLayoutChangedEventArgs e)
         {
-            if (e.NewSnapshot != e.OldSnapshot)
+            lock(_disposeLock)
             {
-                _lastCaretPosition = textView.Caret.Position;
-                _timer.Change(Delay, Timeout.Infinite);
+                if (!_disposed && e.NewSnapshot != e.OldSnapshot)
+                {
+                    _lastCaretPosition = textView.Caret.Position;
+                    if(_timer != null)
+                        _timer.Change(Delay, Timeout.Infinite);
+                }
             }
         }
 
         void Caret_PositionChanged(object sender, CaretPositionChangedEventArgs e)
         {
-            _lastCaretPosition = e.NewPosition;
-            _timer.Change(Delay, Timeout.Infinite);
+            lock (_disposeLock)
+            {
+                if (!_disposed)
+                {
+                    _lastCaretPosition = e.NewPosition;
+                    if (_timer != null)
+                        _timer.Change(Delay, Timeout.Infinite);
+                }
+            }
         }
 
         private CaretPosition _lastCaretPosition;
@@ -270,7 +283,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             this.textView.Properties.RemoveProperty(key);
             OnHighlightReferencesEngineShutdown();
             this.isActive = false;
-            _timer.Dispose();
+            Dispose();
         }
 
         private void VerifyTaggerIsActive()
@@ -283,8 +296,15 @@ namespace VSGenero.EditorExtensions.Intellisense
 
         public void Dispose()
         {
-            if (_timer != null)
-                _timer.Dispose();
+            lock(_disposeLock)
+            {
+                _disposed = true;
+                if (_timer != null)
+                {
+                    _timer.Dispose();
+                    _timer = null;
+                }
+            }
         }
     }
 }

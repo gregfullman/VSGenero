@@ -96,7 +96,9 @@ namespace VSGenero.EditorExtensions.Intellisense
         private readonly Dictionary<BufferParser, IProjectEntry> _openFiles = new Dictionary<BufferParser, IProjectEntry>();
         private readonly ConcurrentDictionary<string, IGeneroProject> _projects;
 
-        private readonly System.Threading.Timer _waitingErrorCheckingTimer;
+        private bool _disposed;
+        private object _disposedLock = new object();
+        private System.Threading.Timer _waitingErrorCheckingTimer;
         private readonly ConcurrentQueue<IGeneroProjectEntry> _waitingErrorCheckers;
 
         private readonly bool _implicitProject;
@@ -1409,40 +1411,43 @@ namespace VSGenero.EditorExtensions.Intellisense
 
         private void WaitingErrorCheckersTimerCallback(object state)
         {
-            if(_waitingErrorCheckers.Count > 0)
+            lock(_disposedLock)
             {
-                // pause the timer
-                _waitingErrorCheckingTimer.Change(Timeout.Infinite, Timeout.Infinite);
-
-                List<IGeneroProjectEntry> tempQueue = new List<IGeneroProjectEntry>();
-                while(!_waitingErrorCheckers.IsEmpty)
+                if (!_disposed && _waitingErrorCheckers.Count > 0)
                 {
-                    IGeneroProjectEntry entry;
-                    if(_waitingErrorCheckers.TryDequeue(out entry))
+                    // pause the timer
+                    _waitingErrorCheckingTimer.Change(Timeout.Infinite, Timeout.Infinite);
+
+                    List<IGeneroProjectEntry> tempQueue = new List<IGeneroProjectEntry>();
+                    while (!_waitingErrorCheckers.IsEmpty)
                     {
-                        if (VSGeneroPackage.Instance.AdvancedOptions4GLPage.SemanticErrorCheckingEnabled)
+                        IGeneroProjectEntry entry;
+                        if (_waitingErrorCheckers.TryDequeue(out entry))
                         {
-                            if (!entry.PreventErrorCheck)
+                            if (VSGeneroPackage.Instance.AdvancedOptions4GLPage.SemanticErrorCheckingEnabled)
                             {
-                                if (entry.CanErrorCheck)
+                                if (!entry.PreventErrorCheck)
                                 {
-                                    // check the errors
-                                    CheckForErrors(entry);
-                                }
-                                else
-                                {
-                                    // defer for later
-                                    tempQueue.Add(entry);
+                                    if (entry.CanErrorCheck)
+                                    {
+                                        // check the errors
+                                        CheckForErrors(entry);
+                                    }
+                                    else
+                                    {
+                                        // defer for later
+                                        tempQueue.Add(entry);
+                                    }
                                 }
                             }
                         }
                     }
+
+                    foreach (var item in tempQueue)
+                        _waitingErrorCheckers.Enqueue(item);
+
+                    _waitingErrorCheckingTimer.Change(1000, 1000);
                 }
-
-                foreach (var item in tempQueue)
-                    _waitingErrorCheckers.Enqueue(item);
-
-                _waitingErrorCheckingTimer.Change(1000, 1000);
             }
         }
 
@@ -1968,30 +1973,37 @@ namespace VSGenero.EditorExtensions.Intellisense
         {
             if(disposing)
             {
-                foreach (var proj in _projects.Values)
+                lock(_disposedLock)
                 {
-                    foreach (var entry in proj.ProjectEntries.Values)
+                    _disposed = true;
+                    foreach (var proj in _projects.Values)
                     {
-                        _errorProvider.Clear(entry.FilePath, ParserTaskMoniker);
-                        //_errorProvider.Clear(entry, UnresolvedImportMoniker);
-                        _commentTaskProvider.Clear(entry.FilePath, ParserTaskMoniker);
+                        foreach (var entry in proj.ProjectEntries.Values)
+                        {
+                            _errorProvider.Clear(entry.FilePath, ParserTaskMoniker);
+                            //_errorProvider.Clear(entry, UnresolvedImportMoniker);
+                            _commentTaskProvider.Clear(entry.FilePath, ParserTaskMoniker);
+                        }
+
+                        // TODO: dispose of error providers for referenced projects
+                        int i = 0;
                     }
 
-                    // TODO: dispose of error providers for referenced projects
-                    int i = 0;
+                    if (_analysisQueue != null)
+                    {
+                        _analysisQueue.Stop();
+                        _analysisQueue.Dispose();
+                    }
+                    if (_queueActivityEvent != null)
+                    {
+                        _queueActivityEvent.Dispose();
+                    }
+                    if (_waitingErrorCheckingTimer != null)
+                    {
+                        _waitingErrorCheckingTimer.Dispose();
+                        _waitingErrorCheckingTimer = null;
+                    }
                 }
-
-                if (_analysisQueue != null)
-                {
-                    _analysisQueue.Stop();
-                    _analysisQueue.Dispose();
-                }
-                if(_queueActivityEvent != null)
-                {
-                    _queueActivityEvent.Dispose();
-                }
-                if (_waitingErrorCheckingTimer != null)
-                    _waitingErrorCheckingTimer.Dispose();
             }
         }
     }
