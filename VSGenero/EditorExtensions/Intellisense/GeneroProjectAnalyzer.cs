@@ -931,6 +931,9 @@ namespace VSGenero.EditorExtensions.Intellisense
 
                         _errorProvider.Clear(refList[i].Directory, ParserTaskMoniker);
                         _errorProvider.ClearErrorSource(refList[i].Directory);
+
+                        _commentTaskProvider.Clear(refList[i].Directory, ParserTaskMoniker);
+                        _commentTaskProvider.ClearErrorSource(refList[i].Directory);
                     }
                 }
             }

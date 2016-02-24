@@ -369,7 +369,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                         else
                         {
                             List<EntryKey> remove = new List<EntryKey>();
-                            foreach(var item in items)
+                            foreach (var item in items)
                             {
                                 item.Value.RemoveAll(x => x.Level.HasFlag(_taskLevel));
                                 if (item.Value.Count == 0)
@@ -478,12 +478,17 @@ namespace VSGenero.EditorExtensions.Intellisense
         /// </summary>
         public void ReplaceItems(string filepath, string moniker, List<TaskProviderItem> items, TaskLevel level)
         {
+            if (!HasErrorSource(filepath, moniker))
+            {
+                AddErrorSource(filepath, moniker);
+            }
+
             SendMessage(WorkerMessage.Replace(filepath, moniker, items, level));
         }
 
         public List<TaskProviderItem> GetItems(string filepath, string moniker)
         {
-            lock(_itemsLock)
+            lock (_itemsLock)
             {
                 EntryKey ek = new EntryKey(filepath, moniker);
                 List<TaskProviderItem> items;
@@ -518,7 +523,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             {
                 remKeys = _errorSources.Where(x => x.Key.Filepath.StartsWith(filePath, StringComparison.OrdinalIgnoreCase)).Select(x => x.Key).ToList();
             }
-            for(int i = 0; i < remKeys.Count; i++)
+            for (int i = 0; i < remKeys.Count; i++)
             {
                 SendMessage(WorkerMessage.Clear(remKeys[i].Filepath, moniker, taskLevel));
             }
@@ -560,7 +565,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                 {
                     _errorSources[new EntryKey(filepath, moniker)] = buffers = new HashSet<ITextBuffer>();
                 }
-                if(buffer != null)
+                if (buffer != null)
                     buffers.Add(buffer);
             }
         }
@@ -568,7 +573,7 @@ namespace VSGenero.EditorExtensions.Intellisense
         public void AddErrorSource(string filepath, string moniker)
         {
             var key = new EntryKey(filepath, moniker);
-            lock(_errorSources)
+            lock (_errorSources)
             {
                 if (!_errorSources.ContainsKey(key))
                 {
@@ -1181,7 +1186,7 @@ namespace VSGenero.EditorExtensions.Intellisense
 
         public void BringToFront()
         {
-            if(!Shell.VsShellUtilities.ShellIsShuttingDown)
+            if (!Shell.VsShellUtilities.ShellIsShuttingDown)
             {
                 _errorList.BringToFront();
             }
