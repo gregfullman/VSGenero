@@ -59,6 +59,7 @@ namespace VSGenero.Analysis.Parsing
         SingleBar = 40,
 
         // other non-keyword tokens
+        AtSymbol = 46,
         Ampersand = 47,
         LeftParenthesis = 48,
         RightParenthesis = 49,
@@ -551,6 +552,7 @@ namespace VSGenero.Analysis.Parsing
         private static readonly Token symEqualsToken = new OperatorToken(TokenKind.Equals, "=", -1);
         private static readonly Token symAssign = new OperatorToken(TokenKind.Assign, ":=", -1);
         private static readonly Token symAmpersand = new OperatorToken(TokenKind.Ampersand, "&", -1);
+        private static readonly Token symAtSymbol = new SymbolToken(TokenKind.AtSymbol, "@");
 
         public static Token GetSymbolToken(string tokenText)
         {
@@ -647,6 +649,11 @@ namespace VSGenero.Analysis.Parsing
         public static Token AmpersandToken
         {
             get { return symAmpersand; }
+        }
+
+        public static Token AtSymbol
+        {
+            get { return symAtSymbol; }
         }
 
         public static Token PowerToken

@@ -1636,6 +1636,8 @@ namespace VSGenero.Analysis.Parsing
                     return Tokens.EqualsToken;
                 case '&':
                     return Tokens.AmpersandToken;
+                case '@':
+                    return Tokens.AtSymbol;
             }
 
             return null;
