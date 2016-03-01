@@ -57,9 +57,19 @@ namespace VSGenero.Analysis.Parsing.AST_PER
                 }
 
                 TopMenuGroup group;
-                while(TopMenuGroup.TrParseNode(parser, out group))
+                while(TopMenuGroup.TryParseNode(parser, out group))
                 {
                     node.Children.Add(group.StartIndex, group);
+                }
+
+                if(parser.PeekToken(TokenKind.EndKeyword))
+                {
+                    parser.NextToken();
+                    node.EndIndex = parser.Token.Span.End;
+                }
+                else
+                {
+                    parser.ReportSyntaxError("Expected \"end\" token.");
                 }
 
                 node.EndIndex = parser.Token.Span.End;
@@ -71,19 +81,109 @@ namespace VSGenero.Analysis.Parsing.AST_PER
 
     public class TopMenuGroup : AstNodePer
     {
-        public static bool TrParseNode(IParser parser, out TopMenuGroup node)
+        public NameExpression Identifier { get; private set; }
+        public List<MenuAttribute> Attributes { get; private set; }
+
+        public static bool TryParseNode(IParser parser, out TopMenuGroup node)
         {
             bool result = false;
             node = null;
 
-            if(parser.PeekToken(TokenKind.TopMenuKeyword))
+            if(parser.PeekToken(TokenKind.GroupKeyword))
             {
                 result = true;
                 node = new TopMenuGroup();
                 parser.NextToken();
                 node.StartIndex = parser.Token.Span.Start;
 
+                NameExpression nameExpr;
+                if(NameExpression.TryParseNode(parser, out nameExpr))
+                {
+                    node.Identifier = nameExpr;
 
+                    if (parser.PeekToken(TokenKind.LeftParenthesis))
+                    {
+                        parser.NextToken();
+
+                        MenuAttribute attrib;
+                        while (MenuAttribute.TryParseNode(parser, out attrib, MenuComponent.Group))
+                        {
+                            node.Attributes.Add(attrib);
+                            if (!parser.PeekToken(TokenKind.Comma))
+                                break;
+                            parser.NextToken();
+                        }
+
+                        if (parser.PeekToken(TokenKind.RightParenthesis))
+                            parser.NextToken();
+                        else
+                            parser.ReportSyntaxError("Expecting right-paren in group attributes section.");
+                    }
+
+                    bool continueGroup = true;
+                    while (continueGroup)
+                    {
+                        switch (parser.PeekToken().Kind)
+                        {
+                            case TokenKind.CommandKeyword:
+                                {
+                                    TopMenuCommand cmd;
+                                    if (TopMenuCommand.TrParseNode(parser, out cmd))
+                                    {
+                                        node.Children.Add(cmd.StartIndex, cmd);
+                                    }
+                                    else
+                                    {
+                                        parser.ReportSyntaxError("Invalid top menu command block found.");
+                                    }
+                                }
+                                break;
+                            case TokenKind.SeparatorKeyword:
+                                {
+                                    TopMenuSeparator sep;
+                                    if (TopMenuSeparator.TrParseNode(parser, out sep))
+                                    {
+                                        node.Children.Add(sep.StartIndex, sep);
+                                    }
+                                    else
+                                    {
+                                        parser.ReportSyntaxError("Invalid top menu separator block found.");
+                                    }
+                                }
+                                break;
+                            case TokenKind.GroupKeyword:
+                                {
+                                    TopMenuGroup grp;
+                                    if (TryParseNode(parser, out grp))
+                                    {
+                                        node.Children.Add(grp.StartIndex, grp);
+                                    }
+                                    else
+                                    {
+                                        parser.ReportSyntaxError("Invalid top menu group block found.");
+                                    }
+                                }
+                                break;
+                            default:
+                                continueGroup = false;
+                                break;
+                        }
+                    }
+
+                    if(parser.PeekToken(TokenKind.EndKeyword))
+                    {
+                        parser.NextToken();
+                        node.EndIndex = parser.Token.Span.Start;
+                    }
+                    else
+                    {
+                        parser.ReportSyntaxError("Invalid token found, expected \"end\".");
+                    }    
+                }
+                else
+                {
+                    parser.ReportSyntaxError("Invalid GROUP name found.");
+                }
             }
 
             return result;
@@ -92,6 +192,9 @@ namespace VSGenero.Analysis.Parsing.AST_PER
 
     public class TopMenuCommand : AstNodePer
     {
+        public NameExpression Identifier { get; private set; }
+        public List<MenuAttribute> Attributes { get; private set; }
+
         public static bool TrParseNode(IParser parser, out TopMenuCommand node)
         {
             bool result = false;
@@ -104,7 +207,34 @@ namespace VSGenero.Analysis.Parsing.AST_PER
                 parser.NextToken();
                 node.StartIndex = parser.Token.Span.Start;
 
+                NameExpression nameExpr;
+                if (NameExpression.TryParseNode(parser, out nameExpr))
+                {
+                    node.Identifier = nameExpr;
 
+                    if (parser.PeekToken(TokenKind.LeftParenthesis))
+                    {
+                        parser.NextToken();
+
+                        MenuAttribute attrib;
+                        while (MenuAttribute.TryParseNode(parser, out attrib, MenuComponent.Command))
+                        {
+                            node.Attributes.Add(attrib);
+                            if (!parser.PeekToken(TokenKind.Comma))
+                                break;
+                            parser.NextToken();
+                        }
+
+                        if (parser.PeekToken(TokenKind.RightParenthesis))
+                            parser.NextToken();
+                        else
+                            parser.ReportSyntaxError("Expecting right-paren in group attributes section.");
+                    }
+                }
+                else
+                {
+                    parser.ReportSyntaxError("Invalid COMMAND name found.");
+                }
             }
 
             return result;
@@ -113,19 +243,49 @@ namespace VSGenero.Analysis.Parsing.AST_PER
 
     public class TopMenuSeparator : AstNodePer
     {
+        public NameExpression Identifier { get; private set; }
+        public List<MenuAttribute> Attributes { get; private set; }
+
         public static bool TrParseNode(IParser parser, out TopMenuSeparator node)
         {
             bool result = false;
             node = null;
 
-            if (parser.PeekToken(TokenKind.SecondKeyword))
+            if (parser.PeekToken(TokenKind.SeparatorKeyword))
             {
                 result = true;
                 node = new TopMenuSeparator();
                 parser.NextToken();
                 node.StartIndex = parser.Token.Span.Start;
 
+                NameExpression nameExpr;
+                if (NameExpression.TryParseNode(parser, out nameExpr))
+                {
+                    node.Identifier = nameExpr;
 
+                    if (parser.PeekToken(TokenKind.LeftParenthesis))
+                    {
+                        parser.NextToken();
+
+                        MenuAttribute attrib;
+                        while (MenuAttribute.TryParseNode(parser, out attrib, MenuComponent.Separator))
+                        {
+                            node.Attributes.Add(attrib);
+                            if (!parser.PeekToken(TokenKind.Comma))
+                                break;
+                            parser.NextToken();
+                        }
+
+                        if (parser.PeekToken(TokenKind.RightParenthesis))
+                            parser.NextToken();
+                        else
+                            parser.ReportSyntaxError("Expecting right-paren in group attributes section.");
+                    }
+                }
+                else
+                {
+                    parser.ReportSyntaxError("Invalid COMMAND name found.");
+                }
             }
 
             return result;
