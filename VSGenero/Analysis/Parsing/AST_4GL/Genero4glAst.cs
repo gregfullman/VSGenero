@@ -169,7 +169,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             // Check for class methods
             IGeneroProject dummyProj;
             IProjectEntry dummyProjEntry;
-            IAnalysisResult member = GetValueByIndex(exprText, index, _functionProvider, _databaseProvider, _programFileProvider, true, out dummyProj, out dummyProjEntry);
+            bool dummyDef;
+            IAnalysisResult member = GetValueByIndex(exprText, index, _functionProvider, _databaseProvider, _programFileProvider, true, out dummyDef, out dummyProj, out dummyProjEntry);
             if (member is IFunctionResult)
             {
                 return new IFunctionResult[1] { member as IFunctionResult };
@@ -640,7 +641,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         /// <param name="index">The 0-based absolute index into the file where the expression should be evaluated within the module.</param>
         public override IAnalysisResult GetValueByIndex(string exprText, int index, IFunctionInformationProvider functionProvider,
                                                IDatabaseInformationProvider databaseProvider, IProgramFileProvider programFileProvider,
-                                               bool isFunctionCallOrDefinition,
+                                               bool isFunctionCallOrDefinition, out bool isDeferred,
                                                out IGeneroProject definingProject, out IProjectEntry projectEntry, 
                                                FunctionProviderSearchMode searchInFunctionProvider = FunctionProviderSearchMode.NoSearch)
         {
@@ -648,8 +649,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             _databaseProvider = databaseProvider;
             _programFileProvider = programFileProvider;
 
-            bool dummy;
-            return GetValueByIndex(exprText, index, this, out definingProject, out projectEntry, out dummy,
+            return GetValueByIndex(exprText, index, this, out definingProject, out projectEntry, out isDeferred,
                                    searchInFunctionProvider, 
                                    isFunctionCallOrDefinition);
         }
@@ -847,7 +847,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             {
                 IGeneroProject definingProj;
                 IProjectEntry projEntry;
-                IAnalysisResult res = GetValueByIndex(exprText, index, functionProvider, databaseProvider, _programFileProvider, isFunctionCallOrDefinition, out definingProj, out projEntry);
+                bool dummyDef;
+                IAnalysisResult res = GetValueByIndex(exprText, index, functionProvider, databaseProvider, _programFileProvider, isFunctionCallOrDefinition, out dummyDef, out definingProj, out projEntry);
                 if (res != null)
                 {
                     LocationInfo locInfo = null;
@@ -876,7 +877,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     if (refProjKVP != null && refProjKVP is IAnalysisResult)
                     {
                         IProjectEntry dummyEntry;
-                        IAnalysisResult res = GetValueByIndex(exprText, index, functionProvider, databaseProvider, _programFileProvider, isFunctionCallOrDefinition, out refProjKVP, out dummyEntry);
+                        bool dummyDef;
+                        IAnalysisResult res = GetValueByIndex(exprText, index, functionProvider, databaseProvider, _programFileProvider, isFunctionCallOrDefinition, out dummyDef, out refProjKVP, out dummyEntry);
                         if (res != null)
                         {
                             LocationInfo locInfo = null;

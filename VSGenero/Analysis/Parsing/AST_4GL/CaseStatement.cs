@@ -46,7 +46,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 if(!parser.PeekToken(TokenKind.WhenKeyword))
                 {
                     ExpressionNode tempExpr;
-                    if (ExpressionNode.TryGetExpressionNode(parser, out tempExpr, new List<TokenKind> { TokenKind.WhenKeyword }))
+                    if (FglExpressionNode.TryGetExpressionNode(parser, out tempExpr, new List<TokenKind> { TokenKind.WhenKeyword }))
                     {
                         node.ConditionExpression = tempExpr;
                     }
@@ -152,7 +152,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 node.StartIndex = parser.Token.Span.Start;
 
                 ExpressionNode expr;
-                if (ExpressionNode.TryGetExpressionNode(parser, out expr, Genero4glAst.ValidStatementKeywords.ToList()))
+                if (FglExpressionNode.TryGetExpressionNode(parser, out expr, Genero4glAst.ValidStatementKeywords.ToList()))
                     node.ConditionExpression = expr;
                 else
                     parser.ReportSyntaxError("Case value or conditional expression expected.");

@@ -43,7 +43,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 node.StartIndex = parser.Token.Span.Start;
 
                 ExpressionNode conditionExpr;
-                if (!ExpressionNode.TryGetExpressionNode(parser, out conditionExpr, Genero4glAst.ValidStatementKeywords.ToList(), expressionOptions))
+                if (!FglExpressionNode.TryGetExpressionNode(parser, out conditionExpr, Genero4glAst.ValidStatementKeywords.ToList(), expressionOptions))
                 {
                     parser.ReportSyntaxError("A while statement must have a condition expression.");
                 }

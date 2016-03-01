@@ -8,7 +8,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 {
     public class ClearStatement : FglStatement
     {
-        public List<NameExpression> FieldList { get; private set; }
+        public List<FglNameExpression> FieldList { get; private set; }
 
         public static bool TryParseNode(Genero4glParser parser, out ClearStatement node)
         {
@@ -21,11 +21,11 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 node = new ClearStatement();
                 parser.NextToken();
                 node.StartIndex = parser.Token.Span.Start;
-                node.FieldList = new List<NameExpression>();
+                node.FieldList = new List<FglNameExpression>();
 
                 // get the bynamefields
-                NameExpression nameExpr;
-                while (NameExpression.TryParseNode(parser, out nameExpr))
+                FglNameExpression nameExpr;
+                while (FglNameExpression.TryParseNode(parser, out nameExpr))
                 {
                     node.FieldList.Add(nameExpr);
                     if (!parser.PeekToken(TokenKind.Comma))

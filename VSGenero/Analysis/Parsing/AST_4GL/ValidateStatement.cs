@@ -31,7 +31,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
     /// </summary>
     public class ValidateStatement : FglStatement
     {
-        public List<NameExpression> TargetVariables { get; private set; }
+        public List<FglNameExpression> TargetVariables { get; private set; }
         public string TableName { get; private set; }
         public string ColumnName { get; private set; }
 
@@ -47,8 +47,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 parser.NextToken();
                 defNode.StartIndex = parser.Token.Span.Start;
 
-                NameExpression name;
-                while (NameExpression.TryParseNode(parser, out name))
+                FglNameExpression name;
+                while (FglNameExpression.TryParseNode(parser, out name))
                 {
                     defNode.TargetVariables.Add(name);
                     if (!parser.PeekToken(TokenKind.Comma))

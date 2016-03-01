@@ -21,14 +21,14 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
     public class DisplayBlock : FglStatement
     {
         public bool IsArray { get; private set; }
-        public NameExpression ArrayName { get; private set; }
-        public NameExpression ScreenArrayName { get; private set; }
+        public FglNameExpression ArrayName { get; private set; }
+        public FglNameExpression ScreenArrayName { get; private set; }
         public ExpressionNode HelpNumber { get; private set; }
 
         public ExpressionNode Expression { get; private set; }
-        public List<NameExpression> FieldSpecs { get; private set; }
+        public List<FglNameExpression> FieldSpecs { get; private set; }
         public List<DisplayAttribute> Attributes { get; private set; }
-        public List<NameExpression> ByNameFields { get; private set; }
+        public List<FglNameExpression> ByNameFields { get; private set; }
 
         public static bool TryParseNode(Genero4glParser parser, out DisplayBlock node,
                                  IModuleResult containingModule,
@@ -49,8 +49,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 parser.NextToken();
                 node.StartIndex = parser.Token.Span.Start;
                 node.Attributes = new List<DisplayAttribute>();
-                node.ByNameFields = new List<NameExpression>();
-                node.FieldSpecs = new List<NameExpression>();
+                node.ByNameFields = new List<FglNameExpression>();
+                node.FieldSpecs = new List<FglNameExpression>();
                 node.DecoratorEnd = parser.Token.Span.End;
 
                 if (parser.PeekToken(TokenKind.ByKeyword))
@@ -61,8 +61,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         parser.NextToken();
 
                         // get the bynamefields
-                        NameExpression nameExpr;
-                        while (NameExpression.TryParseNode(parser, out nameExpr))
+                        FglNameExpression nameExpr;
+                        while (FglNameExpression.TryParseNode(parser, out nameExpr))
                         {
                             node.ByNameFields.Add(nameExpr);
                             if (!parser.PeekToken(TokenKind.Comma))
@@ -106,8 +106,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     parser.NextToken();
                     node.IsArray = true;
 
-                    NameExpression arrName;
-                    if (NameExpression.TryParseNode(parser, out arrName))
+                    FglNameExpression arrName;
+                    if (FglNameExpression.TryParseNode(parser, out arrName))
                         node.ArrayName = arrName;
                     else
                         parser.ReportSyntaxError("Invalid array name found in display array statement.");
@@ -117,7 +117,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     if (parser.PeekToken(TokenKind.ToKeyword))
                     {
                         parser.NextToken();
-                        if (NameExpression.TryParseNode(parser, out arrName))
+                        if (FglNameExpression.TryParseNode(parser, out arrName))
                             node.ScreenArrayName = arrName;
                         else
                             parser.ReportSyntaxError("Invalid array name found in display array statement.");
@@ -128,7 +128,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
                             // get the help number
                             ExpressionNode optionNumber;
-                            if (ExpressionNode.TryGetExpressionNode(parser, out optionNumber))
+                            if (FglExpressionNode.TryGetExpressionNode(parser, out optionNumber))
                                 node.HelpNumber = optionNumber;
                             else
                                 parser.ReportSyntaxError("Invalid help-number found in input statement.");
@@ -214,7 +214,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     while (true)
                     {
                         ExpressionNode expr;
-                        if (!ExpressionNode.TryGetExpressionNode(parser, out expr, new List<TokenKind> { TokenKind.ToKeyword, TokenKind.AttributeKeyword, TokenKind.AttributesKeyword }))
+                        if (!FglExpressionNode.TryGetExpressionNode(parser, out expr, new List<TokenKind> { TokenKind.ToKeyword, TokenKind.AttributeKeyword, TokenKind.AttributesKeyword }))
                         {
                             parser.ReportSyntaxError("Display statement must have one or more comma-separated expressions.");
                             break;
@@ -239,8 +239,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         parser.NextToken();
 
                         // get the field specs
-                        NameExpression nameExpr;
-                        while (NameExpression.TryParseNode(parser, out nameExpr))
+                        FglNameExpression nameExpr;
+                        while (FglNameExpression.TryParseNode(parser, out nameExpr))
                         {
                             node.FieldSpecs.Add(nameExpr);
                             if (!parser.PeekToken(TokenKind.Comma))
@@ -325,7 +325,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         {
                             parser.NextToken();
                             ExpressionNode boolExpr;
-                            if (!ExpressionNode.TryGetExpressionNode(parser, out boolExpr, new List<TokenKind> { TokenKind.Comma, TokenKind.RightParenthesis }))
+                            if (!FglExpressionNode.TryGetExpressionNode(parser, out boolExpr, new List<TokenKind> { TokenKind.Comma, TokenKind.RightParenthesis }))
                                 parser.ReportSyntaxError("Invalid boolean expression found in input attribute.");
                         }
                         break;
@@ -340,7 +340,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
                         // get the help number
                         ExpressionNode optionNumber;
-                        if (!ExpressionNode.TryGetExpressionNode(parser, out optionNumber))
+                        if (!FglExpressionNode.TryGetExpressionNode(parser, out optionNumber))
                             parser.ReportSyntaxError("Invalid help-number found in input attribute.");
                         break;
                     }
@@ -353,7 +353,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                             {
                                 parser.NextToken();
                                 ExpressionNode boolExpr;
-                                if (!ExpressionNode.TryGetExpressionNode(parser, out boolExpr, new List<TokenKind> { TokenKind.Comma, TokenKind.RightParenthesis }))
+                                if (!FglExpressionNode.TryGetExpressionNode(parser, out boolExpr, new List<TokenKind> { TokenKind.Comma, TokenKind.RightParenthesis }))
                                     parser.ReportSyntaxError("Invalid expression found in input attribute.");
                             }
                             else
@@ -376,7 +376,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                 {
                                     parser.NextToken();
                                     ExpressionNode boolExpr;
-                                    if (!ExpressionNode.TryGetExpressionNode(parser, out boolExpr, new List<TokenKind> { TokenKind.Comma, TokenKind.RightParenthesis }))
+                                    if (!FglExpressionNode.TryGetExpressionNode(parser, out boolExpr, new List<TokenKind> { TokenKind.Comma, TokenKind.RightParenthesis }))
                                         parser.ReportSyntaxError("Invalid boolean expression found in input array attribute.");
                                 }
                             }
@@ -421,10 +421,10 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
     public class DisplayControlBlock : AstNode4gl
     {
         public ExpressionNode IdleSeconds { get; private set; }
-        public NameExpression ActionName { get; private set; }
-        public NameExpression RowIndex { get; private set; }
+        public FglNameExpression ActionName { get; private set; }
+        public FglNameExpression RowIndex { get; private set; }
 
-        public NameExpression DragAndDropObject { get; private set; }
+        public FglNameExpression DragAndDropObject { get; private set; }
         public List<VirtualKey> KeyNameList { get; private set; }
 
         public DisplayControlBlockType Type { get; private set; }
@@ -486,7 +486,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                 node.Type = DisplayControlBlockType.Idle;
                                 // get the idle seconds
                                 ExpressionNode idleExpr;
-                                if (ExpressionNode.TryGetExpressionNode(parser, out idleExpr))
+                                if (FglExpressionNode.TryGetExpressionNode(parser, out idleExpr))
                                     node.IdleSeconds = idleExpr;
                                 else
                                     parser.ReportSyntaxError("Invalid idle-seconds found in display array statement.");
@@ -495,8 +495,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                 parser.NextToken();
                                 node.Type = DisplayControlBlockType.Action;
                                 // get the action name
-                                NameExpression actionName;
-                                if (NameExpression.TryParseNode(parser, out actionName))
+                                FglNameExpression actionName;
+                                if (FglNameExpression.TryParseNode(parser, out actionName))
                                     node.ActionName = actionName;
                                 else
                                     parser.ReportSyntaxError("Invalid action-name found in display array statement.");
@@ -546,8 +546,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                 if (parser.PeekToken(TokenKind.LeftParenthesis))
                                 {
                                     parser.NextToken();
-                                    NameExpression rowInd;
-                                    if (NameExpression.TryParseNode(parser, out rowInd))
+                                    FglNameExpression rowInd;
+                                    if (FglNameExpression.TryParseNode(parser, out rowInd))
                                         node.RowIndex = rowInd;
                                     else
                                         parser.ReportSyntaxError("Invalid row-index found in display array statement.");
@@ -566,8 +566,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                 if (parser.PeekToken(TokenKind.LeftParenthesis))
                                 {
                                     parser.NextToken();
-                                    NameExpression rowInd1;
-                                    if (NameExpression.TryParseNode(parser, out rowInd1))
+                                    FglNameExpression rowInd1;
+                                    if (FglNameExpression.TryParseNode(parser, out rowInd1))
                                         node.RowIndex = rowInd1;
                                     else
                                         parser.ReportSyntaxError("Invalid row-index found in display array statement.");
@@ -628,8 +628,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     if (parser.PeekToken(TokenKind.LeftParenthesis))
                     {
                         parser.NextToken();
-                        NameExpression keyName;
-                        if (NameExpression.TryParseNode(parser, out keyName))
+                        FglNameExpression keyName;
+                        if (FglNameExpression.TryParseNode(parser, out keyName))
                             node.DragAndDropObject = keyName;
                         else
                             parser.ReportSyntaxError("Invalid drag-and-drop object name found in display array statement.");

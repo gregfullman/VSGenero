@@ -27,7 +27,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
     /// </summary>
     public class LetStatement : FglStatement
     {
-        public NameExpression Variable { get; private set; }
+        public FglNameExpression Variable { get; private set; }
 
         public string GetLiteralValue()
         {
@@ -65,8 +65,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 parser.NextToken();
                 defNode.StartIndex = parser.Token.Span.Start;
 
-                NameExpression name;
-                if (!NameExpression.TryParseNode(parser, out name, TokenKind.Equals))
+                FglNameExpression name;
+                if (!FglNameExpression.TryParseNode(parser, out name, TokenKind.Equals))
                 {
                     parser.ReportSyntaxError("Unexpected token found in let statement, expecting name expression.");
                 }
@@ -88,7 +88,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     while (true)
                     {
                         ExpressionNode expr;
-                        if (!ExpressionNode.TryGetExpressionNode(parser, out expr, null, expressionOptions))
+                        if (!FglExpressionNode.TryGetExpressionNode(parser, out expr, null, expressionOptions))
                         {
                             parser.ReportSyntaxError("Assignment statement must have one or more comma-separated expressions.");
                             break;

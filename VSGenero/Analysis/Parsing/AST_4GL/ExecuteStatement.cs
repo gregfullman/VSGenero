@@ -21,9 +21,9 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
     public class ExecuteStatement : FglStatement
     {
         public ExpressionNode ImmediateExpression { get; private set; }
-        public NameExpression PreparedStatementId { get; private set; }
+        public FglNameExpression PreparedStatementId { get; private set; }
         public List<ExpressionNode> InputVars { get; private set; }
-        public List<NameExpression> OutputVars { get; private set; }
+        public List<FglNameExpression> OutputVars { get; private set; }
 
         public static bool TryParseNode(Genero4glParser parser, out ExecuteStatement node)
         {
@@ -37,21 +37,21 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 parser.NextToken();
                 node.StartIndex = parser.Token.Span.Start;
                 node.InputVars = new List<ExpressionNode>();
-                node.OutputVars = new List<NameExpression>();
+                node.OutputVars = new List<FglNameExpression>();
 
                 if(parser.PeekToken(TokenKind.ImmediateKeyword))
                 {
                     parser.NextToken();
                     ExpressionNode immExpr;
-                    if (ExpressionNode.TryGetExpressionNode(parser, out immExpr, Genero4glAst.ValidStatementKeywords.ToList()))
+                    if (FglExpressionNode.TryGetExpressionNode(parser, out immExpr, Genero4glAst.ValidStatementKeywords.ToList()))
                         node.ImmediateExpression = immExpr;
                     else
                         parser.ReportSyntaxError("Invalid expression found in execute immediate statement.");
                 }
                 else
                 {
-                    NameExpression cid;
-                    if (NameExpression.TryParseNode(parser, out cid))
+                    FglNameExpression cid;
+                    if (FglNameExpression.TryParseNode(parser, out cid))
                         node.PreparedStatementId = cid;
                     else
                         parser.ReportSyntaxError("Invalid prepared statement id found in execute statement.");
@@ -63,7 +63,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         hitUsing = true;
                         parser.NextToken();
                         ExpressionNode inVar;
-                        while (ExpressionNode.TryGetExpressionNode(parser, out inVar))
+                        while (FglExpressionNode.TryGetExpressionNode(parser, out inVar))
                         {
                             node.InputVars.Add(inVar);
                             if (inVarMods.Contains(parser.PeekToken().Kind))
@@ -78,8 +78,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     if(parser.PeekToken(TokenKind.IntoKeyword))
                     {
                         parser.NextToken();
-                        NameExpression outVar;
-                        while (NameExpression.TryParseNode(parser, out outVar, TokenKind.Comma))
+                        FglNameExpression outVar;
+                        while (FglNameExpression.TryParseNode(parser, out outVar, TokenKind.Comma))
                         {
                             node.InputVars.Add(outVar);
                             if (parser.PeekToken(TokenKind.Comma))
@@ -93,7 +93,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     {
                         parser.NextToken();
                         ExpressionNode inVar;
-                        while (ExpressionNode.TryGetExpressionNode(parser, out inVar))
+                        while (FglExpressionNode.TryGetExpressionNode(parser, out inVar))
                         {
                             node.InputVars.Add(inVar);
                             if (inVarMods.Contains(parser.PeekToken().Kind))

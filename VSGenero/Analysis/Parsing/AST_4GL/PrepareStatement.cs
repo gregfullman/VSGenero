@@ -52,7 +52,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         parser.NextToken();
 
                         ExpressionNode exprNode;
-                        if (ExpressionNode.TryGetExpressionNode(parser, out exprNode) && exprNode != null)
+                        if (FglExpressionNode.TryGetExpressionNode(parser, out exprNode) && exprNode != null)
                         {
                             defNode.Children.Add(exprNode.StartIndex, exprNode);
                             defNode.EndIndex = exprNode.EndIndex;

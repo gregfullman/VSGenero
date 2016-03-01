@@ -51,7 +51,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 else
                 {
                     ExpressionNode numLines;
-                    if (ExpressionNode.TryGetExpressionNode(parser, out numLines))
+                    if (FglExpressionNode.TryGetExpressionNode(parser, out numLines))
                         node.NumLines = numLines;
                     else
                         parser.ReportSyntaxError("Invalid expression found in skip statement.");

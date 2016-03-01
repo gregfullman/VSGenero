@@ -20,7 +20,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 {
     public class StartReportStatement : FglStatement
     {
-        public NameExpression ReportName { get; private set; }
+        public FglNameExpression ReportName { get; private set; }
         public ExpressionNode ToFilename { get; private set; }
         public ExpressionNode PipeProgram { get; private set; }
         public ExpressionNode XmlHandlerObject { get; private set; }
@@ -41,8 +41,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 node.StartIndex = parser.Token.Span.Start;
                 parser.NextToken();
 
-                NameExpression rptName;
-                if (NameExpression.TryParseNode(parser, out rptName))
+                FglNameExpression rptName;
+                if (FglNameExpression.TryParseNode(parser, out rptName))
                     node.ReportName = rptName;
                 else
                     parser.ReportSyntaxError("Invalid report name found in start report driver.");
@@ -59,16 +59,16 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         case TokenKind.FileKeyword:
                             parser.NextToken();
                             ExpressionNode fileName;
-                            if (ExpressionNode.TryGetExpressionNode(parser, out fileName))
+                            if (FglExpressionNode.TryGetExpressionNode(parser, out fileName))
                                 node.ToFilename = fileName;
                             else
                                 parser.ReportSyntaxError("Invalid filename found in start report driver.");
                             break;
                         case TokenKind.PipeKeyword:
                             parser.NextToken();
-                            
+
                             ExpressionNode prog;
-                            if (ExpressionNode.TryGetExpressionNode(parser, out prog))
+                            if (FglExpressionNode.TryGetExpressionNode(parser, out prog))
                                 node.PipeProgram = prog;
                             else
                                 parser.ReportSyntaxError("Invalid program name found in start report driver.");
@@ -92,7 +92,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                             {
                                 parser.NextToken();
                                 ExpressionNode objHandler;
-                                if (ExpressionNode.TryGetExpressionNode(parser, out objHandler))
+                                if (FglExpressionNode.TryGetExpressionNode(parser, out objHandler))
                                     node.XmlHandlerObject = objHandler;
                                 else
                                     parser.ReportSyntaxError("Invalid xml handler object found in start report driver.");
@@ -103,7 +103,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         case TokenKind.OutputKeyword:
                             parser.NextToken();
                             ExpressionNode destExpr;
-                            if (ExpressionNode.TryGetExpressionNode(parser, out destExpr))
+                            if (FglExpressionNode.TryGetExpressionNode(parser, out destExpr))
                                 node.Destination = destExpr;
                             else
                                 parser.ReportSyntaxError("Invalid destination expression found in start report driver.");
@@ -111,14 +111,14 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                             if(parser.PeekToken(TokenKind.DestinationKeyword))
                             {
                                 parser.NextToken();
-                                if (ExpressionNode.TryGetExpressionNode(parser, out destExpr))
+                                if (FglExpressionNode.TryGetExpressionNode(parser, out destExpr))
                                     node.DestTarget = destExpr;
                                 else
                                     parser.ReportSyntaxError("Invalid destination target found in start report driver.");
                             }
                             break;
                         default:
-                            if (ExpressionNode.TryGetExpressionNode(parser, out fileName))
+                            if (FglExpressionNode.TryGetExpressionNode(parser, out fileName))
                                 node.ToFilename = fileName;
                             else
                                 parser.ReportSyntaxError("Invalid filename found in start report driver.");
@@ -145,7 +145,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                     {
                                         parser.NextToken();
                                         // TODO: need to store the dimension expressions...
-                                        if (!ExpressionNode.TryGetExpressionNode(parser, out dimensionExpr, comma))
+                                        if (!FglExpressionNode.TryGetExpressionNode(parser, out dimensionExpr, comma))
                                             parser.ReportSyntaxError("Invalid dimension expression found in start report driver.");
                                     }
                                     else
@@ -159,7 +159,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                     {
                                         parser.NextToken();
                                         // TODO: need to store the dimension expressions...
-                                        if (!ExpressionNode.TryGetExpressionNode(parser, out dimensionExpr, comma))
+                                        if (!FglExpressionNode.TryGetExpressionNode(parser, out dimensionExpr, comma))
                                             parser.ReportSyntaxError("Invalid dimension expression found in start report driver.");
                                     }
                                     else
@@ -181,7 +181,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                     {
                                         parser.NextToken();
                                         // TODO: need to store the dimension expressions...
-                                        if (!ExpressionNode.TryGetExpressionNode(parser, out dimensionExpr, comma))
+                                        if (!FglExpressionNode.TryGetExpressionNode(parser, out dimensionExpr, comma))
                                             parser.ReportSyntaxError("Invalid dimension expression found in start report driver.");
                                     }
                                     else
@@ -201,7 +201,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                     {
                                         parser.NextToken();
                                         // TODO: need to store the dimension expressions...
-                                        if (!ExpressionNode.TryGetExpressionNode(parser, out dimensionExpr, comma))
+                                        if (!FglExpressionNode.TryGetExpressionNode(parser, out dimensionExpr, comma))
                                             parser.ReportSyntaxError("Invalid dimension expression found in start report driver.");
                                     }
                                     else

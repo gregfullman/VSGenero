@@ -30,7 +30,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
     /// </summary>
     public class SchemaSpecificationNode : AstNode4gl
     {
-        public string SchemaName { get; private set; }
+        public FglNameExpression SchemaName { get; private set; }
 
         public static bool TryParseDefine(Genero4glParser parser, out SchemaSpecificationNode defNode)
         {
@@ -45,12 +45,10 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 result = true;
 
                 parser.NextToken();
-                var tokenInfo = Tokenizer.GetTokenInfo(parser.Token.Token);
-                if (tokenInfo.Category == TokenCategory.Keyword || 
-                    tokenInfo.Category == TokenCategory.Identifier ||
-                    tokenInfo.Category == TokenCategory.StringLiteral)
+                FglNameExpression nameExp;
+                if (FglNameExpression.TryParseNode(parser, out nameExp))
                 {
-                    defNode.SchemaName = parser.Token.Token.Value.ToString();
+                    defNode.SchemaName = nameExp;
                     defNode.EndIndex = parser.Token.Span.End;
                 }
                 else
@@ -80,10 +78,10 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
                     parser.NextToken();
                     parser.NextToken();
-                    var tokenInfo = Tokenizer.GetTokenInfo(parser.Token.Token);
-                    if (tokenInfo.Category == TokenCategory.Keyword || tokenInfo.Category == TokenCategory.Identifier)
+                    FglNameExpression nameExp;
+                    if (FglNameExpression.TryParseNode(parser, out nameExp))
                     {
-                        defNode.SchemaName = parser.Token.Token.Value.ToString();
+                        defNode.SchemaName = nameExp;
                         defNode.EndIndex = parser.Token.Span.End;
                         defNode.IsComplete = true;
                     }

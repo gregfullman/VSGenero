@@ -146,7 +146,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 // we don't want the dialog piece itself to be outlinable, since it's a declarative block
                 node.Dialog = new DialogBlock(false);
                 node.Dialog.Attributes = new List<DialogAttribute>();
-                node.Dialog.Subdialogs = new List<NameExpression>();
+                node.Dialog.Subdialogs = new List<FglNameExpression>();
 
                 List<Func<PrepareStatement, bool>> prepStatementBinders = new List<Func<PrepareStatement, bool>>();
                 prepStatementBinders.Insert(0, node.BindPrepareCursorFromIdentifier);
@@ -190,7 +190,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         }
 
         public List<DialogAttribute> Attributes { get; internal set; }
-        public List<NameExpression> Subdialogs { get; internal set; }
+        public List<FglNameExpression> Subdialogs { get; internal set; }
 
         internal static void BuildDialogBlock(Genero4glParser parser, DialogBlock node, IModuleResult containingModule,
                                  List<Func<PrepareStatement, bool>> prepStatementBinders,
@@ -275,8 +275,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     case TokenKind.SubdialogKeyword:
                         {
                             parser.NextToken();
-                            NameExpression nameExpr;
-                            if (NameExpression.TryParseNode(parser, out nameExpr))
+                            FglNameExpression nameExpr;
+                            if (FglNameExpression.TryParseNode(parser, out nameExpr))
                                 node.Subdialogs.Add(nameExpr);
                             else
                                 parser.ReportSyntaxError("Invalid subdialog name found in dialog statement.");
@@ -339,7 +339,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 result = true;
                 node = new DialogBlock(true);
                 node.Attributes = new List<DialogAttribute>();
-                node.Subdialogs = new List<NameExpression>();
+                node.Subdialogs = new List<FglNameExpression>();
                 parser.NextToken();
                 node.StartIndex = parser.Token.Span.Start;
                 node.DecoratorEnd = parser.Token.Span.End;
@@ -400,7 +400,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         {
                             parser.NextToken();
                             ExpressionNode boolExpr;
-                            if (!ExpressionNode.TryGetExpressionNode(parser, out boolExpr, new List<TokenKind> { TokenKind.Comma, TokenKind.RightParenthesis }))
+                            if (!FglExpressionNode.TryGetExpressionNode(parser, out boolExpr, new List<TokenKind> { TokenKind.Comma, TokenKind.RightParenthesis }))
                                 parser.ReportSyntaxError("Invalid boolean expression found in dialog attribute.");
                         }
                         break;
@@ -427,7 +427,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
     public class DialogControlBlock : AstNode4gl
     {
         public DialogControlBlockType Type { get; private set; }
-        public NameExpression ActionName { get; private set; }
+        public FglNameExpression ActionName { get; private set; }
         public List<VirtualKey> KeyNames { get; private set; }
         public ExpressionNode IdleSeconds { get; private set; }
         public ExpressionNode OptionName { get; private set; }
@@ -493,16 +493,16 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                 parser.ReportSyntaxError("Expecting left-paren in dialog statement.");
                         }
 
-                        ExpressionNode nameExpression;
-                        if (ExpressionNode.TryGetExpressionNode(parser, out nameExpression))
-                            node.OptionName = nameExpression;
+                        ExpressionNode FglNameExpression;
+                        if (FglExpressionNode.TryGetExpressionNode(parser, out FglNameExpression))
+                            node.OptionName = FglNameExpression;
                         else
                             parser.ReportSyntaxError("Invalid expression found in dialog statement.");
 
                         if(!parser.PeekToken(TokenKind.HelpKeyword) && parser.PeekToken(TokenCategory.StringLiteral))
                         {
                             ExpressionNode commentExpr;
-                            if (ExpressionNode.TryGetExpressionNode(parser, out commentExpr, new List<TokenKind> { TokenKind.HelpKeyword }))
+                            if (FglExpressionNode.TryGetExpressionNode(parser, out commentExpr, new List<TokenKind> { TokenKind.HelpKeyword }))
                                 node.OptionComment = commentExpr;
                             else
                                 parser.ReportSyntaxError("Invalid expression found in dialog statement.");
@@ -512,7 +512,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         {
                             parser.NextToken();
                             ExpressionNode optionNumber;
-                            if (ExpressionNode.TryGetExpressionNode(parser, out optionNumber))
+                            if (FglExpressionNode.TryGetExpressionNode(parser, out optionNumber))
                                 node.HelpNumber = optionNumber;
                             else
                                 parser.ReportSyntaxError("Invalid expression found in dialog statement.");
@@ -528,8 +528,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                             case TokenKind.ActionKeyword:
                                 parser.NextToken();
                                 node.Type = DialogControlBlockType.Action;
-                                NameExpression nameExpr;
-                                if (NameExpression.TryParseNode(parser, out nameExpr))
+                                FglNameExpression nameExpr;
+                                if (FglNameExpression.TryParseNode(parser, out nameExpr))
                                     node.ActionName = nameExpr;
                                 else
                                     parser.ReportSyntaxError("Invalid name found in dialog statement.");
@@ -557,7 +557,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                 node.Type = DialogControlBlockType.Idle;
                                 // get the idle seconds
                                 ExpressionNode idleExpr;
-                                if (ExpressionNode.TryGetExpressionNode(parser, out idleExpr))
+                                if (FglExpressionNode.TryGetExpressionNode(parser, out idleExpr))
                                     node.IdleSeconds = idleExpr;
                                 else
                                     parser.ReportSyntaxError("Invalid idle-seconds found in dialog statement.");
@@ -642,7 +642,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
     public class DialogStatement : FglStatement
     {
-        public NameExpression FieldSpec { get; private set; }
+        public FglNameExpression FieldSpec { get; private set; }
 
         public static bool TryParseNode(Genero4glParser parser, out DialogStatement node, bool returnFalseInsteadOfErrors = false)
         {
@@ -682,8 +682,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                 default:
                                     {
                                         // get the field-spec
-                                        NameExpression fieldSpec;
-                                        if (NameExpression.TryParseNode(parser, out fieldSpec))
+                                        FglNameExpression fieldSpec;
+                                        if (FglNameExpression.TryParseNode(parser, out fieldSpec))
                                             node.FieldSpec = fieldSpec;
                                         else
                                             parser.ReportSyntaxError("Invalid field-spec found in dialog statement.");

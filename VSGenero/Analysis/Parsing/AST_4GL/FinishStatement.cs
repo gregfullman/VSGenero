@@ -20,7 +20,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 {
     public class FinishReportStatement : FglStatement
     {
-        public NameExpression ReportName { get; private set; }
+        public FglNameExpression ReportName { get; private set; }
 
         public static bool TryParseNode(IParser parser, out FinishReportStatement node)
         {
@@ -36,8 +36,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 node.StartIndex = parser.Token.Span.Start;
                 parser.NextToken();
 
-                NameExpression rptName;
-                if (NameExpression.TryParseNode(parser, out rptName))
+                FglNameExpression rptName;
+                if (FglNameExpression.TryParseNode(parser, out rptName))
                     node.ReportName = rptName;
                 else
                     parser.ReportSyntaxError("Invalid report name found in finish report driver.");

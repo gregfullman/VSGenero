@@ -21,10 +21,10 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
     public class InputBlock : FglStatement
     {
         public bool IsArray { get; private set; }
-        public NameExpression ArrayName { get; private set; }
+        public FglNameExpression ArrayName { get; private set; }
         public bool IsImplicitMapping { get; private set; }
-        public List<NameExpression> VariableList { get; private set; }
-        public List<NameExpression> FieldList { get; private set; }
+        public List<FglNameExpression> VariableList { get; private set; }
+        public List<FglNameExpression> FieldList { get; private set; }
         public List<InputAttribute> Attributes { get; private set; }
         public ExpressionNode HelpNumber { get; private set; }
 
@@ -46,8 +46,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 node = new InputBlock();
                 parser.NextToken();
                 node.StartIndex = parser.Token.Span.Start;
-                node.VariableList = new List<NameExpression>();
-                node.FieldList = new List<NameExpression>();
+                node.VariableList = new List<FglNameExpression>();
+                node.FieldList = new List<FglNameExpression>();
                 node.Attributes = new List<InputAttribute>();
 
                 if (parser.PeekToken(TokenKind.ByKeyword))
@@ -67,8 +67,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 {
                     parser.NextToken();
                     node.IsArray = true;
-                    NameExpression arrName;
-                    if (NameExpression.TryParseNode(parser, out arrName))
+                    FglNameExpression arrName;
+                    if (FglNameExpression.TryParseNode(parser, out arrName))
                         node.ArrayName = arrName;
                     else
                         parser.ReportSyntaxError("Invalid array name found in input statement.");
@@ -76,11 +76,11 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
                 node.DecoratorEnd = parser.Token.Span.End;
 
-                NameExpression nameExpr;
+                FglNameExpression nameExpr;
                 if (!node.IsArray)
                 {
                     // read the variable list
-                    while (NameExpression.TryParseNode(parser, out nameExpr))
+                    while (FglNameExpression.TryParseNode(parser, out nameExpr))
                     {
                         node.VariableList.Add(nameExpr);
                         if (!parser.PeekToken(TokenKind.Comma))
@@ -107,7 +107,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         parser.NextToken();
 
                         // read the field list
-                        while (NameExpression.TryParseNode(parser, out nameExpr))
+                        while (FglNameExpression.TryParseNode(parser, out nameExpr))
                         {
                             node.FieldList.Add(nameExpr);
                             if (node.IsArray || !parser.PeekToken(TokenKind.Comma))
@@ -151,7 +151,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
                     // get the help number
                     ExpressionNode optionNumber;
-                    if (ExpressionNode.TryGetExpressionNode(parser, out optionNumber))
+                    if (FglExpressionNode.TryGetExpressionNode(parser, out optionNumber))
                         node.HelpNumber = optionNumber;
                     else
                         parser.ReportSyntaxError("Invalid help-number found in input statement.");
@@ -230,10 +230,10 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
     public class InputControlBlock : AstNode4gl
     {
         public ExpressionNode IdleSeconds { get; private set; }
-        public NameExpression ActionName { get; private set; }
-        public NameExpression ActionField { get; private set; }
+        public FglNameExpression ActionName { get; private set; }
+        public FglNameExpression ActionField { get; private set; }
 
-        public List<NameExpression> FieldSpecList { get; private set; }
+        public List<FglNameExpression> FieldSpecList { get; private set; }
         public List<VirtualKey> KeyNameList { get; private set; }
 
         public InputControlBlockType Type { get; private set; }
@@ -249,7 +249,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         {
             node = new InputControlBlock();
             bool result = true;
-            node.FieldSpecList = new List<NameExpression>();
+            node.FieldSpecList = new List<FglNameExpression>();
             node.KeyNameList = new List<VirtualKey>();
 
             switch (parser.PeekToken().Kind)
@@ -272,8 +272,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                             parser.NextToken();
                             node.Type = InputControlBlockType.Field;
                             // get the list of field specs
-                            NameExpression fieldSpec;
-                            while (NameExpression.TryParseNode(parser, out fieldSpec))
+                            FglNameExpression fieldSpec;
+                            while (FglNameExpression.TryParseNode(parser, out fieldSpec))
                             {
                                 node.FieldSpecList.Add(fieldSpec);
                                 if (!parser.PeekToken(TokenKind.Comma))
@@ -324,8 +324,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                 parser.NextToken();
                                 node.Type = InputControlBlockType.Change;
                                 // get the list of field specs
-                                NameExpression fieldSpec;
-                                while (NameExpression.TryParseNode(parser, out fieldSpec))
+                                FglNameExpression fieldSpec;
+                                while (FglNameExpression.TryParseNode(parser, out fieldSpec))
                                 {
                                     node.FieldSpecList.Add(fieldSpec);
                                     if (!parser.PeekToken(TokenKind.Comma))
@@ -339,7 +339,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                 node.Type = InputControlBlockType.Idle;
                                 // get the idle seconds
                                 ExpressionNode idleExpr;
-                                if (ExpressionNode.TryGetExpressionNode(parser, out idleExpr))
+                                if (FglExpressionNode.TryGetExpressionNode(parser, out idleExpr))
                                     node.IdleSeconds = idleExpr;
                                 else
                                     parser.ReportSyntaxError("Invalid idle-seconds found in input statement.");
@@ -349,8 +349,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                 parser.NextToken();
                                 node.Type = InputControlBlockType.Action;
                                 // get the action name
-                                NameExpression actionName;
-                                if (NameExpression.TryParseNode(parser, out actionName))
+                                FglNameExpression actionName;
+                                if (FglNameExpression.TryParseNode(parser, out actionName))
                                     node.ActionName = actionName;
                                 else
                                     parser.ReportSyntaxError("Invalid action-name found in input statement.");
@@ -359,7 +359,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                 {
                                     parser.NextToken();
                                     // get the field-spec
-                                    if (NameExpression.TryParseNode(parser, out actionName))
+                                    if (FglNameExpression.TryParseNode(parser, out actionName))
                                         node.ActionField = actionName;
                                     else
                                         parser.ReportSyntaxError("Invalid field-spec found in input statement.");
@@ -506,7 +506,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
     public class InputDialogStatement : FglStatement
     {
-        public NameExpression FieldSpec { get; private set; }
+        public FglNameExpression FieldSpec { get; private set; }
 
         public static bool TryParseNode(Genero4glParser parser, out InputDialogStatement node, bool isArray, bool returnFalseInsteadOfErrors = false)
         {
@@ -546,8 +546,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                 default:
                                     {
                                         // get the field-spec
-                                        NameExpression fieldSpec;
-                                        if (NameExpression.TryParseNode(parser, out fieldSpec))
+                                        FglNameExpression fieldSpec;
+                                        if (FglNameExpression.TryParseNode(parser, out fieldSpec))
                                             node.FieldSpec = fieldSpec;
                                         else
                                             parser.ReportSyntaxError("Invalid field-spec found in input statement.");
@@ -634,7 +634,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         {
                             parser.NextToken();
                             ExpressionNode boolExpr;
-                            if (!ExpressionNode.TryGetExpressionNode(parser, out boolExpr, new List<TokenKind> { TokenKind.Comma, TokenKind.RightParenthesis }))
+                            if (!FglExpressionNode.TryGetExpressionNode(parser, out boolExpr, new List<TokenKind> { TokenKind.Comma, TokenKind.RightParenthesis }))
                                 parser.ReportSyntaxError("Invalid boolean expression found in input attribute.");
                         }
                         break;
@@ -649,7 +649,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                             {
                                 parser.NextToken();
                                 ExpressionNode boolExpr;
-                                if (!ExpressionNode.TryGetExpressionNode(parser, out boolExpr, new List<TokenKind> { TokenKind.Comma, TokenKind.RightParenthesis }))
+                                if (!FglExpressionNode.TryGetExpressionNode(parser, out boolExpr, new List<TokenKind> { TokenKind.Comma, TokenKind.RightParenthesis }))
                                     parser.ReportSyntaxError("Invalid expression found in input attribute.");
                             }
                             else
@@ -670,7 +670,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         {
                             parser.NextToken();
                             ExpressionNode boolExpr;
-                            if (!ExpressionNode.TryGetExpressionNode(parser, out boolExpr, new List<TokenKind> { TokenKind.Comma, TokenKind.RightParenthesis }))
+                            if (!FglExpressionNode.TryGetExpressionNode(parser, out boolExpr, new List<TokenKind> { TokenKind.Comma, TokenKind.RightParenthesis }))
                                 parser.ReportSyntaxError("Invalid boolean expression found in input attribute.");
                         }
                         break;
@@ -685,7 +685,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
                         // get the help number
                         ExpressionNode optionNumber;
-                        if (!ExpressionNode.TryGetExpressionNode(parser, out optionNumber))
+                        if (!FglExpressionNode.TryGetExpressionNode(parser, out optionNumber))
                             parser.ReportSyntaxError("Invalid help-number found in input attribute.");
                         break;
                     }
@@ -701,7 +701,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
                             // get the help number
                             ExpressionNode optionNumber;
-                            if (!ExpressionNode.TryGetExpressionNode(parser, out optionNumber))
+                            if (!FglExpressionNode.TryGetExpressionNode(parser, out optionNumber))
                                 parser.ReportSyntaxError("Invalid dialog name found in input attribute.");
                         }
                         else
@@ -733,7 +733,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                             {
                                 parser.NextToken();
                                 ExpressionNode boolExpr;
-                                if (!ExpressionNode.TryGetExpressionNode(parser, out boolExpr, new List<TokenKind> { TokenKind.Comma, TokenKind.RightParenthesis }))
+                                if (!FglExpressionNode.TryGetExpressionNode(parser, out boolExpr, new List<TokenKind> { TokenKind.Comma, TokenKind.RightParenthesis }))
                                     parser.ReportSyntaxError("Invalid boolean expression found in input array attribute.");
                             }
                         }
@@ -754,7 +754,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                 {
                                     parser.NextToken();
                                     ExpressionNode boolExpr;
-                                    if (!ExpressionNode.TryGetExpressionNode(parser, out boolExpr, new List<TokenKind> { TokenKind.Comma, TokenKind.RightParenthesis }))
+                                    if (!FglExpressionNode.TryGetExpressionNode(parser, out boolExpr, new List<TokenKind> { TokenKind.Comma, TokenKind.RightParenthesis }))
                                         parser.ReportSyntaxError("Invalid boolean expression found in input array attribute.");
                                 }
                             }
@@ -775,7 +775,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                             {
                                 parser.NextToken();
                                 ExpressionNode boolExpr;
-                                if (!ExpressionNode.TryGetExpressionNode(parser, out boolExpr, new List<TokenKind> { TokenKind.Comma, TokenKind.RightParenthesis }))
+                                if (!FglExpressionNode.TryGetExpressionNode(parser, out boolExpr, new List<TokenKind> { TokenKind.Comma, TokenKind.RightParenthesis }))
                                     parser.ReportSyntaxError("Invalid boolean expression found in input array attribute.");
                             }
                         }

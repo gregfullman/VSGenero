@@ -20,7 +20,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 {
     public class GotoStatement : FglStatement
     {
-        public NameExpression LabelId { get; private set; }
+        public FglNameExpression LabelId { get; private set; }
 
         public static bool TryParseNode(Genero4glParser parser, out GotoStatement node)
         {
@@ -38,8 +38,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 if (parser.PeekToken(TokenKind.Colon))
                     parser.NextToken();
 
-                NameExpression expr;
-                if (!NameExpression.TryParseNode(parser, out expr))
+                FglNameExpression expr;
+                if (!FglNameExpression.TryParseNode(parser, out expr))
                     parser.ReportSyntaxError("Invalid name found in goto statement.");
                 else
                     node.LabelId = expr;

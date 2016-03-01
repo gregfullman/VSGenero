@@ -212,7 +212,7 @@ namespace VSGenero.Analysis.Parsing
 
         public abstract IAnalysisResult GetValueByIndex(string exprText, int index, IFunctionInformationProvider functionProvider,
                                                IDatabaseInformationProvider databaseProvider, IProgramFileProvider programFileProvider,
-                                               bool isFunctionCallOrDefinition,
+                                               bool isFunctionCallOrDefinition, out bool isDeferred,
                                                out IGeneroProject definingProject, out IProjectEntry projectEntry,
                                                FunctionProviderSearchMode searchInFunctionProvider = FunctionProviderSearchMode.NoSearch);
 

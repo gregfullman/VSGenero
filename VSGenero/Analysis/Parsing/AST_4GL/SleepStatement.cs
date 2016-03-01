@@ -35,7 +35,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 node.StartIndex = parser.Token.Span.Start;
 
                 ExpressionNode expr;
-                if (!ExpressionNode.TryGetExpressionNode(parser, out expr, Genero4glAst.ValidStatementKeywords.ToList()))
+                if (!FglExpressionNode.TryGetExpressionNode(parser, out expr, Genero4glAst.ValidStatementKeywords.ToList()))
                     parser.ReportSyntaxError("Invalid expression found in sleep statement.");
                 else
                     node.SleepSeconds = expr;

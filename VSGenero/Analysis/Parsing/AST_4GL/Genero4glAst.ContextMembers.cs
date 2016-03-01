@@ -488,7 +488,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                             var = var.Substring(0, var.Length - 1);
                             IGeneroProject dummyProj;
                             IProjectEntry projEntry;
-                            var analysisRes = GetValueByIndex(var, index, _functionProvider, _databaseProvider, _programFileProvider, false, out dummyProj, out projEntry);
+                            bool dummyDef;
+                            var analysisRes = GetValueByIndex(var, index, _functionProvider, _databaseProvider, _programFileProvider, false, out dummyDef, out dummyProj, out projEntry);
                             if (analysisRes != null)
                             {
                                 IEnumerable<MemberResult> memberList = analysisRes.GetMembers(this, memberType, !var[var.Length - 1].Equals(']'));

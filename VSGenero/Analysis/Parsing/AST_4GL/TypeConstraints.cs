@@ -78,7 +78,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                             parser.NextToken();
                             sb.Append("(");
                             ExpressionNode expr;
-                            if (ExpressionNode.TryGetExpressionNode(parser, out expr))
+                            if (FglExpressionNode.TryGetExpressionNode(parser, out expr))
                             {
                                 sb.Append(expr.ToString());
                                 if(tokenToCheck == TokenKind.VarcharKeyword &&
@@ -86,7 +86,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                 {
                                     parser.NextToken();
                                     sb.Append(", ");
-                                    if (ExpressionNode.TryGetExpressionNode(parser, out expr))
+                                    if (FglExpressionNode.TryGetExpressionNode(parser, out expr))
                                     {
                                         sb.Append(expr.ToString());
                                     }

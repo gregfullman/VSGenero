@@ -346,14 +346,17 @@
     <Compile Include="Analysis\Interfaces\IReferenceableContainer.cs" />
     <Compile Include="Analysis\Interfaces\IReverseTokenizer.cs" />
     <Compile Include="Analysis\Parsing\AST_4GL\BuiltinFunction.cs" />
+    <Compile Include="Analysis\Parsing\AST_4GL\FglNameExpression.cs" />
     <Compile Include="Analysis\Parsing\AST_4GL\ProgramRegister.cs" />
     <Compile Include="Analysis\Parsing\AST_4GL\SystemClass.cs" />
     <Compile Include="Analysis\Parsing\AST_4GL\SystemConstant.cs" />
     <Compile Include="Analysis\Parsing\AST_4GL\SystemMacro.cs" />
+    <Compile Include="Analysis\Parsing\AST_PER\ActionDefaultsNode.cs" />
     <Compile Include="Analysis\Parsing\AST_PER\AstNodePer.cs" />
     <Compile Include="Analysis\Parsing\AST_PER\GeneroPerAst.cs" />
     <Compile Include="Analysis\Parsing\AST_PER\ModuleNode.cs" />
     <Compile Include="Analysis\Parsing\AST_PER\SchemaSpecificationNode.cs" />
+    <Compile Include="Analysis\Parsing\AST_PER\TopMenuNode.cs" />
     <Compile Include="Analysis\Parsing\Enumerations.cs" />
     <Compile Include="Analysis\Parsing\AstNode.cs" />
     <Compile Include="Analysis\Parsing\AST_4GL\AcceptStatement.cs" />
@@ -380,6 +383,7 @@
     <Compile Include="Analysis\Parsing\AST_4GL\Genero4glAst.ContextDetermination.cs" />
     <Compile Include="Analysis\Parsing\AST_4GL\Genero4glAst.cs" />
     <Compile Include="Analysis\Parsing\AST_4GL\Genero4glAst.Packages.cs" />
+    <Compile Include="Analysis\Parsing\ExpressionNode.cs" />
     <Compile Include="Analysis\Parsing\GeneroAst.cs" />
     <Compile Include="Analysis\Parsing\GeneroMemberType.cs" />
     <Compile Include="Analysis\Parsing\AST_4GL\GotoStatement.cs" />
@@ -389,7 +393,7 @@
     <Compile Include="Analysis\Parsing\AST_4GL\LoadStatement.cs" />
     <Compile Include="Analysis\Parsing\AST_4GL\MenuBlock.cs" />
     <Compile Include="Analysis\Parsing\AST_4GL\MessageStatement.cs" />
-    <Compile Include="Analysis\Parsing\AST_4GL\NameNode.cs" />
+    <Compile Include="Analysis\Parsing\NameNode.cs" />
     <Compile Include="Analysis\Parsing\AST_4GL\NeedStatement.cs" />
     <Compile Include="Analysis\Parsing\AST_4GL\OpenStatement.cs" />
     <Compile Include="Analysis\Parsing\AST_4GL\OptionsStatement.cs" />
@@ -406,7 +410,7 @@
     <Compile Include="Analysis\Parsing\AST_4GL\SqlStatement.cs" />
     <Compile Include="Analysis\Parsing\AST_4GL\StartStatement.cs" />
     <Compile Include="Analysis\Parsing\AST_4GL\TerminateStatement.cs" />
-    <Compile Include="Analysis\Parsing\AST_4GL\VirtualKey.cs" />
+    <Compile Include="Analysis\Parsing\VirtualKey.cs" />
     <Compile Include="Analysis\Parsing\AST_4GL\WhileStatement.cs" />
     <Compile Include="Analysis\Parsing\CodeFormattingOptions.cs" />
     <Compile Include="Analysis\Parsing\CollectingErrorSink.cs" />
@@ -419,6 +423,8 @@
     <Compile Include="Analysis\Parsing\GeneroParserFactory.cs" />
     <Compile Include="Analysis\Parsing\GeneroPerParser.cs" />
     <Compile Include="Analysis\Parsing\IParser.cs" />
+    <Compile Include="Analysis\Parsing\StringExpressionNode.cs" />
+    <Compile Include="Analysis\Parsing\TokenExpressionNode.cs" />
     <Compile Include="Analysis\Parsing\TokenListParser.cs" />
     <Compile Include="Analysis\ResultInterfaces.cs" />
     <Compile Include="Analysis\MemberResult.cs" />
@@ -452,7 +458,7 @@
     <Compile Include="Analysis\Parsing\AST_4GL\AttributeSpecifier.cs" />
     <Compile Include="Analysis\Parsing\AST_4GL\FunctionBlockNode.cs" />
     <Compile Include="Analysis\Parsing\AST_4GL\ModuleNode.cs" />
-    <Compile Include="Analysis\Parsing\AST_4GL\PreprocessorNode.cs" />
+    <Compile Include="Analysis\Parsing\PreprocessorNode.cs" />
     <Compile Include="Analysis\Parsing\AST_4GL\ReportBlockNode.cs" />
     <Compile Include="Analysis\Parsing\ErrorSink.cs" />
     <Compile Include="EditorExtensions\Intellisense\CompletionAnalysis.cs" />

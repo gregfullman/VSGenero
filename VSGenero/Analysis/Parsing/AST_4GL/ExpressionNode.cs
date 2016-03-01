@@ -29,48 +29,12 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         public IEnumerable<ExpressionParser> AdditionalExpressionParsers { get; set; }
     }
 
-    public abstract class ExpressionNode : AstNode4gl
+    public abstract class FglExpressionNode : ExpressionNode
     {
         protected static List<TokenKind> _preExpressionTokens = new List<TokenKind> 
         { 
             TokenKind.NotKeyword, TokenKind.ColumnKeyword, TokenKind.Subtract, TokenKind.AsciiKeyword, TokenKind.Add
         };
-
-        public void AppendExpression(ExpressionNode node)
-        {
-            AppendedExpressions.Add(node);
-            if(!Children.ContainsKey(node.StartIndex))
-                Children.Add(node.StartIndex, node);
-            EndIndex = AppendedExpressions[AppendedExpressions.Count - 1].EndIndex;
-        }
-
-        public override string ToString()
-        {
-            StringBuilder sb = new StringBuilder(GetStringForm());
-
-            int index = 0;
-            while (index < AppendedExpressions.Count)
-            {
-                sb.Append(' ');
-                sb.Append(AppendedExpressions[index]);
-                index++;
-            }
-            return sb.ToString();
-        }
-
-        protected abstract string GetStringForm();
-        public abstract string GetExpressionType(Genero4glAst ast);
-
-        private List<ExpressionNode> _appendedExpressions;
-        public List<ExpressionNode> AppendedExpressions
-        {
-            get
-            {
-                if (_appendedExpressions == null)
-                    _appendedExpressions = new List<ExpressionNode>();
-                return _appendedExpressions;
-            }
-        }
 
         public static bool TryGetExpressionNode(IParser parser, out ExpressionNode node, List<TokenKind> breakTokens = null, ExpressionParsingOptions options = null)
         {
@@ -241,7 +205,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     if (!isCustomExpression)
                     {
                         FunctionCallExpressionNode funcCall;
-                        NameExpression nonFuncCallName;
+                        FglNameExpression nonFuncCallName;
                         if (FunctionCallExpressionNode.TryParseExpression(parser, out funcCall, out nonFuncCallName, false, options))
                         {
                             result = true;
@@ -500,9 +464,9 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         }
     }
 
-    public class FunctionCallExpressionNode : ExpressionNode
+    public class FunctionCallExpressionNode : FglExpressionNode
     {
-        public NameExpression Function { get; private set; }
+        public FglNameExpression Function { get; private set; }
 
         private List<ExpressionNode> _params;
         public List<ExpressionNode> Parameters
@@ -526,7 +490,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             }
         }
 
-        public static bool TryParseExpression(IParser parser, out FunctionCallExpressionNode node, out NameExpression nonFunctionCallName, bool leftParenRequired = false, ExpressionParsingOptions options = null)
+        public static bool TryParseExpression(IParser parser, out FunctionCallExpressionNode node, out FglNameExpression nonFunctionCallName, bool leftParenRequired = false, ExpressionParsingOptions options = null)
         {
             if (options == null)
                 options = new ExpressionParsingOptions();
@@ -534,8 +498,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             nonFunctionCallName = null;
             bool result = false;
 
-            NameExpression name;
-            if (NameExpression.TryParseNode(parser, out name, TokenKind.LeftParenthesis))
+            FglNameExpression name;
+            if (FglNameExpression.TryParseNode(parser, out name, TokenKind.LeftParenthesis))
             {
                 node = new FunctionCallExpressionNode();
                 node.StartIndex = name.StartIndex;
@@ -551,7 +515,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     {
                         // Parameters can be any expression, comma seperated
                         ExpressionNode expr;
-                        while (ExpressionNode.TryGetExpressionNode(parser, out expr, new List<TokenKind> { TokenKind.Comma, TokenKind.RightParenthesis }, options))
+                        while (FglExpressionNode.TryGetExpressionNode(parser, out expr, new List<TokenKind> { TokenKind.Comma, TokenKind.RightParenthesis }, options))
                         {
                             node.Parameters.Add(expr);
                             if (!parser.PeekToken(TokenKind.Comma))
@@ -581,7 +545,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                             else
                             {
                                 FunctionCallExpressionNode funcCall;
-                                NameExpression nonFuncCallName;
+                                FglNameExpression nonFuncCallName;
                                 if (FunctionCallExpressionNode.TryParseExpression(parser, out funcCall, out nonFuncCallName, false, options))
                                 {
                                     node.Children.Add(funcCall.StartIndex, funcCall);
@@ -663,13 +627,22 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             return sb.ToString();
         }
 
-        public override string GetExpressionType(Genero4glAst ast)
+        public override string GetExpressionType(GeneroAst ast)
         {
             // need to determine the return type for the function call
             IGeneroProject dummyProj;
             IProjectEntry dummyProjEntry;
             bool dummy;
-            var result = Genero4glAst.GetValueByIndex(Function.Name, Function.IndexSpan.Start, ast, out dummyProj, out dummyProjEntry, out dummy, FunctionProviderSearchMode.Search, true);
+            var result = ast.GetValueByIndex(Function.Name,
+                                             Function.IndexSpan.Start,
+                                             ast._functionProvider,
+                                             ast._databaseProvider,
+                                             ast._programFileProvider,
+                                             true,
+                                             out dummy,
+                                             out dummyProj,
+                                             out dummyProjEntry,
+                                             FunctionProviderSearchMode.Search);
             if (result != null)
             {
                 return result.Typename;
@@ -777,9 +750,9 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     {
                         // The genero compiler does not do error checking of types, so I guess anything goes...
                         // That makes things easier...
-                        if (param is NameExpression)
+                        if (param is FglNameExpression)
                         {
-                            var nameParam = param as NameExpression;
+                            var nameParam = param as FglNameExpression;
                             nameParam.CheckForErrors(ast, errorFunc, deferredFunctionSearches, FunctionProviderSearchMode.Deferred);
                             if (nameParam.ResolvedResult != null)
                             {
@@ -811,7 +784,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                     {
                                         if ((nameParam.ResolvedResult as VariableDef).Type.IsArray)
                                         {
-                                            if((param as NameExpression).Name.EndsWith(".*"))
+                                            if((param as FglNameExpression).Name.EndsWith(".*"))
                                             {
                                                 // need to get the number of fields in the record, as they count toward our passed parameter total
                                                 int recFieldCount = (typeRef.Children[typeRef.Children.Keys[0]] as RecordDefinitionNode).GetMembers(ast as Genero4glAst, Analysis.MemberType.All, false).Count();
@@ -821,7 +794,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                         }
                                         else
                                         {
-                                            if (!(param as NameExpression).Name.EndsWith(".*") &&
+                                            if (!(param as FglNameExpression).Name.EndsWith(".*") &&
                                                 !_allowedNonStarRecordParamFunctions.Contains(Function.Name))
                                             {
                                                 errorFunc("Records must be specified with a '.*' ending when passed as a function parameter.", param.StartIndex, param.EndIndex);
@@ -859,7 +832,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         }
     }
 
-    public class BracketWrappedExpressionNode : ExpressionNode
+    public class BracketWrappedExpressionNode : FglExpressionNode
     {
         private List<ExpressionNode> _parameters;
         public List<ExpressionNode> Parameters
@@ -885,7 +858,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 node.StartIndex = parser.Token.Span.Start;
 
                 ExpressionNode expr;
-                while (ExpressionNode.TryGetExpressionNode(parser, out expr, new List<TokenKind> { TokenKind.Comma, TokenKind.LeftBracket }))
+                while (FglExpressionNode.TryGetExpressionNode(parser, out expr, new List<TokenKind> { TokenKind.Comma, TokenKind.LeftBracket }))
                 {
                     node.Parameters.Add(expr);
                     if (!parser.PeekToken(TokenKind.Comma))
@@ -921,13 +894,13 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             return sb.ToString();
         }
 
-        public override string GetExpressionType(Genero4glAst ast)
+        public override string GetExpressionType(GeneroAst ast)
         {
             return "[arg-list]";
         }
     }
 
-    public class ParenWrappedExpressionNode : ExpressionNode
+    public class ParenWrappedExpressionNode : FglExpressionNode
     {
         public ExpressionNode InnerExpression { get; private set; }
 
@@ -959,7 +932,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 if (!options.AllowAnythingForFunctionParams)
                 {
                     ExpressionNode exprNode;
-                    if (!ExpressionNode.TryGetExpressionNode(parser, out exprNode, new List<TokenKind> { TokenKind.RightParenthesis }, options))
+                    if (!FglExpressionNode.TryGetExpressionNode(parser, out exprNode, new List<TokenKind> { TokenKind.RightParenthesis }, options))
                     {
                         parser.ReportSyntaxError("Invalid expression found within parentheses.");
                     }
@@ -1020,88 +993,13 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             return null;
         }
 
-        public override string GetExpressionType(Genero4glAst ast)
+        public override string GetExpressionType(GeneroAst ast)
         {
             return InnerExpression.GetExpressionType(ast);
         }
     }
 
-    /// <summary>
-    /// Encapsulates expressions based on string-type literals
-    /// </summary>
-    public class StringExpressionNode : TokenExpressionNode
-    {
-        private StringBuilder _literalValue;
-        public string LiteralValue
-        {
-            get { return _literalValue.ToString(); }
-        }
-
-        public StringExpressionNode(string value)
-        {
-            _literalValue = new StringBuilder(value);
-        }
-
-        public StringExpressionNode(TokenWithSpan token)
-            : base(token)
-        {
-            _literalValue = new StringBuilder(token.Token.Value.ToString());
-        }
-
-        protected override string GetStringForm()
-        {
-            return LiteralValue;
-        }
-
-        public override string GetExpressionType(Genero4glAst ast)
-        {
-            return "string";
-        }
-    }
-
-    /// <summary>
-    /// Base class for token-based expresssions
-    /// </summary>
-    public class TokenExpressionNode : ExpressionNode
-    {
-        protected List<Token> _tokens;
-        public List<Token> Tokens
-        {
-            get { return _tokens; }
-        }
-
-        protected TokenExpressionNode()
-        {
-        }
-
-        public TokenExpressionNode(TokenWithSpan token)
-        {
-            _tokens = new List<Token>();
-            StartIndex = token.Span.Start;
-            _tokens.Add(token.Token);
-            EndIndex = token.Span.End;
-        }
-
-        protected override string GetStringForm()
-        {
-            StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < Tokens.Count; i++)
-            {
-                sb.Append(Tokens[i].Value.ToString());
-                if (i + 1 < Tokens.Count)
-                    sb.Append(" ");
-            }
-            return sb.ToString();
-        }
-
-        public override string GetExpressionType(Genero4glAst ast)
-        {
-            // TODO: determine the type from the token we have
-            return null;
-        }
-    }
-
-    public class FglStatementExpression : ExpressionNode
+    public class FglStatementExpression : FglExpressionNode
     {
         private FglStatement _statement;
 
@@ -1115,7 +1013,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             return _statement.ToString();
         }
 
-        public override string GetExpressionType(Genero4glAst ast)
+        public override string GetExpressionType(GeneroAst ast)
         {
             return null;
         }

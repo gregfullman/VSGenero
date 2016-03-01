@@ -21,7 +21,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 {
     public class FreeStatement : FglStatement
     {
-        public NameExpression Target { get; private set; }
+        public FglNameExpression Target { get; private set; }
 
         public static bool TryParseNode(Genero4glParser parser, out FreeStatement defNode)
         {
@@ -35,8 +35,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 parser.NextToken();
                 defNode.StartIndex = parser.Token.Span.Start;
 
-                NameExpression expr;
-                if(!NameExpression.TryParseNode(parser, out expr))
+                FglNameExpression expr;
+                if(!FglNameExpression.TryParseNode(parser, out expr))
                 {
                     parser.ReportSyntaxError("Invalid name found in free statement.");
                 }

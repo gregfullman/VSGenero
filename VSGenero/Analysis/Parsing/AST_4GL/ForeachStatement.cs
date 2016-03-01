@@ -20,9 +20,9 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 {
     public class ForeachStatement : FglStatement
     {
-        public NameExpression CursorId { get; private set; }
-        public List<NameExpression> InputVars { get; private set; }
-        public List<NameExpression> OutputVars { get; private set; }
+        public FglNameExpression CursorId { get; private set; }
+        public List<FglNameExpression> InputVars { get; private set; }
+        public List<FglNameExpression> OutputVars { get; private set; }
 
         public static bool TryParseNode(Genero4glParser parser, out ForeachStatement node,
                                         IModuleResult containingModule,
@@ -42,11 +42,11 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 node = new ForeachStatement();
                 parser.NextToken();
                 node.StartIndex = parser.Token.Span.Start;
-                node.InputVars = new List<NameExpression>();
-                node.OutputVars = new List<NameExpression>();
+                node.InputVars = new List<FglNameExpression>();
+                node.OutputVars = new List<FglNameExpression>();
 
-                NameExpression cid;
-                if (NameExpression.TryParseNode(parser, out cid))
+                FglNameExpression cid;
+                if (FglNameExpression.TryParseNode(parser, out cid))
                     node.CursorId = cid;
                 else
                     parser.ReportSyntaxError("Invalid declared cursor id found in foreach statement.");
@@ -55,8 +55,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 if (parser.PeekToken(TokenKind.UsingKeyword))
                 {
                     parser.NextToken();
-                    NameExpression inVar;
-                    while (NameExpression.TryParseNode(parser, out inVar, TokenKind.Comma))
+                    FglNameExpression inVar;
+                    while (FglNameExpression.TryParseNode(parser, out inVar, TokenKind.Comma))
                     {
                         node.InputVars.Add(inVar);
                         if (inVarMods.Contains(parser.PeekToken().Kind))
@@ -71,8 +71,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 if (parser.PeekToken(TokenKind.IntoKeyword))
                 {
                     parser.NextToken();
-                    NameExpression outVar;
-                    while (NameExpression.TryParseNode(parser, out outVar, TokenKind.Comma))
+                    FglNameExpression outVar;
+                    while (FglNameExpression.TryParseNode(parser, out outVar, TokenKind.Comma))
                     {
                         node.InputVars.Add(outVar);
                         if (parser.PeekToken(TokenKind.Comma))

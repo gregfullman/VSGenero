@@ -39,7 +39,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         public ExpressionNode MarginBottom { get; private set; }
         public ExpressionNode PageLength { get; private set; }
         public ExpressionNode TopOfPage { get; private set; }
-        public List<NameExpression> OrderVarNames { get; private set; }
+        public List<FglNameExpression> OrderVarNames { get; private set; }
 
         public static bool TryParseNode(Genero4glParser parser, out ReportBlockNode defNode, IModuleResult containingModule)
         {
@@ -76,7 +76,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
                 parser.NextToken(); // move past the Function keyword
                 defNode.StartIndex = parser.Token.Span.Start;
-                defNode.OrderVarNames = new List<NameExpression>();
+                defNode.OrderVarNames = new List<FglNameExpression>();
 
                 // get the name
                 if (parser.PeekToken(TokenCategory.Keyword) || parser.PeekToken(TokenCategory.Identifier))
@@ -216,14 +216,14 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                         break;
                                     case TokenKind.FileKeyword:
                                         parser.NextToken();
-                                        if (ExpressionNode.TryGetExpressionNode(parser, out expr))
+                                        if (FglExpressionNode.TryGetExpressionNode(parser, out expr))
                                             defNode.OutputFilename = expr;
                                         else
                                             parser.ReportSyntaxError("Invalid filename found in report.");
                                         break;
                                     case TokenKind.PipeKeyword:
                                         parser.NextToken();
-                                        if (ExpressionNode.TryGetExpressionNode(parser, out expr))
+                                        if (FglExpressionNode.TryGetExpressionNode(parser, out expr))
                                             defNode.OutputProgram = expr;
                                         else
                                             parser.ReportSyntaxError("Invalid program name found in report.");
@@ -241,7 +241,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                         }
                                         break;
                                     default:
-                                        if (ExpressionNode.TryGetExpressionNode(parser, out expr))
+                                        if (FglExpressionNode.TryGetExpressionNode(parser, out expr))
                                             defNode.OutputFilename = expr;
                                         else
                                             parser.ReportSyntaxError("Invalid filename found in report.");
@@ -262,7 +262,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                 if (parser.PeekToken(TokenKind.MarginKeyword))
                                 {
                                     parser.NextToken();
-                                    if (ExpressionNode.TryGetExpressionNode(parser, out expr))
+                                    if (FglExpressionNode.TryGetExpressionNode(parser, out expr))
                                         defNode.MarginLeft = expr;
                                     else
                                         parser.ReportSyntaxError("Invalid margin value found in report.");
@@ -275,7 +275,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                 if (parser.PeekToken(TokenKind.MarginKeyword))
                                 {
                                     parser.NextToken();
-                                    if (ExpressionNode.TryGetExpressionNode(parser, out expr))
+                                    if (FglExpressionNode.TryGetExpressionNode(parser, out expr))
                                         defNode.MarginRight = expr;
                                     else
                                         parser.ReportSyntaxError("Invalid margin value found in report.");
@@ -288,7 +288,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                 if (parser.PeekToken(TokenKind.MarginKeyword))
                                 {
                                     parser.NextToken();
-                                    if (ExpressionNode.TryGetExpressionNode(parser, out expr))
+                                    if (FglExpressionNode.TryGetExpressionNode(parser, out expr))
                                         defNode.MarginBottom = expr;
                                     else
                                         parser.ReportSyntaxError("Invalid margin value found in report.");
@@ -301,7 +301,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                 if (parser.PeekToken(TokenKind.LengthKeyword))
                                 {
                                     parser.NextToken();
-                                    if (ExpressionNode.TryGetExpressionNode(parser, out expr))
+                                    if (FglExpressionNode.TryGetExpressionNode(parser, out expr))
                                         defNode.PageLength = expr;
                                     else
                                         parser.ReportSyntaxError("Invalid page length value found in report.");
@@ -315,7 +315,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                 {
                                     parser.NextToken();
                                     parser.NextToken();
-                                    if (ExpressionNode.TryGetExpressionNode(parser, out expr))
+                                    if (FglExpressionNode.TryGetExpressionNode(parser, out expr))
                                         defNode.TopOfPage = expr;
                                     else
                                         parser.ReportSyntaxError("Invalid top of page value found in report.");
@@ -323,7 +323,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                 else if (parser.PeekToken(TokenKind.MarginKeyword))
                                 {
                                     parser.NextToken();
-                                    if (ExpressionNode.TryGetExpressionNode(parser, out expr))
+                                    if (FglExpressionNode.TryGetExpressionNode(parser, out expr))
                                         defNode.MarginTop = expr;
                                     else
                                         parser.ReportSyntaxError("Invalid margin value found in report.");
@@ -358,8 +358,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         parser.ReportSyntaxError("Expected \"by\" keyword in order section of report.");
 
                     // collect report variables
-                    NameExpression varName;
-                    while (NameExpression.TryParseNode(parser, out varName))
+                    FglNameExpression varName;
+                    while (FglNameExpression.TryParseNode(parser, out varName))
                     {
                         defNode.OrderVarNames.Add(varName);
                         if (parser.PeekToken(TokenKind.AscKeyword) || parser.PeekToken(TokenKind.DescKeyword))
@@ -412,7 +412,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
     public class ReportFormatSection : AstNode4gl
     {
         private bool _canOutline;
-        public NameExpression ReportVariable { get; private set; }
+        public FglNameExpression ReportVariable { get; private set; }
 
         public static bool TryParseNode(Genero4glParser parser, out ReportFormatSection node,
                                  IModuleResult containingModule,
@@ -498,8 +498,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                     parser.NextToken();
                                     parser.NextToken();
                                     // TODO: get report variable
-                                    NameExpression name;
-                                    if (NameExpression.TryParseNode(parser, out name))
+                                    FglNameExpression name;
+                                    if (FglNameExpression.TryParseNode(parser, out name))
                                         node.ReportVariable = name;
                                     else
                                         parser.ReportSyntaxError("Invalid name expression found in format section of report.");
@@ -718,7 +718,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                             parser.NextToken();
                             node.AppendExpression(new TokenExpressionNode(parser.Token));
                             ExpressionNode whereExpr;
-                            if (ExpressionNode.TryGetExpressionNode(parser, out whereExpr))
+                            if (FglExpressionNode.TryGetExpressionNode(parser, out whereExpr))
                                 node.AppendExpression(whereExpr);
                             else
                                 parser.ReportSyntaxError("Invalid expression in report aggregate function.");
@@ -738,7 +738,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                             parser.NextToken();
                             node.AppendExpression(new TokenExpressionNode(parser.Token));
                             ExpressionNode expr;
-                            if(ExpressionNode.TryGetExpressionNode(parser, out expr))
+                            if(FglExpressionNode.TryGetExpressionNode(parser, out expr))
                             {
                                 node.AppendExpression(expr);
                                 if (parser.PeekToken(TokenKind.RightParenthesis))
@@ -761,7 +761,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                             parser.NextToken();
                             node.AppendExpression(new TokenExpressionNode(parser.Token));
                             ExpressionNode whereExpr;
-                            if (ExpressionNode.TryGetExpressionNode(parser, out whereExpr))
+                            if (FglExpressionNode.TryGetExpressionNode(parser, out whereExpr))
                                 node.AppendExpression(whereExpr);
                             else
                                 parser.ReportSyntaxError("Invalid expression in report aggregate function.");

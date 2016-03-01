@@ -39,7 +39,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 parser.NextToken();
 
                 FunctionCallExpressionNode reportCall;
-                NameExpression dummyName;
+                FglNameExpression dummyName;
                 if (FunctionCallExpressionNode.TryParseExpression(parser, out reportCall, out dummyName, true))
                     node.ReportCall = reportCall;
                 else

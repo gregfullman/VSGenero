@@ -16,7 +16,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace VSGenero.Analysis.Parsing.AST_4GL
+namespace VSGenero.Analysis.Parsing
 {
     public enum PreprocessorType
     {
@@ -28,7 +28,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         Endif
     }
 
-    public class PreprocessorNode : AstNode4gl
+    public class PreprocessorNode : AstNode
     {
         public PreprocessorType Type { get; private set; }
         public string IncludeFile { get; private set; }
@@ -44,7 +44,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             }
         }
 
-        public static bool TryParseNode(Genero4glParser parser, out PreprocessorNode node)
+        public static bool TryParseNode(GeneroParser parser, out PreprocessorNode node)
         {
             node = null;
             bool result = false;
@@ -65,9 +65,9 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     case TokenKind.IncludeKeyword:
                         parser.NextToken();
                         node.Type = PreprocessorType.Include;
-                        ExpressionNode strExpr;
-                        if (ExpressionNode.TryGetExpressionNode(parser, out strExpr) && strExpr is StringExpressionNode)
-                            node.IncludeFile = (strExpr as StringExpressionNode).LiteralValue;
+                        StringExpressionNode strExpr;
+                        if (StringExpressionNode.TryGetExpressionNode(parser, out strExpr))
+                            node.IncludeFile = strExpr.LiteralValue;
                         else
                             parser.ReportSyntaxError("Invalid include file preprocessor directive found.");
                         break;
@@ -109,7 +109,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         }
     }
 
-    public class IncludedPreprocessorNode : AstNode4gl
+    public class IncludedPreprocessorNode : AstNode
     {
 
     }

@@ -23,7 +23,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         public ExpressionNode Question { get; private set; }
         public List<PromptDisplayAttribute> DisplayAttributes { get; private set; }
         public List<PromptControlAttribute> ControlAttributes { get; private set; }
-        public NameExpression VariableName { get; private set; }
+        public FglNameExpression VariableName { get; private set; }
         public ExpressionNode HelpNumber { get; private set; }
 
         public static bool TryParseNode(Genero4glParser parser, out PromptStatement node,
@@ -48,7 +48,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 node.ControlAttributes = new List<PromptControlAttribute>();
 
                 ExpressionNode question;
-                if (ExpressionNode.TryGetExpressionNode(parser, out question))
+                if (FglExpressionNode.TryGetExpressionNode(parser, out question))
                     node.Question = question;
                 else
                     parser.ReportSyntaxError("Invalid question expression found in prompt statement.");
@@ -89,8 +89,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     parser.NextToken();
                 }
 
-                NameExpression varName;
-                if (NameExpression.TryParseNode(parser, out varName))
+                FglNameExpression varName;
+                if (FglNameExpression.TryParseNode(parser, out varName))
                     node.VariableName = varName;
                 else
                     parser.ReportSyntaxError("Invalid variable name found in prompt statement.");
@@ -99,7 +99,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 {
                     parser.NextToken();
                     ExpressionNode helpNumber;
-                    if (ExpressionNode.TryGetExpressionNode(parser, out helpNumber))
+                    if (FglExpressionNode.TryGetExpressionNode(parser, out helpNumber))
                         node.HelpNumber = helpNumber;
                     else
                         parser.ReportSyntaxError("Invalid help number found in prompt statement.");
@@ -230,7 +230,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         {
                             parser.NextToken();
                             ExpressionNode boolExpr;
-                            if (!ExpressionNode.TryGetExpressionNode(parser, out boolExpr, new List<TokenKind> { TokenKind.Comma, TokenKind.RightParenthesis }))
+                            if (!FglExpressionNode.TryGetExpressionNode(parser, out boolExpr, new List<TokenKind> { TokenKind.Comma, TokenKind.RightParenthesis }))
                                 parser.ReportSyntaxError("Invalid boolean expression found in prompt attribute.");
                         }
                         break;
@@ -245,7 +245,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                             {
                                 parser.NextToken();
                                 ExpressionNode boolExpr;
-                                if (!ExpressionNode.TryGetExpressionNode(parser, out boolExpr, new List<TokenKind> { TokenKind.Comma, TokenKind.RightParenthesis }))
+                                if (!FglExpressionNode.TryGetExpressionNode(parser, out boolExpr, new List<TokenKind> { TokenKind.Comma, TokenKind.RightParenthesis }))
                                     parser.ReportSyntaxError("Invalid boolean expression found in prompt attribute.");
                             }
                         }
@@ -263,7 +263,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
                         // get the help number
                         ExpressionNode optionNumber;
-                        if (!ExpressionNode.TryGetExpressionNode(parser, out optionNumber))
+                        if (!FglExpressionNode.TryGetExpressionNode(parser, out optionNumber))
                             parser.ReportSyntaxError("Invalid help-number found in input attribute.");
                         break;
                     }
@@ -274,7 +274,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         {
                             parser.NextToken();
                             ExpressionNode boolExpr;
-                            if (!ExpressionNode.TryGetExpressionNode(parser, out boolExpr, new List<TokenKind> { TokenKind.Comma, TokenKind.RightParenthesis }))
+                            if (!FglExpressionNode.TryGetExpressionNode(parser, out boolExpr, new List<TokenKind> { TokenKind.Comma, TokenKind.RightParenthesis }))
                                 parser.ReportSyntaxError("Invalid expression found in input attribute.");
                         }
                         else
@@ -292,7 +292,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         else
                             parser.ReportSyntaxError("Expected equals token in input attribute.");
                         ExpressionNode strExpr;
-                        if (!ExpressionNode.TryGetExpressionNode(parser, out strExpr, new List<TokenKind> { TokenKind.Comma, TokenKind.RightParenthesis }))
+                        if (!FglExpressionNode.TryGetExpressionNode(parser, out strExpr, new List<TokenKind> { TokenKind.Comma, TokenKind.RightParenthesis }))
                             parser.ReportSyntaxError("Invalid string expression found in prompt attribute.");
                         break;
                     }
@@ -316,7 +316,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
     public class PromptControlBlock : AstNode4gl
     {
         public ExpressionNode IdleSeconds { get; private set; }
-        public NameExpression ActionName { get; private set; }
+        public FglNameExpression ActionName { get; private set; }
         public List<VirtualKey> KeyNameList { get; private set; }
         public PromptControlBlockType Type { get; private set; }
 
@@ -345,7 +345,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                 node.Type = PromptControlBlockType.Idle;
                                 // get the idle seconds
                                 ExpressionNode idleExpr;
-                                if (ExpressionNode.TryGetExpressionNode(parser, out idleExpr))
+                                if (FglExpressionNode.TryGetExpressionNode(parser, out idleExpr))
                                     node.IdleSeconds = idleExpr;
                                 else
                                     parser.ReportSyntaxError("Invalid idle-seconds found in prompt statement.");
@@ -354,8 +354,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                 parser.NextToken();
                                 node.Type = PromptControlBlockType.Action;
                                 // get the action name
-                                NameExpression actionName;
-                                if (NameExpression.TryParseNode(parser, out actionName))
+                                FglNameExpression actionName;
+                                if (FglNameExpression.TryParseNode(parser, out actionName))
                                     node.ActionName = actionName;
                                 else
                                     parser.ReportSyntaxError("Invalid action-name found in prompt statement.");

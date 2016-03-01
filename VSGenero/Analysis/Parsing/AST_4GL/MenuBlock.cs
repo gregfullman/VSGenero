@@ -59,7 +59,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     {
                         parser.NextToken();
                         ExpressionNode expr;
-                        while (ExpressionNode.TryGetExpressionNode(parser, out expr, new List<TokenKind> { TokenKind.Comma, TokenKind.RightParenthesis }))
+                        while (FglExpressionNode.TryGetExpressionNode(parser, out expr, new List<TokenKind> { TokenKind.Comma, TokenKind.RightParenthesis }))
                         {
                             node.Attributes.Add(expr);
                             if (!parser.PeekToken(TokenKind.Comma))
@@ -244,8 +244,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         if(parser.PeekToken(TokenKind.OptionKeyword))
                         {
                             parser.NextToken();
-                            NameExpression nameExpr;
-                            if (NameExpression.TryParseNode(parser, out nameExpr))
+                            FglNameExpression nameExpr;
+                            if (FglNameExpression.TryParseNode(parser, out nameExpr))
                                 node.OptionNames.Add(nameExpr);
                             else
                                 parser.ReportSyntaxError("Invalid option name found in menu statement.");
@@ -271,14 +271,14 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                 parser.NextToken();
                             else
                             {
-                                NameExpression nameExpr;
+                                FglNameExpression nameExpr;
                                 ExpressionNode strExpr;
                                 while (true)
                                 {
-                                    if (NameExpression.TryParseNode(parser, out nameExpr))
+                                    if (FglNameExpression.TryParseNode(parser, out nameExpr))
                                         node.OptionNames.Add(nameExpr);
                                     else if (parser.PeekToken(TokenCategory.StringLiteral) &&
-                                            ExpressionNode.TryGetExpressionNode(parser, out strExpr, new List<TokenKind> { TokenKind.Comma }))
+                                            FglExpressionNode.TryGetExpressionNode(parser, out strExpr, new List<TokenKind> { TokenKind.Comma }))
                                     {
                                         node.OptionNames.Add(strExpr);
                                     }
@@ -319,7 +319,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         public ExpressionNode HelpNumber { get; private set; }
         public VirtualKey KeyName { get; private set; }
 
-        public NameExpression ActionName { get; private set; }
+        public FglNameExpression ActionName { get; private set; }
 
         public ExpressionNode IdleSeconds { get; private set; }
         public bool IsBeforeMenuBlock { get; private set;}
@@ -406,7 +406,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                                                                    limitedScopeVariableAdder, validExitKeywords, contextStatementFactories, endKeywords))
                         {
                             ExpressionNode optionName;
-                            if (ExpressionNode.TryGetExpressionNode(parser, out optionName))
+                            if (FglExpressionNode.TryGetExpressionNode(parser, out optionName))
                                 node.OptionName = optionName;
                             else
                                 parser.ReportSyntaxError("Invalid option-name found in menu command option.");
@@ -417,7 +417,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                parser.PeekToken(TokenCategory.Identifier))
                             {
                                 ExpressionNode optionComment;
-                                if (ExpressionNode.TryGetExpressionNode(parser, out optionComment))
+                                if (FglExpressionNode.TryGetExpressionNode(parser, out optionComment))
                                     node.OptionComment = optionComment;
 
                             }
@@ -426,7 +426,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                 parser.NextToken();
 
                                 ExpressionNode optionNumber;
-                                if (ExpressionNode.TryGetExpressionNode(parser, out optionNumber))
+                                if (FglExpressionNode.TryGetExpressionNode(parser, out optionNumber))
                                     node.HelpNumber = optionNumber;
                                 else
                                     parser.ReportSyntaxError("Invalid help-number found in menu command option.");
@@ -451,8 +451,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         if (parser.PeekToken(TokenKind.ActionKeyword))
                         {
                             parser.NextToken();
-                            NameExpression action;
-                            if (NameExpression.TryParseNode(parser, out action))
+                            FglNameExpression action;
+                            if (FglNameExpression.TryParseNode(parser, out action))
                                 node.ActionName = action;
                             else
                                 parser.ReportSyntaxError("Invalid action-name found in menu option.");
@@ -466,7 +466,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         {
                             parser.NextToken();
                             ExpressionNode idleExpr;
-                            if (ExpressionNode.TryGetExpressionNode(parser, out idleExpr))
+                            if (FglExpressionNode.TryGetExpressionNode(parser, out idleExpr))
                                 node.IdleSeconds = idleExpr;
                             else
                                 parser.ReportSyntaxError("Invalid idle-seconds found in menu block.");

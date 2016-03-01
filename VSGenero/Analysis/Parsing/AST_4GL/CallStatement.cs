@@ -22,13 +22,13 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
     {
         public FunctionCallExpressionNode Function { get; private set; }
 
-        private List<NameExpression> _returns;
-        public List<NameExpression> Returns
+        private List<FglNameExpression> _returns;
+        public List<FglNameExpression> Returns
         {
             get
             {
                 if (_returns == null)
-                    _returns = new List<NameExpression>();
+                    _returns = new List<FglNameExpression>();
                 return _returns;
             }
         }
@@ -47,7 +47,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
                 // get the function name
                 FunctionCallExpressionNode functionCall;
-                NameExpression dummy;
+                FglNameExpression dummy;
                 if (!FunctionCallExpressionNode.TryParseExpression(parser, out functionCall, out dummy, true))
                 {
                     parser.ReportSyntaxError("Unexpected token found in call statement, expecting name expression.");
@@ -60,9 +60,9 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     {
                         parser.NextToken();
 
-                        NameExpression name;
+                        FglNameExpression name;
                         // get return values
-                        while (NameExpression.TryParseNode(parser, out name, TokenKind.Comma))
+                        while (FglNameExpression.TryParseNode(parser, out name, TokenKind.Comma))
                         {
                             node.Returns.Add(name);
                             if (!parser.PeekToken(TokenKind.Comma))

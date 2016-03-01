@@ -340,6 +340,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         {
             definingProject = null;
             projectEntry = null;
+            bool dummyDef;
             List<IAnalysisResult> members = new List<IAnalysisResult>();
             if (Children.Count == 1)
             {
@@ -388,7 +389,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         {
                             if (includedFile.Analysis != null)
                             {
-                                var res = includedFile.Analysis.GetValueByIndex(_typeNameString, 1, null, null, null, false, out definingProject, out projectEntry);
+                                var res = includedFile.Analysis.GetValueByIndex(_typeNameString, 1, null, null, null, false, out dummyDef, out definingProject, out projectEntry);
                                 if (res != null)
                                 {
                                     return res.GetMembers(ast, memberType, function).Select(x => x.Var).Where(y => y != null);
@@ -417,7 +418,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     }
 
                     // check for package class
-                    udt = ast.GetValueByIndex(_typeNameString, LocationIndex, ast._functionProvider, ast._databaseProvider, ast._programFileProvider, false, out definingProject, out projectEntry);
+                    udt = ast.GetValueByIndex(_typeNameString, LocationIndex, ast._functionProvider, ast._databaseProvider, ast._programFileProvider, false, out dummyDef, out definingProject, out projectEntry);
                     if (udt != null)
                     {
                         return udt.GetMembers(ast, memberType, function).Select(x => x.Var).Where(y => y != null);
@@ -461,6 +462,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
         public IEnumerable<MemberResult> GetMembers(Genero4glAst ast, MemberType memberType, bool function)
         {
+            bool dummyDef;
             List<MemberResult> members = new List<MemberResult>();
             if (Children.Count == 1)
             {
@@ -508,7 +510,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         {
                             IGeneroProject dummyProj;
                             IProjectEntry dummyProjEntry;
-                            var res = includedFile.Analysis.GetValueByIndex(_typeNameString, 1, null, null, null, false, out dummyProj, out dummyProjEntry);
+                            var res = includedFile.Analysis.GetValueByIndex(_typeNameString, 1, null, null, null, false, out dummyDef, out dummyProj, out dummyProjEntry);
                             if (res != null)
                             {
                                 return res.GetMembers(ast, memberType, function);
@@ -535,7 +537,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     // check for package class
                     IGeneroProject dummyProject;
                     IProjectEntry projEntry;
-                    udt = ast.GetValueByIndex(_typeNameString, LocationIndex, ast._functionProvider, ast._databaseProvider, ast._programFileProvider, false, out dummyProject, out projEntry);
+                    udt = ast.GetValueByIndex(_typeNameString, LocationIndex, ast._functionProvider, ast._databaseProvider, ast._programFileProvider, false, out dummyDef, out dummyProject, out projEntry);
                     if (udt != null)
                     {
                         return udt.GetMembers(ast, memberType, function);
@@ -580,7 +582,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         // check for package class
                         IGeneroProject dummyProj;
                         IProjectEntry projEntry;
-                        udt = ast.GetValueByIndex(_typeNameString, LocationIndex, ast._functionProvider, ast._databaseProvider, ast._programFileProvider, false, out dummyProj, out projEntry);
+                        bool dummyDef;
+                        udt = ast.GetValueByIndex(_typeNameString, LocationIndex, ast._functionProvider, ast._databaseProvider, ast._programFileProvider, false, out dummyDef, out dummyProj, out projEntry);
                         if (udt != null)
                         {
                             return udt.HasChildFunctions(ast);

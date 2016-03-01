@@ -30,7 +30,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
     public class RecordDefinitionNode : AstNode4gl, IAnalysisResult
     {
         public AttributeSpecifier Attribute { get; private set; }
-        public NameExpression MimicTableName { get; private set; }
+        public FglNameExpression MimicTableName { get; private set; }
         public string MimicDatabaseName { get; private set; }
 
         public bool CanGetValueFromDebugger
@@ -87,8 +87,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         defNode.MimicDatabaseName = parser.Token.Token.Value.ToString();
                         parser.NextToken(); // advance to the colon
                     }
-                    NameExpression tableName;
-                    if (NameExpression.TryParseNode(parser, out tableName))
+                    FglNameExpression tableName;
+                    if (FglNameExpression.TryParseNode(parser, out tableName))
                     {
                         defNode.MimicTableName = tableName;
                         if(!tableName.Name.EndsWith(".*"))

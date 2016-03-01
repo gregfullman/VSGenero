@@ -20,8 +20,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 {
     public class FetchStatement : FglStatement
     {
-        public NameExpression CursorId { get; private set; }
-        public List<NameExpression> OutputVars { get; private set; }
+        public FglNameExpression CursorId { get; private set; }
+        public List<FglNameExpression> OutputVars { get; private set; }
 
         public static bool TryParseNode(Genero4glParser parser, out FetchStatement node)
         {
@@ -34,7 +34,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 node = new FetchStatement();
                 parser.NextToken();
                 node.StartIndex = parser.Token.Span.Start;
-                node.OutputVars = new List<NameExpression>();
+                node.OutputVars = new List<FglNameExpression>();
 
                 switch(parser.PeekToken().Kind)
                 {
@@ -51,14 +51,14 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         {
                             parser.NextToken();
                             ExpressionNode expr;
-                            if (!ExpressionNode.TryGetExpressionNode(parser, out expr))
+                            if (!FglExpressionNode.TryGetExpressionNode(parser, out expr))
                                 parser.ReportSyntaxError("Invalid expression found in fetch statement.");
                             break;
                         }
                 }
 
-                NameExpression cid;
-                if (NameExpression.TryParseNode(parser, out cid))
+                FglNameExpression cid;
+                if (FglNameExpression.TryParseNode(parser, out cid))
                     node.CursorId = cid;
                 else
                     parser.ReportSyntaxError("Invalid declared cursor id found in fetch statement.");
@@ -66,8 +66,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 if(parser.PeekToken(TokenKind.IntoKeyword))
                 {
                     parser.NextToken();
-                    NameExpression outVar;
-                    while (NameExpression.TryParseNode(parser, out outVar, TokenKind.Comma))
+                    FglNameExpression outVar;
+                    while (FglNameExpression.TryParseNode(parser, out outVar, TokenKind.Comma))
                     {
                         node.OutputVars.Add(outVar);
                         if (parser.PeekToken(TokenKind.Comma))

@@ -85,7 +85,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                             {
                                 parser.NextToken();
                                 ExpressionNode colExpr;
-                                if (ExpressionNode.TryGetExpressionNode(parser, out colExpr, breaks))
+                                if (FglExpressionNode.TryGetExpressionNode(parser, out colExpr, breaks))
                                     node.ColumnExpressions.Add(colExpr);
                                 break;
                             }
@@ -114,7 +114,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                 {
                                     parser.NextToken();
                                     ExpressionNode whereClause;
-                                    if (ExpressionNode.TryGetExpressionNode(parser, out whereClause, breaks))
+                                    if (FglExpressionNode.TryGetExpressionNode(parser, out whereClause, breaks))
                                         node.WhereExpressions.Add(whereClause);
                                 }
 
@@ -138,7 +138,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                 {
                                     parser.NextToken();
                                     ExpressionNode varName;
-                                    if (ExpressionNode.TryGetExpressionNode(parser, out varName))
+                                    if (FglExpressionNode.TryGetExpressionNode(parser, out varName))
                                     {
                                         node.VariableNames.Add(varName);
                                         if (parser.PeekToken(TokenKind.RightParenthesis))
@@ -156,7 +156,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                 {
                                     parser.NextToken();
                                     ExpressionNode whereClause;
-                                    if (ExpressionNode.TryGetExpressionNode(parser, out whereClause, breaks))
+                                    if (FglExpressionNode.TryGetExpressionNode(parser, out whereClause, breaks))
                                         node.WhereExpressions.Add(whereClause);
                                 }
 
@@ -174,14 +174,14 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                             {
                                 parser.NextToken();
                                 ExpressionNode filename;
-                                if (ExpressionNode.TryGetExpressionNode(parser, out filename, breaks))
+                                if (FglExpressionNode.TryGetExpressionNode(parser, out filename, breaks))
                                     node.Filenames.Add(filename);
                                 break;
                             }
                         default:
                             {
                                 ExpressionNode expr;
-                                if (ExpressionNode.TryGetExpressionNode(parser, out expr, breaks, new ExpressionParsingOptions
+                                if (FglExpressionNode.TryGetExpressionNode(parser, out expr, breaks, new ExpressionParsingOptions
                                 {
                                     AllowStarParam = true,
                                     AdditionalExpressionParsers = new ExpressionParser[] { (x) => ReportStatementFactory.ParseAggregateReportFunction(x, reportNode) }
@@ -199,7 +199,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                         {
                                             parser.NextToken();
                                             parser.NextToken();
-                                            if(ExpressionNode.TryGetExpressionNode(parser, out expr, breaks))
+                                            if(FglExpressionNode.TryGetExpressionNode(parser, out expr, breaks))
                                                 node.OtherExpressions.Add(expr);
                                             else
                                                 parser.ReportSyntaxError("Invalid expression found in print statement.");

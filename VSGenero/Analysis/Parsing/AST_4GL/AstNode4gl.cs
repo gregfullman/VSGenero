@@ -56,7 +56,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 }
                 else
                 {
-                    NameExpression exprNode = prepStmt.Children[prepStmt.Children.Keys[0]] as NameExpression;
+                    FglNameExpression exprNode = prepStmt.Children[prepStmt.Children.Keys[0]] as FglNameExpression;
                     if (exprNode != null)
                     {
                         string ident = exprNode.Name;

@@ -16,9 +16,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace VSGenero.Analysis.Parsing.AST_4GL
+namespace VSGenero.Analysis.Parsing
 {
-    public class VirtualKey : AstNode4gl
+    public class VirtualKey : AstNode
     {
         private static char[] _controlKeyExlusions = new char[]
         {
@@ -47,6 +47,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     parser.NextToken();
                     break;
                 case TokenKind.ControlKeyword:
+                case TokenKind.ShiftKeyword:
                     parser.NextToken();
                     if (parser.PeekToken(TokenKind.Subtract))
                     {

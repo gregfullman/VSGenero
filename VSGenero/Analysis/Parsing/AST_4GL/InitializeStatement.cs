@@ -32,7 +32,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
     /// </summary>
     public class InitializeStatement : FglStatement
     {
-        public List<NameExpression> TargetVariables { get; private set; }
+        public List<FglNameExpression> TargetVariables { get; private set; }
         public string SourceTable { get; private set; }
         public string SourceColumn { get; private set; }
 
@@ -47,10 +47,10 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 defNode = new InitializeStatement();
                 parser.NextToken();
                 defNode.StartIndex = parser.Token.Span.Start;
-                defNode.TargetVariables = new List<NameExpression>();
+                defNode.TargetVariables = new List<FglNameExpression>();
 
-                NameExpression name;
-                while(NameExpression.TryParseNode(parser, out name))
+                FglNameExpression name;
+                while(FglNameExpression.TryParseNode(parser, out name))
                 {
                     defNode.TargetVariables.Add(name);
                     if (!parser.PeekToken(TokenKind.Comma))

@@ -40,7 +40,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 while (true)
                 {
                     ExpressionNode msgExpr;
-                    if (ExpressionNode.TryGetExpressionNode(parser, out msgExpr))
+                    if (FglExpressionNode.TryGetExpressionNode(parser, out msgExpr))
                         node.Messages.Add(msgExpr);
                     else
                         parser.ReportSyntaxError("Invalid message expression found.");
@@ -118,7 +118,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
                         // get the style name
                         ExpressionNode styleName;
-                        if (!ExpressionNode.TryGetExpressionNode(parser, out styleName))
+                        if (!FglExpressionNode.TryGetExpressionNode(parser, out styleName))
                             parser.ReportSyntaxError("Invalid style name found in message attribute.");
                         break;
                     }

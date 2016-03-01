@@ -46,7 +46,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 node.StartIndex = parser.Token.Span.Start;
 
                 ExpressionNode counterVar;
-                if(ExpressionNode.TryGetExpressionNode(parser, out counterVar, new List<TokenKind> { TokenKind.Equals }))
+                if(FglExpressionNode.TryGetExpressionNode(parser, out counterVar, new List<TokenKind> { TokenKind.Equals }))
                     node.CounterVariable = counterVar;
                 else
                     parser.ReportSyntaxError("Invalid expression found in for statement");
@@ -57,7 +57,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     parser.ReportSyntaxError("For statement missing counter variable assignment.");
 
                 ExpressionNode startValue;
-                if(ExpressionNode.TryGetExpressionNode(parser, out startValue, new List<TokenKind> { TokenKind.ToKeyword }))
+                if(FglExpressionNode.TryGetExpressionNode(parser, out startValue, new List<TokenKind> { TokenKind.ToKeyword }))
                     node.StartValueExpresison = startValue;
                 else
                     parser.ReportSyntaxError("Invalid expression found in for statement");
@@ -70,7 +70,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 List<TokenKind> keywords = new List<TokenKind>(Genero4glAst.ValidStatementKeywords);
                 keywords.Add(TokenKind.StepKeyword);
                 ExpressionNode endValue;
-                if (ExpressionNode.TryGetExpressionNode(parser, out endValue, keywords))
+                if (FglExpressionNode.TryGetExpressionNode(parser, out endValue, keywords))
                     node.EndValueExpression = endValue;
                 else
                     parser.ReportSyntaxError("Invalid expression found in for statement");
@@ -79,7 +79,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 {
                     parser.NextToken();
                     ExpressionNode stepExpr;
-                    if (ExpressionNode.TryGetExpressionNode(parser, out stepExpr))
+                    if (FglExpressionNode.TryGetExpressionNode(parser, out stepExpr))
                         node.StepValue = stepExpr;
                     else
                         parser.ReportSyntaxError("Invalid step expression found.");

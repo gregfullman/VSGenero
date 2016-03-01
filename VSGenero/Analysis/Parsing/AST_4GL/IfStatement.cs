@@ -43,7 +43,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 node.StartIndex = parser.Token.Span.Start;
 
                 ExpressionNode conditionExpr;
-                if (!ExpressionNode.TryGetExpressionNode(parser, out conditionExpr, new List<TokenKind> { TokenKind.ThenKeyword }, expressionOptions))
+                if (!FglExpressionNode.TryGetExpressionNode(parser, out conditionExpr, new List<TokenKind> { TokenKind.ThenKeyword }, expressionOptions))
                 {
                     parser.ReportSyntaxError("An if statement must have a condition expression.");
                 }

@@ -20,7 +20,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 {
     public class PrintxStatement : FglStatement
     {
-        public NameExpression Name { get; private set; }
+        public FglNameExpression Name { get; private set; }
         public List<ExpressionNode> Expressions { get; private set; }
 
         public static bool TryParseNode(IParser parser, out PrintxStatement node)
@@ -42,8 +42,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     if(parser.PeekToken(TokenKind.Equals))
                     {
                         parser.NextToken();
-                        NameExpression name;
-                        if (NameExpression.TryParseNode(parser, out name))
+                        FglNameExpression name;
+                        if (FglNameExpression.TryParseNode(parser, out name))
                             node.Name = name;
                         else
                             parser.ReportSyntaxError("Invalid name expression found in printx statement.");
@@ -53,7 +53,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 }
 
                 ExpressionNode expr;
-                while (ExpressionNode.TryGetExpressionNode(parser, out expr))
+                while (FglExpressionNode.TryGetExpressionNode(parser, out expr))
                 {
                     node.Expressions.Add(expr);
                     if (parser.PeekToken(TokenKind.Comma))

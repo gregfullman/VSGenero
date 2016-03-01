@@ -127,13 +127,13 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         public bool SelectAll { get; private set; }
         public List<ExpressionNode> SelectList { get; private set; }
 
-        public List<NameExpression> IntoVariables { get; private set; }
+        public List<FglNameExpression> IntoVariables { get; private set; }
 
         public Dictionary<object, ExpressionNode> Tables { get; private set; }
 
         public ExpressionNode ConditionalExpression { get; private set; }
 
-        public List<NameExpression> GroupByList { get; private set; }
+        public List<FglNameExpression> GroupByList { get; private set; }
         public ExpressionNode GroupByCondition { get; private set; }
 
         public List<ExpressionNode> OrderByList { get; private set; }
@@ -158,7 +158,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     parser.NextToken();
 
                     ExpressionNode skipExpr;
-                    if (ExpressionNode.TryGetExpressionNode(parser, out skipExpr, new List<TokenKind> 
+                    if (FglExpressionNode.TryGetExpressionNode(parser, out skipExpr, new List<TokenKind> 
                     { 
                         TokenKind.FirstKeyword, TokenKind.MiddleKeyword, TokenKind.LimitKeyword,
                         TokenKind.AllKeyword, TokenKind.DistinctKeyword, TokenKind.UniqueKeyword,
@@ -185,7 +185,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     parser.NextToken();
                     string subsetTypeStr = parser.Token.Token.Value.ToString();
                     ExpressionNode skipExpr;
-                    if (ExpressionNode.TryGetExpressionNode(parser, out skipExpr, new List<TokenKind> 
+                    if (FglExpressionNode.TryGetExpressionNode(parser, out skipExpr, new List<TokenKind> 
                     { 
                         TokenKind.AllKeyword, TokenKind.DistinctKeyword, TokenKind.UniqueKeyword,
                         TokenKind.Multiply, TokenKind.IntoKeyword, TokenKind.FromKeyword
@@ -251,7 +251,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         else
                         {
                             ExpressionNode name;
-                            if (ExpressionNode.TryGetExpressionNode(parser, out name, new List<TokenKind>
+                            if (FglExpressionNode.TryGetExpressionNode(parser, out name, new List<TokenKind>
                                 {
                                     TokenKind.Comma, TokenKind.IntoKeyword, TokenKind.FromKeyword
                                 }, new ExpressionParsingOptions { AllowStarParam = true, AllowAnythingForFunctionParams = true }))
@@ -272,7 +272,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                             {
                                 // we may have a column alias
                                 ExpressionNode alias;
-                                if (ExpressionNode.TryGetExpressionNode(parser, out alias, new List<TokenKind>
+                                if (FglExpressionNode.TryGetExpressionNode(parser, out alias, new List<TokenKind>
                                 {
                                     TokenKind.Comma, TokenKind.IntoKeyword, TokenKind.FromKeyword
                                 }))
@@ -290,12 +290,12 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     }
                 }
 
-                node.IntoVariables = new List<NameExpression>();
+                node.IntoVariables = new List<FglNameExpression>();
                 if (parser.PeekToken(TokenKind.IntoKeyword))
                 {
                     parser.NextToken();
-                    NameExpression name;
-                    while (NameExpression.TryParseNode(parser, out name))
+                    FglNameExpression name;
+                    while (FglNameExpression.TryParseNode(parser, out name))
                     {
                         node.IntoVariables.Add(name);
                         if (!parser.PeekToken(TokenKind.Comma))
@@ -340,7 +340,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                         peek.Kind != TokenKind.GroupKeyword &&
                                         peek.Kind != TokenKind.OrderKeyword))
                                     {
-                                        if (!ExpressionNode.TryGetExpressionNode(parser, out aliasName, null, new ExpressionParsingOptions { AllowAnythingForFunctionParams = true }))
+                                        if (!FglExpressionNode.TryGetExpressionNode(parser, out aliasName, null, new ExpressionParsingOptions { AllowAnythingForFunctionParams = true }))
                                             parser.ReportSyntaxError("Invalid table alias name found.");
                                         else
                                             node.Tables[subSelStmt] = aliasName;
@@ -365,7 +365,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     }
                     else
                     {
-                        if (ExpressionNode.TryGetExpressionNode(parser, out tableName, new List<TokenKind>
+                        if (FglExpressionNode.TryGetExpressionNode(parser, out tableName, new List<TokenKind>
                         {
                             TokenKind.Comma
                         }))
@@ -382,7 +382,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                     peek.Kind != TokenKind.GroupKeyword &&
                                     peek.Kind != TokenKind.OrderKeyword))
                                 {
-                                    if (!ExpressionNode.TryGetExpressionNode(parser, out aliasName))
+                                    if (!FglExpressionNode.TryGetExpressionNode(parser, out aliasName))
                                         parser.ReportSyntaxError("Invalid table alias name found.");
                                     else
                                         node.Tables[tableName] = aliasName;
@@ -411,7 +411,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 {
                     parser.NextToken();
                     ExpressionNode conditionalExpr;
-                    if (ExpressionNode.TryGetExpressionNode(parser, out conditionalExpr, Genero4glAst.ValidStatementKeywords.Union(new List<TokenKind>
+                    if (FglExpressionNode.TryGetExpressionNode(parser, out conditionalExpr, Genero4glAst.ValidStatementKeywords.Union(new List<TokenKind>
                         {
                             TokenKind.GroupKeyword, TokenKind.OrderKeyword
                         }).ToList(), new ExpressionParsingOptions { AllowStarParam = true, AllowAnythingForFunctionParams = true, AllowQuestionMark = true }))
@@ -425,13 +425,13 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 }
 
                 // get group-by clause
-                node.GroupByList = new List<NameExpression>();
+                node.GroupByList = new List<FglNameExpression>();
                 if (parser.PeekToken(TokenKind.GroupKeyword) && parser.PeekToken(TokenKind.ByKeyword, 2))
                 {
                     parser.NextToken();
                     parser.NextToken();
-                    NameExpression name;
-                    while (NameExpression.TryParseNode(parser, out name))
+                    FglNameExpression name;
+                    while (FglNameExpression.TryParseNode(parser, out name))
                     {
                         node.GroupByList.Add(name);
                         if (!parser.PeekToken(TokenKind.Comma))
@@ -443,7 +443,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     {
                         parser.NextToken();
                         ExpressionNode conditionalExpr;
-                        if (ExpressionNode.TryGetExpressionNode(parser, out conditionalExpr, Genero4glAst.ValidStatementKeywords.Union(new List<TokenKind>
+                        if (FglExpressionNode.TryGetExpressionNode(parser, out conditionalExpr, Genero4glAst.ValidStatementKeywords.Union(new List<TokenKind>
                         {
                             TokenKind.OrderKeyword
                         }).ToList(), new ExpressionParsingOptions { AllowAnythingForFunctionParams = true, AllowStarParam = true }))
@@ -463,7 +463,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     parser.NextToken();
                     parser.NextToken();
                     ExpressionNode colName;
-                    while (ExpressionNode.TryGetExpressionNode(parser, out colName, Genero4glAst.ValidStatementKeywords.Union(new List<TokenKind> { TokenKind.Comma }).ToList()))
+                    while (FglExpressionNode.TryGetExpressionNode(parser, out colName, Genero4glAst.ValidStatementKeywords.Union(new List<TokenKind> { TokenKind.Comma }).ToList()))
                     {
                         node.OrderByList.Add(colName);
                         if(parser.PeekToken(TokenKind.AscKeyword) || 
@@ -500,8 +500,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
     public class InsertStatement : FglStatement
     {
-        public NameExpression TableSpec { get; private set; }
-        public List<NameExpression> ColumnsSpec { get; private set; }
+        public FglNameExpression TableSpec { get; private set; }
+        public List<FglNameExpression> ColumnsSpec { get; private set; }
         public bool UsesSelectStmt { get; private set; }
         public List<ExpressionNode> Values { get; private set; }
 
@@ -522,8 +522,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 {
                     parser.NextToken();
 
-                    NameExpression tableExpr;
-                    if (NameExpression.TryParseNode(parser, out tableExpr))
+                    FglNameExpression tableExpr;
+                    if (FglNameExpression.TryParseNode(parser, out tableExpr))
                     {
                         node.TableSpec = tableExpr;
                     }
@@ -532,13 +532,13 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         parser.ReportSyntaxError("Invalid table name found in insert statement.");
                     }
 
-                    node.ColumnsSpec = new List<NameExpression>();
+                    node.ColumnsSpec = new List<FglNameExpression>();
                     // get the column list
                     if (parser.PeekToken(TokenKind.LeftParenthesis))
                     {
                         parser.NextToken();
-                        NameExpression name;
-                        while (NameExpression.TryParseNode(parser, out name))
+                        FglNameExpression name;
+                        while (FglNameExpression.TryParseNode(parser, out name))
                         {
                             node.ColumnsSpec.Add(name);
                             if (!parser.PeekToken(TokenKind.Comma))
@@ -559,7 +559,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                             parser.NextToken();
 
                         ExpressionNode expr;
-                        while (ExpressionNode.TryGetExpressionNode(parser, out expr, Genero4glAst.ValidStatementKeywords.Union(new List<TokenKind> { TokenKind.Comma, TokenKind.RightParenthesis }).ToList()))
+                        while (FglExpressionNode.TryGetExpressionNode(parser, out expr, Genero4glAst.ValidStatementKeywords.Union(new List<TokenKind> { TokenKind.Comma, TokenKind.RightParenthesis }).ToList()))
                         {
                             node.Values.Add(expr);
                             if (!parser.PeekToken(TokenKind.Comma))
@@ -598,9 +598,9 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
     public class DeleteStatement : FglStatement
     {
-        public NameExpression TableSpec { get; private set; }
+        public FglNameExpression TableSpec { get; private set; }
         public ExpressionNode ConditionalExpression { get; private set; }
-        public NameExpression CursorName { get; private set; }
+        public FglNameExpression CursorName { get; private set; }
 
         public static bool TryParseNode(IParser parser, out DeleteStatement node)
         {
@@ -618,8 +618,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 {
                     parser.NextToken();
 
-                    NameExpression tableExpr;
-                    if (NameExpression.TryParseNode(parser, out tableExpr))
+                    FglNameExpression tableExpr;
+                    if (FglNameExpression.TryParseNode(parser, out tableExpr))
                         node.TableSpec = tableExpr;
                     else
                         parser.ReportSyntaxError("Invalid table name found in delete statement.");
@@ -634,8 +634,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                             if (parser.PeekToken(TokenKind.OfKeyword))
                             {
                                 parser.NextToken();
-                                NameExpression cursorName;
-                                if (NameExpression.TryParseNode(parser, out cursorName))
+                                FglNameExpression cursorName;
+                                if (FglNameExpression.TryParseNode(parser, out cursorName))
                                     node.CursorName = cursorName;
                                 else
                                     parser.ReportSyntaxError("Invalid cursor name found in delete statement.");
@@ -646,7 +646,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         else
                         {
                             ExpressionNode conditionalExpr;
-                            if (ExpressionNode.TryGetExpressionNode(parser, out conditionalExpr, Genero4glAst.ValidStatementKeywords.ToList()))
+                            if (FglExpressionNode.TryGetExpressionNode(parser, out conditionalExpr, Genero4glAst.ValidStatementKeywords.ToList()))
                                 node.ConditionalExpression = conditionalExpr;
                             else
                                 parser.ReportSyntaxError("Invalid conditional expression found in delete statement.");
@@ -678,20 +678,20 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             Syntax4
         }
 
-        public NameExpression TableSpec { get; private set; }
+        public FglNameExpression TableSpec { get; private set; }
         public ExpressionNode ConditionalExpression { get; private set; }
-        public NameExpression CursorName { get; private set; }
+        public FglNameExpression CursorName { get; private set; }
 
         public SyntaxType Type { get; private set; }
-        public List<NameExpression> ColumnList { get; private set; }
+        public List<FglNameExpression> ColumnList { get; private set; }
         public bool WholeTable { get; private set; }
-        public NameExpression WholeTableName { get; private set; }
+        public FglNameExpression WholeTableName { get; private set; }
         public List<object> Variables { get; set; }
 
         /// <summary>
         /// Used for syntax 4
         /// </summary>
-        public NameExpression RecordName { get; private set; }
+        public FglNameExpression RecordName { get; private set; }
 
         public static bool TryParseNode(IParser parser, out UpdateStatement node)
         {
@@ -702,13 +702,13 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             {
                 result = true;
                 node = new UpdateStatement();
-                node.ColumnList = new List<NameExpression>();
+                node.ColumnList = new List<FglNameExpression>();
                 node.Variables = new List<object>();
                 parser.NextToken();
                 node.StartIndex = parser.Token.Span.Start;
 
-                NameExpression tableExpr;
-                if (NameExpression.TryParseNode(parser, out tableExpr))
+                FglNameExpression tableExpr;
+                if (FglNameExpression.TryParseNode(parser, out tableExpr))
                     node.TableSpec = tableExpr;
                 else
                     parser.ReportSyntaxError("Invalid table name found in update statement.");
@@ -722,8 +722,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         // this can handle syntax 2 or 4
                         // Collect the column list in either case
                         parser.NextToken();
-                        NameExpression colName;
-                        while (NameExpression.TryParseNode(parser, out colName, TokenKind.Comma))
+                        FglNameExpression colName;
+                        while (FglNameExpression.TryParseNode(parser, out colName, TokenKind.Comma))
                         {
                             node.ColumnList.Add(colName);
                             if (!parser.PeekToken(TokenKind.Comma))
@@ -746,7 +746,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                 else if (parser.PeekToken(TokenCategory.Identifier) || parser.PeekToken(TokenCategory.Keyword))
                                 {
                                     node.Type = SyntaxType.Syntax4;
-                                    if (NameExpression.TryParseNode(parser, out colName) && colName.Name.EndsWith(".*"))
+                                    if (FglNameExpression.TryParseNode(parser, out colName) && colName.Name.EndsWith(".*"))
                                     {
                                         node.RecordName = colName;
                                     }
@@ -779,8 +779,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                             else if (parser.PeekToken(TokenCategory.Identifier) || parser.PeekToken(TokenCategory.Keyword))
                             {
                                 node.Type = SyntaxType.Syntax4;
-                                NameExpression colName;
-                                if (NameExpression.TryParseNode(parser, out colName) && colName.Name.EndsWith(".*"))
+                                FglNameExpression colName;
+                                if (FglNameExpression.TryParseNode(parser, out colName) && colName.Name.EndsWith(".*"))
                                 {
                                     node.RecordName = colName;
                                 }
@@ -797,8 +797,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                             parser.PeekToken(TokenCategory.Keyword))
                     {
                         // this can handle syntax 1, 3, and 4
-                        NameExpression nameExpr;
-                        if (NameExpression.TryParseNode(parser, out nameExpr))
+                        FglNameExpression nameExpr;
+                        if (FglNameExpression.TryParseNode(parser, out nameExpr))
                         {
                             if (nameExpr.Name.EndsWith(".*"))
                             {
@@ -814,8 +814,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                     else if (parser.PeekToken(TokenCategory.Identifier) || parser.PeekToken(TokenCategory.Keyword))
                                     {
                                         node.Type = SyntaxType.Syntax4;
-                                        NameExpression colName;
-                                        if (NameExpression.TryParseNode(parser, out colName) && colName.Name.EndsWith(".*"))
+                                        FglNameExpression colName;
+                                        if (FglNameExpression.TryParseNode(parser, out colName) && colName.Name.EndsWith(".*"))
                                         {
                                             node.RecordName = colName;
                                         }
@@ -837,7 +837,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                 node.ColumnList.Add(nameExpr);
 
                                 ExpressionNode expr;
-                                if (ExpressionNode.TryGetExpressionNode(parser, out expr, new List<TokenKind> { TokenKind.Comma }, new ExpressionParsingOptions { AllowNestedSelectStatement = true }))
+                                if (FglExpressionNode.TryGetExpressionNode(parser, out expr, new List<TokenKind> { TokenKind.Comma }, new ExpressionParsingOptions { AllowNestedSelectStatement = true }))
                                     node.Variables.Add(expr);
                                 else
                                     parser.ReportSyntaxError("Invalid expression found in update statement.");
@@ -845,13 +845,13 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                 while (parser.PeekToken(TokenKind.Comma))
                                 {
                                     parser.NextToken();
-                                    if (NameExpression.TryParseNode(parser, out nameExpr))
+                                    if (FglNameExpression.TryParseNode(parser, out nameExpr))
                                     {
                                         node.ColumnList.Add(nameExpr);
                                         if (parser.PeekToken(TokenKind.Equals))
                                         {
                                             parser.NextToken();
-                                            if (ExpressionNode.TryGetExpressionNode(parser, out expr, new List<TokenKind> { TokenKind.Comma }, new ExpressionParsingOptions { AllowNestedSelectStatement = true }))
+                                            if (FglExpressionNode.TryGetExpressionNode(parser, out expr, new List<TokenKind> { TokenKind.Comma }, new ExpressionParsingOptions { AllowNestedSelectStatement = true }))
                                                 node.Variables.Add(expr);
                                             else
                                                 parser.ReportSyntaxError("Invalid expression found in update statement.");
@@ -878,7 +878,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                             parser.NextToken();
                             // for now, we'll just use ExpressionNode to get the variables/expressions. Not sure what else can show up here...
                             ExpressionNode expr;
-                            while (ExpressionNode.TryGetExpressionNode(parser, out expr, new List<TokenKind> { TokenKind.Comma, TokenKind.RightParenthesis }))
+                            while (FglExpressionNode.TryGetExpressionNode(parser, out expr, new List<TokenKind> { TokenKind.Comma, TokenKind.RightParenthesis }))
                             {
                                 node.Variables.Add(expr);
                                 if (!parser.PeekToken(TokenKind.Comma))
@@ -904,8 +904,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                             if (parser.PeekToken(TokenKind.OfKeyword))
                             {
                                 parser.NextToken();
-                                NameExpression cursorName;
-                                if (NameExpression.TryParseNode(parser, out cursorName))
+                                FglNameExpression cursorName;
+                                if (FglNameExpression.TryParseNode(parser, out cursorName))
                                     node.CursorName = cursorName;
                                 else
                                     parser.ReportSyntaxError("Invalid cursor name found in update statement.");
@@ -916,7 +916,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         else
                         {
                             ExpressionNode conditionalExpr;
-                            if (ExpressionNode.TryGetExpressionNode(parser, out conditionalExpr, Genero4glAst.ValidStatementKeywords.ToList(), new ExpressionParsingOptions { AllowStarParam = true, AllowAnythingForFunctionParams = true }))
+                            if (FglExpressionNode.TryGetExpressionNode(parser, out conditionalExpr, Genero4glAst.ValidStatementKeywords.ToList(), new ExpressionParsingOptions { AllowStarParam = true, AllowAnythingForFunctionParams = true }))
                                 node.ConditionalExpression = conditionalExpr;
                             else
                                 parser.ReportSyntaxError("Invalid conditional expression found in update statement.");
@@ -1006,7 +1006,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
     public class FlushStatement : FglStatement
     {
-        public NameExpression CursorId { get; private set; }
+        public FglNameExpression CursorId { get; private set; }
 
         public static bool TryParseNode(Genero4glParser parser, out FlushStatement node)
         {
@@ -1020,8 +1020,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 parser.NextToken();
                 node.StartIndex = parser.Token.Span.Start;
 
-                NameExpression cid;
-                if (NameExpression.TryParseNode(parser, out cid))
+                FglNameExpression cid;
+                if (FglNameExpression.TryParseNode(parser, out cid))
                     node.CursorId = cid;
                 else
                     parser.ReportSyntaxError("Invalid insert cursor identifier found in flush statement.");

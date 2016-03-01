@@ -246,7 +246,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     List<TokenKind> breakToks = new List<TokenKind> { TokenKind.Comma, TokenKind.RightBracket };
                     // get the first-dimension size
                     ExpressionNode dimensionExpr;
-                    if (!ExpressionNode.TryGetExpressionNode(parser, out dimensionExpr, breakToks))
+                    if (!FglExpressionNode.TryGetExpressionNode(parser, out dimensionExpr, breakToks))
                         parser.ReportSyntaxError("Array's first dimension size is invalid");
                     else
                         defNode.StaticDimOneSize = dimensionExpr;
@@ -255,7 +255,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     {
                         parser.NextToken();
 
-                        if (!ExpressionNode.TryGetExpressionNode(parser, out dimensionExpr, breakToks))
+                        if (!FglExpressionNode.TryGetExpressionNode(parser, out dimensionExpr, breakToks))
                             parser.ReportSyntaxError("Array's second dimension size is invalid");
                         else
                             defNode.StaticDimTwoSize = dimensionExpr;
@@ -264,7 +264,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         {
                             parser.NextToken();
 
-                            if (!ExpressionNode.TryGetExpressionNode(parser, out dimensionExpr, breakToks))
+                            if (!FglExpressionNode.TryGetExpressionNode(parser, out dimensionExpr, breakToks))
                                 parser.ReportSyntaxError("Array's third dimension size is invalid");
                             else
                                 defNode.StaticDimThreeSize = dimensionExpr;

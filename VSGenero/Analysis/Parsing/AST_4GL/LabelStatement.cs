@@ -20,7 +20,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 {
     public class LabelStatement : FglStatement
     {
-        public NameExpression LabelId { get; private set; }
+        public FglNameExpression LabelId { get; private set; }
 
         public static bool TryParseNode(Genero4glParser parser, out LabelStatement node)
         {
@@ -34,8 +34,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 parser.NextToken();
                 node.StartIndex = parser.Token.Span.Start;
 
-                NameExpression expr;
-                if (!NameExpression.TryParseNode(parser, out expr, TokenKind.Colon))
+                FglNameExpression expr;
+                if (!FglNameExpression.TryParseNode(parser, out expr, TokenKind.Colon))
                     parser.ReportSyntaxError("Invalid name found in label statement.");
                 else
                     node.LabelId = expr;

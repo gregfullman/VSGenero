@@ -20,7 +20,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 {
     public class CloseStatement : FglStatement
     {
-        public NameExpression CursorId { get; private set; }
+        public FglNameExpression CursorId { get; private set; }
 
         public static bool TryParseNode(Genero4glParser parser, out CloseStatement node)
         {
@@ -34,8 +34,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 parser.NextToken();
                 node.StartIndex = parser.Token.Span.Start;
 
-                NameExpression cid;
-                if (NameExpression.TryParseNode(parser, out cid))
+                FglNameExpression cid;
+                if (FglNameExpression.TryParseNode(parser, out cid))
                     node.CursorId = cid;
                 else
                     parser.ReportSyntaxError("Invalid declared cursor id found in close statement.");

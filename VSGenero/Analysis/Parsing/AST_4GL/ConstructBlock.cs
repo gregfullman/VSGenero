@@ -21,9 +21,9 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
     public class ConstructBlock : FglStatement
     {
         public bool IsImplicitMapping { get; private set; }
-        public NameExpression Variable { get; private set; }
-        public List<NameExpression> ColumnList { get; private set; }
-        public List<NameExpression> FieldList { get; private set; }
+        public FglNameExpression Variable { get; private set; }
+        public List<FglNameExpression> ColumnList { get; private set; }
+        public List<FglNameExpression> FieldList { get; private set; }
         public List<ConstructAttribute> Attributes { get; private set; }
         public ExpressionNode HelpNumber { get; private set; }
 
@@ -46,8 +46,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 node = new ConstructBlock();
                 parser.NextToken();
                 node.StartIndex = parser.Token.Span.Start;
-                node.ColumnList = new List<NameExpression>();
-                node.FieldList = new List<NameExpression>();
+                node.ColumnList = new List<FglNameExpression>();
+                node.FieldList = new List<FglNameExpression>();
                 node.Attributes = new List<ConstructAttribute>();
 
                 if (parser.PeekToken(TokenKind.ByKeyword))
@@ -64,8 +64,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         parser.ReportSyntaxError("Expected \"name\" token in construct statement.");
                 }
 
-                NameExpression varName;
-                if (NameExpression.TryParseNode(parser, out varName))
+                FglNameExpression varName;
+                if (FglNameExpression.TryParseNode(parser, out varName))
                     node.Variable = varName;
                 else
                     parser.ReportSyntaxError("Invalid variable name found in construct statement.");
@@ -77,8 +77,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 else
                     parser.ReportSyntaxError("Expecting \"on\" keyword in construct statement.");
 
-                NameExpression colName;
-                while (NameExpression.TryParseNode(parser, out colName))
+                FglNameExpression colName;
+                while (FglNameExpression.TryParseNode(parser, out colName))
                 {
                     node.ColumnList.Add(colName);
                     if (!parser.PeekToken(TokenKind.Comma))
@@ -93,8 +93,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         parser.NextToken();
 
                         // read the field list
-                        NameExpression nameExpr;
-                        while (NameExpression.TryParseNode(parser, out nameExpr))
+                        FglNameExpression nameExpr;
+                        while (FglNameExpression.TryParseNode(parser, out nameExpr))
                         {
                             node.FieldList.Add(nameExpr);
                             if (!parser.PeekToken(TokenKind.Comma))
@@ -138,7 +138,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
                     // get the help number
                     ExpressionNode optionNumber;
-                    if (ExpressionNode.TryGetExpressionNode(parser, out optionNumber))
+                    if (FglExpressionNode.TryGetExpressionNode(parser, out optionNumber))
                         node.HelpNumber = optionNumber;
                     else
                         parser.ReportSyntaxError("Invalid help-number found in construct statement.");
@@ -213,10 +213,10 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
     public class ConstructControlBlock : AstNode4gl
     {
         public ExpressionNode IdleSeconds { get; private set; }
-        public NameExpression ActionName { get; private set; }
-        public NameExpression ActionField { get; private set; }
+        public FglNameExpression ActionName { get; private set; }
+        public FglNameExpression ActionField { get; private set; }
 
-        public List<NameExpression> FieldSpecList { get; private set; }
+        public List<FglNameExpression> FieldSpecList { get; private set; }
         public List<VirtualKey> KeyNameList { get; private set; }
 
         public ConstructControlBlockType Type { get; private set; }
@@ -233,7 +233,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             node = new ConstructControlBlock();
             bool result = true;
             node.StartIndex = parser.Token.Span.Start;
-            node.FieldSpecList = new List<NameExpression>();
+            node.FieldSpecList = new List<FglNameExpression>();
             node.KeyNameList = new List<VirtualKey>();
 
             switch (parser.PeekToken().Kind)
@@ -255,8 +255,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                             parser.NextToken();
                             node.Type = ConstructControlBlockType.Field;
                             // get the list of field specs
-                            NameExpression fieldSpec;
-                            while (NameExpression.TryParseNode(parser, out fieldSpec))
+                            FglNameExpression fieldSpec;
+                            while (FglNameExpression.TryParseNode(parser, out fieldSpec))
                             {
                                 node.FieldSpecList.Add(fieldSpec);
                                 if (!parser.PeekToken(TokenKind.Comma))
@@ -286,7 +286,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                 node.Type = ConstructControlBlockType.Idle;
                                 // get the idle seconds
                                 ExpressionNode idleExpr;
-                                if (ExpressionNode.TryGetExpressionNode(parser, out idleExpr))
+                                if (FglExpressionNode.TryGetExpressionNode(parser, out idleExpr))
                                     node.IdleSeconds = idleExpr;
                                 else
                                     parser.ReportSyntaxError("Invalid idle-seconds found in construct statement.");
@@ -295,8 +295,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                 parser.NextToken();
                                 node.Type = ConstructControlBlockType.Action;
                                 // get the action name
-                                NameExpression actionName;
-                                if (NameExpression.TryParseNode(parser, out actionName))
+                                FglNameExpression actionName;
+                                if (FglNameExpression.TryParseNode(parser, out actionName))
                                     node.ActionName = actionName;
                                 else
                                     parser.ReportSyntaxError("Invalid action-name found in construct statement.");
@@ -304,7 +304,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                 {
                                     parser.NextToken();
                                     // get the field-spec
-                                    if (NameExpression.TryParseNode(parser, out actionName))
+                                    if (FglNameExpression.TryParseNode(parser, out actionName))
                                         node.ActionField = actionName;
                                     else
                                         parser.ReportSyntaxError("Invalid field-spec found in construct statement.");
@@ -417,7 +417,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
     public class ConstructDialogStatement : FglStatement
     {
-        public NameExpression FieldSpec { get; private set; }
+        public FglNameExpression FieldSpec { get; private set; }
 
         public static bool TryParseNode(Genero4glParser parser, out ConstructDialogStatement node, bool returnFalseInsteadOfErrors = false)
         {
@@ -455,8 +455,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                 default:
                                     {
                                         // get the field-spec
-                                        NameExpression fieldSpec;
-                                        if (NameExpression.TryParseNode(parser, out fieldSpec))
+                                        FglNameExpression fieldSpec;
+                                        if (FglNameExpression.TryParseNode(parser, out fieldSpec))
                                             node.FieldSpec = fieldSpec;
                                         else
                                             parser.ReportSyntaxError("Invalid field-spec found in construct statement.");
@@ -522,7 +522,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         {
                             parser.NextToken();
                             ExpressionNode boolExpr;
-                            if (!ExpressionNode.TryGetExpressionNode(parser, out boolExpr, new List<TokenKind> { TokenKind.Comma, TokenKind.RightParenthesis }))
+                            if (!FglExpressionNode.TryGetExpressionNode(parser, out boolExpr, new List<TokenKind> { TokenKind.Comma, TokenKind.RightParenthesis }))
                                 parser.ReportSyntaxError("Invalid boolean expression found in construct attribute.");
                         }
                         break;
@@ -537,7 +537,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
                         // get the help number
                         ExpressionNode optionNumber;
-                        if (!ExpressionNode.TryGetExpressionNode(parser, out optionNumber))
+                        if (!FglExpressionNode.TryGetExpressionNode(parser, out optionNumber))
                             parser.ReportSyntaxError("Invalid help-number found in construct attribute.");
                         break;
                     }
@@ -551,7 +551,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
                         // get the help number
                         ExpressionNode optionNumber;
-                        if (!ExpressionNode.TryGetExpressionNode(parser, out optionNumber))
+                        if (!FglExpressionNode.TryGetExpressionNode(parser, out optionNumber))
                             parser.ReportSyntaxError("Invalid dialog name found in construct attribute.");
                         break;
                     }

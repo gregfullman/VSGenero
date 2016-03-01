@@ -161,8 +161,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                     parser.NextToken();
                                     parser.NextToken();
                                     parser.NextToken();
-                                    NameExpression funcName;
-                                    if (!NameExpression.TryParseNode(parser, out funcName))
+                                    FglNameExpression funcName;
+                                    if (!FglNameExpression.TryParseNode(parser, out funcName))
                                         parser.ReportSyntaxError("Invalid function name found in options statement.");
                                 }
                                 else if(parser.PeekToken(TokenKind.CloseKeyword) &&
@@ -172,8 +172,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                     parser.NextToken();
                                     parser.NextToken();
                                     parser.NextToken();
-                                    NameExpression funcName;
-                                    if (!NameExpression.TryParseNode(parser, out funcName))
+                                    FglNameExpression funcName;
+                                    if (!FglNameExpression.TryParseNode(parser, out funcName))
                                         parser.ReportSyntaxError("Invalid function name found in options statement.");
                                 }
                                 else

@@ -61,9 +61,9 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
     public class CreateTableStatement : CreateStatement, IAnalysisResult
     {
-        public NameExpression TableName { get; private set; }
+        public FglNameExpression TableName { get; private set; }
         public bool TempTable { get; private set; }
-        public NameExpression TablespaceName { get; private set; }
+        public FglNameExpression TablespaceName { get; private set; }
         public ExpressionNode ExtentSize { get; private set; }
         public ExpressionNode NextSize { get; private set; }
 
@@ -107,8 +107,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         parser.ReportSyntaxError("Expecting \"not\" keyword in create table statement.");
                 }
 
-                NameExpression nameExpr;
-                if (NameExpression.TryParseNode(parser, out nameExpr))
+                FglNameExpression nameExpr;
+                if (FglNameExpression.TryParseNode(parser, out nameExpr))
                     node.TableName = nameExpr;
                 else
                     parser.ReportSyntaxError("Invalid name found for create table statement.");
@@ -149,7 +149,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     if(parser.PeekToken(TokenKind.InKeyword))
                     {
                         parser.NextToken();
-                        if (NameExpression.TryParseNode(parser, out nameExpr))
+                        if (FglNameExpression.TryParseNode(parser, out nameExpr))
                             node.TablespaceName = nameExpr;
                         else
                             parser.ReportSyntaxError("Invalid name found for create table statement.");
@@ -162,7 +162,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         {
                             parser.NextToken();
                             ExpressionNode extSize;
-                            if (ExpressionNode.TryGetExpressionNode(parser, out extSize))
+                            if (FglExpressionNode.TryGetExpressionNode(parser, out extSize))
                                 node.ExtentSize = extSize;
                             else
                                 parser.ReportSyntaxError("Invalid expression found for extent size in create table statement.");
@@ -178,7 +178,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         {
                             parser.NextToken();
                             ExpressionNode extSize;
-                            if (ExpressionNode.TryGetExpressionNode(parser, out extSize))
+                            if (FglExpressionNode.TryGetExpressionNode(parser, out extSize))
                                 node.NextSize = extSize;
                             else
                                 parser.ReportSyntaxError("Invalid expression found for next size in create table statement.");
@@ -291,23 +291,23 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
     public class CreatedTableColumn : AstNode4gl, IAnalysisResult
     {
-        public NameExpression ColumnName { get; private set; }
+        public FglNameExpression ColumnName { get; private set; }
         public TypeReference DataType { get; private set; }
 
         public ExpressionNode DefaultValue { get; private set; }
         public bool NotNull { get; private set; }
-        public NameExpression ConstraintName { get; private set; }
-        public NameExpression ReferencingTableName { get; private set; }
-        public List<NameExpression> ReferencingTableColumnNames { get; private set; }
+        public FglNameExpression ConstraintName { get; private set; }
+        public FglNameExpression ReferencingTableName { get; private set; }
+        public List<FglNameExpression> ReferencingTableColumnNames { get; private set; }
 
-        public List<NameExpression> UniqueColumns { get; private set; }
+        public List<FglNameExpression> UniqueColumns { get; private set; }
 
         public static bool TryParseNode(Genero4glParser parser, out CreatedTableColumn node)
         {
             node = new CreatedTableColumn();
             node.StartIndex = parser.Token.Span.Start;
-            node.UniqueColumns = new List<NameExpression>();
-            node.ReferencingTableColumnNames = new List<NameExpression>();
+            node.UniqueColumns = new List<FglNameExpression>();
+            node.ReferencingTableColumnNames = new List<FglNameExpression>();
 
             bool result = true;
 
@@ -319,8 +319,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         if (parser.PeekToken(TokenKind.LeftParenthesis))
                         {
                             parser.NextToken();
-                            NameExpression nameExpr;
-                            while(NameExpression.TryParseNode(parser, out nameExpr))
+                            FglNameExpression nameExpr;
+                            while(FglNameExpression.TryParseNode(parser, out nameExpr))
                             {
                                 node.UniqueColumns.Add(nameExpr);
                                 if (parser.PeekToken(TokenKind.Comma))
@@ -345,8 +345,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     break;
                 default:
                     {
-                        NameExpression colName;
-                        if (NameExpression.TryParseNode(parser, out colName))
+                        FglNameExpression colName;
+                        if (FglNameExpression.TryParseNode(parser, out colName))
                             node.ColumnName = colName;
                         else
                             parser.ReportSyntaxError("Invalid name found for table column in create table statement.");
@@ -364,7 +364,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         {
                             parser.NextToken();
                             ExpressionNode defVal;
-                            if (ExpressionNode.TryGetExpressionNode(parser, out defVal))
+                            if (FglExpressionNode.TryGetExpressionNode(parser, out defVal))
                                 node.DefaultValue = defVal;
                             else
                                 parser.ReportSyntaxError("Invalid expression found for default value in create table statement.");
@@ -452,7 +452,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
     public class CreateSequenceStatement : CreateStatement
     {
-        public NameExpression SequenceName { get; private set; }
+        public FglNameExpression SequenceName { get; private set; }
 
         internal static bool TryParseNode(Genero4glParser parser, out CreateSequenceStatement node)
         {
@@ -481,8 +481,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         parser.ReportSyntaxError("Expecting \"not\" keyword in create sequence statement.");
                 }
 
-                NameExpression nameExpr;
-                if (NameExpression.TryParseNode(parser, out nameExpr))
+                FglNameExpression nameExpr;
+                if (FglNameExpression.TryParseNode(parser, out nameExpr))
                     node.SequenceName = nameExpr;
                 else
                     parser.ReportSyntaxError("Invalid name found for create sequence statement.");

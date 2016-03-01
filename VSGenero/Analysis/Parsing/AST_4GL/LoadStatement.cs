@@ -22,8 +22,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
     {
         public ExpressionNode Filename { get; private set; }
         public ExpressionNode DelimiterChar { get; private set; }
-        public NameExpression TableName { get; private set; }
-        public List<NameExpression> ColumnNames { get; private set; }
+        public FglNameExpression TableName { get; private set; }
+        public List<FglNameExpression> ColumnNames { get; private set; }
         public ExpressionNode InsertString { get; private set; }
 
         public static bool TryParseNode(Genero4glParser parser, out LoadStatement node)
@@ -37,7 +37,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 node = new LoadStatement();
                 parser.NextToken();
                 node.StartIndex = parser.Token.Span.Start;
-                node.ColumnNames = new List<NameExpression>();
+                node.ColumnNames = new List<FglNameExpression>();
 
                 if (parser.PeekToken(TokenKind.FromKeyword))
                     parser.NextToken();
@@ -45,7 +45,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     parser.ReportSyntaxError("Expected \"from\" keyword in load statement.");
 
                 ExpressionNode filenameExpr;
-                if (ExpressionNode.TryGetExpressionNode(parser, out filenameExpr))
+                if (FglExpressionNode.TryGetExpressionNode(parser, out filenameExpr))
                     node.Filename = filenameExpr;
                 else
                     parser.ReportSyntaxError("Invalid filename found in load statement.");
@@ -53,7 +53,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 if(parser.PeekToken(TokenKind.DelimiterKeyword))
                 {
                     parser.NextToken();
-                    if (ExpressionNode.TryGetExpressionNode(parser, out filenameExpr))
+                    if (FglExpressionNode.TryGetExpressionNode(parser, out filenameExpr))
                         node.DelimiterChar = filenameExpr;
                     else
                         parser.ReportSyntaxError("Invalid delimiter character found in load statement.");
@@ -67,8 +67,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     else
                         parser.ReportSyntaxError("Expected \"into\" keyword in load statement.");
 
-                    NameExpression tableName;
-                    if (NameExpression.TryParseNode(parser, out tableName))
+                    FglNameExpression tableName;
+                    if (FglNameExpression.TryParseNode(parser, out tableName))
                         node.TableName = tableName;
                     else
                         parser.ReportSyntaxError("Invalid table name found in load statement.");
@@ -77,7 +77,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     {
                         parser.NextToken();
 
-                        while(NameExpression.TryParseNode(parser, out tableName, TokenKind.Comma))
+                        while(FglNameExpression.TryParseNode(parser, out tableName, TokenKind.Comma))
                         {
                             node.ColumnNames.Add(tableName);
                             if (!parser.PeekToken(TokenKind.Comma))
@@ -93,7 +93,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 }
                 else
                 {
-                    if (ExpressionNode.TryGetExpressionNode(parser, out filenameExpr, Genero4glAst.ValidStatementKeywords.ToList()))
+                    if (FglExpressionNode.TryGetExpressionNode(parser, out filenameExpr, Genero4glAst.ValidStatementKeywords.ToList()))
                         node.InsertString = filenameExpr;
                     else
                         parser.ReportSyntaxError("Invalid insert string found in load statement.");

@@ -41,10 +41,11 @@ namespace VSGenero.Analysis.Parsing.AST_PER
             return new IFunctionResult[0];
         }
 
-        public override IAnalysisResult GetValueByIndex(string exprText, int index, IFunctionInformationProvider functionProvider, IDatabaseInformationProvider databaseProvider, IProgramFileProvider programFileProvider, bool isFunctionCallOrDefinition, out IGeneroProject definingProject, out IProjectEntry projectEntry, FunctionProviderSearchMode searchInFunctionProvider = FunctionProviderSearchMode.NoSearch)
+        public override IAnalysisResult GetValueByIndex(string exprText, int index, IFunctionInformationProvider functionProvider, IDatabaseInformationProvider databaseProvider, IProgramFileProvider programFileProvider, bool isFunctionCallOrDefinition, out bool isDeferred, out IGeneroProject definingProject, out IProjectEntry projectEntry, FunctionProviderSearchMode searchInFunctionProvider = FunctionProviderSearchMode.NoSearch)
         {
             definingProject = null;
             projectEntry = null;
+            isDeferred = false;
             return null;
         }
 
