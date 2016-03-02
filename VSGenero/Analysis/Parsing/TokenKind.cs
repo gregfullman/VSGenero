@@ -452,6 +452,7 @@ namespace VSGenero.Analysis.Parsing
         ThruKeyword,
         TimeKeyword,
         TinyintKeyword,
+        TitleKeyword,
         TodayKeyword,
         ToKeyword,
         ToolbarKeyword,

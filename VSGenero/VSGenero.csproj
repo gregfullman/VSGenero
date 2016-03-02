@@ -354,8 +354,11 @@
     <Compile Include="Analysis\Parsing\AST_PER\ActionDefaultsNode.cs" />
     <Compile Include="Analysis\Parsing\AST_PER\AstNodePer.cs" />
     <Compile Include="Analysis\Parsing\AST_PER\GeneroPerAst.cs" />
+    <Compile Include="Analysis\Parsing\AST_PER\LayoutNode.cs" />
     <Compile Include="Analysis\Parsing\AST_PER\ModuleNode.cs" />
     <Compile Include="Analysis\Parsing\AST_PER\SchemaSpecificationNode.cs" />
+    <Compile Include="Analysis\Parsing\AST_PER\ScreenNode.cs" />
+    <Compile Include="Analysis\Parsing\AST_PER\TablesNode.cs" />
     <Compile Include="Analysis\Parsing\AST_PER\ToolbarNode.cs" />
     <Compile Include="Analysis\Parsing\AST_PER\TopMenuNode.cs" />
     <Compile Include="Analysis\Parsing\Enumerations.cs" />
