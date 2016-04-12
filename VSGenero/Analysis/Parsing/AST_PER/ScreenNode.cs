@@ -79,15 +79,18 @@ namespace VSGenero.Analysis.Parsing.AST_PER
                 {
                     parser.NextToken();
 
-                    // TODO: screen content;
-                    // TODO: also check for other keywords that might appear if the screen is not complete.
                     while (!parser.PeekToken(TokenKind.RightBrace))
+                    {
                         parser.NextToken();
+                    }
 
                     if(parser.PeekToken(TokenKind.RightBrace))
                     {
                         parser.ReportSyntaxError("Expected right-brace.");
                     }
+
+                    if(parser.PeekToken(TokenKind.EndKeyword))
+                        parser.NextToken();
                 }
                 else
                 {
