@@ -49,8 +49,11 @@ namespace VSGenero.EditorExtensions
 
             var targetSpan = new Span(line.Start.Position, span.GetEndPoint(snapshot).Position - line.Start.Position);
             var snapSpan = new SnapshotSpan(snapshot, targetSpan);
-            _tokens = Classifier.GetClassificationSpans(snapSpan);
-            _tokenInfos = Classifier.GetTokens(snapSpan);
+            if (Classifier != null)
+            {
+                _tokens = Classifier.GetClassificationSpans(snapSpan);
+                _tokenInfos = Classifier.GetTokens(snapSpan);
+            }
         }
 
         public SnapshotSpan? GetExpressionRange(out bool isFunctionCallOrDefinition, bool forCompletion = true, int nesting = 0)
@@ -613,7 +616,14 @@ namespace VSGenero.EditorExtensions
 
         public Genero4glClassifier Classifier
         {
-            get { return _classifier ?? (_classifier = (Genero4glClassifier)_buffer.Properties.GetProperty(typeof(Genero4glClassifier))); }
+            get
+            {
+                if(_classifier == null)
+                {
+                    _buffer.Properties.TryGetProperty(typeof(Genero4glClassifier), out _classifier);
+                }
+                return _classifier;
+            }
         }
 
         public ITextSnapshot Snapshot

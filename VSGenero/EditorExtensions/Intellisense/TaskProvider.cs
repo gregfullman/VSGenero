@@ -1235,7 +1235,7 @@ namespace VSGenero.EditorExtensions.Intellisense
         // Retrieves token settings as defined by user in Tools -> Options -> Environment -> Task List.
         private void RefreshTokens()
         {
-            var taskInfo = (IVsCommentTaskInfo)_serviceProvider.GetService(typeof(SVsTaskList));
+            var taskInfo = _serviceProvider.GetService(typeof(SVsTaskList)) as IVsCommentTaskInfo;
             if (taskInfo == null)
             {
                 return;
