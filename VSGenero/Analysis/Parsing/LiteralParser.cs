@@ -535,7 +535,7 @@ namespace VSGenero.Analysis.Parser
                 //
                 // Don't know if this applies to Genero, but we'll leave it in for now
                 //
-                if (text != null && text.Length > 0 && text[text.Length - 1] == '\0')
+                if (!string.IsNullOrEmpty(text) && text[text.Length - 1] == '\0')
                 {
                     throw new ArgumentException("null byte in float literal");
                 }
@@ -543,7 +543,7 @@ namespace VSGenero.Analysis.Parser
             }
             catch (OverflowException)
             {
-                return text.TrimStart().StartsWith("-") ? Double.NegativeInfinity : Double.PositiveInfinity;
+                return text != null && text.TrimStart().StartsWith("-") ? Double.NegativeInfinity : Double.PositiveInfinity;
             }
         }
 

@@ -731,7 +731,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                             }
                         }
 
-                        if (typeRef != null && typeRef.IsRecord)
+                        if (typeRef != null && typeRef.IsRecord && (typeRef.Children[typeRef.Children.Keys[0]] is RecordDefinitionNode))
                         {
                             int recFieldCount = (typeRef.Children[typeRef.Children.Keys[0]] as RecordDefinitionNode).GetMembers(ast as Genero4glAst, Analysis.MemberType.All, false).Count();
                             if (recFieldCount > 0)
@@ -769,7 +769,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                             (nameParam.ResolvedResult as VariableDef).ResolvedType is TypeDefinitionNode)
                                         {
                                             var typeDef = (nameParam.ResolvedResult as VariableDef).ResolvedType as TypeDefinitionNode;
-                                            if (typeDef.TypeRef != null)
+                                            if (typeDef?.TypeRef != null)
                                             {
                                                 typeRef = typeDef.TypeRef;
                                             }
@@ -780,14 +780,14 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                         }
                                     }
 
-                                    if (typeRef != null && typeRef.IsRecord)
+                                    if (typeRef != null && typeRef.IsRecord && (typeRef.Children[typeRef.Children.Keys[0]] is RecordDefinitionNode))
                                     {
                                         if ((nameParam.ResolvedResult as VariableDef).Type.IsArray)
                                         {
                                             if((param as FglNameExpression).Name.EndsWith(".*"))
                                             {
                                                 // need to get the number of fields in the record, as they count toward our passed parameter total
-                                                int recFieldCount = (typeRef.Children[typeRef.Children.Keys[0]] as RecordDefinitionNode).GetMembers(ast as Genero4glAst, Analysis.MemberType.All, false).Count();
+                                                int recFieldCount = ((RecordDefinitionNode) typeRef.Children[typeRef.Children.Keys[0]]).GetMembers(ast as Genero4glAst, Analysis.MemberType.All, false).Count();
                                                 if (recFieldCount > 0)
                                                     totalParameters += (recFieldCount - 1); // minus 1 so we can do the increment below   
                                             }
@@ -804,7 +804,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                                 if (!_allowedNonStarRecordParamFunctions.Contains(Function.Name))
                                                 {
                                                     // need to get the number of fields in the record, as they count toward our passed parameter total
-                                                    int recFieldCount = (typeRef.Children[typeRef.Children.Keys[0]] as RecordDefinitionNode).GetMembers(ast as Genero4glAst, Analysis.MemberType.All, false).Count();
+                                                    int recFieldCount = ((RecordDefinitionNode) typeRef.Children[typeRef.Children.Keys[0]]).GetMembers(ast as Genero4glAst, Analysis.MemberType.All, false).Count();
                                                     if (recFieldCount > 0)
                                                         totalParameters += (recFieldCount - 1); // minus 1 so we can do the increment below    
                                                 }

@@ -33,9 +33,15 @@ namespace VSGenero.Options
         }
 
         internal static void SaveString(string name, string value, string cat) {
-            using (var pythonKey = VSRegistry.RegistryRoot(__VsLocalRegistryType.RegType_UserSettings, true).CreateSubKey(VSGeneroConstants.BaseRegistryKey)) {
-                using (var optionsKey = pythonKey.CreateSubKey(_optionsKey)) {
-                    using (var categoryKey = optionsKey.CreateSubKey(cat)) {
+            using (var pythonKey = VSRegistry.RegistryRoot(__VsLocalRegistryType.RegType_UserSettings, true).CreateSubKey(VSGeneroConstants.BaseRegistryKey))
+            {
+                if (pythonKey == null) return;
+                using (var optionsKey = pythonKey.CreateSubKey(_optionsKey))
+                {
+                    if (optionsKey == null) return;
+                    using (var categoryKey = optionsKey.CreateSubKey(cat))
+                    {
+                        if (categoryKey == null) return;
                         categoryKey.SetValue(name, value, Microsoft.Win32.RegistryValueKind.String);
                     }
                 }
@@ -83,9 +89,12 @@ namespace VSGenero.Options
         internal static string LoadString(string name, string cat) {
             using (var pythonKey = VSRegistry.RegistryRoot(__VsLocalRegistryType.RegType_UserSettings, true).CreateSubKey(VSGeneroConstants.BaseRegistryKey))
             {
-                using (var optionsKey = pythonKey.CreateSubKey(_optionsKey)) {
+                if (pythonKey == null) return null;
+                using (var optionsKey = pythonKey.CreateSubKey(_optionsKey))
+                {
+                    if (optionsKey == null) return null;
                     using (var categoryKey = optionsKey.CreateSubKey(cat)) {
-                        return categoryKey.GetValue(name) as string;
+                        return categoryKey?.GetValue(name) as string;
                     }
                 }
             }

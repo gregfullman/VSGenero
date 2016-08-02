@@ -136,26 +136,28 @@ namespace VSGenero.ProductivityTools
             Genero4glCodeBlock curr = null;
             foreach (var child in node.Children)
             {
-                if (child.Value is IOutlinableResult)
+                if (child.Value != null)
                 {
                     var outRes = child.Value as IOutlinableResult;
                     if (outRes.CanOutline /*&& ShouldInclude(outRes, spans)*/
                         && outRes.EndIndex < textView.TextSnapshot.Length)
                     {
-                        curr = new Genero4glCodeBlock(tagger, textView, parent, GetBlockType(outRes), outRes, level + 1);
+                        curr = new Genero4glCodeBlock(tagger, textView, parent, GetBlockType(outRes), outRes,
+                            level + 1);
                         if (curr != null)
                             outlinables.Add(curr);
                     }
-                }
 
-                if (child.Value.Children.Count > 0)
-                {
-                    if (curr == null)
+                    if (child.Value.Children.Count > 0)
                     {
-                        curr = new Genero4glCodeBlock(tagger, textView, parent, BlockType.Unknown, null, level + 1);
-                    }
+                        if (curr == null)
+                        {
+                            curr = new Genero4glCodeBlock(tagger, textView, parent, BlockType.Unknown, null, level + 1);
+                        }
 
-                    GetOutlinableResults(tagger, textView, spans, child.Value, curr, snapshot, level + 1, ref outlinables);
+                        GetOutlinableResults(tagger, textView, spans, child.Value, curr, snapshot, level + 1,
+                            ref outlinables);
+                    }
                 }
             }
         }

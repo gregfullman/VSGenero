@@ -213,18 +213,20 @@ namespace VSGenero.EditorExtensions
 
                 foreach (var child in node.Children)
                 {
-                    if ((topLevel && VSGeneroPackage.Instance.AdvancedOptions4GLPage.MajorCollapseRegionsEnabled) ||
-                        (!topLevel && VSGeneroPackage.Instance.AdvancedOptions4GLPage.MinorCollapseRegionsEnabled))
+                    if (child.Value != null)
                     {
-                        if (child.Value is IOutlinableResult &&
-                            (child.Value as IOutlinableResult).CanOutline)
+                        if ((topLevel && VSGeneroPackage.Instance.AdvancedOptions4GLPage.MajorCollapseRegionsEnabled) ||
+                            (!topLevel && VSGeneroPackage.Instance.AdvancedOptions4GLPage.MinorCollapseRegionsEnabled))
                         {
-                            outlinables.Add(child.Value as IOutlinableResult);
+                            if ((child.Value as IOutlinableResult).CanOutline)
+                            {
+                                outlinables.Add(child.Value as IOutlinableResult);
+                            }
                         }
-                    }
 
-                    if (child.Value.Children.Count > 0)
-                        GetOutlinableResults(child.Value, ref outlinables, false);
+                        if (child.Value.Children.Count > 0)
+                            GetOutlinableResults(child.Value, ref outlinables, false);
+                    }
                 }
             }
 

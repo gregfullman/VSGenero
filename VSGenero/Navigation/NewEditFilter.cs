@@ -821,6 +821,8 @@ namespace VSGenero.Navigation
             else if (pguidCmdGroup == VSGeneroConstants.Std2KCmdGroupGuid)
             {
                 OutliningTaggerProvider.OutliningTagger tagger;
+                IntellisenseController controller = null;
+
                 switch ((VSConstants.VSStd2KCmdID)nCmdID)
                 {
                     case (VSConstants.VSStd2KCmdID)147: // ECMD_SMARTTASKS  defined in stdidcmd.h, but not in MPF
@@ -832,59 +834,68 @@ namespace VSGenero.Navigation
                     //    FormatCode(new SnapshotSpan(_textView.TextBuffer.CurrentSnapshot, 0, _textView.TextBuffer.CurrentSnapshot.Length), false);
                     //    return VSConstants.S_OK;
                     case VSConstants.VSStd2KCmdID.FORMATSELECTION:
-                        FormatCode(_textView.Selection.StreamSelectionSpan.SnapshotSpan, true);
+                        if(_textView != null)
+                            FormatCode(_textView.Selection.StreamSelectionSpan.SnapshotSpan, true);
                         return VSConstants.S_OK;
                     case VSConstants.VSStd2KCmdID.SHOWMEMBERLIST:
                     case VSConstants.VSStd2KCmdID.COMPLETEWORD:
-                        var controller = _textView.Properties.GetProperty<IntellisenseController>(typeof(IntellisenseController));
-                        if (controller != null)
+                        if (_textView != null)
                         {
-                            IntellisenseController.ForceCompletions = true;
-                            try
+                            controller =
+                                _textView.Properties.GetProperty<IntellisenseController>(typeof (IntellisenseController));
+
+                            if (controller != null)
                             {
-                                controller.TriggerCompletionSession((VSConstants.VSStd2KCmdID)nCmdID == VSConstants.VSStd2KCmdID.COMPLETEWORD);
+                                IntellisenseController.ForceCompletions = true;
+                                try
+                                {
+                                    controller.TriggerCompletionSession((VSConstants.VSStd2KCmdID) nCmdID ==
+                                                                        VSConstants.VSStd2KCmdID.COMPLETEWORD);
+                                }
+                                finally
+                                {
+                                    IntellisenseController.ForceCompletions = false;
+                                }
+                                return VSConstants.S_OK;
                             }
-                            finally
-                            {
-                                IntellisenseController.ForceCompletions = false;
-                            }
-                            return VSConstants.S_OK;
                         }
                         break;
 
                     case VSConstants.VSStd2KCmdID.QUICKINFO:
-                        controller = _textView.Properties.GetProperty<IntellisenseController>(typeof(IntellisenseController));
-                        if (controller != null)
+                        if (_textView != null)
                         {
-                            controller.TriggerQuickInfo();
-                            return VSConstants.S_OK;
+                            controller =
+                                _textView.Properties.GetProperty<IntellisenseController>(typeof (IntellisenseController));
+                            if (controller != null)
+                            {
+                                controller.TriggerQuickInfo();
+                                return VSConstants.S_OK;
+                            }
                         }
                         break;
 
                     case VSConstants.VSStd2KCmdID.PARAMINFO:
-                        controller = _textView.Properties.GetProperty<IntellisenseController>(typeof(IntellisenseController));
-                        if (controller != null)
+                        if (_textView != null)
                         {
-                            controller.TriggerSignatureHelp();
-                            return VSConstants.S_OK;
+                            controller =
+                                _textView.Properties.GetProperty<IntellisenseController>(typeof (IntellisenseController));
+                            if (controller != null)
+                            {
+                                controller.TriggerSignatureHelp();
+                                return VSConstants.S_OK;
+                            }
                         }
                         break;
 
                     case VSConstants.VSStd2KCmdID.OUTLN_STOP_HIDING_ALL:
                         tagger = _textView.GetOutliningTagger();
-                        if (tagger != null)
-                        {
-                            tagger.Disable();
-                        }
+                        tagger?.Disable();
                         // let VS get the event as well
                         break;
 
                     case VSConstants.VSStd2KCmdID.OUTLN_START_AUTOHIDING:
                         tagger = _textView.GetOutliningTagger();
-                        if (tagger != null)
-                        {
-                            tagger.Enable();
-                        }
+                        tagger?.Enable();
                         // let VS get the event as well
                         break;
 

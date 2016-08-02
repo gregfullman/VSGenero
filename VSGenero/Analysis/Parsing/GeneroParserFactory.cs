@@ -80,10 +80,13 @@ namespace VSGenero.Analysis.Parsing
                 );
             }
 
-            result._projectEntry = projEntry;
-            result._filename = filename;
+            if (result != null)
+            {
+                result._projectEntry = projEntry;
+                result._filename = filename;
 
-            result._sourceReader = reader;
+                result._sourceReader = reader;
+            }
             return result;
         }
     }

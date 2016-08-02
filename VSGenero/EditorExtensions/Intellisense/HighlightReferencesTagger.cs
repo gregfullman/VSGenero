@@ -186,7 +186,8 @@ namespace VSGenero.EditorExtensions.Intellisense
             lock (_notificationLock)
             {
                 _registeredForNotify = true;
-                (sender as IGeneroProjectEntry).OnNewAnalysis -= analysisItem_OnNewAnalysis;
+                if(sender is IGeneroProjectEntry)
+                    ((IGeneroProjectEntry) sender).OnNewAnalysis -= analysisItem_OnNewAnalysis;
             }
 
             AnalyzeExpression(textView.Caret.Position);

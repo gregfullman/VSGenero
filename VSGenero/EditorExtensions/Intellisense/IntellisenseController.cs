@@ -863,7 +863,8 @@ namespace VSGenero.EditorExtensions.Intellisense
                     }
                     else
                     {
-                        if (_activeSession.SelectedCompletionSet.SelectionStatus.IsSelected &&
+                        if (_activeSession.SelectedCompletionSet != null &&
+                            _activeSession.SelectedCompletionSet.SelectionStatus.IsSelected &&
                             (VSGeneroPackage.Instance.IntellisenseOptions4GLPage.CompletionCommittedBy.IndexOf(ch) != -1 ||
                              (ch == ' ' && VSGeneroPackage.Instance.IntellisenseOptions4GLPage.SpaceCommitsIntellisense)))
                         {

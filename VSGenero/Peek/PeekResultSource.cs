@@ -64,16 +64,26 @@ namespace VSGenero.Peek
         private IPeekResult CreatePeekResult(IPeekResultCollection resultCollection, LocationInfo location)
         {
             IPeekResult result = null;
-            string path = location.FilePath;
-            FileInfo fi = new FileInfo(path);
-            PeekResultDisplayInfo displayInfo = new PeekResultDisplayInfo(BuildLabel(location), path, BuildTitle(location), path);
+            var path = location.FilePath;
+            var fi = new FileInfo(path);
+            var displayInfo = new PeekResultDisplayInfo(BuildLabel(location), path, BuildTitle(location), path);
             // TODO: the location stuff doesn't work 100% correctly. This needs to be fixed
             string contentType = null;
-            switch(Path.GetExtension(path).ToLower())
+            var extension = Path.GetExtension(path);
+            if (extension != null)
             {
-                case ".4gl": contentType = VSGeneroConstants.ContentType4GL; break;
-                case ".inc": contentType = VSGeneroConstants.ContentTypeINC; break;
-                case ".per": contentType = VSGeneroConstants.ContentTypePER; break;
+                switch (extension.ToLower())
+                {
+                    case ".4gl":
+                        contentType = VSGeneroConstants.ContentType4GL;
+                        break;
+                    case ".inc":
+                        contentType = VSGeneroConstants.ContentTypeINC;
+                        break;
+                    case ".per":
+                        contentType = VSGeneroConstants.ContentTypePER;
+                        break;
+                }
             }
             if(contentType != null)
             {

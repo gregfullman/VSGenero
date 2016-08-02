@@ -309,6 +309,8 @@ namespace VSGenero.EditorExtensions
                     while(true)
                     {
                         lineStr = sr.ReadLine();
+                        if(lineStr == null)
+                            break;
                         line++;
                         if(currentLineStart + lineStr.Length > charPosition)
                         {

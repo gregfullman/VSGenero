@@ -174,7 +174,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         if (statement is ExitStatement &&
                            (statement as ExitStatement).ExitType != TokenKind.CaseKeyword)
                         {
-                            if (!validExitKeywords.Contains((statement as ExitStatement).ExitType))
+                            if (validExitKeywords != null && !validExitKeywords.Contains((statement as ExitStatement).ExitType))
                                 parser.ReportSyntaxError("Invalid exit statement for case statement block detected.");
                         }
                     }
@@ -242,7 +242,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         if (statement is ExitStatement &&
                            (statement as ExitStatement).ExitType != TokenKind.CaseKeyword)
                         {
-                            if (!validExitKeywords.Contains((statement as ExitStatement).ExitType))
+                            if (validExitKeywords != null && !validExitKeywords.Contains((statement as ExitStatement).ExitType))
                                 parser.ReportSyntaxError("Invalid exit statement for case statement block detected.");
                         }
                     }

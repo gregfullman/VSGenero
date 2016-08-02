@@ -47,7 +47,7 @@ namespace VSGenero.Analysis.Parsing.AST_PER
             return result;
         }
 
-        private static LayoutContainerType[] CanHoldTypes { get; } = new LayoutContainerType[]
+        private static LayoutContainerType[] CanHoldTypes = new LayoutContainerType[]
         {
             LayoutContainerType.VBox,
             LayoutContainerType.HBox,

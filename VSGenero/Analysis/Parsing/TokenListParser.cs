@@ -81,7 +81,9 @@ namespace VSGenero.Analysis.Parsing
         public void Reset()
         {
             _currIndex = 0;
-            (ErrorSink as StubErrorSink).ErrorCount = 0;
+            var sink = ErrorSink as StubErrorSink;
+            if(sink != null)
+                sink.ErrorCount = 0;
         }
 
         public void ReportSyntaxError(string message, Severity severity = Severity.Error)

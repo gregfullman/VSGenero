@@ -95,10 +95,10 @@ namespace VSGenero.Peek
         {
             if(this._textDocumentFactoryService == null)
             {
-                this._textDocumentFactoryService = (ServiceProvider.GlobalProvider.GetService(typeof(SComponentModel)) as IComponentModel).GetService<ITextDocumentFactoryService>();
+                this._textDocumentFactoryService = (ServiceProvider.GlobalProvider.GetService(typeof(SComponentModel)) as IComponentModel)?.GetService<ITextDocumentFactoryService>();
             }
             ITextDocument document = null;
-            if(this._textDocumentFactoryService.TryGetTextDocument(buffer, out document))
+            if(this._textDocumentFactoryService != null && this._textDocumentFactoryService.TryGetTextDocument(buffer, out document))
             {
                 textDocument = document;
                 return true;

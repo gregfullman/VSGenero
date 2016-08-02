@@ -68,7 +68,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     {
                         // Get the entry key
                         object key = null;
-                        if(contextEntry.Attributes["Type"].Value == "keyword")
+                        if(contextEntry.Attributes != null && contextEntry.Attributes["Type"].Value == "keyword")
                         {
                             var token = Tokens.GetToken(contextEntry.Attributes["Entry"].Value);
                             if(token != null)
@@ -80,7 +80,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                 key = Enum.Parse(typeof(TokenKind), contextEntry.Attributes["Entry"].Value);
                             }
                         }
-                        else if(contextEntry.Attributes["Type"].Value == "category")
+                        else if(contextEntry.Attributes != null && contextEntry.Attributes["Type"].Value == "category")
                         {
                             key = Enum.Parse(typeof(TokenCategory), contextEntry.Attributes["Entry"].Value);
                         }
@@ -142,7 +142,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                                    backwardItemNode.ChildNodes.Count == 1)
                                                 {
                                                     bool match = true;
-                                                    if (backwardItemNode.Attributes["Match"] != null)
+                                                    if (backwardItemNode.Attributes != null && backwardItemNode.Attributes["Match"] != null)
                                                         match = bool.Parse(backwardItemNode.Attributes["Match"].Value);
                                                     XmlNode backwardItem = backwardItemNode.ChildNodes[0];
                                                     if(backwardItem.Name == "Token")
@@ -165,7 +165,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                                         foreach(XmlNode tokenSetItem in backwardItem.ChildNodes)
                                                         {
                                                             object tokenItem = null;
-                                                            if (tokenSetItem.Attributes["Type"].Value == "keyword")
+                                                            if (tokenSetItem.Attributes != null && tokenSetItem.Attributes["Type"].Value == "keyword")
                                                             {
                                                                 var token = Tokens.GetToken(tokenSetItem.Attributes["Value"].Value);
                                                                 if (token != null)
@@ -177,7 +177,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                                                     tokenItem = Enum.Parse(typeof(TokenKind), tokenSetItem.Attributes["Value"].Value);
                                                                 }
                                                             }
-                                                            else if (tokenSetItem.Attributes["Type"].Value == "category")
+                                                            else if (tokenSetItem.Attributes != null && tokenSetItem.Attributes["Type"].Value == "category")
                                                             {
                                                                 tokenItem = Enum.Parse(typeof(TokenCategory), tokenSetItem.Attributes["Value"].Value);
                                                             }

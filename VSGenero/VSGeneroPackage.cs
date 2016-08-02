@@ -272,7 +272,7 @@ namespace VSGenero
 
                 var mefContainer = sp.GetService(typeof(Microsoft.VisualStudio.ComponentModelHost.SComponentModel))
                                     as Microsoft.VisualStudio.ComponentModelHost.IComponentModel;
-                var exportSpec = mefContainer.DefaultExportProvider.GetExport<IBuildTaskProvider>();
+                var exportSpec = mefContainer?.DefaultExportProvider.GetExport<IBuildTaskProvider>();
                 if (exportSpec != null)
                 {
                     _BuildTaskProvider = exportSpec.Value;

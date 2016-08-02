@@ -17,10 +17,6 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.TextManager.Interop;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 
 namespace VSGenero.Refactoring
@@ -32,7 +28,7 @@ namespace VSGenero.Refactoring
     {
         private readonly IServiceProvider _serviceProvider;
 
-        public const string RefactorGuidStr = "{5A822660-832B-4AF0-9A86-1048D33A05E7}";
+        private const string RefactorGuidStr = "{5A822660-832B-4AF0-9A86-1048D33A05E7}";
         private static readonly Guid RefactorGuid = new Guid(RefactorGuidStr);
         private const string RefactorKey = "Refactor";
         private const string RenameKey = "Rename";
@@ -48,46 +44,45 @@ namespace VSGenero.Refactoring
             var requestView = new RenameVariableRequestView(originalName);
             LoadPreferences(requestView);
             var dialog = new RenameVariableDialog(requestView);
-            bool res = dialog.ShowModal() ?? false;
-            if (res)
-            {
-                SavePreferences(requestView);
-                return requestView.GetRequest();
-            }
-
-            return null;
+            var res = dialog.ShowModal() ?? false;
+            if (!res) return null;
+            SavePreferences(requestView);
+            return requestView.GetRequest();
         }
 
-        private void SavePreferences(RenameVariableRequestView requestView)
+        private static void SavePreferences(RenameVariableRequestView requestView)
         {
             SaveBool(PreviewChangesKey, requestView.PreviewChanges);
         }
 
-        private void LoadPreferences(RenameVariableRequestView requestView)
+        private static void LoadPreferences(RenameVariableRequestView requestView)
         {
             requestView.PreviewChanges = LoadBool(PreviewChangesKey) ?? true;
         }
 
-        internal void SaveBool(string name, bool value)
+        private static void SaveBool(string name, bool value)
         {
             SaveString(name, value.ToString());
         }
 
-        internal void SaveString(string name, string value)
+        private static void SaveString(string name, string value)
         {
             using (var pythonKey = VSRegistry.RegistryRoot(__VsLocalRegistryType.RegType_UserSettings, true).CreateSubKey(VSGeneroConstants.BaseRegistryKey))
             {
+                if (pythonKey == null) return;
                 using (var refactorKey = pythonKey.CreateSubKey(RefactorKey))
                 {
+                    if (refactorKey == null) return;
                     using (var renameKey = refactorKey.CreateSubKey(RenameKey))
                     {
+                        if (renameKey == null) return;
                         renameKey.SetValue(name, value, Microsoft.Win32.RegistryValueKind.String);
                     }
                 }
             }
         }
 
-        internal bool? LoadBool(string name)
+        private static bool? LoadBool(string name)
         {
             string res = LoadString(name);
             if (res == null)
@@ -103,15 +98,17 @@ namespace VSGenero.Refactoring
             return null;
         }
 
-        internal string LoadString(string name)
+        private static string LoadString(string name)
         {
             using (var pythonKey = VSRegistry.RegistryRoot(__VsLocalRegistryType.RegType_UserSettings, true).CreateSubKey(VSGeneroConstants.BaseRegistryKey))
             {
+                if (pythonKey == null) return null;
                 using (var refactorKey = pythonKey.CreateSubKey(RefactorKey))
                 {
+                    if (refactorKey == null) return null;
                     using (var renameKey = refactorKey.CreateSubKey(RenameKey))
                     {
-                        return renameKey.GetValue(name) as string;
+                        return renameKey?.GetValue(name) as string;
                     }
                 }
             }
@@ -137,10 +134,7 @@ namespace VSGenero.Refactoring
         public void ClearRefactorPane()
         {
             IVsOutputWindowPane pane = GetPane();
-            if (pane != null)
-            {
-                pane.Clear();
-            }
+            pane?.Clear();
         }
 
         private IVsOutputWindowPane GetPane()
@@ -148,19 +142,13 @@ namespace VSGenero.Refactoring
             IVsOutputWindowPane pane;
             var outWin = (IVsOutputWindow)_serviceProvider.GetService(typeof(IVsOutputWindow));
 
-            char[] buffer = new char[1024];
-            Guid tmp = RefactorGuid;
+            var buffer = new char[1024];
+            var tmp = RefactorGuid;
 
-            if (!ErrorHandler.Succeeded(outWin.GetPane(ref tmp, out pane)))
-            {
-                ErrorHandler.ThrowOnFailure(outWin.CreatePane(ref tmp, "Refactor", 1, 1));
+            if (ErrorHandler.Succeeded(outWin.GetPane(ref tmp, out pane))) return pane;
+            ErrorHandler.ThrowOnFailure(outWin.CreatePane(ref tmp, "Refactor", 1, 1));
 
-                if (!ErrorHandler.Succeeded(outWin.GetPane(ref tmp, out pane)))
-                {
-                    return null;
-                }
-            }
-            return pane;
+            return !ErrorHandler.Succeeded(outWin.GetPane(ref tmp, out pane)) ? null : pane;
         }
 
         public ITextBuffer GetBufferForDocument(string filename)

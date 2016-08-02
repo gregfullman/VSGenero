@@ -348,8 +348,9 @@ namespace VSGenero.Refactoring
         private void AddMarkers()
         {
             int curLine = -1, columnDelta = 0;
-            foreach (LocationPreviewItem item in Items)
+            foreach (var previewItem in Items)
             {
+                var item = (LocationPreviewItem) previewItem;
 
                 if (item.CheckState == __PREVIEWCHANGESITEMCHECKSTATE.PCCS_Checked)
                 {

@@ -59,13 +59,17 @@ namespace VSGenero.EditorExtensions
 
         internal static Type GetParserType(string filename)
         {
-            switch (Path.GetExtension(filename).ToLower())
+            var ext = Path.GetExtension(filename);
+            if (ext != null)
             {
-                case VSGeneroConstants.FileExtension4GL:
-                case VSGeneroConstants.FileExtensionINC:
-                    return typeof(Genero4glParser);
-                case VSGeneroConstants.FileExtensionPER:
-                    return typeof(GeneroPerParser);
+                switch (ext.ToLower())
+                {
+                    case VSGeneroConstants.FileExtension4GL:
+                    case VSGeneroConstants.FileExtensionINC:
+                        return typeof (Genero4glParser);
+                    case VSGeneroConstants.FileExtensionPER:
+                        return typeof (GeneroPerParser);
+                }
             }
             return null;
         }

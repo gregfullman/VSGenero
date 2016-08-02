@@ -27,12 +27,14 @@ namespace Microsoft.VisualStudioTools.Project {
         /// Open a file depending on the SubType property associated with the file item in the project file
         /// </summary>
         protected override void DoDefaultAction() {
-            FileDocumentManager manager = this.GetDocumentManager() as FileDocumentManager;
+            var manager = this.GetDocumentManager() as FileDocumentManager;
             Utilities.CheckNotNull(manager, "Could not get the FileDocumentManager");
-
-            Guid viewGuid = Guid.Empty;
-            IVsWindowFrame frame;
-            manager.Open(false, false, viewGuid, out frame, WindowFrameShowAction.Show);
+            if (manager == null)
+            {
+                var viewGuid = Guid.Empty;
+                IVsWindowFrame frame;
+                manager.Open(false, false, viewGuid, out frame, WindowFrameShowAction.Show);
+            }
         }
 
     }

@@ -150,8 +150,9 @@ namespace VSGenero.Refactoring
             var undo = _input.BeginGlobalUndo();
             try
             {
-                foreach (FilePreviewItem changedFile in _list.Items)
+                foreach (var previewItem in _list.Items)
                 {
+                    var changedFile = (FilePreviewItem) previewItem;
                     var buffer = _input.GetBufferForDocument(changedFile.Filename);
 
                     changedFile.UpdateBuffer(buffer);

@@ -40,16 +40,19 @@ namespace VSGenero.Navigation
         public int GetCodeWindowManager(IVsCodeWindow pCodeWin, out IVsCodeWindowManager ppCodeWinMgr)
         {
             var model = _serviceProvider.GetService(typeof(SComponentModel)) as IComponentModel;
-            var service = model.GetService<IVsEditorAdaptersFactoryService>();
-
-            IVsTextView textView;
-            if (ErrorHandler.Succeeded(pCodeWin.GetPrimaryView(out textView)))
+            if (model != null)
             {
-                // need to implement the CodeWindowManager
-                ppCodeWinMgr = new VSGeneroCodeWindowManager(_serviceProvider, pCodeWin, service.GetWpfTextView(textView));
-                return VSConstants.S_OK;
-            }
+                var service = model.GetService<IVsEditorAdaptersFactoryService>();
 
+                IVsTextView textView;
+                if (ErrorHandler.Succeeded(pCodeWin.GetPrimaryView(out textView)))
+                {
+                    // need to implement the CodeWindowManager
+                    ppCodeWinMgr = new VSGeneroCodeWindowManager(_serviceProvider, pCodeWin,
+                        service.GetWpfTextView(textView));
+                    return VSConstants.S_OK;
+                }
+            }
             ppCodeWinMgr = null;
             return VSConstants.E_FAIL;
         }
@@ -99,9 +102,11 @@ namespace VSGenero.Navigation
         public int GetNameOfLocation(IVsTextBuffer pBuffer, int iLine, int iCol, out string pbstrName, out int piLineOffset)
         {
             var model = VSGeneroPackage.Instance.GetPackageService(typeof(SComponentModel)) as IComponentModel;
-            var service = model.GetService<IVsEditorAdaptersFactoryService>();
-            var buffer = service.GetDataBuffer(pBuffer);
-
+            if (model != null)
+            {
+                var service = model.GetService<IVsEditorAdaptersFactoryService>();
+                var buffer = service.GetDataBuffer(pBuffer);
+            }
             pbstrName = "";
             piLineOffset = iCol;
             return VSConstants.E_FAIL;

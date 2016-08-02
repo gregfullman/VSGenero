@@ -8,7 +8,7 @@ namespace VSGenero.Analysis.Parsing.AST_PER
 {
     public class LayoutNode : AstNodePer
     {
-        public List<LayoutAttribute> Attributes { get; } = new List<LayoutAttribute>();
+        public List<LayoutAttribute> Attributes = new List<LayoutAttribute>();
 
         public static bool TryParseNode(IParser parser, out LayoutNode node)
         {

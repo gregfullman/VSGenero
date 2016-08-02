@@ -636,7 +636,7 @@ namespace VSGenero.Analysis.Parsing
                         return ReadEof();
                     case '\f':
                         // Ignore form feeds
-                        if (Verbatim)
+                        if (Verbatim && _state.CurWhiteSpace != null)
                         {
                             _state.CurWhiteSpace.Append((char)ch);
                         }
@@ -655,7 +655,8 @@ namespace VSGenero.Analysis.Parsing
                                 var commentRes = ReadSingleLineComment(out ch);
                                 if ((_options & TokenizerOptions.VerbatimCommentsAndLineJoins) == 0)
                                 {
-                                    _state.CurWhiteSpace.Append(commentRes.VerbatimImage);
+                                    if(_state.CurWhiteSpace != null)
+                                        _state.CurWhiteSpace.Append(commentRes.VerbatimImage);
                                     DiscardToken();
                                     SeekRelative(+1);
                                 }
@@ -698,7 +699,8 @@ namespace VSGenero.Analysis.Parsing
                             _state.SingleLineComments.Add(new TokenWithSpan(commentRes, new IndexSpan(_tokenStartIndex, _tokenEndIndex - _tokenStartIndex), 0));
                             if ((_options & TokenizerOptions.VerbatimCommentsAndLineJoins) == 0)
                             {
-                                _state.CurWhiteSpace.Append(commentRes.VerbatimImage);
+                                if(_state.CurWhiteSpace != null)
+                                    _state.CurWhiteSpace.Append(commentRes.VerbatimImage);
                                 DiscardToken();
                                 SeekRelative(+1);
                             }
