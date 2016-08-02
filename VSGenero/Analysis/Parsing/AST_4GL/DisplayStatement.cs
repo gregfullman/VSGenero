@@ -336,12 +336,12 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         if (parser.PeekToken(TokenKind.Equals))
                             parser.NextToken();
                         else
-                            parser.ReportSyntaxError("Expected equals token in input attribute.");
+                            parser.ReportSyntaxError("Expected equals token in display attribute.");
 
                         // get the help number
                         ExpressionNode optionNumber;
                         if (!FglExpressionNode.TryGetExpressionNode(parser, out optionNumber))
-                            parser.ReportSyntaxError("Invalid help-number found in input attribute.");
+                            parser.ReportSyntaxError("Invalid help-number found in display attribute.");
                         break;
                     }
                 case TokenKind.CountKeyword:
@@ -354,13 +354,13 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                 parser.NextToken();
                                 ExpressionNode boolExpr;
                                 if (!FglExpressionNode.TryGetExpressionNode(parser, out boolExpr, new List<TokenKind> { TokenKind.Comma, TokenKind.RightParenthesis }))
-                                    parser.ReportSyntaxError("Invalid expression found in input attribute.");
+                                    parser.ReportSyntaxError("Invalid expression found in display attribute.");
                             }
                             else
-                                parser.ReportSyntaxError("Expected integer expression in input array attribute.");
+                                parser.ReportSyntaxError("Expected integer expression in display array attribute.");
                         }
                         else
-                            parser.ReportSyntaxError("Attribute can only be used for an input array statement.");
+                            parser.ReportSyntaxError("Attribute can only be used for an display array statement.");
                         break;
                     }
                 case TokenKind.KeepKeyword:
@@ -387,6 +387,149 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                             parser.ReportSyntaxError("Expected \"current\" keyword in input array attribute.");
                         break;
                     }
+                case TokenKind.DetailActionKeyword:
+                case TokenKind.DoubleClickKeyword:
+                    { 
+                        parser.NextToken();
+                        if (parser.PeekToken(TokenKind.Equals))
+                        {
+                            parser.NextToken();
+                            FglNameExpression nameExpression;
+                            if (!FglNameExpression.TryParseNode(parser, out nameExpression))
+                                parser.ReportSyntaxError("Invalid action name found in input attribute.");
+                        }
+                        else
+                            parser.ReportSyntaxError("Expected equals token in display attribute.");
+                        break;
+                    }
+                case TokenKind.AccessoryTypeKeyword:
+                    {
+                        parser.NextToken();
+                        if (parser.PeekToken(TokenKind.Equals))
+                        {
+                            var tokKind = parser.NextToken().Kind;
+                            if (tokKind != TokenKind.DetailActionKeyword ||
+                                tokKind != TokenKind.DisclosureIndicatorKeyword ||
+                                tokKind != TokenKind.CheckmarkKeyword)
+                            {
+                                parser.ReportSyntaxError("Invalid token found in ACCESSORYTYPE display attribute.");
+                            }
+                        }
+                        else
+                            parser.ReportSyntaxError("Expected equals token in display attribute.");
+                        break;
+                    }
+                default:
+                    result = false;
+                    break;
+            }
+
+            return result;
+        }
+    }
+
+    public class ActionAttributesDisplayArray : AstNode4gl
+    {
+        public static bool TryParseNode(Genero4glParser parser, out ActionAttributesDisplayArray node)
+        {
+            node = new ActionAttributesDisplayArray();
+            node.StartIndex = parser.Token.Span.Start;
+            bool result = true;
+
+            switch (parser.PeekToken().Kind)
+            {
+                case TokenKind.TextKeyword:
+                case TokenKind.CommentKeyword:
+                case TokenKind.ImageKeyword:
+                case TokenKind.AcceleratorKeyword:
+                    {
+                        parser.NextToken();
+                        if (parser.PeekToken(TokenKind.Equals))
+                            parser.NextToken();
+                        else
+                            parser.ReportSyntaxError("Expected equals token in display attribute.");
+
+                        // get the help number
+                        StringExpressionNode stringExpressionNode;
+                        if (!StringExpressionNode.TryGetExpressionNode(parser, out stringExpressionNode))
+                            parser.ReportSyntaxError("Invalid string expression found in action attribute.");
+                    }
+                    break;
+                case TokenKind.DefaultViewKeyword:
+                case TokenKind.ContextMenuKeyword:
+                    {
+                        parser.NextToken();
+                        if (parser.PeekToken(TokenKind.Equals))
+                        {
+                            var tokKind = parser.NextToken().Kind;
+                            if (tokKind != TokenKind.YesKeyword ||
+                                tokKind != TokenKind.NoKeyword ||
+                                tokKind != TokenKind.AutoKeyword)
+                            {
+                                parser.ReportSyntaxError("Invalid token found in action attribute.");
+                            }
+                        }
+                        else
+                            parser.ReportSyntaxError("Expected equals token in display attribute.");
+                    }
+                    break;
+                case TokenKind.RowboundKeyword:
+                    parser.NextToken();
+                    break;
+                default:
+                    result = false;
+                    break;
+            }
+
+            return result;
+        }
+    }
+
+    public class ActionAttributesListmodTriggers : AstNode4gl
+    {
+        public static bool TryParseNode(Genero4glParser parser, out ActionAttributesListmodTriggers node)
+        {
+            node = new ActionAttributesListmodTriggers();
+            node.StartIndex = parser.Token.Span.Start;
+            bool result = true;
+
+            switch (parser.PeekToken().Kind)
+            {
+                case TokenKind.TextKeyword:
+                case TokenKind.CommentKeyword:
+                case TokenKind.ImageKeyword:
+                case TokenKind.AcceleratorKeyword:
+                    {
+                        parser.NextToken();
+                        if (parser.PeekToken(TokenKind.Equals))
+                            parser.NextToken();
+                        else
+                            parser.ReportSyntaxError("Expected equals token in display attribute.");
+
+                        // get the help number
+                        StringExpressionNode stringExpressionNode;
+                        if (!StringExpressionNode.TryGetExpressionNode(parser, out stringExpressionNode))
+                            parser.ReportSyntaxError("Invalid string expression found in action attribute.");
+                    }
+                    break;
+                case TokenKind.DefaultViewKeyword:
+                case TokenKind.ContextMenuKeyword:
+                    {
+                        parser.NextToken();
+                        if (parser.PeekToken(TokenKind.Equals))
+                        {
+                            var tokKind = parser.NextToken().Kind;
+                            if (tokKind != TokenKind.YesKeyword ||
+                                tokKind != TokenKind.NoKeyword ||
+                                tokKind != TokenKind.AutoKeyword)
+                            {
+                                parser.ReportSyntaxError("Invalid token found in action attribute.");
+                            }
+                        }
+                        else
+                            parser.ReportSyntaxError("Expected equals token in display attribute.");
+                    }
+                    break;
                 default:
                     result = false;
                     break;
@@ -500,6 +643,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                     node.ActionName = actionName;
                                 else
                                     parser.ReportSyntaxError("Invalid action-name found in display array statement.");
+                                GetActionAttributesDisplayArray(parser);
                                 break;
                             case TokenKind.KeyKeyword:
                                 parser.NextToken();
@@ -527,18 +671,22 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                             case TokenKind.AppendKeyword:
                                 node.Type = DisplayControlBlockType.Append;
                                 parser.NextToken();
+                                GetActionAttributesListmodTriggers(parser);
                                 break;
                             case TokenKind.InsertKeyword:
                                 node.Type = DisplayControlBlockType.Insert;
                                 parser.NextToken();
+                                GetActionAttributesListmodTriggers(parser);
                                 break;
                             case TokenKind.UpdateKeyword:
                                 node.Type = DisplayControlBlockType.Update;
                                 parser.NextToken();
+                                GetActionAttributesListmodTriggers(parser);
                                 break;
                             case TokenKind.DeleteKeyword:
                                 node.Type = DisplayControlBlockType.Delete;
                                 parser.NextToken();
+                                GetActionAttributesListmodTriggers(parser);
                                 break;
                             case TokenKind.ExpandKeyword:
                                 node.Type = DisplayControlBlockType.Expand;
@@ -658,6 +806,68 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     result = false;
             }
 
+            return result;
+        }
+
+        private static List<ActionAttributesListmodTriggers> GetActionAttributesListmodTriggers(Genero4glParser parser)
+        {
+            List<ActionAttributesListmodTriggers> result = new List<ActionAttributesListmodTriggers>();
+
+            // get the optional attributes
+            if (parser.PeekToken(TokenKind.AttributesKeyword) || parser.PeekToken(TokenKind.AttributeKeyword))
+            {
+                parser.NextToken();
+                if (parser.PeekToken(TokenKind.LeftParenthesis))
+                {
+                    parser.NextToken();
+                    ActionAttributesListmodTriggers attrib;
+                    while (ActionAttributesListmodTriggers.TryParseNode(parser, out attrib))
+                    {
+                        result.Add(attrib);
+                        if (!parser.PeekToken(TokenKind.Comma))
+                            break;
+                        parser.NextToken();
+                    }
+
+                    if (parser.PeekToken(TokenKind.RightParenthesis))
+                        parser.NextToken();
+                    else
+                        parser.ReportSyntaxError("Expecting right-paren in display attributes section.");
+                }
+                else
+                    parser.ReportSyntaxError("Expecting left-paren in display attributes section.");
+            }
+            return result;
+        }
+
+        private static List<ActionAttributesDisplayArray> GetActionAttributesDisplayArray(Genero4glParser parser)
+        {
+            List<ActionAttributesDisplayArray> result = new List<ActionAttributesDisplayArray>();
+
+            // get the optional attributes
+            if (parser.PeekToken(TokenKind.AttributesKeyword) || parser.PeekToken(TokenKind.AttributeKeyword))
+            {
+                parser.NextToken();
+                if (parser.PeekToken(TokenKind.LeftParenthesis))
+                {
+                    parser.NextToken();
+                    ActionAttributesDisplayArray attrib;
+                    while (ActionAttributesDisplayArray.TryParseNode(parser, out attrib))
+                    {
+                        result.Add(attrib);
+                        if (!parser.PeekToken(TokenKind.Comma))
+                            break;
+                        parser.NextToken();
+                    }
+
+                    if (parser.PeekToken(TokenKind.RightParenthesis))
+                        parser.NextToken();
+                    else
+                        parser.ReportSyntaxError("Expecting right-paren in display attributes section.");
+                }
+                else
+                    parser.ReportSyntaxError("Expecting left-paren in display attributes section.");
+            }
             return result;
         }
 
