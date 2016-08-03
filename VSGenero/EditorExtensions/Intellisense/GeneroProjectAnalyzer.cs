@@ -200,6 +200,9 @@ namespace VSGenero.EditorExtensions.Intellisense
                                 {
                                     var fline = sr.ReadLine();
                                     line++;
+                                    if(fline == null)
+                                        continue;
+                                    
                                     if(!fline.StartsWith("#") && (col = fline.IndexOf(funcName, StringComparison.OrdinalIgnoreCase)) > 0)
                                         break;
                                 }
@@ -625,20 +628,24 @@ namespace VSGenero.EditorExtensions.Intellisense
                 projEntry = proj;
                 foreach (var file in files)
                 {
-                    GeneroProjectEntry entry = null;
-                    switch (Path.GetExtension(file).ToLower())
+                    var ext = Path.GetExtension(file);
+                    if (ext != null)
                     {
-                        case VSGeneroConstants.FileExtension4GL:
-                            entry = new Genero4glProjectEntry(null, file, (importer == null ? null : importer.Cookie), true);
-                            break;
-                        case VSGeneroConstants.FileExtensionPER:
-                            entry = new GeneroPerProjectEntry(null, file, (importer == null ? null : importer.Cookie), true);
-                            break;
-                        default:
-                            entry = new GeneroProjectEntry(null, file, (importer == null ? null : importer.Cookie), true);
-                            break;
+                        GeneroProjectEntry entry = null;
+                        switch (ext.ToLower())
+                        {
+                            case VSGeneroConstants.FileExtension4GL:
+                                entry = new Genero4glProjectEntry(null, file, importer?.Cookie, true);
+                                break;
+                            case VSGeneroConstants.FileExtensionPER:
+                                entry = new GeneroPerProjectEntry(null, file, importer?.Cookie, true);
+                                break;
+                            default:
+                                entry = new GeneroProjectEntry(null, file, importer?.Cookie, true);
+                                break;
+                        }
+                        projEntry.ProjectEntries.AddOrUpdate(file, entry, (x, y) => y);
                     }
-                    projEntry.ProjectEntries.AddOrUpdate(file, entry, (x, y) => y);
                 }
             }
             return projEntry;
@@ -1306,14 +1313,15 @@ namespace VSGenero.EditorExtensions.Intellisense
             IProjectEntry analysis = bufferParser._currentProjEntry;
 
             IGeneroProjectEntry pyProjEntry = analysis as IGeneroProjectEntry;
+            if (pyProjEntry == null)
+                return;
             pyProjEntry.IsErrorChecked = false;
             List<GeneroAst> asts = new List<GeneroAst>();
             try
             {
                 foreach (var snapshot in snapshots)
                 {
-                    if (pyProjEntry != null &&
-                        VSGeneroPackage.Instance.ProgramCodeContentTypes.Any(x => snapshot.TextBuffer.ContentType.IsOfType(x.TypeName)))
+                    if (VSGeneroPackage.Instance.ProgramCodeContentTypes.Any(x => snapshot.TextBuffer.ContentType.IsOfType(x.TypeName)))
                     {
                         GeneroAst ast;
                         CollectingErrorSink errorSink;
@@ -1341,38 +1349,35 @@ namespace VSGenero.EditorExtensions.Intellisense
                 int i = 0;
             }
 
-            if (pyProjEntry != null)
+            if (asts.Count > 0)
             {
-                if (asts.Count > 0)
+                GeneroAst finalAst = null;
+                if (asts.Count == 1)
                 {
-                    GeneroAst finalAst = null;
-                    if (asts.Count == 1)
-                    {
-                        finalAst = asts[0];
-                    }
+                    finalAst = asts[0];
+                }
 
-                    pyProjEntry.UpdateTree(finalAst, new SnapshotCookie(snapshots[0])); // SnapshotCookie is not entirely right, we should merge the snapshots
-                    _analysisQueue.Enqueue(analysis, AnalysisPriority.High);
+                pyProjEntry.UpdateTree(finalAst, new SnapshotCookie(snapshots[0])); // SnapshotCookie is not entirely right, we should merge the snapshots
+                _analysisQueue.Enqueue(analysis, AnalysisPriority.High);
+            }
+            else
+            {
+                // indicate that we are done parsing.
+                GeneroAst prevTree;
+                IAnalysisCookie prevCookie;
+                pyProjEntry.GetTreeAndCookie(out prevTree, out prevCookie);
+                pyProjEntry.UpdateTree(prevTree, prevCookie);
+            }
+
+            if (VSGeneroPackage.Instance.AdvancedOptions4GLPage.SemanticErrorCheckingEnabled)
+            {
+                if (!pyProjEntry.CanErrorCheck)
+                {
+                    _waitingErrorCheckers.Enqueue(pyProjEntry);
                 }
                 else
                 {
-                    // indicate that we are done parsing.
-                    GeneroAst prevTree;
-                    IAnalysisCookie prevCookie;
-                    pyProjEntry.GetTreeAndCookie(out prevTree, out prevCookie);
-                    pyProjEntry.UpdateTree(prevTree, prevCookie);
-                }
-
-                if (VSGeneroPackage.Instance.AdvancedOptions4GLPage.SemanticErrorCheckingEnabled)
-                {
-                    if (!pyProjEntry.CanErrorCheck)
-                    {
-                        _waitingErrorCheckers.Enqueue(pyProjEntry);
-                    }
-                    else
-                    {
-                        CheckForErrors(pyProjEntry);
-                    }
+                    CheckForErrors(pyProjEntry);
                 }
             }
         }

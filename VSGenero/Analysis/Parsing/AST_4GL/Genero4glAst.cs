@@ -54,7 +54,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
         public IEnumerable<string> GetIncludedFiles()
         {
-            return (Body as AstNode4gl).IncludeFiles.Keys;
+            return (Body as AstNode4gl)?.IncludeFiles.Keys;
         }
 
         public FunctionBlockNode GetContainingFunction(int index, bool returnNextIfOutside)
@@ -79,7 +79,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
                 // TODO: need to handle multiple results of the same name
                 containingNode = Body.Children[key] as AstNode4gl;
-                if (returnNextIfOutside && containingNode.EndIndex < index)
+                
+                if (returnNextIfOutside && containingNode != null && containingNode.EndIndex < index)
                 {
                     // need to go to the next function
                     searchIndex++;
@@ -552,13 +553,18 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
                     // try an imported module
                     if (ast != null && ast.Body is IModuleResult &&
-                       ast.ProjectEntry != null && ast.ProjectEntry is IGeneroProjectEntry)
+                       ast.ProjectEntry != null && ast.ProjectEntry != null)
                     {
                         if ((ast.Body as IModuleResult).FglImports.Contains(dotPiece))
                         {
                             // need to get the ast for the other project entry
-                            var refProjKVP = (ast.ProjectEntry as IGeneroProjectEntry).ParentProject.ReferencedProjects.Values.FirstOrDefault(x => Path.GetFileName(x.Directory).Equals(dotPiece, StringComparison.OrdinalIgnoreCase));
-                            if (refProjKVP != null && refProjKVP is IAnalysisResult)
+                            var refProjKVP = (ast.ProjectEntry as IGeneroProjectEntry).ParentProject.ReferencedProjects.Values.FirstOrDefault(
+                                x =>
+                                {
+                                    var fn = Path.GetFileName(x.Directory);
+                                    return fn?.Equals(dotPiece, StringComparison.OrdinalIgnoreCase) ?? false;
+                                });
+                            if (refProjKVP is IAnalysisResult)
                             {
                                 definingProject = refProjKVP;
                                 res = refProjKVP as IAnalysisResult;
@@ -570,13 +576,12 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     if (!lookForFunctions)
                     {
                         // try include files
-                        bool foundInclude = false;
-                        if (ast != null && ast.ProjectEntry != null)
+                        var foundInclude = false;
+                        if (ast?.ProjectEntry != null)
                         {
                             foreach (var includeFile in ast.ProjectEntry.GetIncludedFiles())
                             {
-                                if (includeFile.Analysis != null &&
-                                    includeFile.Analysis.Body is IModuleResult)
+                                if (includeFile.Analysis?.Body is IModuleResult)
                                 {
                                     var mod = includeFile.Analysis.Body as IModuleResult;
                                     if ((getTypes && (mod.Types.TryGetValue(dotPiece, out res) || mod.GlobalTypes.TryGetValue(dotPiece, out res))) ||
@@ -591,7 +596,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         if (foundInclude)
                             continue;
 
-                        if (ast != null && ast._databaseProvider != null)
+                        if (ast?._databaseProvider != null)
                         {
                             res = ast._databaseProvider.GetTable(dotPiece);
                             if (res != null)
@@ -605,7 +610,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     {
                         if (searchInFunctionProvider == FunctionProviderSearchMode.Search)
                         {
-                            if (res == null && ast != null && ast._functionProvider != null)
+                            if (res == null && ast?._functionProvider != null)
                             {
                                 // check for the function name in the function provider
                                 var funcs = ast._functionProvider.GetFunction(dotPiece);
@@ -873,8 +878,13 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 if ((_body as IModuleResult).FglImports.Contains(dotPiece))
                 {
                     // need to get the ast for the other project entry
-                    var refProjKVP = (_projEntry as IGeneroProjectEntry).ParentProject.ReferencedProjects.Values.FirstOrDefault(x => Path.GetFileName(x.Directory).Equals(dotPiece, StringComparison.OrdinalIgnoreCase));
-                    if (refProjKVP != null && refProjKVP is IAnalysisResult)
+                    var refProjKVP = (_projEntry as IGeneroProjectEntry).ParentProject.ReferencedProjects.Values.FirstOrDefault(
+                        x =>
+                        {
+                            var fn = Path.GetFileName(x.Directory);
+                            return fn?.Equals(dotPiece, StringComparison.OrdinalIgnoreCase) ?? false;
+                        });
+                    if (refProjKVP is IAnalysisResult)
                     {
                         IProjectEntry dummyEntry;
                         bool dummyDef;
@@ -882,12 +892,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         if (res != null)
                         {
                             LocationInfo locInfo = null;
-                            if (refProjKVP != null)
-                            {
-                                locInfo = ResolveLocationInternal(refProjKVP, dummyEntry, res);
-                            }
-                            else
-                                locInfo = this.ResolveLocation(res);
+                            locInfo = refProjKVP != null ? ResolveLocationInternal(refProjKVP, dummyEntry, res) : this.ResolveLocation(res);
                             if (locInfo != null && (locInfo.Index > 0 || (locInfo.Line > 0 && locInfo.Column > 0)))
                                 vars.Add(new AnalysisVariable(locInfo, VariableType.Definition));
                         }

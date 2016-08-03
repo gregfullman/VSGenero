@@ -40,8 +40,13 @@ namespace VSGenero.Analysis
                                 try
                                 {
                                     if (!impProj.ReferencingProjectEntries.Contains(this))
+                                    {
                                         // TODO: for some reason a NRE got thrown here, but nothing was apparently wrong
-                                        impProj.ReferencingProjectEntries.Add(this);
+                                        //if (impProj.ReferencedProjects.ContainsKey(Path.GetDirectoryName(this.FilePath)))
+                                        //    errorSink.Add(string.Format("Circular dependency detected between import modules {0} and {1}", impProj.Directory, this.FilePath), ast._lineLocations, 1, 2, ErrorCodes.SyntaxError, Severity.Error);
+                                        //else
+                                            impProj.ReferencingProjectEntries.Add(this);
+                                    }
                                 }
                                 catch (Exception)
                                 {
