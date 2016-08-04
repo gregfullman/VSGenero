@@ -891,13 +891,19 @@ namespace VSGenero.EditorExtensions.Intellisense
             return true;
         }
 
-        private void UnloadImportedModules(IGeneroProject project)
+        private void UnloadImportedModules(IGeneroProject project, List<IGeneroProject> unloadingList = null)
         {
+            // This unloading list is used to prevent a stack overflow exception in the case of a circular reference between import modules.
+            // TODO: really we need to prevent/display an error when a circular reference is detected, but that should be done seperately.
+            if (unloadingList == null)
+                unloadingList = new List<IGeneroProject>();
+            unloadingList.Add(project);
+
             var refList = project.ReferencedProjects.Select(x => x.Value).ToList();
             for (int i = 0; i < refList.Count; i++)
             {
                 // if the project references another project, attempt to unload the referenced project (by recursing into it)
-                if (refList[i].ReferencedProjects.Count > 0)
+                if (refList[i].ReferencedProjects.Count > 0 && !unloadingList.Contains(refList[i]))
                 {
                     UnloadImportedModules(refList[i]);
                 }
