@@ -19,6 +19,7 @@ using System.Text;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Text.Editor;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Windows.Threading;
 using System.Windows.Forms;
 using Microsoft.VisualStudio;
@@ -28,6 +29,7 @@ using VSGenero.EditorExtensions;
 using Microsoft.VisualStudio.Text;
 using System.Drawing;
 using System.IO;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.VSCommon;
 using Microsoft.VisualStudio.VSCommon.Utilities;
 using VSGenero.Analysis;
@@ -143,7 +145,7 @@ namespace VSGenero.Navigation
             switch (iCombo)
             {
                 case TopLevelComboBoxId:
-                    CalculateTopLevelEntries();
+                    //CalculateTopLevelEntries();
                     count = (uint)_topLevelEntries.Count;
                     break;
             }
@@ -158,21 +160,39 @@ namespace VSGenero.Navigation
         /// Wired to parser event for when the parser has completed parsing a new tree and we need
         /// to update the navigation bar with the new data.
         /// </summary>
-        private void ParserOnNewParseTree(object sender, EventArgs e)
+        private async void ParserOnNewParseTree(object sender, EventArgs e)
         {
             var dropDownBar = _dropDownBar;
             if (dropDownBar != null)
             {
                 _curNestedIndex = -1;
                 _curTopLevelIndex = -1;
-                Action callback = () =>
+
+                if (!_isWorking)
                 {
-                    CalculateTopLevelEntries();
-                    CaretPositionChanged(this, new CaretPositionChangedEventArgs(null, _textView.Caret.Position, _textView.Caret.Position));
-                };
-                _dispatcher.BeginInvoke(callback, DispatcherPriority.Background);
+                    _isWorking = true;
+                    var bgWorker = new BackgroundWorker();
+                    Action uiCallback = () =>
+                    {
+                        CaretPositionChanged(this,
+                            new CaretPositionChangedEventArgs(null, _textView.Caret.Position, _textView.Caret.Position));
+                    };
+                    bgWorker.RunWorkerCompleted += (x, y) =>
+                    {
+                        _dispatcher.BeginInvoke(uiCallback, DispatcherPriority.Background);
+                        _isWorking = false;
+                    };
+
+                    bgWorker.DoWork += (x, y) =>
+                    {
+                        CalculateTopLevelEntries();
+                    };
+                    bgWorker.RunWorkerAsync();
+                }
             }
         }
+
+        private bool _isWorking;
 
         private void CalculateTopLevelEntries()
         {

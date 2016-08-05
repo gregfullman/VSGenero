@@ -58,38 +58,50 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
         public bool IsPublic { get { return AccessModifier == Analysis.AccessModifier.Public; } }
 
+        private string _descriptiveName;
         public string DescriptiveName
         {
             get
             {
-                StringBuilder sb = new StringBuilder();
-
-                sb.Append(Name);
-                sb.Append('(');
-
-                // if there are any parameters put them in
-                int total = _arguments.Count;
-                int i = 0;
-                foreach (var varDef in _arguments.OrderBy(x => x.Key.Span.Start))
+                if (_descriptiveName == null)
                 {
-                    if (varDef.Value != null)
-                        sb.AppendFormat("{0} {1}", varDef.Value.Type.ToString(), varDef.Value.Name);
-                    else
-                        sb.AppendFormat("{0}", varDef.Key.Token.Value.ToString());
-                    if (i + 1 < total)
-                    {
-                        sb.Append(", ");
-                    }
-                    i++;
-                }
+                    StringBuilder sb = new StringBuilder();
 
-                sb.Append(')');
-                return sb.ToString();
+                    sb.Append(Name);
+                    sb.Append('(');
+
+                    // if there are any parameters put them in
+                    int total = _arguments.Count;
+                    int i = 0;
+                    foreach(var token in _argsInOrder)
+                    {
+                        //foreach (var varDef in _arguments.OrderBy(x => x.Key.Span.Start))
+                        //{
+                        VariableDef varDef;
+                        if (_arguments.TryGetValue(token, out varDef))
+                        {
+                            if (varDef != null)
+                                sb.AppendFormat("{0} {1}", varDef.Type.ToString(), varDef.Name);
+                            else
+                                sb.AppendFormat("{0}", token.Token.Value.ToString());
+                            if (i + 1 < total)
+                            {
+                                sb.Append(", ");
+                            }
+                            i++;
+                        }
+                    }
+
+                    sb.Append(')');
+                    _descriptiveName = sb.ToString();
+                }
+                return _descriptiveName;
             }
         }
 
         private Dictionary<string, TokenWithSpan> _internalArguments = new Dictionary<string, TokenWithSpan>(StringComparer.OrdinalIgnoreCase);
         private Dictionary<TokenWithSpan, VariableDef> _arguments = new Dictionary<TokenWithSpan, VariableDef>(TokenWithSpan.CaseInsensitiveNameComparer);
+        private List<TokenWithSpan> _argsInOrder = new List<TokenWithSpan>();
 
         private List<ReturnStatement> _internalReturns = new List<ReturnStatement>();
 
@@ -101,6 +113,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             {
                 _internalArguments.Add(key, token);
                 _arguments.Add(token, null);
+                _argsInOrder.Add(token);
                 return true;
             }
             errMsg = string.Format("Duplicate argument found: {0}", key);
