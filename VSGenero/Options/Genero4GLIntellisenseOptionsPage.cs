@@ -11,7 +11,7 @@ namespace VSGenero.Options
     [ComVisible(true)]
     public class Genero4GLIntellisenseOptionsPage : GeneroDialogPage
     {
-        private bool _enterCommitsIntellisense, _addNewLineAtEndOfFullyTypedWord, _showCompletionList, _spaceCommitsIntellisense, _preSelectMRU;
+        private bool _enterCommitsIntellisense, _addNewLineAtEndOfFullyTypedWord, _spaceCommitsIntellisense, _preSelectMRU;
         private bool _spacebarShowsCompletionList = true;   // set this for now
         private Genero4GLIntellisenseOptionsControl _window;
         private const string _defaultCompletionChars = "{}[]().,:;+-*/%&|^~=<>#'\"\\";
@@ -59,12 +59,6 @@ namespace VSGenero.Options
             set { _preSelectMRU = value; }
         }
 
-        public bool ShowCompletionList
-        {
-            get { return _showCompletionList; }
-            set { _showCompletionList = value; }
-        }
-
         public CompletionAnalysisType AnalysisType
         {
             get { return _analysisType; }
@@ -77,7 +71,6 @@ namespace VSGenero.Options
             _addNewLineAtEndOfFullyTypedWord = false;
             _completionCommittedBy = _defaultCompletionChars;
             _spaceCommitsIntellisense = true;
-            _showCompletionList = true;
             _spacebarShowsCompletionList = true;
             _preSelectMRU = true;
             _analysisType = CompletionAnalysisType.Context;
@@ -87,7 +80,6 @@ namespace VSGenero.Options
         private const string EnterCommitsSetting = "EnterCommits";
         private const string NewLineAtEndOfWordSetting = "NewLineAtEndOfWord";
         private const string SpaceCommitsSetting = "SpaceCommits";
-        private const string ShowCompletionListSetting = "ShowCompletionList";
         private const string SpacebarShowsCompletionListSetting = "SpacebarShowsCompletionList";
         private const string PreSelectMRUSetting = "PreSelectMRU";
         private const string CompletionAnalysisTypeSetting = "ContextAnalysisType";
@@ -98,7 +90,6 @@ namespace VSGenero.Options
             _addNewLineAtEndOfFullyTypedWord = LoadBool(NewLineAtEndOfWordSetting) ?? false;
             _completionCommittedBy = LoadString(CompletionCommittedBySetting) ?? _defaultCompletionChars;
             _spaceCommitsIntellisense = LoadBool(SpaceCommitsSetting) ?? true;
-            _showCompletionList = LoadBool(ShowCompletionListSetting) ?? true;
             _spacebarShowsCompletionList = LoadBool(SpacebarShowsCompletionListSetting) ?? true;
             _preSelectMRU = LoadBool(PreSelectMRUSetting) ?? true;
             _analysisType = LoadEnum<CompletionAnalysisType>(CompletionAnalysisTypeSetting) ?? CompletionAnalysisType.Context;
@@ -110,7 +101,6 @@ namespace VSGenero.Options
             SaveBool(NewLineAtEndOfWordSetting, _addNewLineAtEndOfFullyTypedWord);
             SaveString(CompletionCommittedBySetting, _completionCommittedBy);
             SaveBool(SpaceCommitsSetting, _spaceCommitsIntellisense);
-            SaveBool(ShowCompletionListSetting, _showCompletionList);
             SaveBool(SpacebarShowsCompletionListSetting, _spacebarShowsCompletionList);
             SaveBool(PreSelectMRUSetting, _preSelectMRU);
             SaveEnum<CompletionAnalysisType>(CompletionAnalysisTypeSetting, _analysisType);

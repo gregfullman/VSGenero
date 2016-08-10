@@ -40,11 +40,10 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             if(parser.PeekToken(TokenKind.SchemaKeyword))
             {
                 defNode = new SchemaSpecificationNode();
-                defNode.StartIndex = parser.Token.Span.Start;
                 parser.NextToken();
+                defNode.StartIndex = parser.Token.Span.Start;
                 result = true;
 
-                parser.NextToken();
                 FglNameExpression nameExp;
                 if (FglNameExpression.TryParseNode(parser, out nameExp))
                 {

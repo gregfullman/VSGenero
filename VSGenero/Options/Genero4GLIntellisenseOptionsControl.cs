@@ -19,7 +19,6 @@ namespace VSGenero.Options
         public Genero4GLIntellisenseOptionsControl()
         {
             InitializeComponent();
-            checkBoxCompletionList.Checked = VSGeneroPackage.Instance.IntellisenseOptions4GLPage.ShowCompletionList;
             checkBoxNewLineOnFullyTypedWord.Checked = VSGeneroPackage.Instance.IntellisenseOptions4GLPage.AddNewLineAtEndOfFullyTypedWord;
             checkBoxPreselectMRU.Checked = VSGeneroPackage.Instance.IntellisenseOptions4GLPage.PreSelectMRU;
             checkBoxSpacebarCommits.Checked = VSGeneroPackage.Instance.IntellisenseOptions4GLPage.SpaceCommitsIntellisense;
@@ -85,14 +84,17 @@ namespace VSGenero.Options
 
         private void _timer_Tick(object sender, EventArgs e)
         {
-            _timer.Stop();
-            _timer.Tick -= _timer_Tick;
-            if (labelReloadResult.Visible)
-                labelReloadResult.Visible = false;
-            if (labelDownloadResult.Visible)
-                labelDownloadResult.Visible = false;
-            _timer.Dispose();
-            _timer = null;
+            if (_timer != null)
+            {
+                _timer.Stop();
+                _timer.Tick -= _timer_Tick;
+                if (labelReloadResult.Visible)
+                    labelReloadResult.Visible = false;
+                if (labelDownloadResult.Visible)
+                    labelDownloadResult.Visible = false;
+                _timer.Dispose();
+                _timer = null;
+            }
         }
 
         private async void buttonDownloadLatest_Click(object sender, EventArgs e)

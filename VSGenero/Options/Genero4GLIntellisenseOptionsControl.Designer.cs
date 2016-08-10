@@ -29,8 +29,6 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            this.groupBox1 = new System.Windows.Forms.GroupBox();
-            this.checkBoxCompletionList = new System.Windows.Forms.CheckBox();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.checkBoxNewLineOnFullyTypedWord = new System.Windows.Forms.CheckBox();
             this.checkBoxSpacebarCommits = new System.Windows.Forms.CheckBox();
@@ -39,41 +37,18 @@
             this.groupBox3 = new System.Windows.Forms.GroupBox();
             this.checkBoxPreselectMRU = new System.Windows.Forms.CheckBox();
             this.groupBox4 = new System.Windows.Forms.GroupBox();
+            this.labelDownloadResult = new System.Windows.Forms.Label();
+            this.labelReloadResult = new System.Windows.Forms.Label();
+            this.buttonDownloadLatest = new System.Windows.Forms.Button();
             this.buttonReloadContexts = new System.Windows.Forms.Button();
             this.radioButtonContextCompletionType = new System.Windows.Forms.RadioButton();
             this.radioButtonNormalCompletionType = new System.Windows.Forms.RadioButton();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
-            this.buttonDownloadLatest = new System.Windows.Forms.Button();
             this.toolTip2 = new System.Windows.Forms.ToolTip(this.components);
-            this.labelReloadResult = new System.Windows.Forms.Label();
-            this.labelDownloadResult = new System.Windows.Forms.Label();
-            this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.groupBox3.SuspendLayout();
             this.groupBox4.SuspendLayout();
             this.SuspendLayout();
-            // 
-            // groupBox1
-            // 
-            this.groupBox1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.groupBox1.Controls.Add(this.checkBoxCompletionList);
-            this.groupBox1.Location = new System.Drawing.Point(4, 4);
-            this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(473, 43);
-            this.groupBox1.TabIndex = 0;
-            this.groupBox1.TabStop = false;
-            this.groupBox1.Text = "Completion Lists";
-            // 
-            // checkBoxCompletionList
-            // 
-            this.checkBoxCompletionList.AutoSize = true;
-            this.checkBoxCompletionList.Location = new System.Drawing.Point(20, 19);
-            this.checkBoxCompletionList.Name = "checkBoxCompletionList";
-            this.checkBoxCompletionList.Size = new System.Drawing.Size(242, 17);
-            this.checkBoxCompletionList.TabIndex = 0;
-            this.checkBoxCompletionList.Text = "Show completion list after a character is typed";
-            this.checkBoxCompletionList.UseVisualStyleBackColor = true;
             // 
             // groupBox2
             // 
@@ -83,7 +58,7 @@
             this.groupBox2.Controls.Add(this.checkBoxSpacebarCommits);
             this.groupBox2.Controls.Add(this.textBoxCommitChars);
             this.groupBox2.Controls.Add(this.label1);
-            this.groupBox2.Location = new System.Drawing.Point(4, 171);
+            this.groupBox2.Location = new System.Drawing.Point(4, 127);
             this.groupBox2.Name = "groupBox2";
             this.groupBox2.Size = new System.Drawing.Size(473, 99);
             this.groupBox2.TabIndex = 1;
@@ -134,7 +109,7 @@
             // groupBox3
             // 
             this.groupBox3.Controls.Add(this.checkBoxPreselectMRU);
-            this.groupBox3.Location = new System.Drawing.Point(4, 274);
+            this.groupBox3.Location = new System.Drawing.Point(4, 230);
             this.groupBox3.Name = "groupBox3";
             this.groupBox3.Size = new System.Drawing.Size(473, 47);
             this.groupBox3.TabIndex = 2;
@@ -160,12 +135,44 @@
             this.groupBox4.Controls.Add(this.buttonReloadContexts);
             this.groupBox4.Controls.Add(this.radioButtonContextCompletionType);
             this.groupBox4.Controls.Add(this.radioButtonNormalCompletionType);
-            this.groupBox4.Location = new System.Drawing.Point(4, 47);
+            this.groupBox4.Location = new System.Drawing.Point(4, 4);
             this.groupBox4.Name = "groupBox4";
             this.groupBox4.Size = new System.Drawing.Size(473, 118);
             this.groupBox4.TabIndex = 3;
             this.groupBox4.TabStop = false;
             this.groupBox4.Text = "Completion Type";
+            // 
+            // labelDownloadResult
+            // 
+            this.labelDownloadResult.AutoSize = true;
+            this.labelDownloadResult.Location = new System.Drawing.Point(207, 92);
+            this.labelDownloadResult.Name = "labelDownloadResult";
+            this.labelDownloadResult.Size = new System.Drawing.Size(83, 13);
+            this.labelDownloadResult.TabIndex = 5;
+            this.labelDownloadResult.Text = "Download result";
+            this.labelDownloadResult.Visible = false;
+            // 
+            // labelReloadResult
+            // 
+            this.labelReloadResult.AutoSize = true;
+            this.labelReloadResult.Location = new System.Drawing.Point(206, 64);
+            this.labelReloadResult.Name = "labelReloadResult";
+            this.labelReloadResult.Size = new System.Drawing.Size(69, 13);
+            this.labelReloadResult.TabIndex = 4;
+            this.labelReloadResult.Text = "Reload result";
+            this.labelReloadResult.Visible = false;
+            // 
+            // buttonDownloadLatest
+            // 
+            this.buttonDownloadLatest.Location = new System.Drawing.Point(43, 87);
+            this.buttonDownloadLatest.Name = "buttonDownloadLatest";
+            this.buttonDownloadLatest.Size = new System.Drawing.Size(158, 23);
+            this.buttonDownloadLatest.TabIndex = 3;
+            this.buttonDownloadLatest.Text = "Download latest contexts";
+            this.toolTip1.SetToolTip(this.buttonDownloadLatest, "Load latest changes to the Completion Context XML map");
+            this.toolTip2.SetToolTip(this.buttonDownloadLatest, "Download latest context changes from Github");
+            this.buttonDownloadLatest.UseVisualStyleBackColor = true;
+            this.buttonDownloadLatest.Click += new System.EventHandler(this.buttonDownloadLatest_Click);
             // 
             // buttonReloadContexts
             // 
@@ -202,38 +209,6 @@
             this.radioButtonNormalCompletionType.UseVisualStyleBackColor = true;
             this.radioButtonNormalCompletionType.CheckedChanged += new System.EventHandler(this.radioButtonNormalCompletionType_CheckedChanged);
             // 
-            // buttonDownloadLatest
-            // 
-            this.buttonDownloadLatest.Location = new System.Drawing.Point(43, 87);
-            this.buttonDownloadLatest.Name = "buttonDownloadLatest";
-            this.buttonDownloadLatest.Size = new System.Drawing.Size(158, 23);
-            this.buttonDownloadLatest.TabIndex = 3;
-            this.buttonDownloadLatest.Text = "Download latest contexts";
-            this.toolTip1.SetToolTip(this.buttonDownloadLatest, "Load latest changes to the Completion Context XML map");
-            this.toolTip2.SetToolTip(this.buttonDownloadLatest, "Download latest context changes from Github");
-            this.buttonDownloadLatest.UseVisualStyleBackColor = true;
-            this.buttonDownloadLatest.Click += new System.EventHandler(this.buttonDownloadLatest_Click);
-            // 
-            // labelReloadResult
-            // 
-            this.labelReloadResult.AutoSize = true;
-            this.labelReloadResult.Location = new System.Drawing.Point(206, 64);
-            this.labelReloadResult.Name = "labelReloadResult";
-            this.labelReloadResult.Size = new System.Drawing.Size(69, 13);
-            this.labelReloadResult.TabIndex = 4;
-            this.labelReloadResult.Text = "Reload result";
-            this.labelReloadResult.Visible = false;
-            // 
-            // labelDownloadResult
-            // 
-            this.labelDownloadResult.AutoSize = true;
-            this.labelDownloadResult.Location = new System.Drawing.Point(207, 92);
-            this.labelDownloadResult.Name = "labelDownloadResult";
-            this.labelDownloadResult.Size = new System.Drawing.Size(83, 13);
-            this.labelDownloadResult.TabIndex = 5;
-            this.labelDownloadResult.Text = "Download result";
-            this.labelDownloadResult.Visible = false;
-            // 
             // Genero4GLIntellisenseOptionsControl
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -241,11 +216,8 @@
             this.Controls.Add(this.groupBox4);
             this.Controls.Add(this.groupBox3);
             this.Controls.Add(this.groupBox2);
-            this.Controls.Add(this.groupBox1);
             this.Name = "Genero4GLIntellisenseOptionsControl";
             this.Size = new System.Drawing.Size(480, 327);
-            this.groupBox1.ResumeLayout(false);
-            this.groupBox1.PerformLayout();
             this.groupBox2.ResumeLayout(false);
             this.groupBox2.PerformLayout();
             this.groupBox3.ResumeLayout(false);
@@ -257,9 +229,6 @@
         }
 
         #endregion
-
-        private System.Windows.Forms.GroupBox groupBox1;
-        private System.Windows.Forms.CheckBox checkBoxCompletionList;
         private System.Windows.Forms.GroupBox groupBox2;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.TextBox textBoxCommitChars;
