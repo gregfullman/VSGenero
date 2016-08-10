@@ -505,6 +505,13 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     }
                 }
 
+                if(!string.IsNullOrWhiteSpace(_commentDocumentation))
+                {
+                    sb.AppendLine();
+                    sb.AppendLine();
+                    sb.Append(_commentDocumentation);
+                }
+
                 return sb.ToString();
             }
         }
@@ -517,7 +524,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
         public string FunctionDocumentation
         {
-            get { return ""; }  // TODO: Provide source doc documentation
+            get { return _commentDocumentation ?? ""; }
         }
 
         private int _locationIndex;
@@ -616,6 +623,13 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             }
 
             base.CheckForErrors(ast, errorFunc, deferredFunctionSearches);
+        }
+
+        private string _commentDocumentation;
+
+        public void SetCommentDocumentation(string commentDoc)
+        {
+            _commentDocumentation = commentDoc;
         }
     }
 }

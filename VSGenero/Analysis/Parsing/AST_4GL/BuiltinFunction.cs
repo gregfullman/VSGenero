@@ -183,6 +183,10 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             return false;
         }
 
+        public void SetCommentDocumentation(string commentDoc)
+        {
+        }
+
         public bool CanOutline
         {
             get { return false; }

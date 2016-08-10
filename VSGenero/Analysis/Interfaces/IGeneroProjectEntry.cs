@@ -55,5 +55,8 @@ namespace VSGenero.Analysis
 
         bool CanErrorCheck { get; }
         bool PreventErrorCheck { get; set; }
+
+        string GetFunctionInfo(string functionName);
+        void SetFunctionInfo(string functioName, string info);
     }
 }

@@ -323,6 +323,10 @@ namespace VSGenero.EditorExtensions.Intellisense
             return new List<MemberResult>();
         }
 
+        public void SetCommentDocumentation(string commentDoc)
+        {
+        }
+
         public bool CanOutline
         {
             get { return false; }

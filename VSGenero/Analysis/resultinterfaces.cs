@@ -94,6 +94,8 @@ namespace VSGenero.Analysis
         IDictionary<string, IAnalysisResult> Constants { get; }
         IDictionary<string, List<Tuple<IAnalysisResult, IndexSpan>>> LimitedScopeVariables { get; }
         string CompletionParentName { get; }
+
+        void SetCommentDocumentation(string commentDoc);
     }
 
     public interface IOutlinableResult

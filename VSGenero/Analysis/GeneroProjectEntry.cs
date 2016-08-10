@@ -293,6 +293,24 @@ namespace VSGenero.Analysis
                 _curWaiter.Dispose();
         }
 
+        private Dictionary<string, string> _functionInfo = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+        public string GetFunctionInfo(string functionName)
+        {
+            string result = null;
+            if(functionName != null)
+                _functionInfo.TryGetValue(functionName, out result);
+            return result;
+        }
+
+        public void SetFunctionInfo(string functioName, string info)
+        {
+            if (!string.IsNullOrWhiteSpace(functioName) && !string.IsNullOrWhiteSpace(info))
+            {
+                _functionInfo[functioName] = info;
+            }
+        }
+
         public bool CanErrorCheck
         {
             get

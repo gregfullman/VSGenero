@@ -410,6 +410,15 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                             // check for module functions
                             if (mod.Functions.TryGetValue(dotPiece, out funcRes))
                             {
+                                // check for any function info collected at the project entry level, and update the function's documentation with that.
+                                if (ast._projEntry != null && ast._projEntry is IGeneroProjectEntry)
+                                {
+                                    var commentInfo = (ast._projEntry as IGeneroProjectEntry).GetFunctionInfo(funcRes.Name);
+                                    if(commentInfo != null)
+                                    {
+                                        funcRes.SetCommentDocumentation(commentInfo);
+                                    }
+                                }
                                 res = funcRes;
                                 continue;
                             }
