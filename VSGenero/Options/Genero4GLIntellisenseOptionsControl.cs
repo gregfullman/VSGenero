@@ -88,13 +88,13 @@ namespace VSGenero.Options
             {
                 _timer.Stop();
                 _timer.Tick -= _timer_Tick;
-                if (labelReloadResult.Visible)
-                    labelReloadResult.Visible = false;
-                if (labelDownloadResult.Visible)
-                    labelDownloadResult.Visible = false;
                 _timer.Dispose();
                 _timer = null;
             }
+            if (labelReloadResult.Visible)
+                labelReloadResult.Visible = false;
+            if (labelDownloadResult.Visible)
+                labelDownloadResult.Visible = false;
         }
 
         private async void buttonDownloadLatest_Click(object sender, EventArgs e)
