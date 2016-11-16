@@ -20,6 +20,12 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 {
     public delegate IEnumerable<MemberResult> ContextSetProvider(int index);
 
+    public class ContextSetProviderContainer
+    {
+        public MemberType ReturningTypes { get; set; }
+        public ContextSetProvider Provider { get; set; }
+    }
+
     public partial class Genero4glAst
     {
         private static object _contextMapLock = new object();
@@ -63,7 +69,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             }
             return new MemberResult[0];
         }
-
+        [MemberType(MemberType.Variables | MemberType.Constants | MemberType.Functions)]
         private static IEnumerable<MemberResult> GetExpressionComponents(int index)
         {
             if (_instance != null)
@@ -73,6 +79,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             return new MemberResult[0];
         }
 
+        [MemberType(MemberType.Types)]
         private static IEnumerable<MemberResult> GetTypes(int index)
         {
             if (_instance != null)
@@ -82,11 +89,13 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             return new MemberResult[0];
         }
 
+        [MemberType(MemberType.Types)]
         private static IEnumerable<MemberResult> GetSystemTypes(int index)
         {
             return new MemberResult[0];
         }
 
+        [MemberType(MemberType.Functions)]
         private static IEnumerable<MemberResult> GetFunctions(int index)
         {
             if (_instance != null)
@@ -105,6 +114,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             return new MemberResult[0];
         }
 
+        [MemberType(MemberType.Variables)]
         private static IEnumerable<MemberResult> GetVariables(int index)
         {
             if (_instance != null)
@@ -139,6 +149,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             return new MemberResult[0];
         }
 
+        [MemberType(MemberType.Constants)]
         private static IEnumerable<MemberResult> GetConstants(int index)
         {
             if (_instance != null)
@@ -247,6 +258,57 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             return members;
         }
 
+        private MemberType GetSuggestedMemberType(int index, IReverseTokenizer revTokenizer, bool onlyVerifyEmptyContext = false)
+        {
+            var enumerator = revTokenizer.GetReversedTokens().Where(x => x.SourceSpan.Start.Index < index).GetEnumerator();
+            while (true)
+            {
+                if (!enumerator.MoveNext())
+                {
+                    return MemberType.None;
+                }
+
+                var tokInfo = enumerator.Current;
+                if (tokInfo.Equals(default(TokenInfo)) ||
+                    tokInfo.Token.Kind == TokenKind.NewLine ||
+                    tokInfo.Token.Kind == TokenKind.NLToken ||
+                    tokInfo.Token.Kind == TokenKind.Comment)
+                    continue;   // linebreak
+
+                // Look for the token in the context map
+                IEnumerable<ContextPossibilities> possibilities;
+                if (_contextMap.TryGetValue(tokInfo.Token.Kind, out possibilities) ||
+                    _contextMap.TryGetValue(tokInfo.Category, out possibilities))
+                {
+                    var matchContainer = new ContextPossibilityMatchContainer(possibilities);
+                    IEnumerable<ContextPossibilities> matchingPossibilities;
+                    if (matchContainer.TryMatchContextPossibility(tokInfo.SourceSpan.Start.Index, revTokenizer, out matchingPossibilities))
+                    {
+                        if (onlyVerifyEmptyContext)
+                        {
+                            return MemberType.None;
+                        }
+                        else
+                        {
+                            MemberType result = MemberType.None;
+                            foreach (var matchedPossible in matchingPossibilities)
+                            {
+                                result |= matchedPossible.SetProviders.Select(x => x.ReturningTypes).Aggregate((x, y) => x | y);
+                            }
+                            return result;
+                        }
+                    }
+
+                    return MemberType.All;
+                }
+                else
+                {
+                    // we don't have the token in our context map, so return
+                    return MemberType.None;
+                }
+            }
+        }
+
         private bool DetermineContext(int index, IReverseTokenizer revTokenizer, List<MemberResult> memberList, bool onlyVerifyEmptyContext = false)
         {
             var enumerator = revTokenizer.GetReversedTokens().Where(x => x.SourceSpan.Start.Index < index).GetEnumerator();
@@ -299,7 +361,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             members.AddRange(matchedPossibility.SingleTokens.Select(x =>
                 new MemberResult(Tokens.TokenKinds[x], GeneroMemberType.Keyword, _instance)));
             foreach (var provider in matchedPossibility.SetProviders)
-                members.AddRange(provider(index));
+                members.AddRange(provider.Provider(index));
         }
 
         private class ContextPossibilityMatchContainer
@@ -520,11 +582,11 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
     internal class ContextPossibilities
     {
         public TokenKind[] SingleTokens { get; private set; }
-        public ContextSetProvider[] SetProviders { get; private set; }
+        public ContextSetProviderContainer[] SetProviders { get; private set; }
         public BackwardTokenSearchItem[] BackwardSearchItems { get; private set; }
 
         public ContextPossibilities(TokenKind[] singleTokens,
-            ContextSetProvider[] setProviders,
+            ContextSetProviderContainer[] setProviders,
             BackwardTokenSearchItem[] backwardSearchItems)
         {
             SingleTokens = singleTokens;

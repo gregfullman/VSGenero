@@ -877,7 +877,8 @@ namespace VSGenero.EditorExtensions.Intellisense
                                 _parentSpan = null;
                             }
                         }
-                        else if (!IsIdentifierChar(ch))
+                        else if (!IsIdentifierChar(ch) && 
+                            _activeSession.GetApplicableSpan(_textView.TextBuffer).GetText(_textView.TextSnapshot).Length == 0)
                         {
                             _activeSession.Dismiss();
                         }

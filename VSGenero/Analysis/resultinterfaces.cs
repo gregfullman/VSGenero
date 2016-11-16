@@ -24,6 +24,7 @@ namespace VSGenero.Analysis
 {
     public enum MemberType
     {
+        None = 0,
         Variables = 1,
         Types = 2,
         Constants = 4,

@@ -182,7 +182,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             if (_projEntry != null && _projEntry is IGeneroProjectEntry)
             {
                 IGeneroProjectEntry genProj = _projEntry as IGeneroProjectEntry;
-                if (genProj.ParentProject != null)
+                if (genProj.ParentProject != null &&
+                    !genProj.FilePath.ToLower().EndsWith(".inc"))
                 {
                     foreach (var projEntry in genProj.ParentProject.ProjectEntries.Where(x => x.Value != genProj))
                     {
@@ -211,7 +212,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             HashSet<MemberResult> members = new HashSet<MemberResult>();
 
             HashSet<GeneroPackage> includedPackages = new HashSet<GeneroPackage>();
-            if (memberType.HasFlag(AstMemberType.Types))
+
+            if(memberType.HasFlag(AstMemberType.SystemTypes))
             {
                 // Built-in types
                 members.AddRange(BuiltinTypes.Select(x => new MemberResult(Tokens.TokenKinds[x], GeneroMemberType.Keyword, this)));
@@ -260,7 +262,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                             }
                         }
                     }
-                    if (memberType.HasFlag(AstMemberType.Types))
+                    if (memberType.HasFlag(AstMemberType.SystemTypes))
                         members.AddRange((containingNode as IFunctionResult).Types.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Class, this)));
                     if (memberType.HasFlag(AstMemberType.Constants))
                         members.AddRange((containingNode as IFunctionResult).Constants.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Constant, this)));
@@ -293,7 +295,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         members.AddRange((_body as IModuleResult).Variables.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Variable, this)));
                         members.AddRange((_body as IModuleResult).GlobalVariables.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Variable, this)));
                     }
-                    if (memberType.HasFlag(AstMemberType.Types))
+                    if (memberType.HasFlag(AstMemberType.UserDefinedTypes))
                     {
                         members.AddRange((_body as IModuleResult).Types.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Class, this)));
                         members.AddRange((_body as IModuleResult).GlobalTypes.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Class, this)));
@@ -354,7 +356,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             if (_projEntry != null && _projEntry is IGeneroProjectEntry)
             {
                 IGeneroProjectEntry genProj = _projEntry as IGeneroProjectEntry;
-                if (genProj.ParentProject != null)
+                if (genProj.ParentProject != null &&
+                    !genProj.FilePath.ToLower().EndsWith(".inc"))
                 {
                     foreach (var projEntry in genProj.ParentProject.ProjectEntries.Where(x => x.Value != genProj))
                     {
@@ -372,7 +375,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                     members.AddRange(modRes.GlobalVariables.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Variable, this)));
                                     members.AddRange(modRes.Variables.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Variable, this)));
                                 }
-                                if (memberType.HasFlag(AstMemberType.Types))
+                                if (memberType.HasFlag(AstMemberType.UserDefinedTypes))
                                 {
                                     members.AddRange(modRes.GlobalTypes.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Class, this)));
                                     members.AddRange(modRes.Types.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Class, this)));
@@ -446,7 +449,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
         #region Context Determiners
 
-        private bool TryMemberAccess(int index, IReverseTokenizer revTokenizer, out List<MemberResult> results, MemberType memberType = MemberType.All)
+        private bool TryMemberAccess(int index, IReverseTokenizer revTokenizer, out List<MemberResult> results)
         {
             results = new List<MemberResult>();
             bool skipGettingNext = false;
@@ -492,6 +495,9 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                             var analysisRes = GetValueByIndex(var, index, _functionProvider, _databaseProvider, _programFileProvider, false, out dummyDef, out dummyProj, out projEntry);
                             if (analysisRes != null)
                             {
+                                // Get suggested member type based on what comes before the member we're doing access on
+                                MemberType memberType = GetSuggestedMemberType(startIndex - 1, revTokenizer);
+
                                 IEnumerable<MemberResult> memberList = analysisRes.GetMembers(this, memberType, !var[var.Length - 1].Equals(']'));
                                 if (memberList != null)
                                 {

@@ -93,7 +93,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         foreach(XmlNode contextPossibility in contextEntry.ChildNodes)
                         {
                             var singleTokens = new List<TokenKind>();
-                            var setProviders = new List<ContextSetProvider>();
+                            var setProviders = new List<ContextSetProviderContainer>();
                             var backwardItems = new List<BackwardTokenSearchItem>();
 
                             foreach(XmlNode possibility in contextPossibility.ChildNodes)
@@ -125,10 +125,21 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                                 MethodInfo provider = typeof(Genero4glAst).GetMethod(setProviderNode.InnerText, BindingFlags.NonPublic | BindingFlags.Static);
                                                 if(provider != null)
                                                 {
+                                                    MemberType mt = MemberType.All;
+                                                    var mta = provider.GetCustomAttributes(true).FirstOrDefault(x => x is MemberTypeAttribute);
+                                                    if(mta != null)
+                                                    {
+                                                        mt = (mta as MemberTypeAttribute).MemberType;
+                                                    }
+
                                                     var del = Delegate.CreateDelegate(typeof(ContextSetProvider), provider);
                                                     if(del != null)
                                                     {
-                                                        setProviders.Add(del as ContextSetProvider);
+                                                        setProviders.Add(new ContextSetProviderContainer
+                                                        {
+                                                            Provider = del as ContextSetProvider,
+                                                            ReturningTypes = mt
+                                                        });
                                                     }
                                                 }
                                             }
@@ -279,7 +290,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         foreach(var provider in possibility.SetProviders)
                         {
                             setProvider = contextXml.CreateElement("Provider");
-                            setProvider.InnerText = provider.Method.Name;
+                            setProvider.InnerText = provider.Provider.Method.Name;
                             setProviders.AppendChild(setProvider);
                         }
                         contextPossibility.AppendChild(setProviders);

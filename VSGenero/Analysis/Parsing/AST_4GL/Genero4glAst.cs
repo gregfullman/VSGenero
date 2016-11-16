@@ -143,7 +143,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             if (_projEntry != null && _projEntry is IGeneroProjectEntry)
             {
                 IGeneroProjectEntry genProj = _projEntry as IGeneroProjectEntry;
-                if (genProj.ParentProject != null)
+                if (genProj.ParentProject != null &&
+                    !genProj.FilePath.ToLower().EndsWith(".inc"))
                 {
                     foreach (var projEntry in genProj.ParentProject.ProjectEntries.Where(x => x.Value != genProj))
                     {
@@ -431,7 +432,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     if (ast != null && ast.ProjectEntry != null && ast.ProjectEntry is IGeneroProjectEntry)
                     {
                         IGeneroProjectEntry genProj = ast.ProjectEntry as IGeneroProjectEntry;
-                        if (genProj.ParentProject != null)
+                        if (genProj.ParentProject != null &&
+                            !genProj.FilePath.ToLower().EndsWith(".inc"))
                         {
                             bool found = false;
                             foreach (var projEntry in genProj.ParentProject.ProjectEntries.Where(x => x.Value != genProj))
@@ -789,7 +791,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             if (_projEntry != null && _projEntry is IGeneroProjectEntry)
             {
                 IGeneroProjectEntry genProj = _projEntry as IGeneroProjectEntry;
-                if (genProj.ParentProject != null)
+                if (genProj.ParentProject != null &&
+                    !genProj.FilePath.ToLower().EndsWith(".inc"))
                 {
                     foreach (var projEntry in genProj.ParentProject.ProjectEntries.Where(x => x.Value != genProj))
                     {

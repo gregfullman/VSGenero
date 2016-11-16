@@ -223,7 +223,9 @@ namespace VSGenero.Navigation
                 }
 
                 // go through the other project entries in the ast.Project, and get those functions too
-                if (VSGeneroPackage.Instance.AdvancedOptions4GLPage.IncludeAllFunctions && _projectEntry.ParentProject != null)
+                if (VSGeneroPackage.Instance.AdvancedOptions4GLPage.IncludeAllFunctions && 
+                    _projectEntry.ParentProject != null &&
+                    !_projectEntry.FilePath.ToLower().EndsWith(".inc"))
                 {
                     foreach (var otherEntry in _projectEntry.ParentProject.ProjectEntries.Values.Where(x => x != _projectEntry))
                     {

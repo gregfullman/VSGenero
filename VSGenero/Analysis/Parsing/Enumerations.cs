@@ -10,14 +10,16 @@ namespace VSGenero.Analysis.Parsing
     {
         Variables = 1,
         Constants = 2,
-        Types = 4,
-        Functions = 8,
-        Dialogs = 16,
-        Reports = 32,
-        PreparedCursors = 64,
-        DeclaredCursors = 128,
-        Tables = 256,
+        Functions = 4,
+        Dialogs = 8,
+        Reports = 16,
+        PreparedCursors = 32,
+        DeclaredCursors = 64,
+        Tables = 128,
+        SystemTypes = 256,
+        UserDefinedTypes = 512,
 
+        Types = SystemTypes | UserDefinedTypes,
         Cursors = PreparedCursors | DeclaredCursors,
         All = Variables | Constants | Types | Functions | Dialogs | Reports | Cursors | Tables
     }
