@@ -429,6 +429,8 @@
     <Compile Include="Analysis\Parsing\AST_4GL\SqlStatement.cs" />
     <Compile Include="Analysis\Parsing\AST_4GL\StartStatement.cs" />
     <Compile Include="Analysis\Parsing\AST_4GL\TerminateStatement.cs" />
+    <Compile Include="Analysis\Parsing\Schema\Extensions.cs" />
+    <Compile Include="Analysis\Parsing\Schema\SchemaParser.cs" />
     <Compile Include="Analysis\Parsing\VirtualKey.cs" />
     <Compile Include="Analysis\Parsing\AST_4GL\WhileStatement.cs" />
     <Compile Include="Analysis\Parsing\CodeFormattingOptions.cs" />

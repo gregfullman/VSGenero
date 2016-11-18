@@ -19,9 +19,22 @@ using System.Text;
 using VSGenero.SqlSupport;
 using VSGenero.Analysis;
 using VSGenero.Analysis.Parsing;
+using VSGenero.Analysis.Parsing.Schema;
 
 namespace VSGeneroUnitTesting
 {
+    [TestClass]
+    public class SchemaParsing
+    {
+        [TestMethod]
+        public void TestSchemaParsing()
+        {
+            var parser = new SchemaParser(@"TODO FILENAME");
+            parser.Parse();
+            int i = 0;
+        }
+    }
+
     [TestClass]
     public class SqlExtraction
     {
