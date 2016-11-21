@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
   <Metadata>
-    <Identity Id="3B9A1942-E923-4BB7-B1FA-FF6DC9A5685C" Version="0.9.8.2" Language="en-US" Publisher="Greg Fullman" />
+    <Identity Id="3B9A1942-E923-4BB7-B1FA-FF6DC9A5685C" Version="0.9.8.3" Language="en-US" Publisher="Greg Fullman" />
     <DisplayName>VSGenero for VS2015</DisplayName>
     <Description>This is a Visual Studio plugin for the Genero BDL. It currently supports syntax highlighting and a list of functions with 4GL files.</Description>
     <MoreInfo>https://github.com/gregfullman/VSGenero/wiki</MoreInfo>

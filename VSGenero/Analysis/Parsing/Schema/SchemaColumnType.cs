@@ -1,0 +1,55 @@
+﻿using System.ComponentModel;
+
+namespace VSGenero.Analysis.Parsing.Schema
+{
+    public enum SchemaColumnType
+    {
+        [Description("char")]
+        Char,
+        [Description("smallint")]
+        Smallint,
+        [Description("int")]
+        Integer,
+        [Description("float")]
+        Float,
+        [Description("smallfloat")]
+        Smallfloat,
+        [Description("dec")]
+        Decimal,
+        [Description("serial")]
+        Serial,
+        [Description("date")]
+        Date,
+        [Description("money")]
+        Money,
+        [Description("datetime")]
+        Datetime,
+        [Description("byte")]
+        Byte,
+        [Description("text")]
+        Text,
+        [Description("varchar")]
+        Varchar,
+        [Description("interval")]
+        Interval,
+        [Description("nchar")]
+        NChar,
+        [Description("nvarchar")]
+        NVarchar,
+        [Description("bigint")]
+        Int8,
+        [Description("bigint")]
+        Serial8,
+        [Description("bool")]
+        Boolean,
+        [Description("bigint")]
+        Bigint,
+        [Description("bigint")]
+        Bigserial,
+        [Description("varchar")]
+        Varchar2,
+        [Description("varchar")]
+        NVarchar2,
+        Unknown
+    }
+}

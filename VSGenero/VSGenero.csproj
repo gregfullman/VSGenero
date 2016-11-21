@@ -347,6 +347,7 @@
     <Compile Include="Analysis\Interfaces\IProjectEntry.cs" />
     <Compile Include="Analysis\Interfaces\IReferenceableContainer.cs" />
     <Compile Include="Analysis\Interfaces\IReverseTokenizer.cs" />
+    <Compile Include="Analysis\Interfaces\ISchemaFileProvider.cs" />
     <Compile Include="Analysis\MemberTypeAttribute.cs" />
     <Compile Include="Analysis\Parsing\AST_4GL\BuiltinFunction.cs" />
     <Compile Include="Analysis\Parsing\AST_4GL\FglNameExpression.cs" />
@@ -429,8 +430,14 @@
     <Compile Include="Analysis\Parsing\AST_4GL\SqlStatement.cs" />
     <Compile Include="Analysis\Parsing\AST_4GL\StartStatement.cs" />
     <Compile Include="Analysis\Parsing\AST_4GL\TerminateStatement.cs" />
+    <Compile Include="Analysis\Parsing\Schema\DtiQualifier.cs" />
     <Compile Include="Analysis\Parsing\Schema\Extensions.cs" />
+    <Compile Include="Analysis\Parsing\Schema\SchemaColumn.cs" />
+    <Compile Include="Analysis\Parsing\Schema\SchemaColumnType.cs" />
+    <Compile Include="Analysis\Parsing\Schema\SchemaFileChangedEventArgs.cs" />
+    <Compile Include="Analysis\Parsing\Schema\SchemaInformationProvider.cs" />
     <Compile Include="Analysis\Parsing\Schema\SchemaParser.cs" />
+    <Compile Include="Analysis\Parsing\Schema\SchemaTable.cs" />
     <Compile Include="Analysis\Parsing\VirtualKey.cs" />
     <Compile Include="Analysis\Parsing\AST_4GL\WhileStatement.cs" />
     <Compile Include="Analysis\Parsing\CodeFormattingOptions.cs" />
