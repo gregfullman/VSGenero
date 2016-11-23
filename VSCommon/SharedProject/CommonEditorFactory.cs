@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudioTools.Project {
     /// Common factory for creating our editor
     /// </summary>    
     public abstract class CommonEditorFactory : IVsEditorFactory {
-        private CommonProjectPackage _package;
+        private Package _package;
         private ServiceProvider _serviceProvider;
         private readonly bool _promptEncodingOnLoad;
 

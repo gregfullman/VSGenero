@@ -25,8 +25,16 @@ namespace VSGenero.Analysis.Parsing
         V232,
         V240,
         V241,
+        [GeneroLanguageVersion(DocumentationNumber = "2.50.00-")]   // trailing '-' needed to provide correct documentation URL
         V250,
-        V300
+        V300,
+
+        Latest = V300
+    }
+
+    public class GeneroLanguageVersionAttribute : Attribute
+    {
+        public string DocumentationNumber { get; set; }
     }
 
     public static class GeneroLanguageVersionExtensions

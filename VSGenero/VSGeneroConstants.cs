@@ -37,8 +37,8 @@ namespace VSGenero
         public const string FileExtension4RP = ".4rp";
         internal const string ProjectFileFilter = "Genero Project File (*.glproj)\n*.glproj\nAll Files (*.*)\n*.*\n";
 
-        public const string ProjectFactoryGuid = "888888a0-9f3d-457c-b088-3a5042f75d53";
-        public const string EditorFactoryGuid = "888888c4-36f9-4453-90aa-29fa4d2e5707";
+        public const string GeneroEditorFactoryGuid = "F26A6EE9-3CE6-4885-B62D-382F4DD3A50E";
+        public const string GeneroProjectFactoryGuid = "888888a0-9f3d-457c-b088-3a5042f75d53";
         internal const string EditorFactoryPromptForEncodingGuid = "CA887E0B-55C6-4AE9-B5CF-A2EEFBA90A3F";
         internal const string LibraryManagerServiceGuid = "26E07811-23A9-4E72-B64D-141461371D55";
         internal const string LibraryManagerGuid = "66973468-8AB4-4410-A8EE-9E36BCC7ED21";

@@ -24,7 +24,7 @@ using IOleServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
 
 namespace VSGenero.Project
 {
-    [Guid(VSGeneroConstants.ProjectFactoryGuid)]
+    [Guid(VSGeneroConstants.GeneroProjectFactoryGuid)]
     class GeneroProjectFactory : ProjectFactory
     {
         public GeneroProjectFactory(IServiceProvider package)

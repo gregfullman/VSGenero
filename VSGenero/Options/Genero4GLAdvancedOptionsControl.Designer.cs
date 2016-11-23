@@ -29,6 +29,7 @@
         private void InitializeComponent()
         {
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.checkBoxIncludeAllFunctions = new System.Windows.Forms.CheckBox();
             this.checkBoxShowFunctionParams = new System.Windows.Forms.CheckBox();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.checkBoxSemanticErrorChecking = new System.Windows.Forms.CheckBox();
@@ -36,10 +37,12 @@
             this.checkBoxCustomCollapseRegions = new System.Windows.Forms.CheckBox();
             this.checkBoxMinorCollapseRegions = new System.Windows.Forms.CheckBox();
             this.checkBoxMajorCollapseRegions = new System.Windows.Forms.CheckBox();
-            this.checkBoxIncludeAllFunctions = new System.Windows.Forms.CheckBox();
+            this.groupBox4 = new System.Windows.Forms.GroupBox();
+            this.checkBoxOpenExternalBrowser = new System.Windows.Forms.CheckBox();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.groupBox3.SuspendLayout();
+            this.groupBox4.SuspendLayout();
             this.SuspendLayout();
             // 
             // groupBox1
@@ -52,6 +55,17 @@
             this.groupBox1.TabIndex = 0;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Navigation Bars";
+            // 
+            // checkBoxIncludeAllFunctions
+            // 
+            this.checkBoxIncludeAllFunctions.AutoSize = true;
+            this.checkBoxIncludeAllFunctions.Location = new System.Drawing.Point(16, 43);
+            this.checkBoxIncludeAllFunctions.Name = "checkBoxIncludeAllFunctions";
+            this.checkBoxIncludeAllFunctions.Size = new System.Drawing.Size(218, 17);
+            this.checkBoxIncludeAllFunctions.TabIndex = 1;
+            this.checkBoxIncludeAllFunctions.Text = "Include functions from all files in directory";
+            this.checkBoxIncludeAllFunctions.UseVisualStyleBackColor = true;
+            this.checkBoxIncludeAllFunctions.CheckedChanged += new System.EventHandler(this.checkBoxIncludeAllFunctions_CheckedChanged);
             // 
             // checkBoxShowFunctionParams
             // 
@@ -67,7 +81,7 @@
             // groupBox2
             // 
             this.groupBox2.Controls.Add(this.checkBoxSemanticErrorChecking);
-            this.groupBox2.Location = new System.Drawing.Point(4, 169);
+            this.groupBox2.Location = new System.Drawing.Point(4, 219);
             this.groupBox2.Name = "groupBox2";
             this.groupBox2.Size = new System.Drawing.Size(473, 46);
             this.groupBox2.TabIndex = 1;
@@ -130,21 +144,32 @@
             this.checkBoxMajorCollapseRegions.UseVisualStyleBackColor = true;
             this.checkBoxMajorCollapseRegions.CheckedChanged += new System.EventHandler(this.checkBoxMajorCollapseRegions_CheckedChanged);
             // 
-            // checkBoxIncludeAllFunctions
+            // groupBox4
             // 
-            this.checkBoxIncludeAllFunctions.AutoSize = true;
-            this.checkBoxIncludeAllFunctions.Location = new System.Drawing.Point(16, 43);
-            this.checkBoxIncludeAllFunctions.Name = "checkBoxIncludeAllFunctions";
-            this.checkBoxIncludeAllFunctions.Size = new System.Drawing.Size(218, 17);
-            this.checkBoxIncludeAllFunctions.TabIndex = 1;
-            this.checkBoxIncludeAllFunctions.Text = "Include functions from all files in directory";
-            this.checkBoxIncludeAllFunctions.UseVisualStyleBackColor = true;
-            this.checkBoxIncludeAllFunctions.CheckedChanged += new System.EventHandler(this.checkBoxIncludeAllFunctions_CheckedChanged);
+            this.groupBox4.Controls.Add(this.checkBoxOpenExternalBrowser);
+            this.groupBox4.Location = new System.Drawing.Point(4, 167);
+            this.groupBox4.Name = "groupBox4";
+            this.groupBox4.Size = new System.Drawing.Size(473, 46);
+            this.groupBox4.TabIndex = 2;
+            this.groupBox4.TabStop = false;
+            this.groupBox4.Text = "Go to Definition";
+            // 
+            // checkBoxOpenExternalBrowser
+            // 
+            this.checkBoxOpenExternalBrowser.AutoSize = true;
+            this.checkBoxOpenExternalBrowser.Location = new System.Drawing.Point(16, 20);
+            this.checkBoxOpenExternalBrowser.Name = "checkBoxOpenExternalBrowser";
+            this.checkBoxOpenExternalBrowser.Size = new System.Drawing.Size(255, 17);
+            this.checkBoxOpenExternalBrowser.TabIndex = 0;
+            this.checkBoxOpenExternalBrowser.Text = "Open Genero BDL definitions in external browser";
+            this.checkBoxOpenExternalBrowser.UseVisualStyleBackColor = true;
+            this.checkBoxOpenExternalBrowser.CheckedChanged += new System.EventHandler(this.checkBoxOpenExternalBrowser_CheckedChanged);
             // 
             // Genero4GLAdvancedOptionsControl
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this.groupBox4);
             this.Controls.Add(this.groupBox3);
             this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.groupBox1);
@@ -156,6 +181,8 @@
             this.groupBox2.PerformLayout();
             this.groupBox3.ResumeLayout(false);
             this.groupBox3.PerformLayout();
+            this.groupBox4.ResumeLayout(false);
+            this.groupBox4.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -171,5 +198,7 @@
         private System.Windows.Forms.CheckBox checkBoxMinorCollapseRegions;
         private System.Windows.Forms.CheckBox checkBoxMajorCollapseRegions;
         private System.Windows.Forms.CheckBox checkBoxIncludeAllFunctions;
+        private System.Windows.Forms.GroupBox groupBox4;
+        private System.Windows.Forms.CheckBox checkBoxOpenExternalBrowser;
     }
 }

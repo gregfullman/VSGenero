@@ -361,7 +361,7 @@ namespace VSGenero.Navigation
             }
             else if(entry.FunctionDefinition.Location != null)
             {
-                entry.FunctionDefinition.Location.GotoSource();
+                entry.FunctionDefinition.Location.GotoSource(null, Analysis.Parsing.GeneroLanguageVersion.None);
             }
         }
 

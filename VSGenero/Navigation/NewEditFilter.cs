@@ -35,6 +35,7 @@ using VSGenero.EditorExtensions;
 using VSGenero.EditorExtensions.Intellisense;
 using Microsoft.VisualStudio.VSCommon;
 using VSGenero.Refactoring;
+using VSGenero.Analysis.Parsing;
 
 namespace VSGenero.Navigation
 {
@@ -90,7 +91,7 @@ namespace VSGenero.Navigation
             Values = 4
         }
 
-        public static IEnumerable<LocationInfo> GetLocations(ITextView textView, GetLocationOptions options = GetLocationOptions.Definitions | GetLocationOptions.References | GetLocationOptions.Values)
+        public static IEnumerable<LocationInfo> GetLocations(ITextView textView, GeneroLanguageVersion languageVersion, GetLocationOptions options = GetLocationOptions.Definitions | GetLocationOptions.References | GetLocationOptions.Values)
         {
             List<LocationInfo> locations = new List<LocationInfo>();
 
@@ -110,7 +111,7 @@ namespace VSGenero.Navigation
             {
 
                 Dictionary<LocationInfo, SimpleLocationInfo> references, definitions, values;
-                GetDefsRefsAndValues(analysis, out definitions, out references, out values);
+                GetDefsRefsAndValues(analysis, languageVersion, out definitions, out references, out values);
 
                 if (options.HasFlag(GetLocationOptions.Values))
                 {
@@ -173,7 +174,7 @@ namespace VSGenero.Navigation
             else
             {
                 Dictionary<LocationInfo, SimpleLocationInfo> references, definitions, values;
-                GetDefsRefsAndValues(analysis, out definitions, out references, out values);
+                GetDefsRefsAndValues(analysis, _textView.GetLanguageVersion(_programFileProvider), out definitions, out references, out values);
 
                 if ((values.Count + definitions.Count) == 1)
                 {
@@ -244,7 +245,7 @@ namespace VSGenero.Navigation
             }
             else
             {
-                location.GotoSource();
+                location.GotoSource(_serviceProvider, _textView.GetLanguageVersion(_programFileProvider));
             }
         }
 
@@ -262,17 +263,17 @@ namespace VSGenero.Navigation
             LocationCategory locations = null;
             if (analysis != null)
             {
-                locations = GetFindRefLocations(analysis);
+                locations = GetFindRefLocations(analysis, _textView.GetLanguageVersion(_programFileProvider));
             }
             ShowFindSymbolsDialog(analysis, locations);
 
             return VSConstants.S_OK;
         }
 
-        internal static LocationCategory GetFindRefLocations(ExpressionAnalysis analysis)
+        internal static LocationCategory GetFindRefLocations(ExpressionAnalysis analysis, GeneroLanguageVersion languageVersion)
         {
             Dictionary<LocationInfo, SimpleLocationInfo> references, definitions, values;
-            GetDefsRefsAndValues(analysis, out definitions, out references, out values);
+            GetDefsRefsAndValues(analysis, languageVersion, out definitions, out references, out values);
 
             var locations = new LocationCategory("Find All References",
                     new SymbolList("Definitions", StandardGlyphGroup.GlyphLibrary, definitions.Values),
@@ -282,7 +283,7 @@ namespace VSGenero.Navigation
             return locations;
         }
 
-        private static void GetDefsRefsAndValues(ExpressionAnalysis provider, out Dictionary<LocationInfo, SimpleLocationInfo> definitions, out Dictionary<LocationInfo, SimpleLocationInfo> references, out Dictionary<LocationInfo, SimpleLocationInfo> values)
+        private static void GetDefsRefsAndValues(ExpressionAnalysis provider, GeneroLanguageVersion languageVersion, out Dictionary<LocationInfo, SimpleLocationInfo> definitions, out Dictionary<LocationInfo, SimpleLocationInfo> references, out Dictionary<LocationInfo, SimpleLocationInfo> values)
         {
             references = new Dictionary<LocationInfo, SimpleLocationInfo>();
             definitions = new Dictionary<LocationInfo, SimpleLocationInfo>();
@@ -292,12 +293,6 @@ namespace VSGenero.Navigation
 
             foreach (var v in provider.Variables)
             {
-                if (v.Location.FilePath == null)
-                {
-                    // ignore references in the REPL
-                    continue;
-                }
-
                 switch (v.Type)
                 {
                     case VariableType.Definition:
@@ -320,15 +315,15 @@ namespace VSGenero.Navigation
                             priorityVariables.Add(v.Name, v);
                         }
 
-                        definitions[v.Location] = new SimpleLocationInfo(provider.Expression, v.Location, StandardGlyphGroup.GlyphGroupField);
+                        definitions[v.Location] = new SimpleLocationInfo(null, provider.Expression, v.Location, StandardGlyphGroup.GlyphGroupField, languageVersion);
                         break;
                     case VariableType.Reference:
-                        references[v.Location] = new SimpleLocationInfo(provider.Expression, v.Location, StandardGlyphGroup.GlyphGroupField);
+                        references[v.Location] = new SimpleLocationInfo(null, provider.Expression, v.Location, StandardGlyphGroup.GlyphGroupField, languageVersion);
                         break;
                     case VariableType.Value:
                         if (!definitions.ContainsKey(v.Location))
                         {
-                            values[v.Location] = new SimpleLocationInfo(provider.Expression, v.Location, StandardGlyphGroup.GlyphGroupField);
+                            values[v.Location] = new SimpleLocationInfo(null, provider.Expression, v.Location, StandardGlyphGroup.GlyphGroupField, languageVersion);
                         }
                         break;
                 }
@@ -437,11 +432,15 @@ namespace VSGenero.Navigation
             private readonly LocationInfo _locationInfo;
             private readonly StandardGlyphGroup _glyphType;
             private readonly string _pathText, _lineText;
+            private readonly System.IServiceProvider _serviceProvider;
+            private readonly GeneroLanguageVersion _languageVersion;
 
-            public SimpleLocationInfo(string searchText, LocationInfo locInfo, StandardGlyphGroup glyphType)
+            public SimpleLocationInfo(System.IServiceProvider serviceProvider, string searchText, LocationInfo locInfo, StandardGlyphGroup glyphType, GeneroLanguageVersion languageVersion)
             {
+                _serviceProvider = serviceProvider;
                 _locationInfo = locInfo;
                 _glyphType = glyphType;
+                _languageVersion = languageVersion;
                 _pathText = GetSearchDisplayText();
                 if (_locationInfo.ProjectEntry != null)
                     _lineText = _locationInfo.ProjectEntry.GetLine(_locationInfo.Line);
@@ -509,7 +508,7 @@ namespace VSGenero.Navigation
 
             public override void GotoSource(VSOBJGOTOSRCTYPE SrcType)
             {
-                _locationInfo.GotoSource();
+                _locationInfo.GotoSource(_serviceProvider, _languageVersion);
             }
 
             #region IVsNavInfoNode Members

@@ -609,7 +609,6 @@
     <Compile Include="ProductivityTools\Genero4glMouseProcessor.cs" />
     <Compile Include="Project\Attributes.cs" />
     <Compile Include="Project\Genero4GLFileNode.cs" />
-    <Compile Include="Project\GeneroEditorFactory.cs" />
     <Compile Include="Project\GeneroProjectFactory.cs" />
     <Compile Include="Project\GeneroProjectNode.cs" />
     <Compile Include="Project\GeneroProjectNodeProperties.cs" />

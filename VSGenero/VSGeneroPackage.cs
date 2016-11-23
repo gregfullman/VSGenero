@@ -132,7 +132,16 @@ namespace VSGenero
     [Guid(GuidList.guidVSGeneroPkgString)]
     public sealed class VSGeneroPackage : VSCommonPackage
     {
-        internal EditorFactory GeneroEditorFactory { get; private set; }
+        private EditorFactory _generoEditorFactory;
+        internal EditorFactory GeneroEditorFactory
+        {
+            get
+            {
+                if (_generoEditorFactory == null)
+                    _generoEditorFactory = new EditorFactory(this);
+                return _generoEditorFactory;
+            }
+        }
 
         private Genero4GLLanguagePreferences _langPrefs;
         internal Genero4GLLanguagePreferences LangPrefs
@@ -256,7 +265,6 @@ namespace VSGenero
             DTE dte = (DTE)GetService(typeof(DTE));
             if (dte != null)
             {
-                GeneroEditorFactory = new EditorFactory(this);
                 this.RegisterEditorFactory(GeneroEditorFactory);
             }
 

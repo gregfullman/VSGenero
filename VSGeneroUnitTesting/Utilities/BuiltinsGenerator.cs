@@ -99,7 +99,12 @@ namespace VSGeneroUnitTesting.Utilities
                 {
                     sb.AppendFormat("\"{0}\", ", (string)returnElement.Attribute("type"));
                 }
-                sb.AppendFormat("}},\n\"{0}\"));\n", (string)contextMethod.Attribute("description"));
+
+                string docUrl = "";
+                var docEle = contextMethod.XPathSelectElement("gns:Documentation", _nsManager);
+                if (docEle != null)
+                    docUrl = docEle.Value;
+                sb.AppendFormat("}},\n\"{0}\",\n\"{1}\"));\n", (string)contextMethod.Attribute("description"), docUrl);
             }
         }
 

@@ -15,7 +15,8 @@ namespace VSGenero.Options
         MinorCollapseRegions = 4,
         CustomCollapseRegions = 8,
         SemanticErrorChecking = 16,
-        IncludeAllFunctions = 32
+        IncludeAllFunctions = 32,
+        OpenExternalBrowser = 64
     }
 
     [ComVisible(true)]
@@ -31,6 +32,7 @@ namespace VSGenero.Options
         private bool _minorCollapseRegionsEnabled;
         private bool _customCollapseRegionsEnabled;
         private bool _semanticErrorCheckingEnabled;
+        private bool _openExternalBrowser;
 
         public Genero4GLAdvancedOptionsPage()
             : base("Advanced")
@@ -129,6 +131,19 @@ namespace VSGenero.Options
             }
         }
 
+        public bool OpenExternalBrowser
+        {
+            get { return _openExternalBrowser; }
+            set
+            {
+                if(_openExternalBrowser != value)
+                {
+                    _openExternalBrowser = value;
+                    _optionsChanged |= AdvancedOptions.OpenExternalBrowser;
+                }
+            }
+        }
+
         public AdvancedOptions OptionsChanged
         {
             get
@@ -152,6 +167,7 @@ namespace VSGenero.Options
         private const string MinorCollapseRegionsEnabledSetting = "MinorCollapseRegionsEnabled";
         private const string CustomCollapseRegionsEnabledSetting = "CustomCollapseRegionsEnabled";
         private const string SemanticErrorCheckingEnabledSetting = "SemanticErrorCheckingEnabled";
+        private const string OpenExternalBrowserEnabledSetting = "OpenExternalBrowserEnabled";
         private const string IncludeAllFunctionsSetting = "IncludeAllFunctions";
 
         public override void LoadSettingsFromStorage()
@@ -162,6 +178,7 @@ namespace VSGenero.Options
             _majorCollapseRegionsEnabled = LoadBool(MajorCollapseRegionsEnabledSetting) ?? true;
             _customCollapseRegionsEnabled = LoadBool(CustomCollapseRegionsEnabledSetting) ?? true;
             _semanticErrorCheckingEnabled = LoadBool(SemanticErrorCheckingEnabledSetting) ?? false;     // TODO: for right now, I'm defaulting the semantic error checking to false
+            _openExternalBrowser = LoadBool(OpenExternalBrowserEnabledSetting) ?? false;
 
             if (_optionsChanged != AdvancedOptions.None)
             {
@@ -179,6 +196,7 @@ namespace VSGenero.Options
             SaveBool(MajorCollapseRegionsEnabledSetting, _majorCollapseRegionsEnabled);
             SaveBool(CustomCollapseRegionsEnabledSetting, _customCollapseRegionsEnabled);
             SaveBool(SemanticErrorCheckingEnabledSetting, _semanticErrorCheckingEnabled);
+            SaveBool(OpenExternalBrowserEnabledSetting, _openExternalBrowser);
         }
     }
 }

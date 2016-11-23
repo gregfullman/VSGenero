@@ -31,6 +31,9 @@ using VSGenero.Analysis.Parsing;
 using VSGenero.Snippets;
 using System.Net;
 using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio;
+using System.ComponentModel;
 
 namespace VSGenero.EditorExtensions
 {
@@ -57,6 +60,23 @@ namespace VSGenero.EditorExtensions
             return null;
         }
 
+        internal static GeneroLanguageVersion GetLanguageVersion(this ITextView textView, IProgramFileProvider fileProvider = null)
+        {
+            if (fileProvider == null)
+            {
+                if (VSGeneroPackage.Instance.ProgramFileProvider == null)
+                    return GeneroLanguageVersion.None;
+                else
+                    fileProvider = VSGeneroPackage.Instance.ProgramFileProvider;
+            }
+
+            var path = textView.GetFilePath();
+            if (path == null)
+                return GeneroLanguageVersion.None;
+
+            return fileProvider.GetLanguageVersion(path);
+        }
+
         internal static Type GetParserType(string filename)
         {
             var ext = Path.GetExtension(filename);
@@ -74,7 +94,7 @@ namespace VSGenero.EditorExtensions
             return null;
         }
 
-        internal static void GotoSource(this LocationInfo location)
+        internal static void GotoSource(this LocationInfo location, IServiceProvider serviceProvider, GeneroLanguageVersion languageVersion)
         {
             if (location.Line > 0 && location.Column > 0)
             {
@@ -83,6 +103,72 @@ namespace VSGenero.EditorExtensions
                     Guid.Empty,
                     location.Line - 1,
                     location.Column - 1);
+            }
+            else if(location.DefinitionURL != null)
+            {
+                // first try to fill in the language version
+                var type = typeof(GeneroLanguageVersion);
+                var memInfo = type.GetMember(languageVersion.ToString());
+                var attributes = memInfo[0].GetCustomAttributes(typeof(GeneroLanguageVersionAttribute), false);
+                var docNumber = "";
+                if (attributes.Length > 0)
+                {
+                    docNumber = ((GeneroLanguageVersionAttribute)attributes[0]).DocumentationNumber;
+                    if (docNumber == null)
+                        docNumber = "";
+                }
+
+                var urlStr = location.DefinitionURL;
+                try
+                {
+                    urlStr = string.Format(urlStr, docNumber);
+                }
+                catch(FormatException)
+                {
+                    urlStr = location.DefinitionURL;
+                }
+
+                Uri definitionUrl;
+                if (Uri.TryCreate(urlStr, UriKind.Absolute, out definitionUrl))
+                {
+                    if (serviceProvider != null)
+                    {
+                        IVsWebBrowsingService service = serviceProvider.GetService(typeof(SVsWebBrowsingService)) as IVsWebBrowsingService;
+                        if (service != null)
+                        {
+                            if (VSGeneroPackage.Instance.AdvancedOptions4GLPage.OpenExternalBrowser)
+                            {
+                                __VSCREATEWEBBROWSER createFlags = __VSCREATEWEBBROWSER.VSCWB_AutoShow;
+                                VSPREVIEWRESOLUTION resolution = VSPREVIEWRESOLUTION.PR_Default;
+                                int result = ErrorHandler.CallWithCOMConvention(() => service.CreateExternalWebBrowser((uint)createFlags, resolution, definitionUrl.AbsoluteUri));
+                                if (ErrorHandler.Succeeded(result))
+                                    return;
+                            }
+                            else
+                            {
+                                IVsWindowFrame ppFrame;
+                                int result = ErrorHandler.CallWithCOMConvention(() => service.Navigate(definitionUrl.AbsoluteUri, 0, out ppFrame));
+                                if (ErrorHandler.Succeeded(result))
+                                    return;
+                            }
+                        }
+                    }
+
+                    // Fall back to Shell Execute, but only for http or https URIs
+                    if (definitionUrl.Scheme != "http" && definitionUrl.Scheme != "https")
+                        return;
+
+                    try
+                    {
+                        Process.Start(definitionUrl.AbsoluteUri);
+                    }
+                    catch (Win32Exception)
+                    {
+                    }
+                    catch (FileNotFoundException)
+                    {
+                    }
+                }
             }
             else
             {

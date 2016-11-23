@@ -858,6 +858,12 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 {
                     vars.AddRange(funcRes.Select(x => new AnalysisVariable(x.Location, VariableType.Definition, x.Name, 2)));
                 }
+
+                IFunctionResult funcResult;
+                if (SystemFunctions.TryGetValue(exprText, out funcResult))
+                {
+                    vars.Add(new AnalysisVariable(funcResult.Location, VariableType.Definition, funcResult.Name, 2));
+                }
             }
 
             if (exprText.Contains('.') && vars.Count == 0)

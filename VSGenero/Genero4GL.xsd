@@ -47,6 +47,7 @@
                                     </xs:sequence>
                                   </xs:complexType>
                                 </xs:element>
+                                <xs:element name="Documentation" type="xs:string" minOccurs="0" />
                               </xs:all>
                               <xs:attribute name="name" type="xs:string"/>
                               <xs:attribute name="description" type="xs:string"/>

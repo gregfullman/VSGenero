@@ -8,13 +8,14 @@
  *
  * You must not remove this notice, or any other, from this software.
  *
- * ***************************************************************************/ 
+ * ***************************************************************************/
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using VSGenero.Analysis.Parsing;
 
 namespace VSGenero.Analysis
 {
@@ -53,6 +54,7 @@ namespace VSGenero.Analysis
         string GetImportModuleFilename(string importModule, string currentFilename);
         IEnumerable<string> GetAvailableImportModules(string currentFilename);
         string GetIncludeFile(string relativeFilename, string currentFilename);
+        GeneroLanguageVersion GetLanguageVersion(string filename); 
 
         event EventHandler<ImportModuleLocationChangedEventArgs> ImportModuleLocationChanged;
         event EventHandler<IncludeFileLocationChangedEventArgs> IncludeFileLocationChanged;

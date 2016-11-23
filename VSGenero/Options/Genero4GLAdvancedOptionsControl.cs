@@ -21,6 +21,7 @@ namespace VSGenero.Options
             checkBoxMajorCollapseRegions.Checked = VSGeneroPackage.Instance.AdvancedOptions4GLPage.MajorCollapseRegionsEnabled;
             checkBoxCustomCollapseRegions.Checked = VSGeneroPackage.Instance.AdvancedOptions4GLPage.CustomCollapseRegionsEnabled;
             checkBoxSemanticErrorChecking.Checked = VSGeneroPackage.Instance.AdvancedOptions4GLPage.SemanticErrorCheckingEnabled;
+            checkBoxOpenExternalBrowser.Checked = VSGeneroPackage.Instance.AdvancedOptions4GLPage.OpenExternalBrowser;
         }
 
         private void checkBox1_CheckedChanged(object sender, EventArgs e)
@@ -51,6 +52,11 @@ namespace VSGenero.Options
         private void checkBoxIncludeAllFunctions_CheckedChanged(object sender, EventArgs e)
         {
             VSGeneroPackage.Instance.AdvancedOptions4GLPage.IncludeAllFunctions = checkBoxIncludeAllFunctions.Checked;
+        }
+
+        private void checkBoxOpenExternalBrowser_CheckedChanged(object sender, EventArgs e)
+        {
+            VSGeneroPackage.Instance.AdvancedOptions4GLPage.OpenExternalBrowser = checkBoxOpenExternalBrowser.Checked;
         }
     }
 }

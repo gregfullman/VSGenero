@@ -76,6 +76,7 @@ namespace VSGenero.EditorExtensions.Intellisense
         public IntellisenseControllerProvider([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
         {
             _ServiceProvider = serviceProvider;
+            Instance = this;
         }
 
         internal static IntellisenseControllerProvider Instance { get; private set; }

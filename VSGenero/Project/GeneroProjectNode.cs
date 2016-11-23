@@ -61,7 +61,7 @@ namespace VSGenero.Project
 
         public override Type GetEditorFactoryType()
         {
-            return typeof(GeneroEditorFactory);
+            return typeof(EditorFactory);
         }
 
         public override string GetProjectName()

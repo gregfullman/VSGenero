@@ -86,7 +86,7 @@ namespace VSGenero.Peek
                         session.TextView.TextBuffer.Properties.AddProperty(typeof(ITextDocument), document);
                     }
 
-                    peekableItems.Add(new PeekableItem(EditFilter.GetLocations(session.TextView, EditFilter.GetLocationOptions.Definitions), _factory));
+                    peekableItems.Add(new PeekableItem(EditFilter.GetLocations(session.TextView, session.TextView.GetLanguageVersion(), EditFilter.GetLocationOptions.Definitions), _factory));
                 }
             }
         }

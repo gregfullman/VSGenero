@@ -26,8 +26,8 @@ namespace Microsoft.VisualStudioTools.Project {
         private uint _componentID;
 
         public abstract ProjectFactory CreateProjectFactory();
-        public abstract CommonEditorFactory CreateEditorFactory();
-        public virtual CommonEditorFactory CreateEditorFactoryPromptForEncoding() {
+        public abstract IVsEditorFactory CreateEditorFactory();
+        public virtual IVsEditorFactory CreateEditorFactoryPromptForEncoding() {
             return null;
         }
         /// <summary>

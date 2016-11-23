@@ -37,11 +37,11 @@ namespace VSGenero
     /// <summary>
     /// Factory for creating our editor
     /// </summary>
-    [Guid("F26A6EE9-3CE6-4885-B62D-382F4DD3A50E")]
+    [Guid(VSGeneroConstants.GeneroEditorFactoryGuid)]
     public class EditorFactory : IVsEditorFactory, IDisposable
     {
         #region const
-        internal static readonly Guid guidEditorFactory = new Guid("{F26A6EE9-3CE6-4885-B62D-382F4DD3A50E}");
+        internal static readonly Guid guidEditorFactory = new Guid(VSGeneroConstants.GeneroEditorFactoryGuid);
         #endregion
 
         #region fields
@@ -111,7 +111,10 @@ namespace VSGenero
 
             bool isSupportedView = false;
             // Determine the physical view
-            if (VSConstants.LOGVIEWID_Primary == logicalView)
+            if (VSConstants.LOGVIEWID_Primary == logicalView ||
+                VSConstants.LOGVIEWID_Debugging == logicalView ||
+                VSConstants.LOGVIEWID_Code == logicalView ||
+                VSConstants.LOGVIEWID_TextView == logicalView)
             {
                 // primary view uses NULL as pbstrPhysicalView
                 isSupportedView = true;

@@ -213,6 +213,7 @@
           <Returns>
             <Return name="ret" type="string"/>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_operators_SFMT.html</Documentation>
         </Function>
         <Function name="extend" description="Adjusts a date time value according to the qualifier.">
           <Parameters>

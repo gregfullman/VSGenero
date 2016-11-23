@@ -13,6 +13,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         private readonly List<string> _returns;
         private readonly string _description;
         private readonly string _namespace;
+        private readonly string _documentationUrl;
 
         public bool IsPublic { get { return true; } }
 
@@ -21,15 +22,24 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             get { return false; }
         }
 
-        public BuiltinFunction(string name, string nameSpace, IEnumerable<ParameterResult> parameters, IEnumerable<string> returns, string description, GeneroLanguageVersion minimumBdlVersion = GeneroLanguageVersion.None)
+        public BuiltinFunction(string name, 
+                               string nameSpace, 
+                               IEnumerable<ParameterResult> parameters, 
+                               IEnumerable<string> returns, 
+                               string description,
+                               string documentationUrl = null, 
+                               GeneroLanguageVersion minimumBdlVersion = GeneroLanguageVersion.None)
         {
             _name = name;
             _namespace = nameSpace;
             _description = description;
+            _documentationUrl = documentationUrl;
             _parameters = new List<ParameterResult>(parameters);
             _returns = new List<string>(returns);
             _minBdlVersion = minimumBdlVersion;
         }
+
+        public string DefinitionUrl { get { return _documentationUrl; } }
 
         private readonly GeneroLanguageVersion _minBdlVersion;
         public GeneroLanguageVersion MinimumBdlVersion
@@ -154,7 +164,18 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             get { return -1; }
         }
 
-        public LocationInfo Location { get { return null; } }
+        private LocationInfo _location;
+        public LocationInfo Location
+        {
+            get
+            {
+                if(_location == null && !string.IsNullOrWhiteSpace(DefinitionUrl))
+                {
+                    _location = new LocationInfo(DefinitionUrl);
+                }
+                return _location;
+            }
+        }
 
         public IAnalysisResult GetMember(string name, Genero4glAst ast, out IGeneroProject definingProject, out IProjectEntry projEntry, bool function)
         {

@@ -25,8 +25,14 @@ namespace VSGenero.Analysis
         private readonly IProjectEntry _entry;
         private readonly string _filename;
         internal static LocationInfo[] Empty = new LocationInfo[0];
+        private readonly string _definitionUrl;
 
         private static readonly IEqualityComparer<LocationInfo> _fullComparer = new FullLocationComparer();
+
+        public LocationInfo(string definitionUrl)
+        {
+            _definitionUrl = definitionUrl;
+        }
 
         public LocationInfo(string filename, int line, int column, int index)
         {
@@ -72,6 +78,11 @@ namespace VSGenero.Analysis
             }
         }
 
+        public string DefinitionURL
+        {
+            get { return _definitionUrl; }
+        }
+
         public int Index { get { return _index; } }
 
         public override bool Equals(object obj) {
@@ -113,7 +124,8 @@ namespace VSGenero.Analysis
                 return x.Line == y.Line &&
                     x.Column == y.Column &&
                     x._filename == y._filename &&
-                    x.ProjectEntry == y.ProjectEntry;
+                    x.ProjectEntry == y.ProjectEntry &&
+                    x._definitionUrl == y._definitionUrl;
             }
 
             public int GetHashCode(LocationInfo obj) 
@@ -121,6 +133,10 @@ namespace VSGenero.Analysis
                 int hashCode = obj.Line.GetHashCode() ^ obj.Column.GetHashCode();
                 if(obj.ProjectEntry != null)
                     hashCode ^= obj.ProjectEntry.GetHashCode();
+                if (obj._filename != null)
+                    hashCode ^= obj._filename.GetHashCode();
+                if (obj._definitionUrl != null)
+                    hashCode ^= obj._definitionUrl.GetHashCode();
                 return hashCode;
             }
         }

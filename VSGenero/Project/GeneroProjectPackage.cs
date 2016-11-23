@@ -25,18 +25,16 @@ namespace VSGenero.Project
     [PackageRegistration(UseManagedResourcesOnly = true)]
     [Description("Genero Project Package")]
     [ProvideProjectFactory(typeof(GeneroProjectFactory), VSGeneroConstants.LanguageName, GeneroProjectFileFilter, "glproj", "glproj", @".\\NullPath", LanguageVsTemplate = VSGeneroConstants.LanguageName)]
-    // TODO: not sure how to get two language extensions registered under the same editor...we'll see
-    
+
     // This attribute controls what shows up in the New Item dialog (not Project's Add Item dialog)
-    [ProvideEditorExtension2(typeof(GeneroEditorFactory), VSGeneroConstants.FileExtension4GL, 50, ProjectGuid = VSConstants.CLSID.MiscellaneousFilesProject_string, NameResourceID = 3750, DefaultName = "program", TemplateDir = "Templates\\NewItem")]
-#if DEV12_OR_LATER
-    // TODO: look at Python Tools, there's something different for this
-    [ProvideEditorExtension2(typeof(GeneroEditorFactory), VSGeneroConstants.FileExtension4GL, 50, __VSPHYSICALVIEWATTRIBUTES.PVA_SupportsPreview, "*:1", ProjectGuid = VSGeneroConstants.ProjectFactoryGuid, NameResourceID = 3750, EditorNameResourceId = 3751, DefaultName = "program", TemplateDir = ".\\NullPath")]
-#else
-    [ProvideEditorExtension2(typeof(GeneroEditorFactory), VSGeneroConstants.FileExtension4GL, 50, "*:1", ProjectGuid = VSGeneroConstants.ProjectFactoryGuid, NameResourceID = 3750, EditorNameResourceId = 3751, DefaultName = "program", TemplateDir = ".\\NullPath")]
-#endif
-    [ProvideFileFilter(VSGeneroConstants.ProjectFactoryGuid, "/1", "Genero Files;*.4gl,*.per", 101)]
-    [ProvideEditorLogicalView(typeof(GeneroEditorFactory), VSConstants.LOGVIEWID.TextView_string)]
+    [ProvideEditorExtension2(typeof(EditorFactory), VSGeneroConstants.FileExtension4GL, 50, ProjectGuid = VSConstants.CLSID.MiscellaneousFilesProject_string, NameResourceID = 3750, DefaultName = "program", TemplateDir = "Templates\\NewItem")]
+    [ProvideEditorExtension2(typeof(EditorFactory), VSGeneroConstants.FileExtension4GL, 50, __VSPHYSICALVIEWATTRIBUTES.PVA_SupportsPreview, "*:1", ProjectGuid = VSGeneroConstants.GeneroProjectFactoryGuid, NameResourceID = 3750, EditorNameResourceId = 3751, DefaultName = "program", TemplateDir = ".\\NullPath")]
+
+    [ProvideEditorExtension2(typeof(EditorFactory), VSGeneroConstants.FileExtensionPER, 50, ProjectGuid = VSConstants.CLSID.MiscellaneousFilesProject_string, NameResourceID = 3750, DefaultName = "program", TemplateDir = "Templates\\NewItem")]
+    [ProvideEditorExtension2(typeof(EditorFactory), VSGeneroConstants.FileExtensionPER, 50, __VSPHYSICALVIEWATTRIBUTES.PVA_SupportsPreview, "*:1", ProjectGuid = VSGeneroConstants.GeneroProjectFactoryGuid, NameResourceID = 3750, EditorNameResourceId = 3751, DefaultName = "program", TemplateDir = ".\\NullPath")]
+
+    [ProvideFileFilter(VSGeneroConstants.GeneroProjectFactoryGuid, "/1", "Genero Files;*.4gl,*.per", 101)]
+    [ProvideEditorLogicalView(typeof(EditorFactory), VSConstants.LOGVIEWID.TextView_string)]
 
     [Guid(VSGeneroConstants.ProjectSystemPackageGuid)]
     public class GeneroProjectPackage : CommonProjectPackage
@@ -48,14 +46,14 @@ namespace VSGenero.Project
             return new GeneroProjectFactory(this);
         }
 
-        public override CommonEditorFactory CreateEditorFactory()
+        public override IVsEditorFactory CreateEditorFactory()
         {
-            return new GeneroEditorFactory(this);
+            return VSGeneroPackage.Instance.GeneroEditorFactory;
         }
 
-        public override CommonEditorFactory CreateEditorFactoryPromptForEncoding()
+        public override IVsEditorFactory CreateEditorFactoryPromptForEncoding()
         {
-            return new GeneroEditorFactory(this);
+            return VSGeneroPackage.Instance.GeneroEditorFactory;
         }
 
         public override uint GetIconIdForAboutBox()
