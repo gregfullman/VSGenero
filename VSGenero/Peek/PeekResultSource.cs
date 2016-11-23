@@ -22,6 +22,8 @@ using VSGenero.Analysis;
 using VSGenero.Navigation;
 using Microsoft.VisualStudio.VSCommon;
 using Microsoft.VisualStudio.Text;
+using VSGenero.Analysis.Parsing;
+using VSGenero.EditorExtensions;
 
 namespace VSGenero.Peek
 {
@@ -29,11 +31,13 @@ namespace VSGenero.Peek
     {
         private readonly PeekableItemSourceProvider _factory;
         private readonly IEnumerable<LocationInfo> _locations;
+        private readonly GeneroLanguageVersion _languageVersion;
 
-        public PeekResultSource(IEnumerable<LocationInfo> locations, PeekableItemSourceProvider factory)
+        public PeekResultSource(IEnumerable<LocationInfo> locations, PeekableItemSourceProvider factory, GeneroLanguageVersion languageVersion)
         {
             _locations = locations;
             _factory = factory;
+            _languageVersion = languageVersion;
         }
 
         public void FindResults(string relationshipName, IPeekResultCollection resultCollection, System.Threading.CancellationToken cancellationToken, IFindPeekResultsCallback callback)
@@ -42,7 +46,7 @@ namespace VSGenero.Peek
             {
                 foreach (var location in _locations)
                 {
-                    IPeekResult result = CreatePeekResult(resultCollection, location);
+                    IPeekResult result = CreatePeekResult(location);
                     if (result != null)
                     {
                         resultCollection.Add(result);
@@ -61,57 +65,66 @@ namespace VSGenero.Peek
             return string.Format("{0}, {1}", BuildTitle(location), location.Line);
         }
 
-        private IPeekResult CreatePeekResult(IPeekResultCollection resultCollection, LocationInfo location)
+        private IPeekResult CreatePeekResult(LocationInfo location)
         {
             IPeekResult result = null;
             var path = location.FilePath;
-            var fi = new FileInfo(path);
-            var displayInfo = new PeekResultDisplayInfo(BuildLabel(location), path, BuildTitle(location), path);
-            // TODO: the location stuff doesn't work 100% correctly. This needs to be fixed
-            string contentType = null;
-            var extension = Path.GetExtension(path);
-            if (extension != null)
+            if (!string.IsNullOrWhiteSpace(path))
             {
-                switch (extension.ToLower())
+                var fi = new FileInfo(path);
+                var displayInfo = new PeekResultDisplayInfo(BuildLabel(location), path, BuildTitle(location), path);
+                // TODO: the location stuff doesn't work 100% correctly. This needs to be fixed
+                string contentType = null;
+                var extension = Path.GetExtension(path);
+                if (extension != null)
                 {
-                    case ".4gl":
-                        contentType = VSGeneroConstants.ContentType4GL;
-                        break;
-                    case ".inc":
-                        contentType = VSGeneroConstants.ContentTypeINC;
-                        break;
-                    case ".per":
-                        contentType = VSGeneroConstants.ContentTypePER;
-                        break;
+                    switch (extension.ToLower())
+                    {
+                        case ".4gl":
+                            contentType = VSGeneroConstants.ContentType4GL;
+                            break;
+                        case ".inc":
+                            contentType = VSGeneroConstants.ContentTypeINC;
+                            break;
+                        case ".per":
+                            contentType = VSGeneroConstants.ContentTypePER;
+                            break;
+                    }
+                }
+                if (contentType != null)
+                {
+                    ITextDocument textDoc = null;
+                    int line = location.Line - 1;
+                    if (line < 0)
+                    {
+                        textDoc = this._factory.TextDocumentFactoryService.CreateAndLoadTextDocument(path, this._factory.ContentTypeRegistryService.GetContentType(contentType));
+                        line = textDoc.TextBuffer.CurrentSnapshot.GetLineNumberFromPosition(location.Index);
+                    }
+                    int character = location.Column - 1;  // start index
+                    if (character < 0)
+                        character = 0;
+                    //EditorExtensions.EditorExtensions.GetLineAndColumnOfFile(path, location.Position, out line, out character);
+                    int endLine = line + 10;    // end line
+                    int endIndex = 0;   // end index
+                    int positionLine = 0;   // id line
+                    int positionChar = 0;   // id index
+                    bool isReadOnly = fi.IsReadOnly;
+
+                    // TODO: determine the stuff above.
+
+                    result = this._factory.PeekResultFactory.Create(displayInfo, path, line, character, endLine, endIndex, positionLine, positionChar, isReadOnly);
+                    result.Disposed += (x, y) =>
+                        {
+                            if (textDoc != null)
+                                textDoc.Dispose();
+                        };
                 }
             }
-            if(contentType != null)
+            else if(!string.IsNullOrWhiteSpace(location.DefinitionURL))
             {
-                ITextDocument textDoc = null;
-                int line = location.Line - 1;
-                if (line < 0)
-                {
-                    textDoc = this._factory.TextDocumentFactoryService.CreateAndLoadTextDocument(path, this._factory.ContentTypeRegistryService.GetContentType(contentType));
-                    line = textDoc.TextBuffer.CurrentSnapshot.GetLineNumberFromPosition(location.Index);
-                }
-                int character = location.Column - 1;  // start index
-                if (character < 0)
-                    character = 0;
-                //EditorExtensions.EditorExtensions.GetLineAndColumnOfFile(path, location.Position, out line, out character);
-                int endLine = line + 10;    // end line
-                int endIndex = 0;   // end index
-                int positionLine = 0;   // id line
-                int positionChar = 0;   // id index
-                bool isReadOnly = fi.IsReadOnly;
-
-                // TODO: determine the stuff above.
-
-                result = this._factory.PeekResultFactory.Create(displayInfo, path, line, character, endLine, endIndex, positionLine, positionChar, isReadOnly);
-                result.Disposed += (x, y) =>
-                    {
-                        if (textDoc != null)
-                            textDoc.Dispose();
-                    };
+#if DEV14_OR_LATER
+                return new UrlPeekResult(location.GetUrlString(_languageVersion));
+#endif
             }
             return result;
         }

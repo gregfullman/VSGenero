@@ -94,6 +94,33 @@ namespace VSGenero.EditorExtensions
             return null;
         }
 
+        internal static string GetUrlString(this LocationInfo location, GeneroLanguageVersion languageVersion)
+        {
+            // first try to fill in the language version
+            var type = typeof(GeneroLanguageVersion);
+            var memInfo = type.GetMember(languageVersion.ToString());
+            var attributes = memInfo[0].GetCustomAttributes(typeof(GeneroLanguageVersionAttribute), false);
+            var docNumber = "";
+            if (attributes.Length > 0)
+            {
+                docNumber = ((GeneroLanguageVersionAttribute)attributes[0]).DocumentationNumber;
+                if (docNumber == null)
+                    docNumber = "";
+            }
+
+            var urlStr = location.DefinitionURL;
+            try
+            {
+                urlStr = string.Format(urlStr, docNumber);
+            }
+            catch (FormatException)
+            {
+                urlStr = location.DefinitionURL;
+            }
+
+            return urlStr;
+        }
+
         internal static void GotoSource(this LocationInfo location, IServiceProvider serviceProvider, GeneroLanguageVersion languageVersion)
         {
             if (location.Line > 0 && location.Column > 0)
@@ -106,27 +133,7 @@ namespace VSGenero.EditorExtensions
             }
             else if(location.DefinitionURL != null)
             {
-                // first try to fill in the language version
-                var type = typeof(GeneroLanguageVersion);
-                var memInfo = type.GetMember(languageVersion.ToString());
-                var attributes = memInfo[0].GetCustomAttributes(typeof(GeneroLanguageVersionAttribute), false);
-                var docNumber = "";
-                if (attributes.Length > 0)
-                {
-                    docNumber = ((GeneroLanguageVersionAttribute)attributes[0]).DocumentationNumber;
-                    if (docNumber == null)
-                        docNumber = "";
-                }
-
-                var urlStr = location.DefinitionURL;
-                try
-                {
-                    urlStr = string.Format(urlStr, docNumber);
-                }
-                catch(FormatException)
-                {
-                    urlStr = location.DefinitionURL;
-                }
+                var urlStr = location.GetUrlString(languageVersion);
 
                 Uri definitionUrl;
                 if (Uri.TryCreate(urlStr, UriKind.Absolute, out definitionUrl))

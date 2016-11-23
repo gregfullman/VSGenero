@@ -18,6 +18,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using VSGenero.Analysis;
+using VSGenero.Analysis.Parsing;
 using VSGenero.Navigation;
 
 namespace VSGenero.Peek
@@ -26,11 +27,13 @@ namespace VSGenero.Peek
     {
         private readonly PeekableItemSourceProvider _factory;
         private readonly IEnumerable<LocationInfo> _locations;
+        private readonly GeneroLanguageVersion _languageVersion;
 
-        public PeekableItem(IEnumerable<LocationInfo> locations, PeekableItemSourceProvider factory)
+        public PeekableItem(IEnumerable<LocationInfo> locations, PeekableItemSourceProvider factory, GeneroLanguageVersion languageVersion)
         {
             _locations = locations;
             _factory = factory;
+            _languageVersion = languageVersion;
         }
 
         public string DisplayName
@@ -40,7 +43,7 @@ namespace VSGenero.Peek
 
         public IPeekResultSource GetOrCreateResultSource(string relationshipName)
         {
-            return new PeekResultSource(this._locations, this._factory);
+            return new PeekResultSource(this._locations, this._factory, this._languageVersion);
         }
 
         public IEnumerable<IPeekRelationship> Relationships
