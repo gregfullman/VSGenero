@@ -364,15 +364,15 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 }
                 else if (_typeNameString.Equals("string", StringComparison.OrdinalIgnoreCase))
                 {
-                    return Genero4glAst.StringFunctions.Values;
+                    return Genero4glAst.StringFunctions.Values.Where(x => ast.LanguageVersion >= x.MinimumLanguageVersion && ast.LanguageVersion <= x.MaximumLanguageVersion);
                 }
                 else if(_typeNameString.Equals("text", StringComparison.OrdinalIgnoreCase))
                 {
-                    return Genero4glAst.TextFunctions.Values;
+                    return Genero4glAst.TextFunctions.Values.Where(x => ast.LanguageVersion >= x.MinimumLanguageVersion && ast.LanguageVersion <= x.MaximumLanguageVersion);
                 }
                 else if(_typeNameString.Equals("byte", StringComparison.OrdinalIgnoreCase))
                 {
-                    return Genero4glAst.ByteFunctions.Values;
+                    return Genero4glAst.ByteFunctions.Values.Where(x => ast.LanguageVersion >= x.MinimumLanguageVersion && ast.LanguageVersion <= x.MaximumLanguageVersion);
                 }
                 else
                 {
@@ -485,15 +485,18 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 }
                 else if (_typeNameString.Equals("string", StringComparison.OrdinalIgnoreCase))
                 {
-                    return Genero4glAst.StringFunctions.Values.Select(x => new MemberResult(x.Name, x, GeneroMemberType.Method, ast));
+                    return Genero4glAst.StringFunctions.Values.Where(x => ast.LanguageVersion >= x.MinimumLanguageVersion && ast.LanguageVersion <= x.MaximumLanguageVersion)
+                                                              .Select(x => new MemberResult(x.Name, x, GeneroMemberType.Method, ast));
                 }
                 else if (_typeNameString.Equals("text", StringComparison.OrdinalIgnoreCase))
                 {
-                    return Genero4glAst.TextFunctions.Values.Select(x => new MemberResult(x.Name, x, GeneroMemberType.Method, ast));
+                    return Genero4glAst.TextFunctions.Values.Where(x => ast.LanguageVersion >= x.MinimumLanguageVersion && ast.LanguageVersion <= x.MaximumLanguageVersion)
+                                                            .Select(x => new MemberResult(x.Name, x, GeneroMemberType.Method, ast));
                 }
                 else if (_typeNameString.Equals("byte", StringComparison.OrdinalIgnoreCase))
                 {
-                    return Genero4glAst.ByteFunctions.Values.Select(x => new MemberResult(x.Name, x, GeneroMemberType.Method, ast));
+                    return Genero4glAst.ByteFunctions.Values.Where(x => ast.LanguageVersion >= x.MinimumLanguageVersion && ast.LanguageVersion <= x.MaximumLanguageVersion)
+                                                            .Select(x => new MemberResult(x.Name, x, GeneroMemberType.Method, ast));
                 }
                 else
                 {
@@ -597,6 +600,22 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         public string Typename
         {
             get { return null; }
+        }
+
+        public GeneroLanguageVersion MinimumLanguageVersion
+        {
+            get
+            {
+                return GeneroLanguageVersion.None;
+            }
+        }
+
+        public GeneroLanguageVersion MaximumLanguageVersion
+        {
+            get
+            {
+                return GeneroLanguageVersion.Latest;
+            }
         }
 
         public override void CheckForErrors(GeneroAst ast, Action<string, int, int> errorFunc, Dictionary<string, List<int>> deferredFunctionSearches, FunctionProviderSearchMode searchInFunctionProvider = FunctionProviderSearchMode.NoSearch, bool isFunctionCallOrDefinition = false)

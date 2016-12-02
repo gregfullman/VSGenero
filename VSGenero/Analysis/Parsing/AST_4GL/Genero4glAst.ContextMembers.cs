@@ -218,7 +218,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 // Built-in types
                 members.AddRange(BuiltinTypes.Select(x => new MemberResult(Tokens.TokenKinds[x], GeneroMemberType.Keyword, this)));
 
-                foreach (var package in Packages.Values.Where(x => _importedPackages[x.Name] && x.ContainsInstanceMembers))
+                foreach (var package in Packages.Values.Where(x => _importedPackages[x.Name] && x.ContainsInstanceMembers &&
+                                                                   (this.LanguageVersion >= x.MinimumLanguageVersion && this.LanguageVersion <= x.MaximumLanguageVersion)))
                 {
                     members.Add(new MemberResult(package.Name, GeneroMemberType.Module, this));
                     includedPackages.Add(package);
@@ -226,15 +227,20 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             }
             if (memberType.HasFlag(AstMemberType.Constants))
             {
-                members.AddRange(SystemConstants.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Keyword, this)));
-                members.AddRange(SystemMacros.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Constant, this)));
+                members.AddRange(SystemConstants.Where(x => this.LanguageVersion >= x.Value.MinimumLanguageVersion && this.LanguageVersion <= x.Value.MaximumLanguageVersion)
+                                                .Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Keyword, this)));
+                members.AddRange(SystemMacros.Where(x => this.LanguageVersion >= x.Value.MinimumLanguageVersion && this.LanguageVersion <= x.Value.MaximumLanguageVersion)
+                                             .Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Constant, this)));
             }
             if (memberType.HasFlag(AstMemberType.Variables))
-                members.AddRange(SystemVariables.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Keyword, this)));
+                members.AddRange(SystemVariables.Where(x => this.LanguageVersion >= x.Value.MinimumLanguageVersion && this.LanguageVersion <= x.Value.MaximumLanguageVersion)
+                                                .Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Keyword, this)));
             if (memberType.HasFlag(AstMemberType.Functions))
             {
-                members.AddRange(SystemFunctions.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Function, this)));
-                foreach (var package in Packages.Values.Where(x => _importedPackages[x.Name] && x.ContainsStaticClasses))
+                members.AddRange(SystemFunctions.Where(x => this.LanguageVersion >= x.Value.MinimumLanguageVersion && this.LanguageVersion <= x.Value.MaximumLanguageVersion)
+                                                .Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Function, this)));
+                foreach (var package in Packages.Values.Where(x => _importedPackages[x.Name] && x.ContainsStaticClasses &&
+                                                                   (this.LanguageVersion >= x.MinimumLanguageVersion && this.LanguageVersion <= x.MaximumLanguageVersion)))
                 {
                     if (!includedPackages.Contains(package))
                         members.Add(new MemberResult(package.Name, GeneroMemberType.Module, this));
@@ -810,10 +816,13 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
         private IEnumerable<MemberResult> GetInstanceImportModules(int index)
         {
+            var result = new List<MemberResult>();
+
+            result.AddRange(SystemImportModules.Where(x => LanguageVersion >= x.Value.MinimumLanguageVersion && LanguageVersion <= x.Value.MaximumLanguageVersion)
+                                               .Select(x => new MemberResult(x.Value.Name, x.Value, GeneroMemberType.Module, this)));
             if (_programFileProvider != null)
-                return _programFileProvider.GetAvailableImportModules(Filepath).Select(x => new MemberResult(x, GeneroMemberType.Module, this));
-            else
-                return new MemberResult[0];
+                result.AddRange(_programFileProvider.GetAvailableImportModules(Filepath).Select(x => new MemberResult(x, GeneroMemberType.Module, this)));
+            return result;
         }
 
         private IEnumerable<MemberResult> GetInstanceCursors(int index, AstMemberType type)

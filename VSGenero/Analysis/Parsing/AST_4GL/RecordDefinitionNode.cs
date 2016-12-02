@@ -244,6 +244,22 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             get { return null; }
         }
 
+        public GeneroLanguageVersion MinimumLanguageVersion
+        {
+            get
+            {
+                return GeneroLanguageVersion.None;
+            }
+        }
+
+        public GeneroLanguageVersion MaximumLanguageVersion
+        {
+            get
+            {
+                return GeneroLanguageVersion.Latest;
+            }
+        }
+
         public override void CheckForErrors(GeneroAst ast, Action<string, int, int> errorFunc, Dictionary<string, List<int>> deferredFunctionSearches, FunctionProviderSearchMode searchInFunctionProvider = FunctionProviderSearchMode.NoSearch, bool isFunctionCallOrDefinition = false)
         {
             if(MemberDictionary.Count > 0)

@@ -594,6 +594,22 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             }
         }
 
+        public GeneroLanguageVersion MinimumLanguageVersion
+        {
+            get
+            {
+                return GeneroLanguageVersion.None;
+            }
+        }
+
+        public GeneroLanguageVersion MaximumLanguageVersion
+        {
+            get
+            {
+                return GeneroLanguageVersion.Latest;
+            }
+        }
+
         public override void PropagateSyntaxTree(GeneroAst ast)
         {
             // set location

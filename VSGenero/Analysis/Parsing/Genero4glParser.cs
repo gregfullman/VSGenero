@@ -42,7 +42,11 @@ namespace VSGenero.Analysis.Parsing
             ModuleNode moduleNode = null;
             if (ModuleNode.TryParseNode(this, out moduleNode))
             {
-                var ast = new Genero4glAst(moduleNode, _tokenizer.GetLineLocations(), GeneroLanguageVersion.None, _projectEntry, _filename);
+                var ast = new Genero4glAst(moduleNode, 
+                                           _tokenizer.GetLineLocations(), 
+                                           GeneroLanguageVersionExtensions.GetLanguageVersion(_filename), 
+                                           _projectEntry, 
+                                           _filename);
                 UpdateNodeAndTree(moduleNode, ast);
                 return ast;
             }

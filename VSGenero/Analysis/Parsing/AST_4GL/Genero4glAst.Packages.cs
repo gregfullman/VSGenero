@@ -3177,6 +3177,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
     {
         private readonly string _name;
         private readonly bool _extensionPackage;
+        private readonly GeneroLanguageVersion _minBdlVersion;
+        private readonly GeneroLanguageVersion _maxBdlVersion;
         public bool ExtensionPackage
         {
             get { return _extensionPackage; }
@@ -3190,7 +3192,11 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
         public bool IsPublic { get { return true; } }
 
-        public GeneroPackage(string name, bool extension, IEnumerable<GeneroPackageClass> classes, GeneroLanguageVersion minimumBdlVersion = GeneroLanguageVersion.None)
+        public GeneroPackage(string name, 
+                             bool extension, 
+                             IEnumerable<GeneroPackageClass> classes, 
+                             GeneroLanguageVersion minimumBdlVersion = GeneroLanguageVersion.None,
+                             GeneroLanguageVersion maximumBdlVersion = GeneroLanguageVersion.None)
         {
             _name = name;
             _extensionPackage = extension;
@@ -3198,12 +3204,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             foreach (var cls in classes)
                 _classes.Add(cls.Name, cls);
             _minBdlVersion = minimumBdlVersion;
-        }
-
-        private readonly GeneroLanguageVersion _minBdlVersion;
-        public GeneroLanguageVersion MinimumBdlVersion
-        {
-            get { return _minBdlVersion; }
+            _maxBdlVersion = maximumBdlVersion;
         }
 
         private const string _scope = "package";
@@ -3257,7 +3258,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
         public IEnumerable<MemberResult> GetMembers(Genero4glAst ast, MemberType memberType, bool function)
         {
-            return _classes.Values.Select(x => new MemberResult(x.Name, x, GeneroMemberType.Class, ast));
+            return _classes.Values.Where(x => ast.LanguageVersion >= x.MinimumLanguageVersion && ast.LanguageVersion <= x.MaximumLanguageVersion)
+                                  .Select(x => new MemberResult(x.Name, x, GeneroMemberType.Class, ast));
         }
 
         public bool HasChildFunctions(Genero4glAst ast)
@@ -3285,6 +3287,22 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         {
             get { return null; }
         }
+
+        public GeneroLanguageVersion MinimumLanguageVersion
+        {
+            get
+            {
+                return _minBdlVersion;
+            }
+        }
+
+        public GeneroLanguageVersion MaximumLanguageVersion
+        {
+            get
+            {
+                return _maxBdlVersion;
+            }
+        }
     }
 
     public class GeneroPackageClass : IAnalysisResult
@@ -3292,6 +3310,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         private readonly string _parentPackage;
         private readonly string _name;
         private readonly bool _isStatic;
+        private readonly GeneroLanguageVersion _minBdlVersion;
+        private readonly GeneroLanguageVersion _maxBdlVersion;
         public bool IsStatic { get { return _isStatic; } }
         private readonly Dictionary<string, GeneroPackageClassMethod> _methods;
 
@@ -3306,21 +3326,17 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                   string parentPackage, 
                                   bool isStatic, 
                                   IEnumerable<GeneroPackageClassMethod> methods, 
-                                  GeneroLanguageVersion minimumBdlVersion = GeneroLanguageVersion.None)
+                                  GeneroLanguageVersion minimumBdlVersion = GeneroLanguageVersion.None,
+                                  GeneroLanguageVersion maximumBdlVersion = GeneroLanguageVersion.None)
         {
             _name = name;
             _parentPackage = parentPackage;
             _isStatic = isStatic;
             _methods = new Dictionary<string, GeneroPackageClassMethod>(StringComparer.OrdinalIgnoreCase);
             _minBdlVersion = minimumBdlVersion;
+            _maxBdlVersion = maximumBdlVersion;
             foreach (var method in methods)
                 _methods.Add(method.Name, method);
-        }
-
-        private readonly GeneroLanguageVersion _minBdlVersion;
-        public GeneroLanguageVersion MinimumBdlVersion
-        {
-            get { return _minBdlVersion; }
         }
 
         private const string _scope = "package class";
@@ -3374,7 +3390,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
         public IEnumerable<MemberResult> GetMembers(Genero4glAst ast, MemberType memberType, bool function)
         {
-            return _methods.Values.Select(x => new MemberResult(x.Name, x, GeneroMemberType.Method, ast));
+            return _methods.Values.Where(x => ast.LanguageVersion >= x.MinimumLanguageVersion && ast.LanguageVersion <= x.MaximumLanguageVersion)
+                                  .Select(x => new MemberResult(x.Name, x, GeneroMemberType.Method, ast));
         }
 
         public bool HasChildFunctions(Genero4glAst ast)
@@ -3386,6 +3403,22 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         {
             get { return null; }
         }
+
+        public GeneroLanguageVersion MinimumLanguageVersion
+        {
+            get
+            {
+                return _minBdlVersion;
+            }
+        }
+
+        public GeneroLanguageVersion MaximumLanguageVersion
+        {
+            get
+            {
+                return _maxBdlVersion;
+            }
+        }
     }
 
     public class GeneroPackageClassMethod : IFunctionResult
@@ -3393,6 +3426,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         private readonly string _name;
         private readonly string _parentClass;
         private readonly bool _isStatic;
+        private readonly GeneroLanguageVersion _minBdlVersion;
+        private readonly GeneroLanguageVersion _maxBdlVersion;
         public bool IsStatic { get { return _isStatic; } }
         private readonly string _desc;
         private readonly List<ParameterResult> _parameters;
@@ -3405,8 +3440,14 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             get { return false; }
         }
 
-        public GeneroPackageClassMethod(string name, string parentClass, bool isStatic, string description, IEnumerable<ParameterResult> parameters, IEnumerable<string> returns,
-                                        GeneroLanguageVersion minimumBdlVersion = GeneroLanguageVersion.None)
+        public GeneroPackageClassMethod(string name, 
+                                        string parentClass, 
+                                        bool isStatic, 
+                                        string description, 
+                                        IEnumerable<ParameterResult> parameters, 
+                                        IEnumerable<string> returns,
+                                        GeneroLanguageVersion minimumBdlVersion = GeneroLanguageVersion.None,
+                                        GeneroLanguageVersion maximumBdlVersion = GeneroLanguageVersion.None)
         {
             _name = name;
             _parentClass = parentClass;
@@ -3415,12 +3456,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             _parameters = new List<ParameterResult>(parameters);
             _returns = new List<string>(returns);
             _minBdlVersion = minimumBdlVersion;
-        }
-
-        private readonly GeneroLanguageVersion _minBdlVersion;
-        public GeneroLanguageVersion MinimumBdlVersion
-        {
-            get { return _minBdlVersion; }
+            _maxBdlVersion = maximumBdlVersion;
         }
 
         public ParameterResult[] Parameters
@@ -3654,6 +3690,22 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 if (_additionalDecoratorRanges == null)
                     _additionalDecoratorRanges = new SortedList<int, int>();
                 return _additionalDecoratorRanges;
+            }
+        }
+
+        public GeneroLanguageVersion MinimumLanguageVersion
+        {
+            get
+            {
+                return _minBdlVersion;
+            }
+        }
+
+        public GeneroLanguageVersion MaximumLanguageVersion
+        {
+            get
+            {
+                return _maxBdlVersion;
             }
         }
     }

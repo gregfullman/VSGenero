@@ -43,6 +43,8 @@ namespace VSGenero.Analysis
         bool CanGetValueFromDebugger { get; }
         bool IsPublic { get; }
         string Typename { get; }
+        GeneroLanguageVersion MinimumLanguageVersion { get; }
+        GeneroLanguageVersion MaximumLanguageVersion { get; }
 
         IAnalysisResult GetMember(string name, Genero4glAst ast, out IGeneroProject definingProject, out IProjectEntry projectEntry, bool function);
         IEnumerable<MemberResult> GetMembers(Genero4glAst ast, MemberType memberType, bool function);

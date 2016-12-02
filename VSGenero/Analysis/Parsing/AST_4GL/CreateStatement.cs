@@ -270,6 +270,22 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             get { return null; }
         }
 
+        public GeneroLanguageVersion MinimumLanguageVersion
+        {
+            get
+            {
+                return GeneroLanguageVersion.None;
+            }
+        }
+
+        public GeneroLanguageVersion MaximumLanguageVersion
+        {
+            get
+            {
+                return GeneroLanguageVersion.Latest;
+            }
+        }
+
         public IAnalysisResult GetMember(string name, Genero4glAst ast, out IGeneroProject definingProject, out IProjectEntry projectEntry, bool function)
         {
             definingProject = null;
@@ -435,6 +451,22 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         public string Typename
         {
             get { return null; }
+        }
+
+        public GeneroLanguageVersion MinimumLanguageVersion
+        {
+            get
+            {
+                return GeneroLanguageVersion.None;
+            }
+        }
+
+        public GeneroLanguageVersion MaximumLanguageVersion
+        {
+            get
+            {
+                return GeneroLanguageVersion.Latest;
+            }
         }
 
         public IAnalysisResult GetMember(string name, Genero4glAst ast, out IGeneroProject definingProject, out IProjectEntry projectEntry, bool function)

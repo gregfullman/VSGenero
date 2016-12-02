@@ -22,19 +22,27 @@ namespace VSGenero.Analysis.Parsing
     public enum GeneroLanguageVersion
     {
         None = 0,
+        [GeneroLanguageVersion(VersionString = "2.32", LanguageVersion = V232)]
         V232,
+        [GeneroLanguageVersion(VersionString = "2.40", LanguageVersion = V240)]
         V240,
+        [GeneroLanguageVersion(VersionString = "2.41", LanguageVersion = V241)]
         V241,
-        [GeneroLanguageVersion(DocumentationNumber = "2.50.00-")]   // trailing '-' needed to provide correct documentation URL
+        [GeneroLanguageVersion(VersionString = "2.50", LanguageVersion = V250, DocumentationNumber = "2.50.00-")]   // trailing '-' needed to provide correct documentation URL
         V250,
+        [GeneroLanguageVersion(VersionString = "3.00", LanguageVersion = V300)]
         V300,
 
-        Latest = V300
+        Latest = V300 + 1
     }
 
     public class GeneroLanguageVersionAttribute : Attribute
     {
         public string DocumentationNumber { get; set; }
+
+        public GeneroLanguageVersion LanguageVersion { get; set; }
+
+        public string VersionString { get; set; }
     }
 
     public static class GeneroLanguageVersionExtensions
@@ -74,6 +82,21 @@ namespace VSGenero.Analysis.Parsing
                 default:
                     return GeneroLanguageVersion.None;
             }
+        }
+
+        internal static GeneroLanguageVersion GetLanguageVersion(string filePath, IProgramFileProvider fileProvider = null)
+        {
+            if (fileProvider == null)
+            {
+                if (VSGeneroPackage.Instance.ProgramFileProvider == null)
+                    return GeneroLanguageVersion.None;
+                else
+                    fileProvider = VSGeneroPackage.Instance.ProgramFileProvider;
+            }
+
+            if(fileProvider != null)
+                return fileProvider.GetLanguageVersion(filePath);
+            return GeneroLanguageVersion.None;
         }
     }
 }

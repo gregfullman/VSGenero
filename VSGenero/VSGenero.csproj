@@ -355,6 +355,7 @@
     <Compile Include="Analysis\Parsing\AST_4GL\ProgramRegister.cs" />
     <Compile Include="Analysis\Parsing\AST_4GL\SystemClass.cs" />
     <Compile Include="Analysis\Parsing\AST_4GL\SystemConstant.cs" />
+    <Compile Include="Analysis\Parsing\AST_4GL\SystemImportModule.cs" />
     <Compile Include="Analysis\Parsing\AST_4GL\SystemMacro.cs" />
     <Compile Include="Analysis\Parsing\AST_PER\ActionDefaultsNode.cs" />
     <Compile Include="Analysis\Parsing\AST_PER\AstNodePer.cs" />
@@ -605,15 +606,7 @@
     <Compile Include="Options\GeneroDialogPage.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="Peek\ClippableWindowsFormsHost.cs" />
-    <Compile Include="Peek\NativeMethods.cs" />
-    <Compile Include="Peek\UrlPeekPresentationControl.xaml.cs">
-      <DependentUpon>UrlPeekPresentationControl.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Peek\UrlPeekResult.cs" />
-    <Compile Include="Peek\UrlPeekResultPresentation.cs" />
-    <Compile Include="Peek\UrlPeekResultPresenter.cs" />
-    <Compile Include="Peek\UrlPeekResultScrollState.cs" />
+    
     <Compile Include="PkgCmdID.cs" />
     <Compile Include="ProductivityTools\Genero4glCodeBlock.cs" />
     <Compile Include="ProductivityTools\Genero4glMouseProcessor.cs" />
@@ -721,6 +714,19 @@
         <None Include="Dev14\source.extension.vsixmanifest">
           <SubType>Designer</SubType>
         </None>
+        <Compile Include="Peek\ClippableWindowsFormsHost.cs" />
+        <Compile Include="Peek\NativeMethods.cs" />
+        <Compile Include="Peek\UrlPeekPresentationControl.xaml.cs">
+          <DependentUpon>UrlPeekPresentationControl.xaml</DependentUpon>
+        </Compile>
+        <Compile Include="Peek\UrlPeekResult.cs" />
+        <Compile Include="Peek\UrlPeekResultPresentation.cs" />
+        <Compile Include="Peek\UrlPeekResultPresenter.cs" />
+        <Compile Include="Peek\UrlPeekResultScrollState.cs" />
+        <Page Include="Peek\UrlPeekPresentationControl.xaml">
+          <SubType>Designer</SubType>
+          <Generator>MSBuild:Compile</Generator>
+        </Page>
       </ItemGroup>
     </When>
     <When Condition=" '$(VisualStudioVersion)'=='12.0'  Or '$(TargetVisualStudioVersion)'=='VS120' ">
@@ -849,10 +855,6 @@
   </ItemGroup>
   <ItemGroup>
     <Page Include="Navigation\WaitForCompleteAnalysisDialog.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Peek\UrlPeekPresentationControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

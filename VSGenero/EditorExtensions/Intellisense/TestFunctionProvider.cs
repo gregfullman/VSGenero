@@ -141,6 +141,21 @@ namespace VSGenero.EditorExtensions.Intellisense
             get { return null; }
         }
 
+        public GeneroLanguageVersion MinimumLanguageVersion
+        {
+            get
+            {
+                return GeneroLanguageVersion.None;
+            }
+        }
+
+        public GeneroLanguageVersion MaximumLanguageVersion
+        {
+            get
+            {
+                return GeneroLanguageVersion.Latest;
+            }
+        }
 
         public IEnumerable<string> GetExistingFunctionsFromSet(IEnumerable<string> set)
         {
@@ -226,6 +241,22 @@ namespace VSGenero.EditorExtensions.Intellisense
         public string Typename
         {
             get { return null; }
+        }
+
+        public GeneroLanguageVersion MinimumLanguageVersion
+        {
+            get
+            {
+                return GeneroLanguageVersion.None;
+            }
+        }
+
+        public GeneroLanguageVersion MaximumLanguageVersion
+        {
+            get
+            {
+                return GeneroLanguageVersion.Latest;
+            }
         }
     }
 
@@ -413,6 +444,22 @@ namespace VSGenero.EditorExtensions.Intellisense
                 if (_additionalDecoratorRanges == null)
                     _additionalDecoratorRanges = new SortedList<int, int>();
                 return _additionalDecoratorRanges;
+            }
+        }
+
+        public GeneroLanguageVersion MinimumLanguageVersion
+        {
+            get
+            {
+                return GeneroLanguageVersion.None;
+            }
+        }
+
+        public GeneroLanguageVersion MaximumLanguageVersion
+        {
+            get
+            {
+                return GeneroLanguageVersion.Latest;
             }
         }
     }

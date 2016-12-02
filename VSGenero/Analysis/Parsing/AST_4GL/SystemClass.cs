@@ -82,12 +82,28 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
         public bool HasChildFunctions(Genero4glAst ast)
         {
-            return false;
+            return _memberFunctions.Count > 0;
         }
 
         public string Typename
         {
             get { return null; }
+        }
+
+        public GeneroLanguageVersion MinimumLanguageVersion
+        {
+            get
+            {
+                return GeneroLanguageVersion.None;
+            }
+        }
+
+        public GeneroLanguageVersion MaximumLanguageVersion
+        {
+            get
+            {
+                return GeneroLanguageVersion.Latest;
+            }
         }
     }
 }

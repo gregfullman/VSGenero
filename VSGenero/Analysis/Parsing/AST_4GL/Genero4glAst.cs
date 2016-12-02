@@ -564,7 +564,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
                     // try an imported module
                     if (ast != null && ast.Body is IModuleResult &&
-                       ast.ProjectEntry != null && ast.ProjectEntry != null)
+                        ast.ProjectEntry != null && ast.ProjectEntry != null)
                     {
                         if ((ast.Body as IModuleResult).FglImports.Contains(dotPiece))
                         {
@@ -579,6 +579,14 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                             {
                                 definingProject = refProjKVP;
                                 res = refProjKVP as IAnalysisResult;
+                                continue;
+                            }
+
+                            IAnalysisResult sysImportMod;
+                            // check the system imports
+                            if(SystemImportModules.TryGetValue(dotPiece, out sysImportMod))
+                            {
+                                res = sysImportMod;
                                 continue;
                             }
                         }
@@ -881,7 +889,12 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     }
                     else
                         locInfo = this.ResolveLocation(res);
-                    if (locInfo != null && (locInfo.Index > 0 || (locInfo.Line > 0 && locInfo.Column > 0)))
+                    if (locInfo != null && 
+                        (
+                            (locInfo.Index > 0 || (locInfo.Line > 0 && locInfo.Column > 0)) ||
+                            !string.IsNullOrWhiteSpace(locInfo.DefinitionURL)
+                        )
+                       )
                         vars.Add(new AnalysisVariable(locInfo, VariableType.Definition));
                 }
             }

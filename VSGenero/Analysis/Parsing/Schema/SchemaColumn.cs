@@ -316,6 +316,22 @@ namespace VSGenero.Analysis.Parsing.Schema
             get { return Type; }
         }
 
+        public GeneroLanguageVersion MinimumLanguageVersion
+        {
+            get
+            {
+                return GeneroLanguageVersion.None;
+            }
+        }
+
+        public GeneroLanguageVersion MaximumLanguageVersion
+        {
+            get
+            {
+                return GeneroLanguageVersion.Latest;
+            }
+        }
+
         public bool HasChildFunctions(Genero4glAst ast)
         {
             return false;

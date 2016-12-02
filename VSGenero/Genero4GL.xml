@@ -2,76 +2,93 @@
 <Genero4GL xmlns="GeneroXML">
   <Parsing>
     <Functions>
-      <!--TODO: functions from http://pic.dhe.ibm.com/infocenter/idshelp/v117/topic/com.ibm.gen_busug.doc/c_fgl_BuiltInFunctions.htm -->
       <Context name="array">
         <Function name="appendElement" description="Adds a new element at the end of a dynamic array. This method has no effect on a static array.">
           <Parameters></Parameters>
           <Returns></Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_Arrays_ARRAY_appendElement.html</Documentation>
         </Function>
         <Function name="clear" description="Removes all elements in a dynamic array. Sets all elements to NULL in a static array.">
           <Parameters></Parameters>
           <Returns></Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_Arrays_ARRAY_clear.html</Documentation>
         </Function>
         <Function name="deleteElement" description="Removes an element at the given position. In a static or dynamic array, the elements after the given position are moved up. In a dynamic array, the number of elements is decremented by 1.">
           <Parameters>
-            <Parameter name="pos" type="integer"/>
+            <Parameter name="pos" type="integer" desc="the specified index."/>
           </Parameters>
           <Returns></Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_Arrays_ARRAY_deleteElement.html</Documentation>
         </Function>
         <Function name="getLength" description="Returns the length of a one-dimensional array.">
           <Parameters></Parameters>
           <Returns>
             <Return name="result" type="integer"/>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_Arrays_ARRAY_getLength.html</Documentation>
         </Function>
         <Function name="insertElement" description="Inserts a new element at the given position. In a static or dynamic array, the elements after the given position are moved down. In a dynamic array, the number of elements increments by 1.">
           <Parameters>
-            <Parameter name="pos" type="integer"/>
+            <Parameter name="pos" type="integer" desc="The specified index. The new element is inserted before this position."/>
           </Parameters>
           <Returns></Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_Arrays_ARRAY_insertElement.html</Documentation>
+        </Function>
+        <Function name="sort" description="Sorts the rows in the array." minVersion="3.00">
+          <Parameters>
+            <Parameter name="key" type="string" desc="The name of a member of a structured array (DYNAMIC ARRAY OF RECORD), or NULL if the array is not structured."/>
+            <Parameter name="reverse" type="boolean" desc="FALSE for ascending order, TRUE for descending order."/>
+          </Parameters>
+          <Returns></Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_Arrays_ARRAY_sort.html</Documentation>
         </Function>
       </Context>
       <Context name="string">
         <Function name="append" description="Returns a new string made by adding part to the end of the current string.">
           <Parameters>
-            <Parameter name="part" type="string"/>
+            <Parameter name="part" type="string" desc="the string to be concatenated."/>
           </Parameters>
           <Returns>
             <Return name="result" type="string"/>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_datatypes_STRING_append.html</Documentation>
         </Function>
         <Function name="equals" description="Returns TRUE if the string passed as parameters matches the current string. If one of the strings is NULL the method returns FALSE.">
           <Parameters>
-            <Parameter name="source" type="string"/>
+            <Parameter name="source" type="string" desc="the string to compare with."/>
           </Parameters>
           <Returns>
             <Return name="result" type="integer"/>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_datatypes_STRING_equals.html</Documentation>
         </Function>
         <Function name="equalsIgnoreCase" description="Returns TRUE if the string passed as parameters matches the current string, ignoring character case. If one of the strings is NULL the method returns FALSE.">
           <Parameters>
-            <Parameter name="source" type="string"/>
+            <Parameter name="source" type="string" desc="the string to compare with."/>
           </Parameters>
           <Returns>
             <Return name="result" type="integer"/>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_datatypes_STRING_equalsIgnoreCase.html</Documentation>
         </Function>
         <Function name="getCharAt" description="Returns the character at the position pos (starts at 1). The unit for character positions depend on the length semantics. In BLS, the method returns NULL if pos does not match a valid character-byte position in the current string.">
           <Parameters>
-            <Parameter name="pos" type="integer"/>
+            <Parameter name="pos" type="integer" desc="the position of the character int the string."/>
           </Parameters>
           <Returns>
             <Return name="result" type="string"/>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_datatypes_STRING_getCharAt.html</Documentation>
         </Function>
         <Function name="getIndexOf" description="Returns the position of the substring part in the current string, starting from position spos. The unit for character positions depend on the length semantics used. Returns zero if the substring was not found. Returns -1 if string is NULL.">
           <Parameters>
-            <Parameter name="part" type="string"/>
-            <Parameter name="spos" type="integer"/>
+            <Parameter name="part" type="string" desc="the sub-string to be searched."/>
+            <Parameter name="spos" type="integer" desc="the starting position for the search."/>
           </Parameters>
           <Returns>
             <Return name="result" type="integer"/>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_datatypes_STRING_getIndexOf.html</Documentation>
         </Function>
         <Function name="getLength" description="Returns the lenfth of the string, including trailing blanks (Note that the LENGTH() built-in function ignores trailing blanks). The unit for character length depend on the length semantics used.">
           <Parameters>
@@ -79,15 +96,17 @@
           <Returns>
             <Return name="result" type="integer"/>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_datatypes_STRING_getLength.html</Documentation>
         </Function>
         <Function name="subString" description="Returns the substring starting at position spos and ending at epos. The unit for character positions depend on the length semantics used. In BLS, returns NULL if the positions do not delimit a valid substring in the current string.">
           <Parameters>
-            <Parameter name="spos" type="integer"/>
-            <Parameter name="epos" type="integer"/>
+            <Parameter name="spos" type="integer" desc="the starting position of the sub-string."/>
+            <Parameter name="epos" type="integer" desc="the ending position of the sub-string."/>
           </Parameters>
           <Returns>
             <Return name="result" type="string"/>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_datatypes_STRING_subString.html</Documentation>
         </Function>
         <Function name="toLowerCase" description="Converts the current string to lowercase. Returns NULL if the string is null.">
           <Parameters>
@@ -95,6 +114,7 @@
           <Returns>
             <Return name="result" type="string"/>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_datatypes_STRING_toLowerCase.html</Documentation>
         </Function>
         <Function name="toUpperCase" description="Converts the current string to uppercase. Returns NULL if the string is null.">
           <Parameters>
@@ -102,6 +122,7 @@
           <Returns>
             <Return name="result" type="string"/>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_datatypes_STRING_toUpperCase.html</Documentation>
         </Function>
         <Function name="trim" description="Removes white space characters from the beginning and end of the current string. Returns NULL if the string is null.">
           <Parameters>
@@ -109,6 +130,7 @@
           <Returns>
             <Return name="result" type="string"/>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_datatypes_STRING_trim.html</Documentation>
         </Function>
         <Function name="trimLeft" description="Removes white space characters from the beginning of the current string. Returns NULL if the string is null.">
           <Parameters>
@@ -116,6 +138,7 @@
           <Returns>
             <Return name="result" type="string"/>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_datatypes_STRING_trimLeft.html</Documentation>
         </Function>
         <Function name="trimRight" description="Removes white space characters from the end of the current string. Returns NULL if the string is null.">
           <Parameters>
@@ -123,20 +146,23 @@
           <Returns>
             <Return name="result" type="string"/>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_datatypes_STRING_trimRight.html</Documentation>
         </Function>
       </Context>
       <Context name="byte">
         <Function name="readFile" description="Reads data from a file and copies into memory or to the file used by the variables according to the LOCATE statement issued on the object.">
           <Parameters>
-            <Parameter name="fileName" type="string"/>
+            <Parameter name="fileName" type="string" desc="the path the file to be loaded."/>
           </Parameters>
           <Returns></Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_datatypes_BYTE_readFile.html</Documentation>
         </Function>
         <Function name="writeFile" description="Writes data from the variable (memory or source file) to the destination file passed as parameter. The file is created if it does not exist.">
           <Parameters>
-            <Parameter name="fileName" type="string"/>
+            <Parameter name="fileName" type="string" desc="the file to be written to."/>
           </Parameters>
           <Returns></Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_datatypes_BYTE_writeFile.html</Documentation>
         </Function>
       </Context>
       <Context name="text">
@@ -145,70 +171,78 @@
           <Returns>
             <Return name="result" type="integer"/>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_datatypes_TEXT_getLength.html</Documentation>
         </Function>
         <Function name="readFile" description="Reads data from a file and copies into memory or to the file used by the variables according to the LOCATE statement issued on the object.">
           <Parameters>
-            <Parameter name="filename" type="string"/>
+            <Parameter name="filename" type="string" desc="the path the file to be loaded."/>
           </Parameters>
           <Returns>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_datatypes_TEXT_readFile.html</Documentation>
         </Function>
         <Function name="writeFile" description="Writes data from the variable (memory or source file) to the destination file passed as parameter. The file is created if it does not exist.">
           <Parameters>
-            <Parameter name="filename" type="string"/>
+            <Parameter name="filename" type="string" desc="the file to be written to."/>
           </Parameters>
           <Returns>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_datatypes_TEXT_writeFile.html</Documentation>
         </Function>
       </Context>
       <Context name="system">
-        <Function name="nvl" description="Returns the second parameter if the first argument evaluates to NULL.">
+        <Function name="nvl" description="Returns the second parameter if the first argument evaluates to NULL." minVersion="2.50">
           <Parameters>
-            <Parameter name="main-expr" type="expression"/>
-            <Parameter name="subst-expr" type="expression"/>
+            <Parameter name="main-expr" type="expression" desc="Any expression supported by the language."/>
+            <Parameter name="subst-expr" type="expression" desc="Any expression supported by the language."/>
           </Parameters>
           <Returns>
             <Return name="expr" type="expression"/>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_operators_NULL_VALUE_SUBSTITUTION.html</Documentation>
         </Function>
-        <Function name="iif" description="Returns the second or third parameter according to the boolean expression given as first argument.">
+        <Function name="iif" description="Returns the second or third parameter according to the boolean expression given as first argument." minVersion="2.50">
           <Parameters>
-            <Parameter name="bool-expr" type="expression"/>
-            <Parameter name="true-expr" type="expression"/>
-            <Parameter name="false-expr" type="expression"/>
+            <Parameter name="bool-expr" type="expression" desc="A boolean expression."/>
+            <Parameter name="true-expr" type="expression" desc="Any expression supported by the language."/>
+            <Parameter name="false-expr" type="expression" desc="Any expression supported by the language."/>
           </Parameters>
           <Returns>
             <Return name="expr" type="expression"/>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_operators_IMMEDIATE_IF.html</Documentation>
         </Function>
         <Function name="ascii" description="Produces an ASCII character.">
           <Parameters>
-            <Parameter name="int-expr" type="integer"/>
+            <Parameter name="int-expr" type="integer" desc="An integer expression, in the range 0-255 or 0-127, according to the current locale."/>
           </Parameters>
           <Returns>
             <Return name="str" type="char(1)"/>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_operators_ASCII.html</Documentation>
         </Function>
         <Function name="ord" description="Returns the code point of a character in the current locale.">
           <Parameters>
-            <Parameter name="source" type="string"/>
+            <Parameter name="source" type="string" desc="A string expression."/>
           </Parameters>
           <Returns>
             <Return name="ret" type="integer"/>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_operators_ORD.html</Documentation>
         </Function>
         <Function name="lstr" description="Returns a localized string.">
           <Parameters>
-            <Parameter name="source" type="string"/>
+            <Parameter name="source" type="string" desc="A string expression."/>
           </Parameters>
           <Returns>
             <Return name="ret" type="integer"/>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_operators_LSTR.html</Documentation>
         </Function>
-        <Function name="sfmt" description="Replaces place holders (%n) in a string with values.">
+        <Function name="sfmt" description="Replaces place holders (%n) in a string with values." minVersion="2.50">
           <Parameters>
-            <Parameter name="str-expr" type="string"/>
-            <Parameter name="expr..." type="exprList"/>
+            <Parameter name="str-expr" type="string" desc="A string expression."/>
+            <Parameter name="expr..." type="exprList" desc="Any valid expression used to replace parameter place holders (%n)."/>
           </Parameters>
           <Returns>
             <Return name="ret" type="string"/>
@@ -217,153 +251,170 @@
         </Function>
         <Function name="extend" description="Adjusts a date time value according to the qualifier.">
           <Parameters>
-            <Parameter name="dt-expr" type="expression"/>
-            <Parameter name="qual" type="qualifier"/>
+            <Parameter name="dt-expr" type="expression" desc="A date / time expression."/>
+            <Parameter name="qual" type="qualifier" desc="The date time qualifier, in the form 'qual1 TO qual2 [(scale)]'"/>
           </Parameters>
           <Returns>
             <Return name="ret" type="datetime"/>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_operators_EXTEND.html</Documentation>
         </Function>
         <Function name="date" description="Converts an expression to a DATE value.">
           <Parameters>
-            <Parameter name="expr" type="expression"/>
+            <Parameter name="expr" type="expression" desc="The expression to be converted to a date."/>
           </Parameters>
           <Returns>
             <Return name="ret" type="date"/>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_operators_DATE.html</Documentation>
         </Function>
         <Function name="time" description="Returns a time part of the date time expression.">
           <Parameters>
-            <Parameter name="expr" type="expression"/>
+            <Parameter name="expr" type="expression" desc="A datetime expression."/>
           </Parameters>
           <Returns>
             <Return name="ret" type="time"/>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_operators_TIME.html</Documentation>
         </Function>
         <Function name="year" description="Extracts the year of a date time expression.">
           <Parameters>
-            <Parameter name="expr" type="expression"/>
+            <Parameter name="expr" type="expression" desc="A datetime expression."/>
           </Parameters>
           <Returns>
             <Return name="ret" type="integer"/>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_operators_YEAR.html</Documentation>
         </Function>
         <Function name="month" description="Extracts the month of a date time expression.">
           <Parameters>
-            <Parameter name="expr" type="expression"/>
+            <Parameter name="expr" type="expression" desc="A datetime expression."/>
           </Parameters>
           <Returns>
             <Return name="ret" type="integer"/>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_operators_MONTH.html</Documentation>
         </Function>
         <Function name="day" description="Extracts the day of a date time expression.">
           <Parameters>
-            <Parameter name="expr" type="expression"/>
+            <Parameter name="expr" type="expression" desc="A datetime expression."/>
           </Parameters>
           <Returns>
             <Return name="ret" type="integer"/>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_operators_DAY.html</Documentation>
         </Function>
         <Function name="weekday" description="Returns a positive whole number between 0 and 6 corresponding to the day of the week implied by its Parameter.">
           <Parameters>
-            <Parameter name="expr" type="expression"/>
+            <Parameter name="expr" type="expression" desc="A datetime expression."/>
           </Parameters>
           <Returns>
             <Return name="ret" type="integer"/>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_operators_WEEKDAY.html</Documentation>
         </Function>
         <Function name="mdy" description="Creates a date from month, day and year units.">
           <Parameters>
-            <Parameter name="month" type="integer"/>
-            <Parameter name="day" type="integer"/>
-            <Parameter name="year" type="integer"/>
+            <Parameter name="month" type="integer" desc="An integer representing the month (from 1 to 12)."/>
+            <Parameter name="day" type="integer" desc="An integer representing the day (from 1 to 28, 29, 30 or 31 depending on the month)."/>
+            <Parameter name="year" type="integer" desc="An integer representing the year (four digits)."/>
           </Parameters>
           <Returns>
             <Return name="ret" type="date"/>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_operators_MDY.html</Documentation>
         </Function>
         <Function name="get_fldbuf" description="Returns as character strings the current values of the specified fields.">
           <Parameters>
-            <Parameter name="field" type="formvar"/>
-            <Parameter name="addFields..." type="formvarList"/>
+            <Parameter name="field..." type="formvar" desc="In the form: '[group.]field  [,...]', where group can be a table name, a screen record, a screen array or FORMONLY, and field is the name of the screen field."/>
           </Parameters>
           <Returns>
             <Return name="ret" type="context-dependent"/>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_operators_GET_FLDBUF.html</Documentation>
         </Function>
         <Function name="infield" description="Checks for the current screen field.">
           <Parameters>
-            <Parameter name="field" type="formvar"/>
+            <Parameter name="field..." type="formvar" desc="In the form: '[group.]field  [,...]', where group can be a table name, a screen record, a screen array or FORMONLY, and field is the name of the screen field."/>
           </Parameters>
           <Returns>
             <Return name="ret" type="boolean"/>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_operators_INFIELD.html</Documentation>
         </Function>
         <Function name="field_touched" description="Checks if fields were modified during the dialog execution.">
           <Parameters>
-            <Parameter name="field" type="formvar"/>
-            <Parameter name="field..." type="formvarList"/>
+            <Parameter name="field..." type="formvar" desc="In the form: '[group.]field  [,...]', where group can be a table name, a screen record, a screen array or FORMONLY, and field is the name of the screen field."/>
           </Parameters>
           <Returns>
             <Return name="ret" type="boolean"/>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_operators_FIELD_TOUCHED.html</Documentation>
         </Function>
         <Function name="arg_val" description="Returns a command line argument by position.">
           <Parameters>
-            <Parameter name="position" type="integer"/>
+            <Parameter name="position" type="integer" desc="An integer defining the argument position."/>
           </Parameters>
           <Returns>
             <Return name="result" type="string"/>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_BuiltInFunctions_ARG_VAL.html</Documentation>
         </Function>
         <Function name="arr_count" description="Returns the number of rows entered during a INPUT ARRAY statement.">
           <Parameters></Parameters>
           <Returns>
             <Return name="result" type="integer"/>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_BuiltInFunctions_ARR_COUNT.html</Documentation>
         </Function>
         <Function name="arr_curr" description="Returns the current row in a DISPLAY ARRAY or INPUT ARRAY.">
           <Parameters></Parameters>
           <Returns>
             <Return name="result" type="integer"/>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_BuiltInFunctions_ARR_CURR.html</Documentation>
         </Function>
         <Function name="downshift" description="Converts a string to lowercase.">
           <Parameters>
-            <Parameter name="source" type="string"/>
+            <Parameter name="source" type="string" desc="The character string to convert to lowercase letters."/>
           </Parameters>
           <Returns>
             <Return name="result" type="string"/>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_BuiltInFunctions_DOWNSHIFT.html</Documentation>
         </Function>
         <Function name="err_get" description="Returns the text corresponding to an error number.">
           <Parameters>
-            <Parameter name="errnum" type="integer"/>
+            <Parameter name="errnum" type="integer" desc="A runtime error or an Informix® SQL error."/>
           </Parameters>
           <Returns>
             <Return name="result" type="string"/>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_BuiltInFunctions_ERR_GET.html</Documentation>
         </Function>
         <Function name="err_print" description="Prints in the error line the text corresponding to an error number.">
           <Parameters>
-            <Parameter name="errnum" type="integer"/>
+            <Parameter name="errnum" type="integer" desc="A runtime error or an Informix® SQL error."/>
           </Parameters>
           <Returns>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_BuiltInFunctions_ERR_PRINT.html</Documentation>
         </Function>
         <Function name="err_quit" description="Prints in the error line the text corresponding to an error number and terminates the program">
           <Parameters>
-            <Parameter name="errnum" type="integer"/>
+            <Parameter name="errnum" type="integer" desc="A runtime error or an Informix® SQL error."/>
           </Parameters>
           <Returns>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_BuiltInFunctions_ERR_QUIT.html</Documentation>
         </Function>
         <Function name="errorlog" description="Copies the string passed as parameter into the error log file.">
           <Parameters>
-            <Parameter name="text" type="string"/>
+            <Parameter name="text" type="string" desc="The character string to be inserted in the error log file."/>
           </Parameters>
           <Returns>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_BuiltInFunctions_ERRORLOG.html</Documentation>
         </Function>
         <Function name="fgl_buffertouched" description="Returns TRUE if the input buffer was modified in the current field">
           <Parameters>
@@ -371,6 +422,7 @@
           <Returns>
             <Return name="result" type="integer"/>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_BuiltInFunctions_BUFFERTOUCHED.html</Documentation>
         </Function>
         <Function name="fgl_db_driver_type" description="Returns the 3-letter identifier/code of the current database driver.">
           <Parameters>
@@ -378,48 +430,54 @@
           <Returns>
             <Return name="drvtype" type="char(3)"/>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_BuiltInFunctions_FGL_DB_DRIVER_TYPE.html</Documentation>
         </Function>
         <Function name="fgl_decimal_truncate" description="Returns a decimal truncated to the precision passed as parameter.">
           <Parameters>
-            <Parameter name="value" type="decimal"/>
-            <Parameter name="decimals" type="integer"/>
+            <Parameter name="value" type="decimal" desc="The decimal to be converted."/>
+            <Parameter name="decimals" type="integer" desc="The number of digits after the decimal point."/>
           </Parameters>
           <Returns>
             <Return name="result" type="decimal"/>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_BuiltInFunctions_FGL_DECIMAL_TRUNCATE.html</Documentation>
         </Function>
         <Function name="fgl_decimal_sqrt" description="Computes the square root of the decimal passed as parameter.">
           <Parameters>
-            <Parameter name="value" type="decimal"/>
+            <Parameter name="value" type="decimal" desc="The decimal to be computed."/>
           </Parameters>
           <Returns>
             <Return name="result" type="decimal"/>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_BuiltInFunctions_FGL_DECIMAL_SQRT.html</Documentation>
         </Function>
         <Function name="fgl_decimal_exp" description="Returns the value of Euler's constant (e) raised to the power of the decimal passed as parameter">
           <Parameters>
-            <Parameter name="value" type="decimal"/>
+            <Parameter name="value" type="decimal" desc="The decimal to be computed."/>
           </Parameters>
           <Returns>
             <Return name="result" type="decimal"/>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_BuiltInFunctions_FGL_DECIMAL_EXP.html</Documentation>
         </Function>
         <Function name="fgl_decimal_logn" description="Returns the natural logarithm of the decimal passed as parameter.">
           <Parameters>
-            <Parameter name="value" type="decimal"/>
+            <Parameter name="value" type="decimal" desc="The decimal to be computed."/>
           </Parameters>
           <Returns>
             <Return name="result" type="decimal"/>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_BuiltInFunctions_FGL_DECIMAL_LOGN.html</Documentation>
         </Function>
         <Function name="fgl_decimal_power" description="Raises decimal to the power of the real exponent.">
           <Parameters>
-            <Parameter name="base" type="decimal"/>
-            <Parameter name="exp" type="decimal"/>
+            <Parameter name="base" type="decimal" desc="The decimal to be raise to the power of exp."/>
+            <Parameter name="exp" type="decimal" desc="The exponent."/>
           </Parameters>
           <Returns>
             <Return name="result" type="decimal"/>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_BuiltInFunctions_FGL_DECIMAL_POWER.html</Documentation>
         </Function>
         <Function name="fgl_dialog_getbuffer" description="Returns the text of the input buffer of the current field.">
           <Parameters>
@@ -427,6 +485,7 @@
           <Returns>
             <Return name="result" type="string"/>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_BuiltInFunctions_FGL_DIALOG_GETBUFFER.html</Documentation>
         </Function>
         <Function name="fgl_dialog_getbufferlength" description="Returns the number of rows to feed a paged DISPLAY ARRAY.">
           <Parameters>
@@ -434,6 +493,7 @@
           <Returns>
             <Return name="result" type="integer"/>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_BuiltInFunctions_FGL_DIALOG_GETBUFFERLENGTH.html</Documentation>
         </Function>
         <Function name="fgl_dialog_getbufferstart" description="Returns the row offset of the page to feed a paged display array.">
           <Parameters>
@@ -441,6 +501,7 @@
           <Returns>
             <Return name="result" type="integer"/>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_BuiltInFunctions_FGL_DIALOG_GETBUFFERSTART.html</Documentation>
         </Function>
         <Function name="fgl_dialog_getcursor" description="Returns the position of the edit cursor in the current field.">
           <Parameters>
@@ -448,6 +509,7 @@
           <Returns>
             <Return name="index" type="integer"/>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_BuiltInFunctions_FGL_DIALOG_GETCURSOR.html</Documentation>
         </Function>
         <Function name="fgl_dialog_getfieldname" description="Returns the name of the current input field.">
           <Parameters>
@@ -455,14 +517,16 @@
           <Returns>
             <Return name="result" type="string"/>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_BuiltInFunctions_FGL_DIALOG_GETFIELDNAME.html</Documentation>
         </Function>
         <Function name="fgl_dialog_getkeylabel" description="Returns the label associated to a key for the current interactive instruction">
           <Parameters>
-            <Parameter name="keyname" type="string"/>
+            <Parameter name="keyname" type="string" desc="The logical name of a key such as F11 or DELETE, INSERT, CANCEL."/>
           </Parameters>
           <Returns>
             <Return name="result" type="string"/>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_BuiltInFunctions_FGL_DIALOG_GETKEYLABEL.html</Documentation>
         </Function>
         <Function name="fgl_dialog_getselectionend" description="Returns the position of the last selected character in the current field.">
           <Parameters>
@@ -470,105 +534,125 @@
           <Returns>
             <Return name="position" type="integer"/>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_BuiltInFunctions_FGL_DIALOG_GETSELECTIONEND.html</Documentation>
         </Function>
         <Function name="fgl_dialog_infield" description="This function checks for the current input field.">
           <Parameters>
-            <Parameter name="field-name" type="string"/>
+            <Parameter name="field-name" type="string" desc="The name if the form field."/>
           </Parameters>
           <Returns>
             <Return name="result" type="integer"/>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_BuiltInFunctions_FGL_DIALOG_INFIELD.html</Documentation>
         </Function>
         <Function name="fgl_dialog_setbuffer" description="Sets the input buffer of the current field.">
           <Parameters>
-            <Parameter name="value" type="string"/>
+            <Parameter name="value" type="string" desc="The text to set in the current input buffer."/>
           </Parameters>
           <Returns>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_BuiltInFunctions_FGL_DIALOG_SETBUFFER.html</Documentation>
         </Function>
         <Function name="fgl_dialog_setcurrline" description="This function moves to a specific row in a record list.">
           <Parameters>
-            <Parameter name="line" type="integer"/>
-            <Parameter name="row" type="integer"/>
+            <Parameter name="line" type="integer" desc="the line number in the form screen array."/>
+            <Parameter name="row" type="integer" desc="the row number in the program array variable."/>
           </Parameters>
           <Returns>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_BuiltInFunctions_FGL_DIALOG_SETCURRLINE.html</Documentation>
         </Function>
         <Function name="fgl_dialog_setcursor" description="This function sets the position of the edit cursor in the current field.">
           <Parameters>
-            <Parameter name="position" type="integer"/>
+            <Parameter name="position" type="integer" desc="The edit cursor position in the text, using byte length semantics."/>
           </Parameters>
           <Returns>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_BuiltInFunctions_FGL_DIALOG_SETCURSOR.html</Documentation>
         </Function>
         <Function name="fgl_dialog_setfieldorder" description="This function enables or disables field order constraint.">
           <Parameters>
-            <Parameter name="active" type="integer"/>
+            <Parameter name="active" type="integer" desc="When active is TRUE, the field order is constrained. When active is FALSE, the field order is not constrained."/>
           </Parameters>
           <Returns>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_BuiltInFunctions_FGL_DIALOG_SETFIELDORDER.html</Documentation>
         </Function>
         <Function name="fgl_dialog_setkeylabel" description="Sets the label associated to a key for the current interactive instruction.">
           <Parameters>
-            <Parameter name="keyname" type="string"/>
-            <Parameter name="label" type="string"/>
+            <Parameter name="keyname" type="string" desc="the logical name of a key such as F11 or DELETE,INSERT, CANCEL."/>
+            <Parameter name="label" type="string" desc="the text associated to the key."/>
           </Parameters>
           <Returns>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_BuiltInFunctions_FGL_DIALOG_SETKEYLABEL.html</Documentation>
         </Function>
         <Function name="fgl_dialog_setselection" description="Selects the text in the current field.">
           <Parameters>
-            <Parameter name="cursor" type="integer"/>
-            <Parameter name="end" type="integer"/>
+            <Parameter name="cursor" type="integer" desc="defines the edit cursor position, using byte length semantics."/>
+            <Parameter name="end" type="integer" desc="defines the selection end position, using byte length semantics."/>
           </Parameters>
           <Returns>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_BuiltInFunctions_FGL_DIALOG_SETSELECTION.html</Documentation>
         </Function>
         <Function name="fgl_drawbox" description="Draws a rectangle in the current window.">
           <Parameters>
-            <Parameter name="height" type="integer"/>
-            <Parameter name="width" type="integer"/>
-            <Parameter name="line" type="integer"/>
-            <Parameter name="column" type="integer"/>
-            <Parameter name="color" type="integer"/>
+            <Parameter name="height" type="integer" desc="the height of the rectangle."/>
+            <Parameter name="width" type="integer" desc="the width of the rectangle."/>
+            <Parameter name="line" type="integer" desc="the horizontal coordinate of the upper side of the rectangle."/>
+            <Parameter name="column" type="integer" desc="the vertical coordinate of the left side of the rectangle."/>
+            <Parameter name="color" type="integer" desc="the color number (ignored)."/>
           </Parameters>
           <Returns>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_BuiltInFunctions_FGL_DRAWBOX.html</Documentation>
         </Function>
         <Function name="fgl_drawline" description="Draws a line in the current window (TUI and traditional mode).">
           <Parameters>
-            <Parameter name="column" type="integer"/>
-            <Parameter name="line" type="integer"/>
-            <Parameter name="width" type="integer"/>
-            <Parameter name="type" type="char(1)"/>
-            <Parameter name="color" type="integer"/>
+            <Parameter name="column" type="integer" desc="the vertical coordinate of the left side of the rectangle."/>
+            <Parameter name="line" type="integer" desc="the horizontal coordinate of the upper side of the rectangle."/>
+            <Parameter name="width" type="integer" desc="the width of the line."/>
+            <Parameter name="type" type="char(1)" desc="ignored"/>
+            <Parameter name="color" type="integer" desc="the color number (ignored)."/>
           </Parameters>
           <Returns>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_BuiltInFunctions_FGL_DRAWLINE.html</Documentation>
+        </Function>
+        <Function name="fgl_eventloop" description="Waits for a user interaction event." minVersion="3.00">
+          <Parameters></Parameters>
+          <Returns>
+            <Return name="status" type="bool"/>
+          </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_BuiltInFunctions_FGL_EVENTLOOP.html</Documentation>
         </Function>
         <Function name="fgl_getenv" description="Returns the value of the environment variable.">
           <Parameters>
-            <Parameter name="variable" type="string"/>
+            <Parameter name="variable" type="string" desc="the name of the environment variable."/>
           </Parameters>
           <Returns>
             <Return name="result" type="string"/>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_BuiltInFunctions_FGL_GETENV.html</Documentation>
         </Function>
         <Function name="fgl_getfile" description="Transfers a file from the front end workstation to the application server machine.">
           <Parameters>
-            <Parameter name="src" type="string"/>
-            <Parameter name="dest" type="string"/>
+            <Parameter name="src" type="string" desc="the path of the file to retrieve from the front-end context."/>
+            <Parameter name="dest" type="string" desc="the path of the file to write in the virtual machine context."/>
           </Parameters>
           <Returns>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_BuiltInFunctions_FGL_GETFILE.html</Documentation>
         </Function>
         <Function name="fgl_gethelp" description="Returns the help text according to its identifier by reading the current help file.">
           <Parameters>
-            <Parameter name="help-id" type="integer"/>
+            <Parameter name="help-id" type="integer" desc="the help text identifier."/>
           </Parameters>
           <Returns>
             <Return name="result" type="string"/>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_BuiltInFunctions_FGL_GETHELP.html</Documentation>
         </Function>
         <Function name="fgl_getkey" description="Waits for a keystroke and returns the key number.">
           <Parameters>
@@ -576,14 +660,16 @@
           <Returns>
             <Return name="keynum" type="integer"/>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_BuiltInFunctions_FGL_GETKEY.html</Documentation>
         </Function>
         <Function name="fgl_getkeylabel" description="Returns the default label associated to a key.">
           <Parameters>
-            <Parameter name="keyname" type="string"/>
+            <Parameter name="keyname" type="string" desc="the logical name of a key such as F11 or DELETE, INSERT, CANCEL."/>
           </Parameters>
           <Returns>
             <Return name="result" type="string"/>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_BuiltInFunctions_FGL_GETKEYLABEL.html</Documentation>
         </Function>
         <Function name="fgl_getpid" description="Returns the system process identifier.">
           <Parameters>
@@ -591,14 +677,16 @@
           <Returns>
             <Return name="result" type="integer"/>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_BuiltInFunctions_FGL_GETPID.html</Documentation>
         </Function>
         <Function name="fgl_getresource" description="Returns the value of an FGLPROFILE entry.">
           <Parameters>
-            <Parameter name="name" type="string"/>
+            <Parameter name="name" type="string" desc="the FGLPROFILE entry name to be read."/>
           </Parameters>
           <Returns>
             <Return name="result" type="string"/>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_BuiltInFunctions_FGL_GETRESOURCE.html</Documentation>
         </Function>
         <Function name="fgl_getversion" description="Returns the build number of the runtime system.">
           <Parameters>
@@ -606,6 +694,7 @@
           <Returns>
             <Return name="result" type="string"/>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_BuiltInFunctions_FGL_GETVERSION.html</Documentation>
         </Function>
         <Function name="fgl_getwin_height" description="Returns the number of rows of the current window.">
           <Parameters>
@@ -613,6 +702,7 @@
           <Returns>
             <Return name="result" type="integer"/>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_BuiltInFunctions_FGL_GETWIN_HEIGHT.html</Documentation>
         </Function>
         <Function name="fgl_getwin_width" description="Returns the width of the current window as a number of columns.">
           <Parameters>
@@ -620,6 +710,7 @@
           <Returns>
             <Return name="result" type="integer"/>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_BuiltInFunctions_FGL_GETWIN_WIDTH.html</Documentation>
         </Function>
         <Function name="fgl_getwin_x" description="Returns the horizontal position of the current window.">
           <Parameters>
@@ -627,6 +718,7 @@
           <Returns>
             <Return name="result" type="integer"/>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_BuiltInFunctions_FGL_GETWIN_X.html</Documentation>
         </Function>
         <Function name="fgl_getwin_y" description="Returns the vertical position of the current window.">
           <Parameters>
@@ -634,14 +726,16 @@
           <Returns>
             <Return name="result" type="integer"/>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_BuiltInFunctions_FGL_GETWIN_Y.html</Documentation>
         </Function>
         <Function name="fgl_keyval" description="Returns the key code of a logical or physical key.">
           <Parameters>
-            <Parameter name="string" type="string"/>
+            <Parameter name="string" type="string" desc="can be a single character, a digit, a printable symbol like @, #, $ or a special keyword such as ACCEPT."/>
           </Parameters>
           <Returns>
             <Return name="result" type="integer"/>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_BuiltInFunctions_FGL_KEYVAL.html</Documentation>
         </Function>
         <Function name="fgl_lastkey" description="Returns the key code corresponding to the logical key that the user most recently typed in the form.">
           <Parameters>
@@ -649,28 +743,32 @@
           <Returns>
             <Return name="result" type="integer"/>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_BuiltInFunctions_FGL_LASTKEY.html</Documentation>
         </Function>
         <Function name="fgl_putfile" description="Transfers a file from the application server machine to the front end workstation.">
           <Parameters>
-            <Parameter name="src" type="string"/>
-            <Parameter name="dest" type="string"/>
+            <Parameter name="src" type="string" desc="the path to the file to transmit from the virtual machine context."/>
+            <Parameter name="dest" type="string" desc="the path to the file to write in the front end context."/>
           </Parameters>
           <Returns>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_BuiltInFunctions_FGL_PUTFILE.html</Documentation>
         </Function>
         <Function name="fgl_report_print_binary_file" description="Prints a file containing binary data during a report.">
           <Parameters>
-            <Parameter name="filename" type="string"/>
+            <Parameter name="filename" type="string" desc="the name of the binary file."/>
           </Parameters>
           <Returns>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_BuiltInFunctions_FGL_REPORT_PRINT_BINARY_FILE.html</Documentation>
         </Function>
         <Function name="fgl_report_set_document_handler" description="Redirects the next report to an XML document handler.">
           <Parameters>
-            <Parameter name="handler" type="om.SaxDocumentHandler"/>
+            <Parameter name="handler" type="om.SaxDocumentHandler" desc="the document handler variable."/>
           </Parameters>
           <Returns>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_BuiltInFunctions_FGL_REPORT_SET_DOCUMENT_HANDLER.html</Documentation>
         </Function>
         <Function name="fgl_scr_size" description="Returns the size of the specified screen array in the current form.">
           <Parameters>
@@ -679,75 +777,85 @@
           <Returns>
             <Return name="result" type="integer"/>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_BuiltInFunctions_FGL_SCR_SIZE.html</Documentation>
         </Function>
         <Function name="fgl_set_arr_curr" description="Moves to a specific row in a record list.">
           <Parameters>
-            <Parameter name="row" type="integer"/>
+            <Parameter name="row" type="integer" desc="the row number is the program array variable."/>
           </Parameters>
           <Returns>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_BuiltInFunctions_FGL_SET_ARR_CURR.html</Documentation>
         </Function>
         <Function name="fgl_setenv" description="Sets the value of an environment variable.">
           <Parameters>
-            <Parameter name="variable" type="string"/>
-            <Parameter name="value" type="string"/>
+            <Parameter name="variable" type="string" desc="the name of the environment variable."/>
+            <Parameter name="value" type="string" desc="the value to be set."/>
           </Parameters>
           <Returns>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_BuiltInFunctions_FGL_SETENV.html</Documentation>
         </Function>
         <Function name="fgl_setkeylabel" description="Sets the default label associated to a key.">
           <Parameters>
-            <Parameter name="keyname" type="string"/>
-            <Parameter name="label" type="string"/>
+            <Parameter name="keyname" type="string" desc="the logical name of a key such as F11 or DELETE, INSERT, CANCEL."/>
+            <Parameter name="label" type="string" desc="the text associated to the key."/>
           </Parameters>
           <Returns>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_BuiltInFunctions_FGL_SETKEYLABEL.html</Documentation>
         </Function>
         <Function name="fgl_setsize" description="Sets the size of the main application window.">
           <Parameters>
-            <Parameter name="height" type="integer"/>
-            <Parameter name="width" type="integer"/>
+            <Parameter name="height" type="integer" desc="the number of lines of the window."/>
+            <Parameter name="width" type="integer" desc="the number of columns of the window."/>
           </Parameters>
           <Returns>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_BuiltInFunctions_FGL_SETSIZE.html</Documentation>
         </Function>
         <Function name="fgl_settitle" description="Sets the title of the current application window.">
           <Parameters>
-            <Parameter name="label" type="string"/>
+            <Parameter name="label" type="string" desc="the text of the title."/>
           </Parameters>
           <Returns>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_BuiltInFunctions_FGL_SETTITLE.html</Documentation>
         </Function>
         <Function name="fgl_system" description="Runs a command on the application server.">
           <Parameters>
-            <Parameter name="command" type="string"/>
+            <Parameter name="command" type="string" desc="the command line to be executed on the server."/>
           </Parameters>
           <Returns>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_BuiltInFunctions_FGL_SYSTEM.html</Documentation>
         </Function>
         <Function name="fgl_width" description="Returns the number of columns needed to represent the printed version of the expression.">
           <Parameters>
-            <Parameter name="expression" type="string"/>
+            <Parameter name="expression" type="string" desc="any valid string expression."/>
           </Parameters>
           <Returns>
             <Return name="result" type="integer"/>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_BuiltInFunctions_FGL_WIDTH.html</Documentation>
         </Function>
         <Function name="fgl_window_getoption" description="Returns attributes of the current window.">
           <Parameters>
-            <Parameter name="attribute" type="string"/>
+            <Parameter name="attribute" type="string" desc="the name of a window attribute."/>
           </Parameters>
           <Returns>
             <Return name="result" type="string"/>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_BuiltInFunctions_FGL_WINDOW_GETOPTION.html</Documentation>
         </Function>
         <Function name="length" description="Returns the number of the character string passed as parameter.">
           <Parameters>
-            <Parameter name="expression" type="string"/>
+            <Parameter name="expression" type="string" desc="any valid character string expression supported by the language."/>
           </Parameters>
           <Returns>
             <Return name="result" type="integer"/>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_BuiltInFunctions_LENGTH.html</Documentation>
         </Function>
         <Function name="num_args" description="Returns the number of program arguments.">
           <Parameters>
@@ -755,6 +863,7 @@
           <Returns>
             <Return name="result" type="integer"/>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_BuiltInFunctions_NUM_ARGS.html</Documentation>
         </Function>
         <Function name="scr_line" description="Returns the index of the current row in the screen array.">
           <Parameters>
@@ -762,35 +871,40 @@
           <Returns>
             <Return name="result" type="integer"/>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_BuiltInFunctions_SCR_LINE.html</Documentation>
         </Function>
         <Function name="set_count" description="Defines the number of rows containing explicit data in a static array used by the next dialog.">
           <Parameters>
-            <Parameter name="nbrows" type="integer"/>
+            <Parameter name="nbrows" type="integer" desc="the number of explicit rows in the static array."/>
           </Parameters>
           <Returns>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_BuiltInFunctions_SET_COUNT.html</Documentation>
         </Function>
         <Function name="show_help" description="Displays a runtime help text.">
           <Parameters>
-            <Parameter name="helpnum" type="integer"/>
+            <Parameter name="helpnum" type="integer" desc="the help message number in the current help file."/>
           </Parameters>
           <Returns>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_BuiltInFunctions_SHOWHELP.html</Documentation>
         </Function>
         <Function name="startlog" description="Initializes error logging and opens the error log file passed as the parameter.">
           <Parameters>
-            <Parameter name="filename" type="string"/>
+            <Parameter name="filename" type="string" desc="the name of the error log file."/>
           </Parameters>
           <Returns>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_BuiltInFunctions_STARTLOG.html</Documentation>
         </Function>
         <Function name="upshift" description="Converts a string to uppercase.">
           <Parameters>
-            <Parameter name="source" type="string"/>
+            <Parameter name="source" type="string" desc="the character string to convert to uppercase letters."/>
           </Parameters>
           <Returns>
             <Return name="result" type="string"/>
           </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_BuiltInFunctions_UPSHIFT.html</Documentation>
         </Function>
       </Context>
     </Functions>
@@ -6561,5 +6675,98 @@
         </Classes>
       </Package>
     </Packages>
+    <ImportModules>
+      <ImportModule name="fgldialog" desc="Common dialog utility functions (fgldialog.4gl)" minVersion="3.00">
+        <Function name="fgl_winbutton" description="Displays an interactive message box containing multiple choices, in a popup window." minVersion="3.00">
+          <Parameters>
+            <Parameter name="title" type="string" desc="Defines the title of the message window."/>
+            <Parameter name="text" type="string" desc="Specifies the string displayed in message window."/>
+            <Parameter name="default" type="string" desc="Indicates the default button to be pre-selected."/>
+            <Parameter name="buttons" type="string" desc="Befines a set of button labels separated by '|'."/>
+            <Parameter name="icon" type="string" desc="The name of the icon to be displayed.">
+              <AllowedValues>
+                <AllowedValue>"information"</AllowedValue>
+                <AllowedValue>"exclamation"</AllowedValue>
+                <AllowedValue>"question"</AllowedValue>
+                <AllowedValue>"stop"</AllowedValue>
+              </AllowedValues>
+            </Parameter>
+            <Parameter name="danger" type="smallint" desc="(For X11 only), number of the warnings item. Otherwise, this parameter is ignored."/>
+          </Parameters>
+          <Returns>
+            <Return name="result" type="string"/>
+          </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_utility_functions_FGL_WINBUTTON.html</Documentation>
+        </Function>
+        <Function name="fgl_winmessage" description="Displays an interactive message box containing text and OK button." minVersion="3.00">
+          <Parameters>
+            <Parameter name="title" type="string" desc="Defines the title of the message window."/>
+            <Parameter name="text" type="string" desc="The text displayed in the message box. Use '\n' to separate lines."/>
+            <Parameter name="icon" type="string" desc="The name of the icon to be displayed.">
+              <AllowedValues>
+                <AllowedValue>"information"</AllowedValue>
+                <AllowedValue>"exclamation"</AllowedValue>
+                <AllowedValue>"question"</AllowedValue>
+                <AllowedValue>"stop"</AllowedValue>
+              </AllowedValues>
+            </Parameter>
+          </Parameters>
+          <Returns>
+          </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_utility_functions_FGL_WINMESSAGE.html</Documentation>
+        </Function>
+        <Function name="fgl_winprompt" description="Displays a dialog box containing a field that accepts a value." minVersion="3.00">
+          <Parameters>
+            <Parameter name="x" type="int" desc="The column position in characters."/>
+            <Parameter name="y" type="int" desc="The line position in characters."/>
+            <Parameter name="text" type="string" desc="The message shown in the box."/>
+            <Parameter name="default" type="string" desc="The default value."/>
+            <Parameter name="length" type="int" desc="The maximum length of the input value."/>
+            <Parameter name="type" type="int" desc="The data type of the return value.">
+              <AllowedValues>
+                <AllowedValue desc="char">0</AllowedValue>
+                <AllowedValue desc="smallint">1</AllowedValue>
+                <AllowedValue desc="int">2</AllowedValue>
+                <AllowedValue desc="date">7</AllowedValue>
+                <AllowedValue desc="invisible">255</AllowedValue>
+              </AllowedValues>
+            </Parameter>
+          </Parameters>
+          <Returns>
+            <Return name="value" type="string"/>
+          </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_utility_functions_FGL_WINPROMPT.html</Documentation>
+        </Function>
+        <Function name="fgl_winquestion" description="Displays an interactive message box with configurable Ok/Yes/No/Cancel/Ignore/Abort/Retry buttons." minVersion="3.00">
+          <Parameters>
+            <Parameter name="title" desc="The message box title." type="string"/>
+            <Parameter name="text" desc="The message displayed in the message box. Use '\n' to separate lines (does not work on ASCII client)." type="string"/>
+            <Parameter name="default" desc="The default button that is preselected." type="string"/>
+            <Parameter name="buttons" desc="Defines the options. Must be a pipe-separated list of 2 or three options : ok, yes, no, cancel, abort, retry, ignore." type="string"/>
+            <Parameter name="icon" desc="The name of the icon to be displayed." type="string">
+              <AllowedValues>
+                <AllowedValue>"information"</AllowedValue>
+                <AllowedValue>"exclamation"</AllowedValue>
+                <AllowedValue>"question"</AllowedValue>
+                <AllowedValue>"stop"</AllowedValue>
+              </AllowedValues>
+            </Parameter>
+            <Parameter name="danger" type="smallint" desc="Supported for backward compatibility. This parameter is ignored."/>
+          </Parameters>
+          <Returns>
+            <Return name="value" type="string"/>
+          </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_utility_functions_FGL_WINQUESTION.html</Documentation>
+        </Function>
+        <Function name="fgl_winwait" description="Displays an interactive message box and waits for user validation." minVersion="3.00">
+          <Parameters>
+            <Parameter name="text" type="string" desc="The message displayed in the message box. Use '\n' to separate lines (not working on ASCII client)."/>
+          </Parameters>
+          <Returns>
+          </Returns>
+          <Documentation>http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_utility_functions_FGL_WINWAIT.html</Documentation>
+        </Function>
+      </ImportModule>
+    </ImportModules>
   </Parsing>
 </Genero4GL>

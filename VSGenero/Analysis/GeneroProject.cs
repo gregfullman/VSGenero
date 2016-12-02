@@ -154,6 +154,22 @@ namespace VSGenero.Analysis
 
         public bool IsPublic { get { return true; } }
 
+        public GeneroLanguageVersion MinimumLanguageVersion
+        {
+            get
+            {
+                return GeneroLanguageVersion.None;
+            }
+        }
+
+        public GeneroLanguageVersion MaximumLanguageVersion
+        {
+            get
+            {
+                return GeneroLanguageVersion.Latest;
+            }
+        }
+
         internal IAnalysisResult GetMemberOfType(string name, object ast, bool vars, bool types, bool consts, bool funcs, out IProjectEntry definingProjEntry)
         {
             string projNamespace = string.Format("{0}", this.Name);

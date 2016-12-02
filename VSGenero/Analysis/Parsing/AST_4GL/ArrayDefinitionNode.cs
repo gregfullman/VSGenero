@@ -318,7 +318,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     results.AddRange((node as TypeReference).GetAnalysisMembers(ast, memberType, out definingProject, out projEntry, function));
                 }
             }
-            results.AddRange(Genero4glAst.ArrayFunctions.Values);
+            results.AddRange(Genero4glAst.ArrayFunctions.Values.Where(x => ast.LanguageVersion >= x.MinimumLanguageVersion && ast.LanguageVersion <= x.MaximumLanguageVersion));
             return results;
         }
 
@@ -338,7 +338,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             }
             else
             {
-                results.AddRange(Genero4glAst.ArrayFunctions.Values.Select(x => new MemberResult(x.Name, x, GeneroMemberType.Method, ast)));
+                results.AddRange(Genero4glAst.ArrayFunctions.Values.Where(x => ast.LanguageVersion >= x.MinimumLanguageVersion && ast.LanguageVersion <= x.MaximumLanguageVersion)
+                                                                   .Select(x => new MemberResult(x.Name, x, GeneroMemberType.Method, ast)));
             }
             return results;
         }

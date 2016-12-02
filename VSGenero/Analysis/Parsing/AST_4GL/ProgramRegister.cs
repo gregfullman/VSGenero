@@ -12,6 +12,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         private readonly string _name;
         private readonly string _typeName;
         private readonly Dictionary<string, ProgramRegister> _childRegisters;
+        private readonly GeneroLanguageVersion _minBdlVersion;
+        private readonly GeneroLanguageVersion _maxBdlVersion;
 
         public bool CanGetValueFromDebugger
         {
@@ -20,11 +22,17 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
         public bool IsPublic { get { return true; } }
 
-        public ProgramRegister(string name, string typeName, IEnumerable<ProgramRegister> childRegisters = null)
+        public ProgramRegister(string name, 
+                               string typeName, 
+                               IEnumerable<ProgramRegister> childRegisters = null,
+                               GeneroLanguageVersion minimumBdlVersion = GeneroLanguageVersion.None,
+                               GeneroLanguageVersion maximumBdlVersion = GeneroLanguageVersion.None)
         {
             _parentRegister = null;
             _name = name;
             _typeName = typeName;
+            _minBdlVersion = minimumBdlVersion;
+            _maxBdlVersion = maximumBdlVersion;
             _childRegisters = new Dictionary<string, ProgramRegister>(StringComparer.OrdinalIgnoreCase);
             if (childRegisters != null)
             {
@@ -113,6 +121,22 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         public string Typename
         {
             get { return _typeName; }
+        }
+
+        public GeneroLanguageVersion MinimumLanguageVersion
+        {
+            get
+            {
+                return _minBdlVersion;
+            }
+        }
+
+        public GeneroLanguageVersion MaximumLanguageVersion
+        {
+            get
+            {
+                return _maxBdlVersion;
+            }
         }
     }
 }

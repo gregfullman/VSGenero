@@ -8,7 +8,7 @@
  *
  * You must not remove this notice, or any other, from this software.
  *
- * ***************************************************************************/ 
+ * ***************************************************************************/
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
@@ -21,6 +21,7 @@ using System.Xml.XPath;
 using System.Text.RegularExpressions;
 using System.Reflection;
 using System.IO;
+using VSGenero.Analysis.Parsing;
 
 namespace VSGeneroUnitTesting.Utilities
 {
@@ -30,6 +31,7 @@ namespace VSGeneroUnitTesting.Utilities
         private readonly XmlReader _reader;
         private readonly XDocument _document;
         private readonly XmlNamespaceManager _nsManager;
+        private readonly Dictionary<string, GeneroLanguageVersion> _languageVersions;
 
         public BuiltinsGenerator()
         {
@@ -38,6 +40,13 @@ namespace VSGeneroUnitTesting.Utilities
             _document = XDocument.Load(_reader);
             _nsManager = new XmlNamespaceManager(_reader.NameTable);
             _nsManager.AddNamespace("gns", "GeneroXML");
+
+            // Get the language version mapping
+            var type = typeof(GeneroLanguageVersion);
+            _languageVersions = type.GetMembers().Select(x => x.GetCustomAttribute(typeof(GeneroLanguageVersionAttribute), false))
+                                                 .Where(y => y != null)
+                                                 .ToDictionary(y => (y as GeneroLanguageVersionAttribute).VersionString, y => (y as GeneroLanguageVersionAttribute).LanguageVersion);
+
         }
 
         private IEnumerable<XElement> GetElementsAtPath(string path)
@@ -63,6 +72,7 @@ namespace VSGeneroUnitTesting.Utilities
                 _duplicatesChecker.Add(key.Item1, new HashSet<string>());
 
             StringBuilder sb = new StringBuilder();
+            sb.AppendLine("#region Generated Functions");
             foreach (var element in GetElementsAtPath("//gns:Genero4GL/gns:Parsing/gns:Functions/gns:Context"))
             {
                 string context = (string)element.Attribute("name");
@@ -72,9 +82,9 @@ namespace VSGeneroUnitTesting.Utilities
                     GenerateContextFunctions(mapping.Item1, mapping.Item2, element, sb);
                 }
             }
-
+            sb.AppendLine("#endregion");
             // write the string to a file
-            using(var file = new StreamWriter("builtinFunctions.txt"))
+            using (var file = new StreamWriter("builtinFunctions.txt"))
             {
                 file.Write(sb.ToString());
             }
@@ -104,69 +114,79 @@ namespace VSGeneroUnitTesting.Utilities
                 var docEle = contextMethod.XPathSelectElement("gns:Documentation", _nsManager);
                 if (docEle != null)
                     docUrl = docEle.Value;
-                sb.AppendFormat("}},\n\"{0}\",\n\"{1}\"));\n", (string)contextMethod.Attribute("description"), docUrl);
+                sb.AppendFormat("}},\n\"{0}\",\n\"{1}\",\n{2},\n{3}));\n", (string)contextMethod.Attribute("description"), 
+                                                                            docUrl,
+                                                                            GetLanguageVersion(contextMethod, "minVersion"),
+                                                                            GetLanguageVersion(contextMethod, "maxVersion"));
             }
         }
 
-        //private void GenerateSystemFunctions(XElement element, StringBuilder sb)
-        //{
-        //    foreach (var contextMethod in element.XPathSelectElements("gns:Function", _nsManager))
-        //    {
-        //        sb.AppendFormat("_systemFunctions.Add(\"{0}\", new BuiltinFunction(\"{0}\", null, new List<ParameterResult>\n{{", (string)contextMethod.Attribute("name"));
-        //        foreach (var paramElement in contextMethod.XPathSelectElement("gns:Parameters", _nsManager)
-        //                                                  .XPathSelectElements("gns:Parameter", _nsManager))
-        //        {
-        //            sb.AppendFormat("new ParameterResult(\"{0}\", \"\", \"{1}\"),\n", (string)paramElement.Attribute("name"), (string)paramElement.Attribute("type"));
-        //        }
-        //        sb.AppendFormat("}}, new List<string> {{");
-        //        foreach (var returnElement in contextMethod.XPathSelectElement("gns:Returns", _nsManager)
-        //                                                   .XPathSelectElements("gns:Return", _nsManager))
-        //        {
-        //            sb.AppendFormat("\"{0}\", ", (string)returnElement.Attribute("type"));
-        //        }
-        //        sb.AppendFormat("}},\n\"{0}\"));\n", (string)contextMethod.Attribute("description"));
-        //    }
-        //}
+        [TestMethod]
+        public void GenerateImportModules()
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine("#region Generated ImportModule Init Code");
+            foreach (var element in GetElementsAtPath("//gns:Genero4GL/gns:Parsing/gns:ImportModules/gns:ImportModule"))
+                GenerateImportModule(element, sb);
+            sb.Append("#endregion");
 
-        //private void GenerateArrayFunctions(XElement element, StringBuilder sb)
-        //{
-        //    foreach (var contextMethod in element.XPathSelectElements("gns:Function", _nsManager))
-        //    {
-        //        sb.AppendFormat("_arrayFunctions.Add(\"{0}\", new BuiltinFunction(\"{0}\", \"Array\", new List<ParameterResult>\n{{", (string)contextMethod.Attribute("name"));
-        //        foreach (var paramElement in contextMethod.XPathSelectElement("gns:Parameters", _nsManager)
-        //                                                  .XPathSelectElements("gns:Parameter", _nsManager))
-        //        {
-        //            sb.AppendFormat("new ParameterResult(\"{0}\", \"\", \"{1}\"),\n", (string)paramElement.Attribute("name"), (string)paramElement.Attribute("type"));
-        //        }
-        //        sb.AppendFormat("}}, new List<string> {{");
-        //        foreach (var returnElement in contextMethod.XPathSelectElement("gns:Returns", _nsManager)
-        //                                                   .XPathSelectElements("gns:Return", _nsManager))
-        //        {
-        //            sb.AppendFormat("\"{0}\", ", (string)returnElement.Attribute("type"));
-        //        }
-        //        sb.AppendFormat("}},\n\"{0}\"));\n", (string)contextMethod.Attribute("description"));
-        //    }
-        //}
+            // write the string to a file
+            using (var file = new StreamWriter("importModules.txt"))
+            {
+                file.Write(sb.ToString());
+            }
+        }
 
-        //private void GenerateStringFunctions(XElement element, StringBuilder sb)
-        //{
-        //    foreach (var contextMethod in element.XPathSelectElements("gns:Function", _nsManager))
-        //    {
-        //        sb.AppendFormat("_stringFunctions.Add(\"{0}\", new BuiltinFunction(\"{0}\", \"String\", new List<ParameterResult>\n{{", (string)contextMethod.Attribute("name"));
-        //        foreach (var paramElement in contextMethod.XPathSelectElement("gns:Parameters", _nsManager)
-        //                                                  .XPathSelectElements("gns:Parameter", _nsManager))
-        //        {
-        //            sb.AppendFormat("new ParameterResult(\"{0}\", \"\", \"{1}\"),\n", (string)paramElement.Attribute("name"), (string)paramElement.Attribute("type"));
-        //        }
-        //        sb.AppendFormat("}}, new List<string> {{");
-        //        foreach (var returnElement in contextMethod.XPathSelectElement("gns:Returns", _nsManager)
-        //                                                   .XPathSelectElements("gns:Return", _nsManager))
-        //        {
-        //            sb.AppendFormat("\"{0}\", ", (string)returnElement.Attribute("type"));
-        //        }
-        //        sb.AppendFormat("}},\n\"{0}\"));\n", (string)contextMethod.Attribute("description"));
-        //    }
-        //}
+        private void GenerateImportModule(XElement element, StringBuilder sb)
+        {
+            sb.AppendFormat("_systemImportModules.Add(\"{0}\", new SystemImportModule(\"{0}\", \"{1}\", new List<BuiltinFunction>\n{{",
+                            (string)element.Attribute("name"),
+                            (string)element.Attribute("desc"));
+
+            foreach (var funcElement in element.XPathSelectElements("gns:Function", _nsManager))
+            {
+                var funcName = (string)funcElement.Attribute("name");
+                sb.AppendFormat("new BuiltinFunction(\"{0}\", \"{1}\", new List<ParameterResult>\n{{", funcName, (string)element.Attribute("name"));
+                foreach (var paramElement in funcElement.XPathSelectElement("gns:Parameters", _nsManager)
+                                                          .XPathSelectElements("gns:Parameter", _nsManager))
+                {
+                    sb.AppendFormat("new ParameterResult(\"{0}\", \"{1}\", \"{2}\"),\n", 
+                                    (string)paramElement.Attribute("name"),
+                                    paramElement.Attribute("desc")?.Value ?? "",
+                                    (string)paramElement.Attribute("type"));
+                }
+                sb.AppendFormat("}}, new List<string> {{");
+                foreach (var returnElement in funcElement.XPathSelectElement("gns:Returns", _nsManager)
+                                                           .XPathSelectElements("gns:Return", _nsManager))
+                {
+                    sb.AppendFormat("\"{0}\", ", (string)returnElement.Attribute("type"));
+                }
+
+                string docUrl = "";
+                var docEle = funcElement.XPathSelectElement("gns:Documentation", _nsManager);
+                if (docEle != null)
+                    docUrl = docEle.Value;
+                sb.AppendFormat("}},\n\"{0}\",\n\"{1}\",\n{2},\n{3}),\n", (string)funcElement.Attribute("description"), 
+                                                                          docUrl, 
+                                                                          GetLanguageVersion(element, "minVersion"), 
+                                                                          GetLanguageVersion(element, "maxVersion"));
+            }
+            sb.Remove(sb.Length - 2, 1);    // take out the comma
+            sb.AppendFormat("}},\n{0},\n{1}));\n", GetLanguageVersion(element, "minVersion"), 
+                                                   GetLanguageVersion(element, "maxVersion"));
+        }
+
+        private string GetLanguageVersion(XElement element, string attributeName)
+        {
+            var versionString = element.Attribute(attributeName)?.Value;
+            GeneroLanguageVersion version = GeneroLanguageVersion.None;
+            if(!string.IsNullOrWhiteSpace(versionString))
+                _languageVersions.TryGetValue(versionString, out version);
+            if (attributeName == "maxVersion" &&
+                (version == GeneroLanguageVersion.None || version == GeneroLanguageVersion.Latest))
+                version = GeneroLanguageVersion.Latest;
+            return string.Format("GeneroLanguageVersion.{0}", version.ToString());
+        }
 
         [TestMethod]
         public void GeneratePackages()

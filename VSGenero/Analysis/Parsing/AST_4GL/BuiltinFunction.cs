@@ -14,6 +14,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         private readonly string _description;
         private readonly string _namespace;
         private readonly string _documentationUrl;
+        private readonly GeneroLanguageVersion _minBdlVersion;
+        private readonly GeneroLanguageVersion _maxBdlVersion;
 
         public bool IsPublic { get { return true; } }
 
@@ -28,7 +30,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                IEnumerable<string> returns, 
                                string description,
                                string documentationUrl = null, 
-                               GeneroLanguageVersion minimumBdlVersion = GeneroLanguageVersion.None)
+                               GeneroLanguageVersion minimumBdlVersion = GeneroLanguageVersion.None,
+                               GeneroLanguageVersion maximumBdlVersion = GeneroLanguageVersion.None)
         {
             _name = name;
             _namespace = nameSpace;
@@ -37,18 +40,10 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             _parameters = new List<ParameterResult>(parameters);
             _returns = new List<string>(returns);
             _minBdlVersion = minimumBdlVersion;
+            _maxBdlVersion = maximumBdlVersion;
         }
 
         public string DefinitionUrl { get { return _documentationUrl; } }
-
-        private readonly GeneroLanguageVersion _minBdlVersion;
-        public GeneroLanguageVersion MinimumBdlVersion
-        {
-            get
-            {
-                return _minBdlVersion;
-            }
-        }
 
         public ParameterResult[] Parameters
         {
@@ -296,6 +291,22 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 if (_additionalDecoratorRanges == null)
                     _additionalDecoratorRanges = new SortedList<int, int>();
                 return _additionalDecoratorRanges;
+            }
+        }
+
+        public GeneroLanguageVersion MinimumLanguageVersion
+        {
+            get
+            {
+                return _minBdlVersion;
+            }
+        }
+
+        public GeneroLanguageVersion MaximumLanguageVersion
+        {
+            get
+            {
+                return _maxBdlVersion;
             }
         }
     }

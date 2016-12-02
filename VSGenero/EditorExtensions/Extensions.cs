@@ -74,7 +74,9 @@ namespace VSGenero.EditorExtensions
             if (path == null)
                 return GeneroLanguageVersion.None;
 
-            return fileProvider.GetLanguageVersion(path);
+            if(fileProvider != null)
+                return fileProvider.GetLanguageVersion(path);
+            return GeneroLanguageVersion.None;
         }
 
         internal static Type GetParserType(string filename)

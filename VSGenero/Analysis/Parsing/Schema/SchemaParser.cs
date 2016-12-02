@@ -42,10 +42,11 @@ namespace VSGenero.Analysis.Parsing.Schema
                         if (!_schema.TryGetValue(fields[0], out table))
                         {
                             table = new SchemaTable(fields[0]);
-                            _schema.Add(fields[0], table);
+                            _schema[fields[0]] = table;
                         }
                         var schemaColumn = new SchemaColumn(fields[0], fields[1], fields[2], fields[3], fields[4]);
-                        table.Columns.Add(schemaColumn.Name, schemaColumn);
+                        if(!table.Columns.ContainsKey(schemaColumn.Name))
+                            table.Columns[schemaColumn.Name] = schemaColumn;
                     }
                 }
             }

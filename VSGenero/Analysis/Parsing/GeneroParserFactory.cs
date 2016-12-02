@@ -25,24 +25,34 @@ namespace VSGenero.Analysis.Parsing
                 throw new ArgumentNullException("reader");
             }
 
+            string filePath = null;
             if (t == null)
             {
                 // Try to figure out the type from the projEntry or filename
                 if(projEntry != null && projEntry.FilePath != null)
                 {
                     t = EditorExtensions.Extensions.GetParserType(projEntry.FilePath);
+                    filePath = projEntry.FilePath;
                 }
 
                 if(t == null &&
                    filename != null)
                 {
                     t = EditorExtensions.Extensions.GetParserType(filename);
+                    filePath = filename;
                 }
 
                 if(t == null)
                 {
                     throw new ArgumentNullException("t");
                 }
+            }
+            else
+            {
+                if (projEntry.FilePath != null)
+                    filePath = projEntry.FilePath;
+                else if (filename != null)
+                    filePath = filename;
             }
 
             if (t != typeof(Genero4glParser) &&
@@ -83,7 +93,7 @@ namespace VSGenero.Analysis.Parsing
             if (result != null)
             {
                 result._projectEntry = projEntry;
-                result._filename = filename;
+                result._filename = filePath;
 
                 result._sourceReader = reader;
             }

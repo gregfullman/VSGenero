@@ -10,12 +10,19 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
     {
         private readonly string _name;
         private readonly Func<string> _macroExpansion;
+        private readonly GeneroLanguageVersion _minBdlVersion;
+        private readonly GeneroLanguageVersion _maxBdlVersion;
         const string _scope = "system macro";
 
-        public SystemMacro(string name, Func<string> macroExpansion)
+        public SystemMacro(string name, 
+                           Func<string> macroExpansion,
+                           GeneroLanguageVersion minimumBdlVersion = GeneroLanguageVersion.None,
+                           GeneroLanguageVersion maximumBdlVersion = GeneroLanguageVersion.None)
         {
             _name = name;
             _macroExpansion = macroExpansion;
+            _minBdlVersion = minimumBdlVersion;
+            _maxBdlVersion = maximumBdlVersion;
         }
 
         public string Scope
@@ -92,6 +99,22 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         public string Typename
         {
             get { return null; }
+        }
+
+        public GeneroLanguageVersion MinimumLanguageVersion
+        {
+            get
+            {
+                return _minBdlVersion;
+            }
+        }
+
+        public GeneroLanguageVersion MaximumLanguageVersion
+        {
+            get
+            {
+                return _maxBdlVersion;
+            }
         }
     }
 }

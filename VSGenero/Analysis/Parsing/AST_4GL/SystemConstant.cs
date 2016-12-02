@@ -93,5 +93,21 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         {
             get { return _typeName; }
         }
+
+        public GeneroLanguageVersion MinimumLanguageVersion
+        {
+            get
+            {
+                return GeneroLanguageVersion.None;
+            }
+        }
+
+        public GeneroLanguageVersion MaximumLanguageVersion
+        {
+            get
+            {
+                return GeneroLanguageVersion.Latest;
+            }
+        }
     }
 }
