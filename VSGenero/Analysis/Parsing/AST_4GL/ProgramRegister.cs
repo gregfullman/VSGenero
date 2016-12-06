@@ -26,7 +26,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                string typeName, 
                                IEnumerable<ProgramRegister> childRegisters = null,
                                GeneroLanguageVersion minimumBdlVersion = GeneroLanguageVersion.None,
-                               GeneroLanguageVersion maximumBdlVersion = GeneroLanguageVersion.None)
+                               GeneroLanguageVersion maximumBdlVersion = GeneroLanguageVersion.Latest)
         {
             _parentRegister = null;
             _name = name;

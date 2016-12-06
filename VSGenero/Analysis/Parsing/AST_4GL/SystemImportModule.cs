@@ -18,7 +18,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                   string description, 
                                   IEnumerable<BuiltinFunction> functions,
                                   GeneroLanguageVersion minimumBdlVersion = GeneroLanguageVersion.None,
-                                  GeneroLanguageVersion maximumBdlVersion = GeneroLanguageVersion.None)
+                                  GeneroLanguageVersion maximumBdlVersion = GeneroLanguageVersion.Latest)
         {
             _name = name;
             _desc = description;

@@ -17,7 +17,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         public SystemMacro(string name, 
                            Func<string> macroExpansion,
                            GeneroLanguageVersion minimumBdlVersion = GeneroLanguageVersion.None,
-                           GeneroLanguageVersion maximumBdlVersion = GeneroLanguageVersion.None)
+                           GeneroLanguageVersion maximumBdlVersion = GeneroLanguageVersion.Latest)
         {
             _name = name;
             _macroExpansion = macroExpansion;

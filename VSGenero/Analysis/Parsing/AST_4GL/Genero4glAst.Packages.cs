@@ -3196,7 +3196,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                              bool extension, 
                              IEnumerable<GeneroPackageClass> classes, 
                              GeneroLanguageVersion minimumBdlVersion = GeneroLanguageVersion.None,
-                             GeneroLanguageVersion maximumBdlVersion = GeneroLanguageVersion.None)
+                             GeneroLanguageVersion maximumBdlVersion = GeneroLanguageVersion.Latest)
         {
             _name = name;
             _extensionPackage = extension;
@@ -3327,7 +3327,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                   bool isStatic, 
                                   IEnumerable<GeneroPackageClassMethod> methods, 
                                   GeneroLanguageVersion minimumBdlVersion = GeneroLanguageVersion.None,
-                                  GeneroLanguageVersion maximumBdlVersion = GeneroLanguageVersion.None)
+                                  GeneroLanguageVersion maximumBdlVersion = GeneroLanguageVersion.Latest)
         {
             _name = name;
             _parentPackage = parentPackage;
@@ -3447,7 +3447,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                         IEnumerable<ParameterResult> parameters, 
                                         IEnumerable<string> returns,
                                         GeneroLanguageVersion minimumBdlVersion = GeneroLanguageVersion.None,
-                                        GeneroLanguageVersion maximumBdlVersion = GeneroLanguageVersion.None)
+                                        GeneroLanguageVersion maximumBdlVersion = GeneroLanguageVersion.Latest)
         {
             _name = name;
             _parentClass = parentClass;

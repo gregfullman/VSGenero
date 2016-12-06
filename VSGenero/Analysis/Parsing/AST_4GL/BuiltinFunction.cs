@@ -31,7 +31,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                string description,
                                string documentationUrl = null, 
                                GeneroLanguageVersion minimumBdlVersion = GeneroLanguageVersion.None,
-                               GeneroLanguageVersion maximumBdlVersion = GeneroLanguageVersion.None)
+                               GeneroLanguageVersion maximumBdlVersion = GeneroLanguageVersion.Latest)
         {
             _name = name;
             _namespace = nameSpace;
