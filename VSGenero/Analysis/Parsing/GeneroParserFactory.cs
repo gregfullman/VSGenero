@@ -49,7 +49,7 @@ namespace VSGenero.Analysis.Parsing
             }
             else
             {
-                if (projEntry.FilePath != null)
+                if (projEntry != null && projEntry.FilePath != null)
                     filePath = projEntry.FilePath;
                 else if (filename != null)
                     filePath = filename;

@@ -86,7 +86,7 @@ namespace VSGenero.Analysis.Parsing
 
         internal static GeneroLanguageVersion GetLanguageVersion(string filePath, IProgramFileProvider fileProvider = null)
         {
-            if (fileProvider == null)
+            if (fileProvider == null && VSGeneroPackage.Instance != null)
             {
                 if (VSGeneroPackage.Instance.ProgramFileProvider == null)
                     return GeneroLanguageVersion.None;
