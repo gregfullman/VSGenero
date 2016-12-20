@@ -825,6 +825,14 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             return result;
         }
 
+        private IEnumerable<MemberResult> GetInstanceCExtensions(int index)
+        {
+            var result = new List<MemberResult>();
+            result.AddRange(Packages.Where(x => LanguageVersion >= x.Value.MinimumLanguageVersion && LanguageVersion <= x.Value.MaximumLanguageVersion)
+                                    .Select(x => new MemberResult(x.Value.Name, x.Value, GeneroMemberType.Module, this)));
+            return result;
+        }
+
         private IEnumerable<MemberResult> GetInstanceCursors(int index, AstMemberType type)
         {
             return GetDefinedMembers(index, type);

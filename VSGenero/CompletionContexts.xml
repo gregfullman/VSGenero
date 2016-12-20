@@ -409,6 +409,7 @@
           </OrderedTokenSet>
         </BackwardTokenSearchItem>
         <BackwardTokenSearchItem>
+          <!--TODO: this token set prevents intellisense for cases like "ImportModule.set(...)-->
           <OrderedTokenSet>
             <Item Value="LeftParenthesis" Type="keyword" />
             <Item Value="set" Type="keyword" />
@@ -2551,6 +2552,9 @@
         <Token>fgl</Token>
         <Token>java</Token>
       </SingleTokens>
+      <ContextSetProviders>
+        <Provider>GetAvailableCExtensions</Provider>
+      </ContextSetProviders>
     </ContextPossibility>
   </ContextEntry>
   <ContextEntry Entry="in" Type="keyword">
