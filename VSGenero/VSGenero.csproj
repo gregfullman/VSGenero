@@ -341,6 +341,7 @@
     <Compile Include="Analysis\Interfaces\ICommentValidator.cs" />
     <Compile Include="Analysis\Interfaces\IDatabaseInformationProvider.cs" />
     <Compile Include="Analysis\Interfaces\IFunctionInformationProvider.cs" />
+    <Compile Include="Analysis\Interfaces\IGeneroDebugger.cs" />
     <Compile Include="Analysis\Interfaces\IGeneroProject.cs" />
     <Compile Include="Analysis\Interfaces\IGeneroProjectEntry.cs" />
     <Compile Include="Analysis\Interfaces\ILocatedMember.cs" />
@@ -606,7 +607,6 @@
     <Compile Include="Options\GeneroDialogPage.cs">
       <SubType>Component</SubType>
     </Compile>
-    
     <Compile Include="PkgCmdID.cs" />
     <Compile Include="ProductivityTools\Genero4glCodeBlock.cs" />
     <Compile Include="ProductivityTools\Genero4glMouseProcessor.cs" />
