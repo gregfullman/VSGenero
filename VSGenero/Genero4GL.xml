@@ -1021,7 +1021,7 @@
                 <Returns>
                 </Returns>
               </Method>
-              <Method name="dataAvailable" desc="Tests if some data can be read from the channel." scope="instance">
+              <Method name="dataAvailable" desc="Tests if some data can be read from the channel." scope="instance" minVersion="2.50">
                 <Parameters>
                 </Parameters>
                 <Returns>
@@ -1058,6 +1058,111 @@
                 </Parameters>
                 <Returns>
                 </Returns>
+              </Method>
+            </Methods>
+          </Class>
+          <Class name="SqlHandle" isStatic="false" minVersion="3.00">
+            <Methods>
+              <Method name="create" desc="Create a new base.SqlHandle object." scope="static">
+                <Parameters></Parameters>
+                <Returns>
+                  <Return name="handle" type="base.SqlHandle"/>
+                </Returns>
+              </Method>
+              <Method name="close" desc="Closes the SQL handle (cursor)." scope="instance">
+                <Parameters></Parameters>
+                <Returns></Returns>
+              </Method>
+              <Method name="execute" desc="Executes a simple SQL statement (without result set)." scope="instance">
+                <Parameters></Parameters>
+                <Returns></Returns>
+              </Method>
+              <Method name="fetch" desc="Fetches a new row from the SQL result set." scope="instance">
+                <Parameters></Parameters>
+                <Returns></Returns>
+              </Method>
+              <Method name="fetchAbsolute" desc="Fetches to a specified row in a scrollable SQL result set." scope="instance">
+                <Parameters>
+                  <Parameter name="position" type="int" />
+                </Parameters>
+                <Returns></Returns>
+              </Method>
+              <Method name="fetchFirst" desc="Fetches the first row in a scrollable SQL result set." scope="instance">
+                <Parameters></Parameters>
+                <Returns></Returns>
+              </Method>
+              <Method name="fetchLast" desc="Fetches the last row in a scrollable SQL result set." scope="instance">
+                <Parameters></Parameters>
+                <Returns></Returns>
+              </Method>
+              <Method name="fetchPrevious" desc="Fetches the previous row in a scrollable SQL result set." scope="instance">
+                <Parameters></Parameters>
+                <Returns></Returns>
+              </Method>
+              <Method name="fetchRelative" desc="Fetches a row relative to the current row in a scrollable SQL result set." scope="instance">
+                <Parameters>
+                  <Parameter name="offset" type="int"/>
+                </Parameters>
+                <Returns></Returns>
+              </Method>
+              <Method name="flush" desc="Flushes the rows from the insert cursor buffer." scope="instance">
+                <Parameters></Parameters>
+                <Returns></Returns>
+              </Method>
+              <Method name="getResultCount" desc="Returns the number of result set columns produced by the SQL statement." scope="instance">
+                <Parameters></Parameters>
+                <Returns>
+                  <Return name="count" type="int"/>
+                </Returns>
+              </Method>
+              <Method name="getResultName" desc="Returns the name of a column in the result set produced by the SQL statement." scope="instance">
+                <Parameters>
+                  <Parameter name="index" type="int"/>
+                </Parameters>
+                <Returns>
+                  <Return name="name" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="getResultType" desc="Returns the Genero type name of a column in the result set produced by the SQL statement." scope="instance">
+                <Parameters>
+                  <Parameter name="index" type="int"/>
+                </Parameters>
+                <Returns>
+                  <Return name="type" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="getResultValue" desc="Returns the value of a column in the result set produced by the SQL statement." scope="instance">
+                <Parameters>
+                  <Parameter name="index" type="int"/>
+                </Parameters>
+                <Returns>
+                  <Return name="value" type="fgl-type"/>
+                </Returns>
+              </Method>
+              <Method name="open" desc="Opens the SQL handle (SELECT or INSERT cursor)." scope="instance">
+                <Parameters></Parameters>
+                <Returns></Returns>
+              </Method>
+              <Method name="openScrollCursor" desc="Opens the SQL handle (with scrollable option)." scope="instance">
+                <Parameters></Parameters>
+                <Returns></Returns>
+              </Method>
+              <Method name="prepare" desc="Prepares an SQL statement for the SQL handle." scope="instance">
+                <Parameters>
+                  <Parameter name="sql-text" type="string"/>
+                </Parameters>
+                <Returns></Returns>
+              </Method>
+              <Method name="put" desc="Put a new row in the insert cursor buffer." scope="instance">
+                <Parameters></Parameters>
+                <Returns></Returns>
+              </Method>
+              <Method name="setParameter" desc="Sets the value of an SQL parameter for this SQL handle." scope="instance">
+                <Parameters>
+                  <Parameter name="index" type="int"/>
+                  <Parameter name="value" type="fgl-type"/>
+                </Parameters>
+                <Returns></Returns>
               </Method>
             </Methods>
           </Class>
@@ -2749,7 +2854,7 @@
               </Method>
             </Methods>
           </Class>
-          <Class name="JSON" isStatic="true">
+          <Class name="JSON" isStatic="true" minVersion="2.50">
             <Methods>
               <Method name="parse" desc="Parses a JSON string and fills program variables with the values." scope="static">
                 <Parameters>
@@ -2784,7 +2889,7 @@
               </Method>
             </Methods>
           </Class>
-          <Class name="JSONObject" isStatic="false">
+          <Class name="JSONObject" isStatic="false" minVersion="2.50">
             <Methods>
               <Method name="create" desc="Creates a new JSON object." scope="static">
                 <Parameters></Parameters>
@@ -2878,7 +2983,7 @@
               </Method>
             </Methods>
           </Class>
-          <Class name="JSONArray" isStatic="false">
+          <Class name="JSONArray" isStatic="false" minVersion="2.50">
             <Methods>
               <Method name="create" desc="Creates a new JSON array object." scope="static">
                 <Parameters></Parameters>
@@ -2904,7 +3009,7 @@
               </Method>
               <Method name="get" desc="Returns the value of a JSON array element." scope="instance">
                 <Parameters>
-                  <Parameter name="name" type="string"/>
+                  <Parameter name="index" type="int"/>
                 </Parameters>
                 <Returns>
                   <Return name="result" type="result-type"/>
@@ -2912,7 +3017,7 @@
               </Method>
               <Method name="getType" desc="Returns the type of a JSON array element." scope="instance">
                 <Parameters>
-                  <Parameter name="name" type="string"/>
+                  <Parameter name="index" type="int"/>
                 </Parameters>
                 <Returns>
                   <Return name="result" type="string"/>
@@ -3305,7 +3410,7 @@
                   <Return name="result" type="com.WebService"/>
                 </Returns>
               </Method>
-              <Method name="CreateStatefulWebService" desc="Creates a new object to implement a stateful Web Service." scope="static">
+              <Method name="CreateStatefulWebService" desc="Creates a new object to implement a stateful Web Service." scope="static" minVersion="2.40">
                 <Parameters>
                   <Parameter name="name" type="string"/>
                   <Parameter name="namespace" type="string"/>
@@ -3354,7 +3459,7 @@
                 <Returns>
                 </Returns>
               </Method>
-              <Method name="createFault" desc="Creates a new object to implement a Web Service." scope="instance">
+              <Method name="createFault" desc="Creates a new object to implement a Web Service." scope="instance" minVersion="2.40">
                 <Parameters>
                   <Parameter name="fault" type="fault-type"/>
                   <Parameter name="encoded" type="boolean"/>
@@ -3362,21 +3467,21 @@
                 <Returns>
                 </Returns>
               </Method>
-              <Method name="registerWSDLHandler" desc="Registers the function to be executed when a WSDL is generated." scope="instance">
+              <Method name="registerWSDLHandler" desc="Registers the function to be executed when a WSDL is generated." scope="instance" minVersion="2.32">
                 <Parameters>
                   <Parameter name="funcname" type="string"/>
                 </Parameters>
                 <Returns>
                 </Returns>
               </Method>
-              <Method name="registerInputRequestHandler" desc="Registers the function to be executed on incoming SOAP requests." scope="instance">
+              <Method name="registerInputRequestHandler" desc="Registers the function to be executed on incoming SOAP requests." scope="instance" minVersion="2.32">
                 <Parameters>
                   <Parameter name="funcname" type="string"/>
                 </Parameters>
                 <Returns>
                 </Returns>
               </Method>
-              <Method name="registerOutputRequestHandler" desc="Registers the function to be executed just before the SOAP response is forwarded to the client." scope="instance">
+              <Method name="registerOutputRequestHandler" desc="Registers the function to be executed just before the SOAP response is forwarded to the client." scope="instance" minVersion="2.32">
                 <Parameters>
                   <Parameter name="funcname" type="string"/>
                 </Parameters>
@@ -3397,7 +3502,7 @@
                 <Returns>
                 </Returns>
               </Method>
-              <Method name="setFeature" desc="Defines a feature for the current Web Service object." scope="instance">
+              <Method name="setFeature" desc="Defines a feature for the current Web Service object." scope="instance" minVersion="2.40">
                 <Parameters>
                   <Parameter name="name" type="string"/>
                   <Parameter name="value" type="string"/>
@@ -3475,7 +3580,7 @@
                 </Parameters>
                 <Returns></Returns>
               </Method>
-              <Method name="addFault" desc="Adds a fault to the current Web Operation definition." scope="instance">
+              <Method name="addFault" desc="Adds a fault to the current Web Operation definition." scope="instance" minVersion="2.40">
                 <Parameters>
                   <Parameter name="fault" type="fault-type"/>
                   <Parameter name="vsaaction" type="string"/>
@@ -3561,14 +3666,14 @@
                 <Returns>
                 </Returns>
               </Method>
-              <Method name="SetFaultDetail" desc="Defines the published SOAP Fault." scope="static">
+              <Method name="SetFaultDetail" desc="Defines the published SOAP Fault." scope="static" minVersion="2.40">
                 <Parameters>
                   <Parameter name="fault" type="string"/>
                 </Parameters>
                 <Returns>
                 </Returns>
               </Method>
-              <Method name="SetOption" desc="Sets an option for the Web Service engine." scope="static">
+              <Method name="SetOption" desc="Sets an option for the Web Service engine." scope="static" minVersion="2.40">
                 <Parameters>
                   <Parameter name="option" type="string"/>
                   <Parameter name="value" type="string"/>
@@ -4298,7 +4403,7 @@
                   <Return name="result" type="string"/>
                 </Returns>
               </Method>
-              <Method name="CreateUUIDString" desc="Creates an UUID string (deprecated!)" scope="static">
+              <Method name="CreateUUIDString" desc="Creates an UUID string (deprecated!)" scope="static" minVersion="2.40">
                 <Parameters>
                 </Parameters>
                 <Returns>
@@ -4596,7 +4701,7 @@
                 <Returns>
                 </Returns>
               </Method>
-              <Method name="loadFromPipe" desc="Loads an XML Document into a DomDocument object from a PIPE." scope="instance">
+              <Method name="loadFromPipe" desc="Loads an XML Document into a DomDocument object from a PIPE." scope="instance" minVersion="2.40">
                 <Parameters>
                   <Parameter name="cmd" type="string"/>
                 </Parameters>
@@ -4617,7 +4722,7 @@
                   <Return name="result" type="string"/>
                 </Returns>
               </Method>
-              <Method name="saveToPipe" desc="Saves a DomDocument object as an XML Document to a PIPE." scope="instance">
+              <Method name="saveToPipe" desc="Saves a DomDocument object as an XML Document to a PIPE." scope="instance" minVersion="2.40">
                 <Parameters>
                 </Parameters>
                 <Returns>
@@ -5217,7 +5322,7 @@
                 <Returns>
                 </Returns>
               </Method>
-              <Method name="writeToPipe" desc="Sets the output stream of the StaxWriter object to a PIPE, and starts the streaming." scope="instance">
+              <Method name="writeToPipe" desc="Sets the output stream of the StaxWriter object to a PIPE, and starts the streaming." scope="instance" minVersion="2.40">
                 <Parameters>
                   <Parameter name="cmd" type="string"/>
                 </Parameters>
@@ -5418,7 +5523,7 @@
                 <Returns>
                 </Returns>
               </Method>
-              <Method name="readFromPipe" desc="Sets the input stream of the StaxReader object to a PIPE and starts the streaming." scope="instance">
+              <Method name="readFromPipe" desc="Sets the input stream of the StaxReader object to a PIPE and starts the streaming." scope="instance" minVersion="2.40">
                 <Parameters>
                   <Parameter name="cmd" type="string"/>
                 </Parameters>
@@ -5737,14 +5842,14 @@
                 </Parameters>
                 <Returns></Returns>
               </Method>
-              <Method name="DomToStax" desc="Serializes an XML node object to a StaxWriter object." scope="static">
+              <Method name="DomToStax" desc="Serializes an XML node object to a StaxWriter object." scope="static" minVersion="2.40">
                 <Parameters>
                   <Parameter name="node" type="xml.DomNode"/>
                   <Parameter name="stax" type="xml.StaxWriter"/>
                 </Parameters>
                 <Returns></Returns>
               </Method>
-              <Method name="StaxToDom" desc="Serializes an XML element node into a DomNode object using a StaxReader object." scope="static">
+              <Method name="StaxToDom" desc="Serializes an XML element node into a DomNode object using a StaxReader object." scope="static" minVersion="2.40">
                 <Parameters>
                   <Parameter name="stax" type="xml.StaxWriter"/>
                   <Parameter name="node" type="xml.DomNode"/>
@@ -5823,7 +5928,7 @@
                   <Return name="flag" type="integer"/>
                 </Returns>
               </Method>
-              <Method name="getSHA1" desc="Returns the SHA1 encoded key identifier in a base64 encoded STRING." scope="instance">
+              <Method name="getSHA1" desc="Returns the SHA1 encoded key identifier in a base64 encoded STRING." scope="instance" minVersion="2.40">
                 <Parameters>
                 </Parameters>
                 <Returns>
@@ -5907,7 +6012,7 @@
                 <Returns>
                 </Returns>
               </Method>
-              <Method name="loadPublicFromString" desc="Populate the current CryptoKey object with the passed public key." scope="instance">
+              <Method name="loadPublicFromString" desc="Populate the current CryptoKey object with the passed public key." scope="instance" minVersion="2.50">
                 <Parameters>
                   <Parameter name="pubKeyStr" type="string"/>
                 </Parameters>
@@ -5928,7 +6033,7 @@
                   <Return name="object" type="xml.DomDocument"/>
                 </Returns>
               </Method>
-              <Method name="savePublicToString" desc="Save the current xml.CryptoKey's public part in the returned base64 string." scope="instance">
+              <Method name="savePublicToString" desc="Save the current xml.CryptoKey's public part in the returned base64 string." scope="instance" minVersion="2.50">
                 <Parameters>
                 </Parameters>
                 <Returns>
@@ -5982,7 +6087,7 @@
                   <Return name="idpart" type="string"/>
                 </Returns>
               </Method>
-            <Method name="getThumbprintSHA1" desc="Gets the SHA1 encoded thumbprint identifying this X509 certificate." scope="instance">
+            <Method name="getThumbprintSHA1" desc="Gets the SHA1 encoded thumbprint identifying this X509 certificate." scope="instance" minVersion="2.40">
                 <Parameters></Parameters>
                 <Returns>
                   <Return name="setp" type="string"/>
@@ -6137,7 +6242,7 @@
                    <Return name="id" type="string"/>
                 </Returns>
               </Method>
-            <Method name="getSignatureMethod" desc="Returns the algorithm method of the signature." scope="instance">
+            <Method name="getSignatureMethod" desc="Returns the algorithm method of the signature." scope="instance" minVersion="2.40">
                 <Parameters>
                 </Parameters>
                 <Returns>
@@ -6271,7 +6376,7 @@
                    <Return name="flag" type="int"/>
                 </Returns>
               </Method>
-            <Method name="signString" desc="Sign the passed string according to the specified key." scope="instance">
+            <Method name="signString" desc="Sign the passed string according to the specified key." scope="instance" minVersion="2.50">
                 <Parameters>
                   <Parameter name="key" type="xml.CryptoKey"/>
                   <Parameter name="strToSign" type="string"/>
@@ -6280,7 +6385,7 @@
                    <Return name="sig" type="string"/>
                 </Returns>
               </Method>
-            <Method name="verifyString" desc="Verify the signature is consistent with the given key and the original message." scope="instance">
+            <Method name="verifyString" desc="Verify the signature is consistent with the given key and the original message." scope="instance" minVersion="2.50">
                 <Parameters>
                   <Parameter name="key" type="xml.CryptoKey"/>
                   <Parameter name="signedStr" type="string"/>
@@ -6467,7 +6572,7 @@
         </Class>
         </Classes>
       </Package>
-      <Package name ="security" type="extension">
+      <Package name ="security" type="extension" minVersion="2.50">
         <Classes>
           <Class name="RandomGenerator" isStatic="true">
             <Methods>

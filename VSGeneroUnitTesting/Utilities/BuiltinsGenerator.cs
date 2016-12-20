@@ -216,10 +216,12 @@ namespace VSGeneroUnitTesting.Utilities
             {
                 sb.AppendFormat("\tnew GeneroPackageClass(\"{0}\", \"{1}\", {2}, new List<GeneroPackageClassMethod>\n\t{{\n", (string)classElement.Attribute("name"), (string)element.Attribute("name"), ((bool)classElement.Attribute("isStatic") ? "true" : "false"));
                 GeneratePackageClass(classElement, sb, string.Format("{0}.{1}", (string)element.Attribute("name"), (string)classElement.Attribute("name")));
-                sb.Append("\t}),\n");
+                sb.AppendFormat("\t}},\n{0},\n{1}),\n", GetLanguageVersion(classElement, "minVersion"),
+                                                        GetLanguageVersion(classElement, "maxVersion"));
             }
             sb.Remove(sb.Length - 2, 1);    // take out the comma
-            sb.Append("}));\n");
+            sb.AppendFormat("}},\n{0},\n{1}));\n", GetLanguageVersion(element, "minVersion"),
+                                                   GetLanguageVersion(element, "maxVersion"));
         }
 
         private void GeneratePackageClass(XElement element, StringBuilder sb, string className)
@@ -247,7 +249,8 @@ namespace VSGeneroUnitTesting.Utilities
                 }
                 if (sb[sb.Length - 2] == ',')
                     sb.Remove(sb.Length - 2, 2);    // take out the comma
-                sb.Append("}),\n");
+                sb.AppendFormat("}},\n{0},\n{1}),\n", GetLanguageVersion(methodElement, "minVersion"),
+                                                    GetLanguageVersion(methodElement, "maxVersion"));
             }
             sb.Remove(sb.Length - 2, 1);    // take out the comma
         }
