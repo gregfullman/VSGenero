@@ -167,22 +167,37 @@ namespace VSGenero.Analysis.Parsing
 
         public LocationInfo ResolveLocation(object location)
         {
-            IAnalysisResult result = location as IAnalysisResult;
-            if (result != null)
+            LocationInfo locInfo = null;
+            if (location is IAnalysisResult)
             {
-                if (result.Location != null)
-                {
-                    return result.Location;
-                }
-                else
-                {
-                    var locIndex = result.LocationIndex;
-                    var loc = IndexToLocation(locIndex);
-                    return _projEntry == null ?
-                        new LocationInfo(_filename, loc.Line, loc.Column, locIndex) :
-                        new LocationInfo(_projEntry, loc.Line, loc.Column, locIndex);
-                }
+                locInfo = (location as IAnalysisResult).Location;
             }
+            else if (location is LocationInfo)
+            {
+                locInfo = location as LocationInfo;
+            }
+               
+            if(locInfo != null)
+            {
+                // are the line and column filled in?
+                if(locInfo.Index > 0 && (locInfo.Line <= 0 || locInfo.Column <= 0))
+                {
+                    var loc = IndexToLocation(locInfo.Index);
+                    return _projEntry == null ?
+                        new LocationInfo(_filename, loc.Line, loc.Column, locInfo.Index) :
+                        new LocationInfo(_projEntry, loc.Line, loc.Column, locInfo.Index);
+                }
+                return locInfo;
+            }
+            else if(location is IAnalysisResult)
+            {
+                var locIndex = (location as IAnalysisResult).LocationIndex;
+                var loc = IndexToLocation(locIndex);
+                return _projEntry == null ?
+                    new LocationInfo(_filename, loc.Line, loc.Column, locIndex) :
+                    new LocationInfo(_projEntry, loc.Line, loc.Column, locIndex);
+            }
+
             return null;
         }
 

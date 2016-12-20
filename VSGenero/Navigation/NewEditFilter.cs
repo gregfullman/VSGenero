@@ -240,8 +240,16 @@ namespace VSGenero.Navigation
             {
                 var adapterFactory = VSGeneroPackage.ComponentModel.GetService<IVsEditorAdaptersFactoryService>();
                 var viewAdapter = adapterFactory.GetViewAdapter(_textView);
-                viewAdapter.SetCaretPos(location.Line - 1, location.Column - 1);
-                viewAdapter.CenterLines(location.Line - 1, 1);
+                var lineNum = location.Line - 1;
+                if(lineNum <= 0)
+                {
+                    lineNum = _textView.TextBuffer.CurrentSnapshot.GetLineNumberFromPosition(location.Index);
+                }
+                var character = location.Column - 1;  // start index
+                if (character < 0)
+                    character = 0;
+                viewAdapter.SetCaretPos(lineNum, character);
+                viewAdapter.CenterLines(lineNum, 1);
             }
             else
             {
