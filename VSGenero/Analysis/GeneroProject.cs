@@ -294,7 +294,7 @@ namespace VSGenero.Analysis
 
                         if (memberType.HasFlag(MemberType.Functions))
                         {
-                            members.AddRange(modRes.Functions.Where(x => x.Value.IsPublic).Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Method, ast)));
+                            members.AddRange(modRes.Functions.Where(x => x.Value.IsPublic).Select(x => new MemberResult(x.Key, x.Value, x.Value.FunctionType, ast)));
                             members.AddRange(projEntry.Value.GetIncludedFiles().Where(x => x.Analysis != null).SelectMany(x => x.Analysis.GetDefinedMembers(1, AstMemberType.Functions)));
                         }
                     }

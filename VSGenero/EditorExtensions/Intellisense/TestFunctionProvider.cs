@@ -462,5 +462,13 @@ namespace VSGenero.EditorExtensions.Intellisense
                 return GeneroLanguageVersion.Latest;
             }
         }
+
+        public GeneroMemberType FunctionType
+        {
+            get
+            {
+                return GeneroMemberType.Method;
+            }
+        }
     }
 }

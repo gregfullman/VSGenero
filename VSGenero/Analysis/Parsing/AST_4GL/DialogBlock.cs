@@ -28,6 +28,14 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             }
         }
 
+        public override GeneroMemberType FunctionType
+        {
+            get
+            {
+                return GeneroMemberType.Dialog;
+            }
+        }
+
         private DialogBlock Dialog { get; set; }
 
         public static bool TryParseNode(Genero4glParser parser, out DeclarativeDialogBlock node, IModuleResult containingModule)

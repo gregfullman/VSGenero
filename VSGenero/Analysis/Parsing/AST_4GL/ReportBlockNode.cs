@@ -41,6 +41,14 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         public ExpressionNode TopOfPage { get; private set; }
         public List<FglNameExpression> OrderVarNames { get; private set; }
 
+        public override GeneroMemberType FunctionType
+        {
+            get
+            {
+                return GeneroMemberType.Report;
+            }
+        }
+
         public static bool TryParseNode(Genero4glParser parser, out ReportBlockNode defNode, IModuleResult containingModule)
         {
             defNode = null;

@@ -309,5 +309,13 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 return _maxBdlVersion;
             }
         }
+
+        public GeneroMemberType FunctionType
+        {
+            get
+            {
+                return GeneroMemberType.Function;
+            }
+        }
     }
 }

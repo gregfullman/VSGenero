@@ -69,10 +69,18 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         parser.NextToken();
                         defNode.Location = LocateLocation.File;
 
-                        ExpressionNode filename;
-                        if(FglExpressionNode.TryGetExpressionNode(parser, out filename, Genero4glAst.ValidStatementKeywords.ToList()))
+                        var nextToken = parser.PeekToken();
+                        if (nextToken.Kind != TokenKind.EndOfFile && !Genero4glAst.ValidStatementKeywords.Contains(nextToken.Kind))
                         {
-                            defNode.Filename = filename;
+                            ExpressionNode filename;
+                            if (FglExpressionNode.TryGetExpressionNode(parser, out filename, Genero4glAst.ValidStatementKeywords.ToList()))
+                            {
+                                defNode.Filename = filename;
+                            }
+                            else
+                            {
+                                parser.ReportSyntaxError("Locate statement missing filename expression.");
+                            }
                         }
                     }
                     else

@@ -99,6 +99,8 @@ namespace VSGenero.Analysis
         string CompletionParentName { get; }
 
         void SetCommentDocumentation(string commentDoc);
+
+        GeneroMemberType FunctionType { get; }
     }
 
     public interface IOutlinableResult

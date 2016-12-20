@@ -562,6 +562,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         public override void SetNamespace(string ns)
         {
             _namespace = ns;
+            _descriptiveName = null;
             foreach(var arg in _arguments.Values)
             {
                 if (arg != null && arg.Type != null)
@@ -607,6 +608,14 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             get
             {
                 return GeneroLanguageVersion.Latest;
+            }
+        }
+
+        public virtual GeneroMemberType FunctionType
+        {
+            get
+            {
+                return GeneroMemberType.Method;
             }
         }
 
