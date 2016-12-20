@@ -21,6 +21,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using VSGenero.Analysis;
+using VSGenero.Analysis.Interfaces;
 
 namespace VSGenero.EditorExtensions.Intellisense
 {
@@ -40,6 +41,9 @@ namespace VSGenero.EditorExtensions.Intellisense
 
         [Import(AllowDefault = true)]
         internal IProgramFileProvider _ProgramFileProvider = null;
+
+        [Import(AllowDefault = true)]
+        internal IGeneroDebugger _GeneroDebugger = null;
 
         public IQuickInfoSource TryCreateQuickInfoSource(ITextBuffer textBuffer)
         {

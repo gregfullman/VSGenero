@@ -74,7 +74,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                 _provider._ProgramFileProvider
             );
 
-            AugmentQuickInfoWorker(session, _textBuffer, _viewAdapter, vars, quickInfoContent, out applicableToSpan);
+            AugmentQuickInfoWorker(_provider, session, _textBuffer, _viewAdapter, vars, quickInfoContent, out applicableToSpan);
         }
 
         private void CurSessionDismissed(object sender, EventArgs e)
@@ -82,7 +82,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             _curSession = null;
         }
 
-        internal static void AugmentQuickInfoWorker(IQuickInfoSession session, ITextBuffer subjectBuffer, IVsTextView viewAdapter, ExpressionAnalysis exprAnalysis, System.Collections.Generic.IList<object> quickInfoContent, out ITrackingSpan applicableToSpan)
+        internal static void AugmentQuickInfoWorker(QuickInfoSourceProvider provider, IQuickInfoSession session, ITextBuffer subjectBuffer, IVsTextView viewAdapter, ExpressionAnalysis exprAnalysis, System.Collections.Generic.IList<object> quickInfoContent, out ITrackingSpan applicableToSpan)
         {
             applicableToSpan = exprAnalysis.Span;
             if (applicableToSpan == null || String.IsNullOrWhiteSpace(exprAnalysis.Expression))
@@ -104,6 +104,10 @@ namespace VSGenero.EditorExtensions.Intellisense
                 }
                 else
                 {
+                    if(provider != null && provider._GeneroDebugger != null)
+                    {
+                        provider._GeneroDebugger.SetDataTipContext(val);
+                    }
                     string qiText;
                     if (TryGetQuickInfoFromDebugger(session, applicableToSpan.GetSpan(subjectBuffer.CurrentSnapshot), viewAdapter, out qiText))
                     {
