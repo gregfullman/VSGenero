@@ -177,6 +177,15 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             return new MemberResult[0];
         }
 
+        private static IEnumerable<MemberResult> GetAvailableCExtensions(int index)
+        {
+            if (_instance != null)
+            {
+                return _instance.GetInstanceCExtensions(index);
+            }
+            return new MemberResult[0];
+        }
+
         private static IEnumerable<MemberResult> GetStatementStartKeywords(int index)
         {
             TokenKind[] accessMods = new TokenKind[] { TokenKind.PublicKeyword, TokenKind.PrivateKeyword };
