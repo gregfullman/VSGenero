@@ -868,6 +868,10 @@ namespace VSGenero.EditorExtensions.Intellisense
             {
                 // Nothing we can do here...this usually happens on shutdown
             }
+            catch(IOException)
+            {
+                // Nothing we can do here
+            }
             return files;
         }
 
@@ -1791,14 +1795,15 @@ namespace VSGenero.EditorExtensions.Intellisense
                     }
                     if(includeDatabaseTables)
                     {
-                        deferredLoadCallback.Add((str) =>
+                        if (databaseProvider != null)
                         {
-                            if (databaseProvider != null)
-                            {
-                                return databaseProvider.GetTables().Select(x => new MemberResult(x.Name, x, (x.TableType == DatabaseTableType.Table ? GeneroMemberType.DbTable : GeneroMemberType.DbView), entry.Analysis));
-                            }
-                            return new MemberResult[0];
-                        });
+                            members = members.Union(databaseProvider.GetTables().Select(x => new MemberResult(x.Name, x, (x.TableType == DatabaseTableType.Table ? GeneroMemberType.DbTable : GeneroMemberType.DbView), entry.Analysis)));
+                        }
+                        //deferredLoadCallback.Add((str) =>
+                        //{
+                            
+                        //    return new MemberResult[0];
+                        //});
                     }
                     return new LiveCompletionAnalysis(members, span, buffer, options, deferredLoadCallback);
                 }

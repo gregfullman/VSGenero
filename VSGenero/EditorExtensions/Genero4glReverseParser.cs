@@ -62,7 +62,15 @@ namespace VSGenero.EditorExtensions
             SnapshotPoint? dummyPoint;
             string lastKeywordArg;
             bool isParameterName;
-            return GetExpressionRange(nesting, out dummy, out dummyPoint, out lastKeywordArg, out isParameterName, out isFunctionCallOrDefinition, forCompletion);
+            try
+            {
+                return GetExpressionRange(nesting, out dummy, out dummyPoint, out lastKeywordArg, out isParameterName, out isFunctionCallOrDefinition, forCompletion);
+            }
+            catch(NullReferenceException)
+            {
+                isFunctionCallOrDefinition = false;
+                return null;
+            }
         }
 
         internal static IEnumerable<TokenInfo> ReverseTokenInfoEnumerable(Genero4glClassifier classifier, SnapshotPoint startPoint)
