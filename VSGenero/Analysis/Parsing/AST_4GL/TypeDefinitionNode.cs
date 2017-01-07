@@ -27,12 +27,17 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
     /// 
     /// For more info, see: http://www.4js.com/online_documentation/fjs-fgl-manual-html/index.html#c_fgl_user_types_003.html
     /// </summary>
-    public class TypeDefinitionNode : AstNode4gl, IAnalysisResult
+    public class TypeDefinitionNode : AstNode4gl, IVariableResult
     {
         public string Identifier { get; private set; }
 
         private bool _isPublic;
         public bool IsPublic { get { return _isPublic; } }
+
+        public ITypeResult GetGeneroType()
+        {
+            return TypeRef?.GetGeneroType();
+        }
 
         public TypeReference TypeRef
         {
@@ -147,12 +152,12 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             return null;
         }
 
-        public IEnumerable<MemberResult> GetMembers(Genero4glAst ast, MemberType memberType, bool function)
+        public IEnumerable<MemberResult> GetMembers(Genero4glAst ast, MemberType memberType, bool getArrayTypeMembers)
         {
             if(Children.Count == 1 &&
                Children[Children.Keys[0]] is TypeReference)
             {
-                return (Children[Children.Keys[0]] as TypeReference).GetMembers(ast, memberType, function);
+                return (Children[Children.Keys[0]] as TypeReference).GetMembers(ast, memberType, getArrayTypeMembers);
             }
             return null;
         }
@@ -172,6 +177,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             _namespace = ns;
             base.SetNamespace(ns);
         }
+
+        
 
         public string Typename
         {

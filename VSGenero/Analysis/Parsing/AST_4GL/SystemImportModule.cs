@@ -119,7 +119,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             return funcRes;
         }
 
-        public IEnumerable<MemberResult> GetMembers(Genero4glAst ast, MemberType memberType, bool function)
+        public IEnumerable<MemberResult> GetMembers(Genero4glAst ast, MemberType memberType, bool getArrayTypeMembers)
         {
             return _memberFunctions.Values.Where(x => ast.LanguageVersion >= x.MinimumLanguageVersion && ast.LanguageVersion <= x.MaximumLanguageVersion)
                                           .Select(x => new MemberResult(x.Name, x, GeneroMemberType.Function, ast));

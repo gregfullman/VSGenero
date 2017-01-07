@@ -41,6 +41,14 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         private bool _isPublic;
         public bool IsPublic { get { return _isPublic; } }
 
+        public Dictionary<string, ITypeResult> GetMemberTypes()
+        {
+            var result = new Dictionary<string, ITypeResult>(StringComparer.OrdinalIgnoreCase);
+            foreach (var kvp in MemberDictionary)
+                result.Add(kvp.Key, kvp.Value.GetGeneroType());
+            return result;
+        }
+
         private Dictionary<string, VariableDef> _memberDictionary;
         public Dictionary<string, VariableDef> MemberDictionary
         {
@@ -215,7 +223,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             }
         }
 
-        public IEnumerable<MemberResult> GetMembers(Genero4glAst ast, MemberType memberType, bool function)
+        public IEnumerable<MemberResult> GetMembers(Genero4glAst ast, MemberType memberType, bool getArrayTypeMembers)
         {
             if (MemberDictionary.Count == 0 && MimicTableName != null)
             {

@@ -351,6 +351,7 @@
     <Compile Include="Analysis\Interfaces\IReferenceableContainer.cs" />
     <Compile Include="Analysis\Interfaces\IReverseTokenizer.cs" />
     <Compile Include="Analysis\Interfaces\ISchemaFileProvider.cs" />
+    <Compile Include="Analysis\Interfaces\ITypeResolver.cs" />
     <Compile Include="Analysis\MemberTypeAttribute.cs" />
     <Compile Include="Analysis\Parsing\AST_4GL\BuiltinFunction.cs" />
     <Compile Include="Analysis\Parsing\AST_4GL\FglNameExpression.cs" />

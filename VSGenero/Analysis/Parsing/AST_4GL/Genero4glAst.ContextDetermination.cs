@@ -302,7 +302,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                             MemberType result = MemberType.None;
                             foreach (var matchedPossible in matchingPossibilities)
                             {
-                                result |= matchedPossible.SetProviders.Select(x => x.ReturningTypes).Aggregate((x, y) => x | y);
+                                if(matchedPossible.SetProviders.Length > 0)
+                                    result |= matchedPossible.SetProviders.Select(x => x.ReturningTypes).Aggregate((x, y) => x | y);
                             }
                             return result;
                         }

@@ -28,10 +28,12 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio;
+using VSGenero.Analysis.Interfaces;
+using VSGenero.Analysis.Parsing;
 
 namespace VSGenero.EditorExtensions.Intellisense
 {
-    internal class QuickInfoSource : IQuickInfoSource
+    internal class QuickInfoSource : IQuickInfoSource, ITypeResolver
     {
         private readonly ITextBuffer _textBuffer;
         private readonly IVsTextView _viewAdapter;
@@ -104,10 +106,10 @@ namespace VSGenero.EditorExtensions.Intellisense
                 }
                 else
                 {
-                    if(provider != null && provider._GeneroDebugger != null)
-                    {
-                        provider._GeneroDebugger.SetDataTipContext(val);
-                    }
+                    //if(provider != null && provider._GeneroDebugger != null)
+                    //{
+                    //    provider._GeneroDebugger.SetDataTipContext(val.GetVariableType());
+                    //}
                     string qiText;
                     if (TryGetQuickInfoFromDebugger(session, applicableToSpan.GetSpan(subjectBuffer.CurrentSnapshot), viewAdapter, out qiText))
                     {
@@ -229,6 +231,44 @@ namespace VSGenero.EditorExtensions.Intellisense
         {
         }
 
+        #region ITypeResolver Members
+
+        public ITypeResult GetGeneroType(string variableName, string filename, int lineNumber)
+        {
+            // TODO: need to
+            // 1) Retrieve the GeneroAst based on the filename
+            // 2) 
+
+            if (_provider._PublicFunctionProvider != null)
+                _provider._PublicFunctionProvider.SetFilename(filename);
+            if (_provider._DatabaseInfoProvider != null)
+                _provider._DatabaseInfoProvider.SetFilename(filename);
+
+            if(VSGeneroPackage.Instance.DefaultAnalyzer != null)
+            {
+                var projectEntry = VSGeneroPackage.Instance.DefaultAnalyzer.AnalyzeFile(filename);  // This file should already be "analyzed"
+                if (projectEntry != null && projectEntry.Analysis != null)
+                {
+                    IGeneroProject dummyProj;
+                    IProjectEntry projEntry;
+                    bool dummyDef;
+                    var analysisResult = projectEntry.Analysis.GetValueByIndex(variableName,
+                                                                                projectEntry.Analysis.LineNumberToIndex(lineNumber),
+                                                                                _provider._PublicFunctionProvider,
+                                                                                _provider._DatabaseInfoProvider,
+                                                                                _provider._ProgramFileProvider,
+                                                                                false,
+                                                                                out dummyDef, out dummyProj, out projEntry, FunctionProviderSearchMode.Search);
+                    if (analysisResult != null && analysisResult is IVariableResult)
+                    {
+                        return (analysisResult as IVariableResult).GetGeneroType();
+                    }
+                }
+            }
+            return null;
+        }
+
+        #endregion
     }
 
     [ComImport, Guid("80DD0557-F6FE-48e3-9651-398C5E7D8D78"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown), ComVisible(true)]

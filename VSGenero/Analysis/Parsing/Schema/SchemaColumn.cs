@@ -332,6 +332,8 @@ namespace VSGenero.Analysis.Parsing.Schema
             }
         }
 
+        
+
         public bool HasChildFunctions(Genero4glAst ast)
         {
             return false;
@@ -344,7 +346,7 @@ namespace VSGenero.Analysis.Parsing.Schema
             return null;
         }
 
-        public IEnumerable<MemberResult> GetMembers(Genero4glAst ast, MemberType memberType, bool function)
+        public IEnumerable<MemberResult> GetMembers(Genero4glAst ast, MemberType memberType, bool getArrayTypeMembers)
         {
             return new List<MemberResult>();
         }

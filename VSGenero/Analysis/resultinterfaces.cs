@@ -47,7 +47,27 @@ namespace VSGenero.Analysis
         GeneroLanguageVersion MaximumLanguageVersion { get; }
 
         IAnalysisResult GetMember(string name, Genero4glAst ast, out IGeneroProject definingProject, out IProjectEntry projectEntry, bool function);
-        IEnumerable<MemberResult> GetMembers(Genero4glAst ast, MemberType memberType, bool function);
+        IEnumerable<MemberResult> GetMembers(Genero4glAst ast, MemberType memberType, bool getArrayTypeMembers);
+    }
+
+    public interface IVariableResult : IAnalysisResult
+    {
+        ITypeResult GetGeneroType();
+    }
+
+    public interface ITypeResult
+    {
+        bool IsRecord { get; }
+
+        Dictionary<string, ITypeResult> RecordMemberTypes { get; }
+
+        bool IsArray { get; }
+
+        ITypeResult ArrayType { get; }
+
+        string Typename { get; }
+
+        ITypeResult UnderlyingType { get; }
     }
 
     public enum DatabaseTableType

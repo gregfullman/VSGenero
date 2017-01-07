@@ -170,6 +170,8 @@ namespace VSGenero.Analysis
             }
         }
 
+        
+
         internal IAnalysisResult GetMemberOfType(string name, object ast, bool vars, bool types, bool consts, bool funcs, out IProjectEntry definingProjEntry)
         {
             string projNamespace = string.Format("{0}", this.Name);
@@ -257,7 +259,7 @@ namespace VSGenero.Analysis
             return res;
         }
 
-        public IEnumerable<MemberResult> GetMembers(Genero4glAst ast, MemberType memberType, bool function)
+        public IEnumerable<MemberResult> GetMembers(Genero4glAst ast, MemberType memberType, bool getArrayTypeMembers)
         {
             string projNamespace = string.Format("{0}", this.Name);
             List<MemberResult> members = new List<MemberResult>();

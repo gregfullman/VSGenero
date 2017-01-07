@@ -33,6 +33,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
     /// </summary>
     public class ArrayTypeReference : TypeReference
     {
+
         public AttributeSpecifier Attribute { get; private set; }
 
         public ArrayType ArrayType { get; private set; }
@@ -52,13 +53,34 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             }
         }
 
-        public IAnalysisResult ResolvedType
+        public override ITypeResult GetGeneroType()
+        {
+            if (Children.Count == 1 && Children[Children.Keys[0]] is TypeReference)
+            {
+                return (Children[Children.Keys[0]] as TypeReference).GetGeneroType();
+            }
+            return null;
+        }
+
+        public override IAnalysisResult ResolvedType
         {
             get
             {
                 if(Children.Count == 1 && Children[Children.Keys[0]] is TypeReference)
                 {
                     return (Children[Children.Keys[0]] as TypeReference).ResolvedType;
+                }
+                return null;
+            }
+        }
+
+        public override string SimpleTypeName
+        {
+            get
+            {
+                if (Children.Count == 1 && Children[Children.Keys[0]] is TypeReference)
+                {
+                    return (Children[Children.Keys[0]] as TypeReference).Name;
                 }
                 return null;
             }
@@ -322,25 +344,26 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             return results;
         }
 
-        internal IEnumerable<MemberResult> GetMembersInternal(Genero4glAst ast, MemberType memberType, bool arrayFunctions = false)
+        internal IEnumerable<MemberResult> GetMembersInternal(Genero4glAst ast, MemberType memberType, bool getArrayTypeMembers = false)
         {
             List<MemberResult> results = new List<MemberResult>();
-            if (!arrayFunctions)
+            if (getArrayTypeMembers)
             {
                 if (Children.Count == 1)
                 {
                     var node = Children[Children.Keys[0]];
                     if (node is TypeReference)
                     {
-                        results.AddRange((node as TypeReference).GetMembers(ast, memberType, arrayFunctions));
+                        results.AddRange((node as TypeReference).GetMembers(ast, memberType, false));   // We don't want to continue getting array type members further down
                     }
                 }
             }
             else
             {
                 results.AddRange(Genero4glAst.ArrayFunctions.Values.Where(x => ast.LanguageVersion >= x.MinimumLanguageVersion && ast.LanguageVersion <= x.MaximumLanguageVersion)
-                                                                   .Select(x => new MemberResult(x.Name, x, GeneroMemberType.Method, ast)));
+                                                                       .Select(x => new MemberResult(x.Name, x, GeneroMemberType.Method, ast)));
             }
+
             return results;
         }
     }

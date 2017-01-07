@@ -47,7 +47,12 @@ namespace VSGenero.EditorExtensions.Intellisense
 
         public IQuickInfoSource TryCreateQuickInfoSource(ITextBuffer textBuffer)
         {
-            return new QuickInfoSource(this, textBuffer);
+            var infoSource = new QuickInfoSource(this, textBuffer);
+            if(_GeneroDebugger != null)
+            {
+                _GeneroDebugger.SetTypeResolver(infoSource);
+            }
+            return infoSource;
         }
     }
 }

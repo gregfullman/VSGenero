@@ -127,6 +127,11 @@ namespace VSGenero.Analysis.Parsing
             return new SourceLocation(index, match + 2, index - locs[match] + 1);
         }
 
+        internal int LineNumberToIndex(int lineNumber)
+        {
+            return _lineLocations[lineNumber];
+        }
+
         public LocationInfo ResolveLocation(IProjectEntry entry, object location)
         {
             IAnalysisResult result = location as IAnalysisResult;

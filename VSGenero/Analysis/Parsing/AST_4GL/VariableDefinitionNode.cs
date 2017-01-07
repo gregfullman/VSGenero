@@ -19,7 +19,7 @@ using System.Threading.Tasks;
 
 namespace VSGenero.Analysis.Parsing.AST_4GL
 {
-    public class VariableDef : IAnalysisResult
+    public class VariableDef : IVariableResult
     {
         private string _name;
         public string Name
@@ -34,7 +34,9 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         }
 
         public TypeReference Type { get; internal set; }
-        public IAnalysisResult ResolvedType { get; internal set; }
+
+        public IAnalysisResult ResolvedType {  get { return Type; } }
+
         private string _filename;
         private string _namespace;
         private bool _isPublic = false;
@@ -107,9 +109,9 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             return Type.GetMember(name, ast, out definingProject, out projEntry, function);
         }
 
-        public IEnumerable<MemberResult> GetMembers(Genero4glAst ast, MemberType memberType, bool function)
+        public IEnumerable<MemberResult> GetMembers(Genero4glAst ast, MemberType memberType, bool getArrayTypeMembers)
         {
-            return Type.GetMembers(ast, memberType, function);
+            return Type.GetMembers(ast, memberType, getArrayTypeMembers);
         }
 
         public bool HasChildFunctions(Genero4glAst ast)
@@ -125,6 +127,11 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         public void SetNamespace(string ns)
         {
             _namespace = ns;
+        }
+
+        public ITypeResult GetGeneroType()
+        {
+            return Type?.GetGeneroType();
         }
 
         public string Typename
@@ -269,7 +276,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         foreach (var vardef in VariableDefinitions)
                         {
                             // apply the resolved type definition to the variable
-                            vardef.ResolvedType = resolvedType;
+                            // TODO:
+                            //vardef.ResolvedType = resolvedType;
                         }
                     }
                 }
@@ -281,5 +289,93 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             foreach (var def in VariableDefinitions)
                 def.SetNamespace(ns);
         }
+    }
+
+    //internal static class VariableTypeFactory
+    //{
+    //    internal static ITypeResult GetVariableType(this IAnalysisResult analysisResult)
+    //    {
+    //        ITypeResult typeResult = null;
+    //        var varDef = analysisResult as VariableDef;
+    //        if(varDef != null && varDef.Type != null)
+    //        {
+    //            typeResult = new VariableType
+    //            {
+    //                IsArray =  varDef.Type.IsArray,
+    //                IsRecord = varDef.Type.IsRecord
+    //            };
+    //            var resolvedType = varDef.Type.ResolvedType;
+    //            while(resolvedType != null)
+    //            {
+    //                if (resolvedType is TypeDefinitionNode)
+    //                {
+    //                    var typeRef = (resolvedType as TypeDefinitionNode).TypeRef;
+    //                    if (typeRef != null)
+    //                    {
+    //                        if (typeRef.ResolvedType != null)
+    //                        {
+    //                            resolvedType = typeRef.ResolvedType;
+    //                            continue;
+    //                        }
+    //                        else
+    //                        {
+    //                            (typeResult as VariableType).Typename = typeRef.Name;
+    //                            (typeResult as VariableType).IsArray = typeRef.IsArray;
+    //                            (typeResult as VariableType).IsRecord = typeRef.IsRecord;
+    //                        }
+    //                    }
+    //                }
+    //                else if (resolvedType is GeneroPackageClass)
+    //                {
+    //                    (typeResult as VariableType).Typename = (resolvedType as GeneroPackageClass).Name;
+    //                    break;
+    //                }
+
+    //                break;
+    //            }
+    //            if(typeResult.Typename == null)
+    //            {
+    //                (typeResult as VariableType).Typename = varDef.Type.SimpleTypeName;
+    //            }
+    //            return typeResult;
+    //            //if(resolvedType.)
+    //            //while(resolvedType != null)
+    //            //{
+    //            //    if (resolvedType is TypeDefinitionNode)
+    //            //    {
+    //            //        resolvedType = (resolvedType as TypeDefinitionNode).TypeRef;
+    //            //    }
+    //            //    else if(resolvedType is GeneroPackageClass)
+    //            //    {
+    //            //            (resolvedType as GeneroPackageClass).
+    //            //    }
+    //            //}
+    //        }
+    //        else if(analysisResult is ProgramRegister)
+    //        {
+    //            var progReg = analysisResult as ProgramRegister;
+    //            typeResult = new VariableType
+    //            {
+    //                IsArray = false,
+    //                IsRecord = progReg.ChildRegisters.Count > 0,
+    //                Typename = progReg.Typename
+    //            };
+    //        }
+    //        return typeResult;
+    //    }
+
+    internal class VariableTypeResult : ITypeResult
+    {
+        public ITypeResult ArrayType { get; internal set; }
+
+        public bool IsArray { get; internal set; }
+
+        public bool IsRecord { get; internal set; }
+
+        public Dictionary<string, ITypeResult> RecordMemberTypes { get; internal set; }
+
+        public string Typename { get; internal set; }
+
+        public ITypeResult UnderlyingType { get; internal set; }
     }
 }

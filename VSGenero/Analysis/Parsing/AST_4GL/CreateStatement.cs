@@ -293,7 +293,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             return this.Children.Values.Cast<CreatedTableColumn>().FirstOrDefault(x => x.ColumnName.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
         }
 
-        public IEnumerable<MemberResult> GetMembers(Genero4glAst ast, MemberType memberType, bool function)
+        public IEnumerable<MemberResult> GetMembers(Genero4glAst ast, MemberType memberType, bool getArrayTypeMembers)
         {
             return this.Children.Values.Cast<CreatedTableColumn>().Select(x => new MemberResult(x.ColumnName.Name, x, GeneroMemberType.DbColumn, SyntaxTree));
         }
@@ -476,7 +476,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             return null;
         }
 
-        public IEnumerable<MemberResult> GetMembers(Genero4glAst ast, MemberType memberType, bool function)
+        public IEnumerable<MemberResult> GetMembers(Genero4glAst ast, MemberType memberType, bool getArrayTypeMembers)
         {
             return new MemberResult[0];
         }

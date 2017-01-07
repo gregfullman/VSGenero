@@ -30,7 +30,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
     /// For more info, see http://www.4js.com/online_documentation/fjs-fgl-manual-html/index.html#c_fgl_user_types_003.html
     /// or http://www.4js.com/online_documentation/fjs-fgl-manual-html/index.html#c_fgl_variables_DEFINE.html
     /// </summary>
-    public class TypeReference : AstNode4gl, IAnalysisResult
+    public class TypeReference : AstNode4gl, IVariableResult
     {
         public AttributeSpecifier Attribute { get; private set; }
 
@@ -44,18 +44,57 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         public string TableName { get; private set; }
         public string ColumnName { get; private set; }
 
+        public virtual ITypeResult GetGeneroType()
+        {
+            var varType = new VariableTypeResult
+            {
+                IsArray = this.IsArray,
+                IsRecord = this.IsRecord,
+                Typename = this.Name
+            };
+            if (Children.Count == 1 && Children[Children.Keys[0]] is ArrayTypeReference)
+            {
+                varType.ArrayType = (Children[Children.Keys[0]] as ArrayTypeReference).GetGeneroType();
+            }
+            else if (Children.Count == 1 && Children[Children.Keys[0]] is RecordDefinitionNode)
+            {
+                varType.RecordMemberTypes = (Children[Children.Keys[0]] as RecordDefinitionNode).GetMemberTypes();
+            }
+            else if (ResolvedType != null && ResolvedType is IVariableResult)
+            {
+                varType.UnderlyingType = (ResolvedType as IVariableResult).GetGeneroType();
+            }
+            return varType;
+        }
+
         private IAnalysisResult _resolvedType;
-        public IAnalysisResult ResolvedType
+        public virtual IAnalysisResult ResolvedType
         {
             get
             {
-                if(_resolvedType == null && Children.Count == 1 && Children[Children.Keys[0]] is ArrayTypeReference)
+                if(_resolvedType == null)
                 {
-                    return (Children[Children.Keys[0]] as ArrayTypeReference).ResolvedType;
+                    if (Children.Count == 1 && Children[Children.Keys[0]] is ArrayTypeReference)
+                        _resolvedType = (Children[Children.Keys[0]] as ArrayTypeReference).ResolvedType;
+                    else
+                    {
+                        string errMsg;
+                        _resolvedType = GetResolvedType(SyntaxTree as Genero4glAst, out errMsg);
+                    }
                 }
                 return _resolvedType;
             }
             private set { _resolvedType = value; }
+        }
+
+        public virtual string SimpleTypeName
+        {
+            get
+            {
+                if (Children.Count == 1 && Children[Children.Keys[0]] is ArrayTypeReference)
+                    return (Children[Children.Keys[0]] as ArrayTypeReference).SimpleTypeName;
+                return _typeNameString;
+            }
         }
 
         public bool CanGetValueFromDebugger
@@ -445,7 +484,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             }
         }
 
-        internal IEnumerable<MemberResult> GetArrayMembers(Genero4glAst ast, MemberType memberType, bool function)
+        internal IEnumerable<MemberResult> GetArrayMembers(Genero4glAst ast, MemberType memberType, bool getArrayTypeMembers)
         {
             List<MemberResult> members = new List<MemberResult>();
             if (Children.Count == 1)
@@ -454,13 +493,13 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 var node = Children[Children.Keys[0]];
                 if (node is ArrayTypeReference)
                 {
-                    return (node as ArrayTypeReference).GetMembersInternal(ast, memberType, function);
+                    return (node as ArrayTypeReference).GetMembersInternal(ast, memberType, getArrayTypeMembers);
                 }
             }
             return members;
         }
 
-        public IEnumerable<MemberResult> GetMembers(Genero4glAst ast, MemberType memberType, bool function)
+        public IEnumerable<MemberResult> GetMembers(Genero4glAst ast, MemberType memberType, bool getArrayTypeMembers)
         {
             bool dummyDef;
             List<MemberResult> members = new List<MemberResult>();
@@ -470,11 +509,11 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 var node = Children[Children.Keys[0]];
                 if (node is ArrayTypeReference)
                 {
-                    return (node as ArrayTypeReference).GetMembersInternal(ast, memberType, function);
+                    return (node as ArrayTypeReference).GetMembersInternal(ast, memberType, getArrayTypeMembers);
                 }
                 else if (node is RecordDefinitionNode)
                 {
-                    return (node as RecordDefinitionNode).GetMembers(ast, memberType, function);
+                    return (node as RecordDefinitionNode).GetMembers(ast, memberType, getArrayTypeMembers);
                 }
             }
             else
@@ -504,7 +543,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     IAnalysisResult udt = ast.TryGetUserDefinedType(_typeNameString, LocationIndex);
                     if (udt != null)
                     {
-                        return udt.GetMembers(ast, memberType, function);
+                        return udt.GetMembers(ast, memberType, getArrayTypeMembers);
                     }
 
                     foreach (var includedFile in ast.ProjectEntry.GetIncludedFiles())
@@ -516,7 +555,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                             var res = includedFile.Analysis.GetValueByIndex(_typeNameString, 1, null, null, null, false, out dummyDef, out dummyProj, out dummyProjEntry);
                             if (res != null)
                             {
-                                return res.GetMembers(ast, memberType, function);
+                                return res.GetMembers(ast, memberType, getArrayTypeMembers);
                             }
                         }
                     }
@@ -531,7 +570,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                 udt = (refProj as GeneroProject).GetMemberOfType(_typeNameString, ast, false, true, false, false, out dummyProj);
                                 if (udt != null)
                                 {
-                                    return udt.GetMembers(ast, memberType, function);
+                                    return udt.GetMembers(ast, memberType, getArrayTypeMembers);
                                 }
                             }
                         }
@@ -543,7 +582,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     udt = ast.GetValueByIndex(_typeNameString, LocationIndex, ast._functionProvider, ast._databaseProvider, ast._programFileProvider, false, out dummyDef, out dummyProject, out projEntry);
                     if (udt != null)
                     {
-                        return udt.GetMembers(ast, memberType, function);
+                        return udt.GetMembers(ast, memberType, getArrayTypeMembers);
                     }
                 }
             }
@@ -636,29 +675,44 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 var tok = Tokens.GetToken(_typeNameString);
                 if(tok == null || !Genero4glAst.BuiltinTypes.Contains(tok.Kind))
                 {
-                    // if it's not a base type, look up the type
-                    IGeneroProject dummyProj;
-                    IProjectEntry dummyProjEntry;
-                    bool isDeferred;
-                    var res = Genero4glAst.GetValueByIndex(_typeNameString, StartIndex, ast as Genero4glAst, out dummyProj, out dummyProjEntry, out isDeferred, FunctionProviderSearchMode.NoSearch, false, true, false, false);
-                    if(res == null)
-                    {
-                        errorFunc(string.Format("Type {0} not found.", _typeNameString), StartIndex, EndIndex);
-                    }
+                    string resolveErrMsg;
+                    var resolvedType = GetResolvedType(ast as Genero4glAst, out resolveErrMsg);
+                    if(resolvedType == null && resolveErrMsg != null)
+                        errorFunc(resolveErrMsg, StartIndex, EndIndex);
                     else
-                    {
-                        if(res is GeneroPackageClass ||
-                           res is TypeDefinitionNode)
-                        {
-                            ResolvedType = res;
-                        }
-                        else
-                        {
-                            errorFunc(string.Format("Invalid type {0} found.", _typeNameString), StartIndex, EndIndex);
-                        }
-                    }
+                        ResolvedType = resolvedType;
                 }
             }
         }
+
+        private IAnalysisResult GetResolvedType(Genero4glAst ast, out string errMsg)
+        {
+            errMsg = null;
+            IAnalysisResult result = null;
+            // if it's not a base type, look up the type
+            IGeneroProject dummyProj;
+            IProjectEntry dummyProjEntry;
+            bool isDeferred;
+            var res = Genero4glAst.GetValueByIndex(_typeNameString, StartIndex, ast as Genero4glAst, out dummyProj, out dummyProjEntry, out isDeferred, FunctionProviderSearchMode.NoSearch, false, true, false, false);
+            if (res == null)
+            {
+                errMsg = string.Format("Type {0} not found.", _typeNameString);
+            }
+            else
+            {
+                if (res is GeneroPackageClass ||
+                   res is TypeDefinitionNode)
+                {
+                    result = res;
+                }
+                else
+                {
+                    errMsg = string.Format("Invalid type {0} found.", _typeNameString);
+                }
+            }
+            return result;
+        }
+
+        
     }
 }

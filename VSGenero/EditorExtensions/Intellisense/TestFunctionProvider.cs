@@ -102,7 +102,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             return collection;
         }
 
-        public IEnumerable<MemberResult> GetMembers(Genero4glAst ast, MemberType memberType, bool function)
+        public IEnumerable<MemberResult> GetMembers(Genero4glAst ast, MemberType memberType, bool getArrayTypeMembers)
         {
             return _collections.Values.Select(x => new MemberResult(x.Name, x, GeneroMemberType.Class, ast));
         }
@@ -156,6 +156,8 @@ namespace VSGenero.EditorExtensions.Intellisense
                 return GeneroLanguageVersion.Latest;
             }
         }
+
+        
 
         public IEnumerable<string> GetExistingFunctionsFromSet(IEnumerable<string> set)
         {
@@ -221,7 +223,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             return GetFunction(name);
         }
 
-        public IEnumerable<MemberResult> GetMembers(Genero4glAst ast, MemberType memberType, bool function)
+        public IEnumerable<MemberResult> GetMembers(Genero4glAst ast, MemberType memberType, bool getArrayTypeMembers)
         {
             return _functions.Values.Select(x => new MemberResult(x.Name, x, GeneroMemberType.Method, ast));
         }
@@ -258,6 +260,8 @@ namespace VSGenero.EditorExtensions.Intellisense
                 return GeneroLanguageVersion.Latest;
             }
         }
+
+        
     }
 
     internal class TestFunction : IFunctionResult
@@ -349,7 +353,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             return null;
         }
 
-        public IEnumerable<MemberResult> GetMembers(Genero4glAst ast, MemberType memberType, bool function)
+        public IEnumerable<MemberResult> GetMembers(Genero4glAst ast, MemberType memberType, bool getArrayTypeMembers)
         {
             return new List<MemberResult>();
         }
@@ -470,5 +474,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                 return GeneroMemberType.Method;
             }
         }
+
+        
     }
 }

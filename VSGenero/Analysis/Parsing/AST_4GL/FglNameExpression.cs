@@ -129,7 +129,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 {
                     // need to make sure that the res has a resolved type
                     (res as VariableDef).Type.CheckForErrors(ast, errorFunc, deferredFunctionSearches);
-                    (res as VariableDef).ResolvedType = (res as VariableDef).Type.ResolvedType;
+                    //(res as VariableDef).ResolvedType = (res as VariableDef).Type.ResolvedType;
                 }
                 // TODO: need to check array element type
                 ResolvedResult = res;

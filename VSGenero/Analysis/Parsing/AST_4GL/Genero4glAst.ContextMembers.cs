@@ -504,7 +504,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                 // Get suggested member type based on what comes before the member we're doing access on
                                 MemberType memberType = GetSuggestedMemberType(startIndex - 1, revTokenizer);
 
-                                IEnumerable<MemberResult> memberList = analysisRes.GetMembers(this, memberType, !var[var.Length - 1].Equals(']'));
+                                IEnumerable<MemberResult> memberList = analysisRes.GetMembers(this, memberType, var[var.Length - 1].Equals(']'));
                                 if (memberList != null)
                                 {
                                     results.AddRange(memberList);

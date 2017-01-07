@@ -217,13 +217,16 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             int startIndex = 0, endIndex = 0;
             bool noEndIndexSet = false;
 
+            if (exprText == null)
+                return null;
+
             while (tmpIndex < exprText.Length)
             {
                 if (resetStartIndex)
                 {
                     startIndex = tmpIndex;
                     resetStartIndex = false;
-                    if (startIndex + 1 == exprText.Length)
+                    if (startIndex + 1 > exprText.Length)
                         break;
                 }
 

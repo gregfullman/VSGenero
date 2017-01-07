@@ -544,7 +544,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             return null;
         }
 
-        public IEnumerable<MemberResult> GetMembers(Genero4glAst ast, MemberType memberType, bool function)
+        public IEnumerable<MemberResult> GetMembers(Genero4glAst ast, MemberType memberType, bool getArrayTypeMembers)
         {
             return null;
         }

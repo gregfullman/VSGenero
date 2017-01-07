@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 
 namespace VSGenero.Analysis.Interfaces
 {
-    public interface IGeneroDebugger
+    public interface ITypeResolver
     {
-        void SetTypeResolver(ITypeResolver typeResolver);
+        ITypeResult GetGeneroType(string variableName, string filename, int lineNumber);
     }
 }

@@ -4966,7 +4966,7 @@ GeneroLanguageVersion.Latest)
             return cls;
         }
 
-        public IEnumerable<MemberResult> GetMembers(Genero4glAst ast, MemberType memberType, bool function)
+        public IEnumerable<MemberResult> GetMembers(Genero4glAst ast, MemberType memberType, bool getArrayTypeMembers)
         {
             return _classes.Values.Where(x => ast.LanguageVersion >= x.MinimumLanguageVersion && ast.LanguageVersion <= x.MaximumLanguageVersion)
                                   .Select(x => new MemberResult(x.Name, x, GeneroMemberType.Class, ast));
@@ -5015,7 +5015,7 @@ GeneroLanguageVersion.Latest)
         }
     }
 
-    public class GeneroPackageClass : IAnalysisResult
+    public class GeneroPackageClass : IVariableResult
     {
         private readonly string _parentPackage;
         private readonly string _name;
@@ -5098,7 +5098,7 @@ GeneroLanguageVersion.Latest)
             return method;
         }
 
-        public IEnumerable<MemberResult> GetMembers(Genero4glAst ast, MemberType memberType, bool function)
+        public IEnumerable<MemberResult> GetMembers(Genero4glAst ast, MemberType memberType, bool getArrayTypeMembers)
         {
             return _methods.Values.Where(x => ast.LanguageVersion >= x.MinimumLanguageVersion && ast.LanguageVersion <= x.MaximumLanguageVersion)
                                   .Select(x => new MemberResult(x.Name, x, GeneroMemberType.Method, ast));
@@ -5107,6 +5107,14 @@ GeneroLanguageVersion.Latest)
         public bool HasChildFunctions(Genero4glAst ast)
         {
             return true;
+        }
+
+        public ITypeResult GetGeneroType()
+        {
+            return new VariableTypeResult
+            {
+                Typename = Name
+            };
         }
 
         public string Typename
@@ -5293,12 +5301,12 @@ GeneroLanguageVersion.Latest)
             return null;
         }
 
-        public IEnumerable<MemberResult> GetMembers(Genero4glAst ast, MemberType memberType, bool function)
+        public IEnumerable<MemberResult> GetMembers(Genero4glAst ast, MemberType memberType, bool getArrayTypeMembers)
         {
             if(_returns != null && _returns.Count == 1)
             {
                 var typeRef = new TypeReference(_returns[0]);
-                return typeRef.GetMembers(ast, memberType, function);
+                return typeRef.GetMembers(ast, memberType, getArrayTypeMembers);
             }
             return new MemberResult[0];
         }

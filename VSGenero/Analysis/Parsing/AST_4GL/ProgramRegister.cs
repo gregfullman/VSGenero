@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace VSGenero.Analysis.Parsing.AST_4GL
 {
-    public class ProgramRegister : IAnalysisResult
+    public class ProgramRegister : IVariableResult
     {
         private ProgramRegister _parentRegister;
         private readonly string _name;
@@ -14,6 +14,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         private readonly Dictionary<string, ProgramRegister> _childRegisters;
         private readonly GeneroLanguageVersion _minBdlVersion;
         private readonly GeneroLanguageVersion _maxBdlVersion;
+
+        public Dictionary<string, ProgramRegister> ChildRegisters {  get { return _childRegisters; } }
 
         public bool CanGetValueFromDebugger
         {
@@ -104,7 +106,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             return progReg;
         }
 
-        public IEnumerable<MemberResult> GetMembers(Genero4glAst ast, MemberType memberType, bool function)
+        public IEnumerable<MemberResult> GetMembers(Genero4glAst ast, MemberType memberType, bool getArrayTypeMembers)
         {
             if (_childRegisters != null)
             {
@@ -116,6 +118,12 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         public bool HasChildFunctions(Genero4glAst ast)
         {
             return false;
+        }
+
+        public ITypeResult GetGeneroType()
+        {
+            // TODO:
+            return null;
         }
 
         public string Typename
