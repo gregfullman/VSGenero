@@ -1,62 +1,67 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Drawing;
-using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
+﻿using Microsoft.VisualStudio.VSCommon.Options;
+using System;
 
 namespace VSGenero.Options
 {
-    public partial class Genero4GLAdvancedOptionsControl : UserControl
+    public partial class Genero4GLAdvancedOptionsControl : BaseOptionsUserControl
     {
         public Genero4GLAdvancedOptionsControl()
         {
             InitializeComponent();
-            checkBoxShowFunctionParams.Checked = VSGeneroPackage.Instance.AdvancedOptions4GLPage.ShowFunctionParametersInList;
-            checkBoxIncludeAllFunctions.Checked = VSGeneroPackage.Instance.AdvancedOptions4GLPage.IncludeAllFunctions;
-            checkBoxMinorCollapseRegions.Checked = VSGeneroPackage.Instance.AdvancedOptions4GLPage.MinorCollapseRegionsEnabled;
-            checkBoxMajorCollapseRegions.Checked = VSGeneroPackage.Instance.AdvancedOptions4GLPage.MajorCollapseRegionsEnabled;
-            checkBoxCustomCollapseRegions.Checked = VSGeneroPackage.Instance.AdvancedOptions4GLPage.CustomCollapseRegionsEnabled;
-            checkBoxSemanticErrorChecking.Checked = VSGeneroPackage.Instance.AdvancedOptions4GLPage.SemanticErrorCheckingEnabled;
-            checkBoxOpenExternalBrowser.Checked = VSGeneroPackage.Instance.AdvancedOptions4GLPage.OpenExternalBrowser;
+            InitializeData();
+        }
+
+        protected override void Initialize()
+        {
+            checkBoxShowFunctionParams.Checked = VSGeneroPackage.Instance.AdvancedOptions4GL.ShowFunctionParametersInList;
+            checkBoxIncludeAllFunctions.Checked = VSGeneroPackage.Instance.AdvancedOptions4GL.IncludeAllFunctions;
+            checkBoxMinorCollapseRegions.Checked = VSGeneroPackage.Instance.AdvancedOptions4GL.MinorCollapseRegionsEnabled;
+            checkBoxMajorCollapseRegions.Checked = VSGeneroPackage.Instance.AdvancedOptions4GL.MajorCollapseRegionsEnabled;
+            checkBoxCustomCollapseRegions.Checked = VSGeneroPackage.Instance.AdvancedOptions4GL.CustomCollapseRegionsEnabled;
+            checkBoxSemanticErrorChecking.Checked = VSGeneroPackage.Instance.AdvancedOptions4GL.SemanticErrorCheckingEnabled;
+            checkBoxOpenExternalBrowser.Checked = VSGeneroPackage.Instance.AdvancedOptions4GL.OpenExternalBrowser;
         }
 
         private void checkBox1_CheckedChanged(object sender, EventArgs e)
         {
-            VSGeneroPackage.Instance.AdvancedOptions4GLPage.ShowFunctionParametersInList = checkBoxShowFunctionParams.Checked;
+            if(!IsInitializing)
+                VSGeneroPackage.Instance.AdvancedOptions4GL.SetPendingValue(Genero4GLAdvancedOptions.ShowFunctionParametersSetting, checkBoxShowFunctionParams.Checked);
         }
 
         private void checkBoxMajorCollapseRegions_CheckedChanged(object sender, EventArgs e)
         {
-            VSGeneroPackage.Instance.AdvancedOptions4GLPage.MajorCollapseRegionsEnabled = checkBoxMajorCollapseRegions.Checked;
+            if (!IsInitializing)
+                VSGeneroPackage.Instance.AdvancedOptions4GL.SetPendingValue(Genero4GLAdvancedOptions.MajorCollapseRegionsEnabledSetting, checkBoxMajorCollapseRegions.Checked);
         }
 
         private void checkBoxMinorCollapseRegions_CheckedChanged(object sender, EventArgs e)
         {
-            VSGeneroPackage.Instance.AdvancedOptions4GLPage.MinorCollapseRegionsEnabled = checkBoxMinorCollapseRegions.Checked;
+            if (!IsInitializing)
+                VSGeneroPackage.Instance.AdvancedOptions4GL.SetPendingValue(Genero4GLAdvancedOptions.MinorCollapseRegionsEnabledSetting, checkBoxMinorCollapseRegions.Checked);
         }
 
         private void checkBoxCustomCollapseRegions_CheckedChanged(object sender, EventArgs e)
         {
-            VSGeneroPackage.Instance.AdvancedOptions4GLPage.CustomCollapseRegionsEnabled = checkBoxCustomCollapseRegions.Checked;
+            if (!IsInitializing)
+                VSGeneroPackage.Instance.AdvancedOptions4GL.SetPendingValue(Genero4GLAdvancedOptions.CustomCollapseRegionsEnabledSetting, checkBoxCustomCollapseRegions.Checked);
         }
 
         private void checkBoxSemanticErrorChecking_CheckedChanged(object sender, EventArgs e)
         {
-            VSGeneroPackage.Instance.AdvancedOptions4GLPage.SemanticErrorCheckingEnabled = checkBoxSemanticErrorChecking.Checked;
+            if (!IsInitializing)
+                VSGeneroPackage.Instance.AdvancedOptions4GL.SetPendingValue(Genero4GLAdvancedOptions.SemanticErrorCheckingEnabledSetting, checkBoxSemanticErrorChecking.Checked);
         }
 
         private void checkBoxIncludeAllFunctions_CheckedChanged(object sender, EventArgs e)
         {
-            VSGeneroPackage.Instance.AdvancedOptions4GLPage.IncludeAllFunctions = checkBoxIncludeAllFunctions.Checked;
+            if (!IsInitializing)
+                VSGeneroPackage.Instance.AdvancedOptions4GL.SetPendingValue(Genero4GLAdvancedOptions.IncludeAllFunctionsSetting, checkBoxIncludeAllFunctions.Checked);
         }
 
         private void checkBoxOpenExternalBrowser_CheckedChanged(object sender, EventArgs e)
         {
-            VSGeneroPackage.Instance.AdvancedOptions4GLPage.OpenExternalBrowser = checkBoxOpenExternalBrowser.Checked;
+            if (!IsInitializing)
+                VSGeneroPackage.Instance.AdvancedOptions4GL.SetPendingValue(Genero4GLAdvancedOptions.OpenExternalBrowserEnabledSetting, checkBoxOpenExternalBrowser.Checked);
         }
     }
 }

@@ -20,6 +20,7 @@ using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio;
 using VSGenero.Navigation;
 using VSGenero.Options;
+using Microsoft.VisualStudio.VSCommon.Options;
 
 namespace VSGenero
 {
@@ -30,6 +31,32 @@ namespace VSGenero
         public Genero4GLLanguagePreferences(LANGPREFERENCES preferences)
         {
             _preferences = preferences;
+            VSGeneroPackage.Instance.AdvancedOptions4GL.OptionsChanged += AdvancedOptions4GL_OptionsChanged;
+        }
+
+        private void AdvancedOptions4GL_OptionsChanged(object sender, OptionsChangedEventArgs e)
+        {
+            UpdateSettings(e.ChangedOptions);
+        }
+
+        private void UpdateSettings(HashSet<string> optionsChanged)
+        {
+            if (optionsChanged.Contains(Genero4GLAdvancedOptions.ShowFunctionParametersSetting) ||
+                optionsChanged.Contains(Genero4GLAdvancedOptions.IncludeAllFunctionsSetting))
+            {
+                VSGeneroCodeWindowManager.RefreshNavigationBar();
+            }
+            if (optionsChanged.Contains(Genero4GLAdvancedOptions.MajorCollapseRegionsEnabledSetting) ||
+               optionsChanged.Contains(Genero4GLAdvancedOptions.MinorCollapseRegionsEnabledSetting) ||
+               optionsChanged.Contains(Genero4GLAdvancedOptions.CustomCollapseRegionsEnabledSetting))
+            {
+                // TODO: update the outliner
+
+            }
+            if (optionsChanged.Contains(Genero4GLAdvancedOptions.SemanticErrorCheckingEnabledSetting))
+            {
+                // TODO: update the semantic error checker
+            }
         }
 
         #region IVsTextManagerEvents2 Members
@@ -72,26 +99,7 @@ namespace VSGenero
                     VSGeneroCodeWindowManager.ToggleNavigationBar(_preferences.fDropdownBar != 0);
                 }
             }
-
-            var optionsChanged = VSGeneroPackage.Instance.AdvancedOptions4GLPage.OptionsChanged;
-
-            if (optionsChanged.HasFlag(AdvancedOptions.ShowFunctionParameters) ||
-                optionsChanged.HasFlag(AdvancedOptions.IncludeAllFunctions))
-            {
-                VSGeneroCodeWindowManager.RefreshNavigationBar();
-                VSGeneroPackage.Instance.AdvancedOptions4GLPage.SetChangesApplied();
-            }
-            if(optionsChanged.HasFlag(AdvancedOptions.MajorCollapseRegions) ||
-               optionsChanged.HasFlag(AdvancedOptions.MinorCollapseRegions) ||
-               optionsChanged.HasFlag(AdvancedOptions.CustomCollapseRegions))
-            {
-                // TODO: update the outliner
-
-            }
-            if(optionsChanged.HasFlag(AdvancedOptions.SemanticErrorChecking))
-            {
-                // TODO: update the semantic error checker
-            }
+            
             return VSConstants.S_OK;
         }
 

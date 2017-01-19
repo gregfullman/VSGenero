@@ -33,8 +33,8 @@ using Microsoft.VisualStudio.Shell;
 
 namespace VSGenero.EditorExtensions.Intellisense
 {
-    [Export(typeof(IIntellisenseControllerProvider)), 
-     ContentType(VSGeneroConstants.ContentType4GL), 
+    [Export(typeof(IIntellisenseControllerProvider)),
+     ContentType(VSGeneroConstants.ContentType4GL),
      ContentType(VSGeneroConstants.ContentTypeINC),
      ContentType(VSGeneroConstants.ContentTypePER),
      Order]

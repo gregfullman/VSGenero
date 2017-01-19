@@ -204,8 +204,8 @@ namespace VSGenero.EditorExtensions
             private void GetOutlinableResults(AstNode node, ref List<IOutlinableResult> outlinables, bool topLevel = true)
             {
                 if (topLevel &&
-                   (!VSGeneroPackage.Instance.AdvancedOptions4GLPage.MajorCollapseRegionsEnabled &&
-                    !VSGeneroPackage.Instance.AdvancedOptions4GLPage.MinorCollapseRegionsEnabled))
+                   (!VSGeneroPackage.Instance.AdvancedOptions4GL.MajorCollapseRegionsEnabled &&
+                    !VSGeneroPackage.Instance.AdvancedOptions4GL.MinorCollapseRegionsEnabled))
                 {
                     // Skip outlining if neither are enabled
                     return;
@@ -215,8 +215,8 @@ namespace VSGenero.EditorExtensions
                 {
                     if (child.Value != null)
                     {
-                        if ((topLevel && VSGeneroPackage.Instance.AdvancedOptions4GLPage.MajorCollapseRegionsEnabled) ||
-                            (!topLevel && VSGeneroPackage.Instance.AdvancedOptions4GLPage.MinorCollapseRegionsEnabled))
+                        if ((topLevel && VSGeneroPackage.Instance.AdvancedOptions4GL.MajorCollapseRegionsEnabled) ||
+                            (!topLevel && VSGeneroPackage.Instance.AdvancedOptions4GL.MinorCollapseRegionsEnabled))
                         {
                             if ((child.Value as IOutlinableResult).CanOutline)
                             {
@@ -234,7 +234,7 @@ namespace VSGenero.EditorExtensions
             {
                 Stack<GeneroCodeRegion> regions = new Stack<GeneroCodeRegion>();
                 List<GeneroCodeRegion> regionList = new List<GeneroCodeRegion>();
-                if (VSGeneroPackage.Instance.AdvancedOptions4GLPage.CustomCollapseRegionsEnabled)
+                if (VSGeneroPackage.Instance.AdvancedOptions4GL.CustomCollapseRegionsEnabled)
                 {
                     foreach (var tok in regionTokens)
                     {

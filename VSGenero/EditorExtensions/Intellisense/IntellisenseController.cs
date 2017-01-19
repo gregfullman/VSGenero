@@ -581,7 +581,7 @@ namespace VSGenero.EditorExtensions.Intellisense
         {
             if (_activeSession != null)
             {
-                if (VSGeneroPackage.Instance.IntellisenseOptions4GLPage.PreSelectMRU)
+                if (VSGeneroPackage.Instance.IntellisenseOptions4GL.PreSelectMRU)
                 {
                     if (_activeSession.SelectedCompletionSet != null &&
                        _activeSession.SelectedCompletionSet.SelectionStatus != null)
@@ -865,8 +865,8 @@ namespace VSGenero.EditorExtensions.Intellisense
                     {
                         if (_activeSession.SelectedCompletionSet != null &&
                             _activeSession.SelectedCompletionSet.SelectionStatus.IsSelected &&
-                            (VSGeneroPackage.Instance.IntellisenseOptions4GLPage.CompletionCommittedBy.IndexOf(ch) != -1 ||
-                             (ch == ' ' && VSGeneroPackage.Instance.IntellisenseOptions4GLPage.SpaceCommitsIntellisense)))
+                            (VSGeneroPackage.Instance.IntellisenseOptions4GL.CompletionCommittedBy.IndexOf(ch) != -1 ||
+                             (ch == ' ' && VSGeneroPackage.Instance.IntellisenseOptions4GL.SpaceCommitsIntellisense)))
                         {
                             if (_parentSpan == null)
                                 _parentSpan = GetCompletionParentSpan();
@@ -932,7 +932,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                                 // when typing "import sys[ENTER]" completion starts after the space.  After typing
                                 // sys the user wants a new line and doesn't want to type enter twice.
 
-                                bool enterOnComplete = VSGeneroPackage.Instance.IntellisenseOptions4GLPage.AddNewLineAtEndOfFullyTypedWord &&
+                                bool enterOnComplete = VSGeneroPackage.Instance.IntellisenseOptions4GL.AddNewLineAtEndOfFullyTypedWord &&
                                          EnterOnCompleteText();
 
                                 if (_parentSpan == null)

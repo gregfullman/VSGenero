@@ -588,6 +588,7 @@
     <Compile Include="Navigation\WaitForCompleteAnalysisDialog.xaml.cs">
       <DependentUpon>WaitForCompleteAnalysisDialog.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Options\Genero4GLAdvancedOptions.cs" />
     <Compile Include="Options\Genero4GLAdvancedOptionsControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -597,6 +598,7 @@
     <Compile Include="Options\Genero4GLAdvancedOptionsPage.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="Options\Genero4GLIntellisenseOptions.cs" />
     <Compile Include="Options\Genero4GLIntellisenseOptionsControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -604,9 +606,6 @@
       <DependentUpon>Genero4GLIntellisenseOptionsControl.cs</DependentUpon>
     </Compile>
     <Compile Include="Options\Genero4GLIntellisenseOptionsPage.cs">
-      <SubType>Component</SubType>
-    </Compile>
-    <Compile Include="Options\GeneroDialogPage.cs">
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="PkgCmdID.cs" />

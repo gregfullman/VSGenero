@@ -1,29 +1,29 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
+﻿using Microsoft.VisualStudio.VSCommon.Options;
+using System;
 using System.Drawing;
-using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using VSGenero.EditorExtensions.Intellisense;
 using VSGenero.Analysis.Parsing.AST_4GL;
+using VSGenero.EditorExtensions.Intellisense;
 
 namespace VSGenero.Options
 {
-    public partial class Genero4GLIntellisenseOptionsControl : UserControl
+    public partial class Genero4GLIntellisenseOptionsControl : BaseOptionsUserControl
     {
         private Timer _timer;
 
         public Genero4GLIntellisenseOptionsControl()
         {
             InitializeComponent();
-            checkBoxNewLineOnFullyTypedWord.Checked = VSGeneroPackage.Instance.IntellisenseOptions4GLPage.AddNewLineAtEndOfFullyTypedWord;
-            checkBoxPreselectMRU.Checked = VSGeneroPackage.Instance.IntellisenseOptions4GLPage.PreSelectMRU;
-            checkBoxSpacebarCommits.Checked = VSGeneroPackage.Instance.IntellisenseOptions4GLPage.SpaceCommitsIntellisense;
-            textBoxCommitChars.Text = VSGeneroPackage.Instance.IntellisenseOptions4GLPage.CompletionCommittedBy;
-            switch(VSGeneroPackage.Instance.IntellisenseOptions4GLPage.AnalysisType)
+            InitializeData();
+        }
+
+        protected override void Initialize()
+        {
+            checkBoxNewLineOnFullyTypedWord.Checked = VSGeneroPackage.Instance.IntellisenseOptions4GL.AddNewLineAtEndOfFullyTypedWord;
+            checkBoxPreselectMRU.Checked = VSGeneroPackage.Instance.IntellisenseOptions4GL.PreSelectMRU;
+            checkBoxSpacebarCommits.Checked = VSGeneroPackage.Instance.IntellisenseOptions4GL.SpaceCommitsIntellisense;
+            textBoxCommitChars.Text = VSGeneroPackage.Instance.IntellisenseOptions4GL.CompletionCommittedBy;
+            switch (VSGeneroPackage.Instance.IntellisenseOptions4GL.AnalysisType)
             {
                 case CompletionAnalysisType.Context: radioButtonContextCompletionType.Checked = true; break;
                 case CompletionAnalysisType.Normal: radioButtonNormalCompletionType.Checked = true; break;
@@ -32,32 +32,38 @@ namespace VSGenero.Options
 
         private void checkBoxSpacebarCommits_CheckedChanged(object sender, EventArgs e)
         {
-            VSGeneroPackage.Instance.IntellisenseOptions4GLPage.SpaceCommitsIntellisense = checkBoxSpacebarCommits.Checked;
+            if(!IsInitializing)
+                VSGeneroPackage.Instance.IntellisenseOptions4GL.SetPendingValue(Genero4GLIntellisenseOptions.SpaceCommitsSetting, checkBoxSpacebarCommits.Checked);
         }
 
         private void checkBoxNewLineOnFullyTypedWord_CheckedChanged(object sender, EventArgs e)
         {
-            VSGeneroPackage.Instance.IntellisenseOptions4GLPage.AddNewLineAtEndOfFullyTypedWord = checkBoxNewLineOnFullyTypedWord.Checked;
+            if (!IsInitializing)
+                VSGeneroPackage.Instance.IntellisenseOptions4GL.SetPendingValue(Genero4GLIntellisenseOptions.NewLineAtEndOfWordSetting, checkBoxNewLineOnFullyTypedWord.Checked);
         }
 
         private void checkBoxPreselectMRU_CheckedChanged(object sender, EventArgs e)
         {
-            VSGeneroPackage.Instance.IntellisenseOptions4GLPage.PreSelectMRU = checkBoxPreselectMRU.Checked;
+            if (!IsInitializing)
+                VSGeneroPackage.Instance.IntellisenseOptions4GL.SetPendingValue(Genero4GLIntellisenseOptions.PreSelectMRUSetting, checkBoxPreselectMRU.Checked);
         }
 
         private void textBoxCommitChars_TextChanged(object sender, EventArgs e)
         {
-            VSGeneroPackage.Instance.IntellisenseOptions4GLPage.CompletionCommittedBy = textBoxCommitChars.Text;
+            if (!IsInitializing)
+                VSGeneroPackage.Instance.IntellisenseOptions4GL.SetPendingValue(Genero4GLIntellisenseOptions.CompletionCommittedBySetting, textBoxCommitChars.Text);
         }
 
         private void radioButtonNormalCompletionType_CheckedChanged(object sender, EventArgs e)
         {
-            VSGeneroPackage.Instance.IntellisenseOptions4GLPage.AnalysisType = CompletionAnalysisType.Normal;
+            if (!IsInitializing)
+                VSGeneroPackage.Instance.IntellisenseOptions4GL.SetPendingValue(Genero4GLIntellisenseOptions.CompletionAnalysisTypeSetting, CompletionAnalysisType.Normal);
         }
 
         private void radioButtonContextCompletionType_CheckedChanged(object sender, EventArgs e)
         {
-            VSGeneroPackage.Instance.IntellisenseOptions4GLPage.AnalysisType = CompletionAnalysisType.Context;
+            if (!IsInitializing)
+                VSGeneroPackage.Instance.IntellisenseOptions4GL.SetPendingValue(Genero4GLIntellisenseOptions.CompletionAnalysisTypeSetting, CompletionAnalysisType.Context);
         }
 
         private async void buttonReloadContexts_Click(object sender, EventArgs e)

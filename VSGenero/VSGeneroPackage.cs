@@ -155,19 +155,25 @@ namespace VSGenero
         public new static VSGeneroPackage Instance;
         private GeneroProjectAnalyzer _analyzer;
 
-        public Genero4GLIntellisenseOptionsPage IntellisenseOptions4GLPage
+        private Genero4GLIntellisenseOptions _intellisenseOptions4gl;
+        public Genero4GLIntellisenseOptions IntellisenseOptions4GL
         {
             get
             {
-                return (Genero4GLIntellisenseOptionsPage)GetDialogPage(typeof(Genero4GLIntellisenseOptionsPage));
+                if (_intellisenseOptions4gl == null)
+                    _intellisenseOptions4gl = new Genero4GLIntellisenseOptions();
+                return _intellisenseOptions4gl;
             }
         }
 
-        public Genero4GLAdvancedOptionsPage AdvancedOptions4GLPage
+        private Genero4GLAdvancedOptions _advancedOptions4gl;
+        public Genero4GLAdvancedOptions AdvancedOptions4GL
         {
             get
             {
-                return (Genero4GLAdvancedOptionsPage)GetDialogPage(typeof(Genero4GLAdvancedOptionsPage));
+                if (_advancedOptions4gl == null)
+                    _advancedOptions4gl = new Genero4GLAdvancedOptions();
+                return _advancedOptions4gl;
             }
         }
 

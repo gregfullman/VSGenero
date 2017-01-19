@@ -145,7 +145,7 @@ namespace VSGenero.EditorExtensions
                         IVsWebBrowsingService service = serviceProvider.GetService(typeof(SVsWebBrowsingService)) as IVsWebBrowsingService;
                         if (service != null)
                         {
-                            if (VSGeneroPackage.Instance.AdvancedOptions4GLPage.OpenExternalBrowser)
+                            if (VSGeneroPackage.Instance.AdvancedOptions4GL.OpenExternalBrowser)
                             {
                                 __VSCREATEWEBBROWSER createFlags = __VSCREATEWEBBROWSER.VSCWB_AutoShow;
                                 VSPREVIEWRESOLUTION resolution = VSPREVIEWRESOLUTION.PR_Default;

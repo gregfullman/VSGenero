@@ -209,7 +209,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             int increment = BASE_REWARD + START_OF_WORD_BONUS;
             int y = 0;
 
-            if (VSGeneroPackage.Instance.IntellisenseOptions4GLPage.PreSelectMRU)
+            if (VSGeneroPackage.Instance.IntellisenseOptions4GL.PreSelectMRU)
             {
                 int mruBonus;
                 if(IntellisenseExtensions.LastCommittedCompletions.TryGetValue(text, out mruBonus))

@@ -223,7 +223,7 @@ namespace VSGenero.Navigation
                 }
 
                 // go through the other project entries in the ast.Project, and get those functions too
-                if (VSGeneroPackage.Instance.AdvancedOptions4GLPage.IncludeAllFunctions && 
+                if (VSGeneroPackage.Instance.AdvancedOptions4GL.IncludeAllFunctions && 
                     _projectEntry.ParentProject != null &&
                     !_projectEntry.FilePath.ToLower().EndsWith(".inc"))
                 {
@@ -305,7 +305,7 @@ namespace VSGenero.Navigation
                     var topLevel = _topLevelEntries;
                     if (iIndex < topLevel.Count)
                     {
-                        if (VSGeneroPackage.Instance.AdvancedOptions4GLPage.ShowFunctionParametersInList)
+                        if (VSGeneroPackage.Instance.AdvancedOptions4GL.ShowFunctionParametersInList)
                             ppszText = topLevel[iIndex].DescriptiveName;
                         else
                             ppszText = topLevel[iIndex].Name;

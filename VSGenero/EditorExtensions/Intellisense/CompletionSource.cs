@@ -41,7 +41,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                 // TODO: make this an option
                 options.FilterCompletions = true; // false; // VSGeneroPackage.Instance.AdvancedOptions4GLPage.FilterCompletions;
                 options.SearchMode = FuzzyMatchMode.Default;// VSGeneroPackage.Instance.AdvancedOptions4GLPage.SearchMode;
-                options.AnalysisType = VSGeneroPackage.Instance.IntellisenseOptions4GLPage.AnalysisType;
+                options.AnalysisType = VSGeneroPackage.Instance.IntellisenseOptions4GL.AnalysisType;
             }
             return options;
         }
