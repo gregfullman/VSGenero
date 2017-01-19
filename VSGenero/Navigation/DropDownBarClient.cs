@@ -377,7 +377,7 @@ namespace VSGenero.Navigation
             {
                 CaretPositionChanged(this, new CaretPositionChangedEventArgs(null, _textView.Caret.Position, _textView.Caret.Position));
             }
-
+            ParserOnNewParseTree(null, null);
             return VSConstants.S_OK;
         }
 
