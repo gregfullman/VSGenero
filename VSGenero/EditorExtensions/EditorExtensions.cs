@@ -20,6 +20,7 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text;
 using System.IO;
 using Microsoft.VisualStudio.VSCommon;
+using VSGenero.External;
 
 namespace VSGenero.EditorExtensions
 {
@@ -124,7 +125,7 @@ namespace VSGenero.EditorExtensions
                 // TODO: select multiple spans?
                 // Select the full region we just commented, do not select if in projection buffer 
                 // (the selection might span non-language buffer regions)
-                if (VSGeneroConstants.IsGenero4GLContent(view.TextBuffer))
+                if (GeneroExtensions.IsGenero4GLContent(view.TextBuffer))
                 {
                     UpdateSelection(view, start, end);
                 }
@@ -139,7 +140,7 @@ namespace VSGenero.EditorExtensions
             return view.BufferGraph.MapDownToFirstMatch(
                point,
                PointTrackingMode.Positive,
-               VSGeneroConstants.IsGenero4GLContent,
+               GeneroExtensions.IsGenero4GLContent,
                PositionAffinity.Successor
             );
         }

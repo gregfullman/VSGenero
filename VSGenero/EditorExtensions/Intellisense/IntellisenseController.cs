@@ -35,6 +35,8 @@ using IServiceProvider = System.IServiceProvider;
 using VSGenero.Analysis.Parsing;
 using VSGenero.Analysis.Parsing.AST_4GL;
 using System.Runtime.InteropServices;
+using VSGenero.External;
+using VSGenero.External.Snippets;
 
 namespace VSGenero.EditorExtensions.Intellisense
 {
@@ -70,9 +72,9 @@ namespace VSGenero.EditorExtensions.Intellisense
             //_textView.MouseHover += TextViewMouseHover;
             textView.Properties.AddProperty(typeof(IntellisenseController), this);  // added so our key processors can get back to us
 
-            if (_textView.TextBuffer.ContentType.IsOfType(VSGeneroConstants.ContentType4GL) ||
-                _textView.TextBuffer.ContentType.IsOfType(VSGeneroConstants.ContentTypeINC) ||
-                _textView.TextBuffer.ContentType.IsOfType(VSGeneroConstants.ContentTypePER))
+            if (_textView.TextBuffer.ContentType.IsOfType(GeneroConstants.ContentType4GL) ||
+                _textView.TextBuffer.ContentType.IsOfType(GeneroConstants.ContentTypeINC) ||
+                _textView.TextBuffer.ContentType.IsOfType(GeneroConstants.ContentTypePER))
             {
                 try
                 {
@@ -296,7 +298,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                 SnapshotPoint? caretPoint = _textView.BufferGraph.MapDownToFirstMatch(
                     _textView.Caret.Position.BufferPosition,
                     PointTrackingMode.Positive,
-                    VSGeneroConstants.IsGenero4GLContent,
+                    GeneroExtensions.IsGenero4GLContent,
                     PositionAffinity.Predecessor
                 );
 
@@ -380,7 +382,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                 var targetPt = _textView.BufferGraph.MapDownToFirstMatch(
                     new SnapshotPoint(_textView.TextBuffer.CurrentSnapshot, position),
                     PointTrackingMode.Positive,
-                    VSGeneroConstants.IsGenero4GLContent,
+                    GeneroExtensions.IsGenero4GLContent,
                     PositionAffinity.Successor
                 );
 
@@ -787,7 +789,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                 _expansionMgr.InvokeInsertionUI(
                     GetViewAdapter(),
                     _expansionClient,
-                    VSGeneroConstants.guidGenero4glLanguageServiceGuid,
+                    GeneroConstants.guidGenero4glLanguageServiceGuid,
                     snippetTypes,
                     snippetTypes.Length,
                     0,
@@ -821,7 +823,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                     string expansionPath, title;
                     int hr = _expansionMgr.GetExpansionByShortcut(
                         _expansionClient,
-                        VSGeneroConstants.guidGenero4glLanguageServiceGuid,
+                        GeneroConstants.guidGenero4glLanguageServiceGuid,
                         text,
                         GetViewAdapter(),
                         textSpan,
@@ -1194,7 +1196,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                     customSnippet,
                     replaceSpan,
                     _expansionClient,
-                    VSGeneroConstants.guidGenero4glLanguageServiceGuid,
+                    GeneroConstants.guidGenero4glLanguageServiceGuid,
                     null,
                     out _expansionSession);
             }

@@ -20,6 +20,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using VSGenero.Analysis.Parsing.AST_4GL;
+using VSGenero.External.Analysis.Parsing;
 
 namespace VSGenero.Analysis.Parsing
 {
@@ -44,7 +45,7 @@ namespace VSGenero.Analysis.Parsing
             {
                 var ast = new Genero4glAst(moduleNode, 
                                            _tokenizer.GetLineLocations(), 
-                                           GeneroLanguageVersionExtensions.GetLanguageVersion(_filename), 
+                                           GeneroLanguageVersionExtensions.GetLanguageVersion(_filename, VSGeneroPackage.Instance.ProgramFileProvider), 
                                            _projectEntry, 
                                            _filename);
                 UpdateNodeAndTree(moduleNode, ast);

@@ -1,23 +1,11 @@
-﻿/* ****************************************************************************
- * Copyright (c) 2015 Greg Fullman 
- * Copyright (c) Microsoft Corporation. 
- *
- * This source code is subject to terms and conditions of the Apache License, Version 2.0. A 
- * copy of the license can be found in the License.html file at the root of this distribution.
- * By using this source code in any fashion, you are agreeing to be bound 
- * by the terms of the Apache License, Version 2.0.
- *
- * You must not remove this notice, or any other, from this software.
- *
- * ***************************************************************************/
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using VSGenero.External.Interfaces;
 
-namespace VSGenero.Analysis.Parsing
+namespace VSGenero.External.Analysis.Parsing
 {
     public enum GeneroLanguageVersion
     {
@@ -49,7 +37,7 @@ namespace VSGenero.Analysis.Parsing
     {
         public static Version ToVersion(this GeneroLanguageVersion version)
         {
-            switch(version)
+            switch (version)
             {
                 case GeneroLanguageVersion.V232: return new Version(2, 32);
                 case GeneroLanguageVersion.V240: return new Version(2, 40);
@@ -74,7 +62,7 @@ namespace VSGenero.Analysis.Parsing
                         default: return GeneroLanguageVersion.None;
                     }
                 case 3:
-                    switch(version.Minor)
+                    switch (version.Minor)
                     {
                         case 0: return GeneroLanguageVersion.V300;
                         default: return GeneroLanguageVersion.None;
@@ -84,17 +72,9 @@ namespace VSGenero.Analysis.Parsing
             }
         }
 
-        internal static GeneroLanguageVersion GetLanguageVersion(string filePath, IProgramFileProvider fileProvider = null)
+        public static GeneroLanguageVersion GetLanguageVersion(string filePath, IProgramFileProvider fileProvider)
         {
-            if (fileProvider == null && VSGeneroPackage.Instance != null)
-            {
-                if (VSGeneroPackage.Instance.ProgramFileProvider == null)
-                    return GeneroLanguageVersion.None;
-                else
-                    fileProvider = VSGeneroPackage.Instance.ProgramFileProvider;
-            }
-
-            if(fileProvider != null)
+            if (fileProvider != null)
                 return fileProvider.GetLanguageVersion(filePath);
             return GeneroLanguageVersion.None;
         }

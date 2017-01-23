@@ -22,13 +22,15 @@ using System.Text;
 using System.Threading.Tasks;
 using VSGenero.Analysis;
 using VSGenero.Analysis.Interfaces;
+using VSGenero.External;
+using VSGenero.External.Interfaces;
 
 namespace VSGenero.EditorExtensions.Intellisense
 {
-    [Export(typeof(IQuickInfoSourceProvider)), 
-     ContentType(VSGeneroConstants.ContentType4GL), 
-     ContentType(VSGeneroConstants.ContentTypeINC),
-     ContentType(VSGeneroConstants.ContentTypePER),
+    [Export(typeof(IQuickInfoSourceProvider)),
+     ContentType(External.GeneroConstants.ContentType4GL),
+     ContentType(External.GeneroConstants.ContentTypeINC),
+     ContentType(External.GeneroConstants.ContentTypePER),
      Order, 
      Name("Genero Quick Info Source")]
     class QuickInfoSourceProvider : IQuickInfoSourceProvider

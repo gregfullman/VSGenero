@@ -1,5 +1,6 @@
 ﻿
 using VSGenero.Analysis.Parsing.AST_PER;
+using VSGenero.External.Analysis.Parsing;
 
 namespace VSGenero.Analysis.Parsing
 {

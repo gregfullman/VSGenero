@@ -19,19 +19,20 @@ using Microsoft.VisualStudio;
 using Microsoft.VisualStudioTools;
 using Microsoft.VisualStudioTools.Project;
 using Microsoft.VisualStudio.Shell.Interop;
+using VSGenero.External;
 
 namespace VSGenero.Project
 {
     [PackageRegistration(UseManagedResourcesOnly = true)]
     [Description("Genero Project Package")]
-    [ProvideProjectFactory(typeof(GeneroProjectFactory), VSGeneroConstants.LanguageName, GeneroProjectFileFilter, "glproj", "glproj", @".\\NullPath", LanguageVsTemplate = VSGeneroConstants.LanguageName)]
+    [ProvideProjectFactory(typeof(GeneroProjectFactory), External.GeneroConstants.LanguageName, GeneroProjectFileFilter, "glproj", "glproj", @".\\NullPath", LanguageVsTemplate = External.GeneroConstants.LanguageName)]
 
     // This attribute controls what shows up in the New Item dialog (not Project's Add Item dialog)
-    [ProvideEditorExtension2(typeof(EditorFactory), VSGeneroConstants.FileExtension4GL, 50, ProjectGuid = VSConstants.CLSID.MiscellaneousFilesProject_string, NameResourceID = 3750, DefaultName = "program", TemplateDir = "Templates\\NewItem")]
-    [ProvideEditorExtension2(typeof(EditorFactory), VSGeneroConstants.FileExtension4GL, 50, __VSPHYSICALVIEWATTRIBUTES.PVA_SupportsPreview, "*:1", ProjectGuid = VSGeneroConstants.GeneroProjectFactoryGuid, NameResourceID = 3750, EditorNameResourceId = 3751, DefaultName = "program", TemplateDir = ".\\NullPath")]
+    [ProvideEditorExtension2(typeof(EditorFactory), External.GeneroConstants.FileExtension4GL, 50, ProjectGuid = VSConstants.CLSID.MiscellaneousFilesProject_string, NameResourceID = 3750, DefaultName = "program", TemplateDir = "Templates\\NewItem")]
+    [ProvideEditorExtension2(typeof(EditorFactory), External.GeneroConstants.FileExtension4GL, 50, __VSPHYSICALVIEWATTRIBUTES.PVA_SupportsPreview, "*:1", ProjectGuid = VSGeneroConstants.GeneroProjectFactoryGuid, NameResourceID = 3750, EditorNameResourceId = 3751, DefaultName = "program", TemplateDir = ".\\NullPath")]
 
-    [ProvideEditorExtension2(typeof(EditorFactory), VSGeneroConstants.FileExtensionPER, 50, ProjectGuid = VSConstants.CLSID.MiscellaneousFilesProject_string, NameResourceID = 3750, DefaultName = "program", TemplateDir = "Templates\\NewItem")]
-    [ProvideEditorExtension2(typeof(EditorFactory), VSGeneroConstants.FileExtensionPER, 50, __VSPHYSICALVIEWATTRIBUTES.PVA_SupportsPreview, "*:1", ProjectGuid = VSGeneroConstants.GeneroProjectFactoryGuid, NameResourceID = 3750, EditorNameResourceId = 3751, DefaultName = "program", TemplateDir = ".\\NullPath")]
+    [ProvideEditorExtension2(typeof(EditorFactory), External.GeneroConstants.FileExtensionPER, 50, ProjectGuid = VSConstants.CLSID.MiscellaneousFilesProject_string, NameResourceID = 3750, DefaultName = "program", TemplateDir = "Templates\\NewItem")]
+    [ProvideEditorExtension2(typeof(EditorFactory), External.GeneroConstants.FileExtensionPER, 50, __VSPHYSICALVIEWATTRIBUTES.PVA_SupportsPreview, "*:1", ProjectGuid = VSGeneroConstants.GeneroProjectFactoryGuid, NameResourceID = 3750, EditorNameResourceId = 3751, DefaultName = "program", TemplateDir = ".\\NullPath")]
 
     [ProvideFileFilter(VSGeneroConstants.GeneroProjectFactoryGuid, "/1", "Genero Files;*.4gl,*.per", 101)]
     [ProvideEditorLogicalView(typeof(EditorFactory), VSConstants.LOGVIEWID.TextView_string)]
@@ -68,12 +69,12 @@ namespace VSGenero.Project
 
         public override string GetProductName()
         {
-            return VSGeneroConstants.LanguageName4GL;
+            return External.GeneroConstants.LanguageName4GL;
         }
 
         public override string GetProductDescription()
         {
-            return VSGeneroConstants.LanguageName4GL;
+            return External.GeneroConstants.LanguageName4GL;
         }
 
         public override string GetProductVersion()

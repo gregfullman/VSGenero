@@ -38,6 +38,9 @@ using System.Runtime.InteropServices;
 using VSGenero.Analysis.Parsing;
 using System.ComponentModel.Composition;
 using System.Text.RegularExpressions;
+using VSGenero.External.Build;
+using VSGenero.External;
+using VSGenero.External.Interfaces;
 
 namespace VSGenero.EditorExtensions.Intellisense
 {
@@ -634,10 +637,10 @@ namespace VSGenero.EditorExtensions.Intellisense
                         GeneroProjectEntry entry = null;
                         switch (ext.ToLower())
                         {
-                            case VSGeneroConstants.FileExtension4GL:
+                            case External.GeneroConstants.FileExtension4GL:
                                 entry = new Genero4glProjectEntry(null, file, importer?.Cookie, true);
                                 break;
-                            case VSGeneroConstants.FileExtensionPER:
+                            case External.GeneroConstants.FileExtensionPER:
                                 entry = new GeneroPerProjectEntry(null, file, importer?.Cookie, true);
                                 break;
                             default:
@@ -720,19 +723,19 @@ namespace VSGenero.EditorExtensions.Intellisense
                 IGeneroProject projEntry;
                 if (!_projects.TryGetValue(dirPath, out projEntry))
                 {
-                    if (extension.Equals(VSGeneroConstants.FileExtension4GL, StringComparison.OrdinalIgnoreCase) ||
-                        extension.Equals(VSGeneroConstants.FileExtensionINC, StringComparison.OrdinalIgnoreCase) ||
-                        extension.Equals(VSGeneroConstants.FileExtensionPER, StringComparison.OrdinalIgnoreCase))
+                    if (extension.Equals(External.GeneroConstants.FileExtension4GL, StringComparison.OrdinalIgnoreCase) ||
+                        extension.Equals(External.GeneroConstants.FileExtensionINC, StringComparison.OrdinalIgnoreCase) ||
+                        extension.Equals(External.GeneroConstants.FileExtensionPER, StringComparison.OrdinalIgnoreCase))
                     {
                         shouldAnalyzePath = ShouldAnalyzePath(filename);
                         string moduleName = null;   // TODO: get module name from provider (if provider is null, take the file's directory name)
                         IAnalysisCookie cookie = null;
                         switch(extension.ToLower())
                         {
-                            case VSGeneroConstants.FileExtension4GL:
+                            case External.GeneroConstants.FileExtension4GL:
                                 entry = new Genero4glProjectEntry(moduleName, filename, cookie, shouldAnalyzePath);
                                 break;
-                            case VSGeneroConstants.FileExtensionPER:
+                            case External.GeneroConstants.FileExtensionPER:
                                 entry = new GeneroPerProjectEntry(moduleName, filename, cookie, shouldAnalyzePath);
                                 break;
                             default:
@@ -758,19 +761,19 @@ namespace VSGenero.EditorExtensions.Intellisense
                 {
                     if (!projEntry.ProjectEntries.TryGetValue(filename, out entry))
                     {
-                        if (extension.Equals(VSGeneroConstants.FileExtension4GL, StringComparison.OrdinalIgnoreCase) ||
-                            extension.Equals(VSGeneroConstants.FileExtensionINC, StringComparison.OrdinalIgnoreCase) ||
-                            extension.Equals(VSGeneroConstants.FileExtensionPER, StringComparison.OrdinalIgnoreCase))
+                        if (extension.Equals(External.GeneroConstants.FileExtension4GL, StringComparison.OrdinalIgnoreCase) ||
+                            extension.Equals(External.GeneroConstants.FileExtensionINC, StringComparison.OrdinalIgnoreCase) ||
+                            extension.Equals(External.GeneroConstants.FileExtensionPER, StringComparison.OrdinalIgnoreCase))
                         {
                             shouldAnalyzePath = ShouldAnalyzePath(filename);
                             string moduleName = null;   // TODO: get module name from provider (if provider is null, take the file's directory name)
                             IAnalysisCookie cookie = null;
                             switch (extension.ToLower())
                             {
-                                case VSGeneroConstants.FileExtension4GL:
+                                case External.GeneroConstants.FileExtension4GL:
                                     entry = new Genero4glProjectEntry(moduleName, filename, cookie, shouldAnalyzePath);
                                     break;
-                                case VSGeneroConstants.FileExtensionPER:
+                                case External.GeneroConstants.FileExtensionPER:
                                     entry = new GeneroPerProjectEntry(moduleName, filename, cookie, shouldAnalyzePath);
                                     break;
                                 default:
@@ -965,16 +968,16 @@ namespace VSGenero.EditorExtensions.Intellisense
                 IGeneroProject projEntry;
                 if (!_projects.TryGetValue(dirPath, out projEntry))
                 {
-                    if (VSGeneroConstants.IsGeneroFile(path))
+                    if (GeneroExtensions.IsGeneroFile(path))
                     {
                         string moduleName = null;   // TODO: get module name from provider (if provider is null, take the file's directory name)
                         IAnalysisCookie cookie = null;
                         switch(Path.GetExtension(path).ToLower())
                         {
-                            case VSGeneroConstants.FileExtension4GL:
+                            case External.GeneroConstants.FileExtension4GL:
                                 entry = new Genero4glProjectEntry(moduleName, path, cookie, true);
                                 break;
-                            case VSGeneroConstants.FileExtensionPER:
+                            case External.GeneroConstants.FileExtensionPER:
                                 entry = new GeneroPerProjectEntry(moduleName, path, cookie, true);
                                 break;
                             default:
@@ -995,16 +998,16 @@ namespace VSGenero.EditorExtensions.Intellisense
                 {
                     if (!projEntry.ProjectEntries.TryGetValue(path, out entry))
                     {
-                        if (VSGeneroConstants.IsGeneroFile(path))
+                        if (GeneroExtensions.IsGeneroFile(path))
                         {
                             string moduleName = null;   // TODO: get module name from provider (if provider is null, take the file's directory name)
                             IAnalysisCookie cookie = null;
                             switch (Path.GetExtension(path).ToLower())
                             {
-                                case VSGeneroConstants.FileExtension4GL:
+                                case External.GeneroConstants.FileExtension4GL:
                                     entry = new Genero4glProjectEntry(moduleName, path, cookie, true);
                                     break;
-                                case VSGeneroConstants.FileExtensionPER:
+                                case External.GeneroConstants.FileExtensionPER:
                                     entry = new GeneroPerProjectEntry(moduleName, path, cookie, true);
                                     break;
                                 default:
@@ -1933,8 +1936,8 @@ namespace VSGenero.EditorExtensions.Intellisense
             try
             {
                 // TODO: need to handle .per and .inc files as well.
-                foreach (string filename in Directory.EnumerateFiles(dir, "*.*").Where(x => x.EndsWith(VSGeneroConstants.FileExtension4GL, StringComparison.OrdinalIgnoreCase) ||
-                                                                                            x.EndsWith(VSGeneroConstants.FileExtensionPER, StringComparison.OrdinalIgnoreCase)))
+                foreach (string filename in Directory.EnumerateFiles(dir, "*.*").Where(x => x.EndsWith(External.GeneroConstants.FileExtension4GL, StringComparison.OrdinalIgnoreCase) ||
+                                                                                            x.EndsWith(External.GeneroConstants.FileExtensionPER, StringComparison.OrdinalIgnoreCase)))
                 {
                     if (_excludeFile != null && filename.Equals(_excludeFile, StringComparison.OrdinalIgnoreCase))
                     {

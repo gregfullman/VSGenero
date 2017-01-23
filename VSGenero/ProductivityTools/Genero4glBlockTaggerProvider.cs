@@ -31,10 +31,11 @@ using System.Diagnostics;
 using Microsoft.VisualStudio.Text.Editor;
 using System.Windows.Input;
 using VSGenero.Analysis.Parsing;
+using VSGenero.External;
 
 namespace VSGenero.ProductivityTools
 {
-    [TagType(typeof(IBlockTag)), Export(typeof(IViewTaggerProvider)), ContentType(VSGeneroConstants.LanguageName4GL)]
+    [TagType(typeof(IBlockTag)), Export(typeof(IViewTaggerProvider)), ContentType(External.GeneroConstants.LanguageName4GL)]
     public class Genero4glBlockTaggerProvider : IViewTaggerProvider
     {
         public ITagger<T> CreateTagger<T>(ITextView textView, ITextBuffer buffer) where T : ITag

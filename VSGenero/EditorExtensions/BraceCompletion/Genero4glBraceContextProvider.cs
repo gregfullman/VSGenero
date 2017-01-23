@@ -22,16 +22,17 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using VSGenero.External;
 
 namespace VSGenero.EditorExtensions.BraceCompletion
 {
     [BracePair('"', '"'), 
      BracePair('[', ']'), 
      BracePair('(', ')'), 
-     BracePair('\'', '\''), 
-     ContentType(VSGeneroConstants.ContentType4GL),
-     ContentType(VSGeneroConstants.ContentTypePER),
-     ContentType(VSGeneroConstants.ContentTypeINC), 
+     BracePair('\'', '\''),
+     ContentType(External.GeneroConstants.ContentType4GL),
+     ContentType(External.GeneroConstants.ContentTypePER),
+     ContentType(External.GeneroConstants.ContentTypeINC), 
      BracePair('{', '}'), /*BracePair('<', '>'),*/ 
      Export(typeof(IBraceCompletionContextProvider))]
     internal class Genero4glBraceContextProvider : IBraceCompletionContextProvider

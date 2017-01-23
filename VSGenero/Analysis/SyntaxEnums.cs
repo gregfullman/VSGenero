@@ -18,12 +18,6 @@ using System.Threading.Tasks;
 
 namespace VSGenero.Analysis
 {
-    public enum AccessModifier
-    {
-        Private,
-        Public
-    }
-
     public enum ImportModuleType
     {
         C,

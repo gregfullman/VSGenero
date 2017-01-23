@@ -8,13 +8,15 @@
  *
  * You must not remove this notice, or any other, from this software.
  *
- * ***************************************************************************/ 
+ * ***************************************************************************/
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using VSGenero.External.Analysis;
+using VSGenero.External.Analysis.Parsing;
 
 namespace VSGenero.Analysis.Parsing.AST_4GL
 {

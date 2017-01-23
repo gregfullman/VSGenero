@@ -41,6 +41,7 @@ using Task = System.Threading.Tasks.Task;
 using VsCommands2K = Microsoft.VisualStudio.VSConstants.VSStd2KCmdID;
 using VsMenus = Microsoft.VisualStudioTools.Project.VsMenus;
 using VSGenero.Navigation;
+using VSGenero.External;
 
 namespace VSGenero.Project
 {
@@ -105,7 +106,7 @@ namespace VSGenero.Project
         {
             get
             {
-                return new[] { VSGeneroConstants.FileExtension4GL, VSGeneroConstants.FileExtensionPER };
+                return new[] { GeneroConstants.FileExtension4GL, GeneroConstants.FileExtensionPER };
             }
         }
 
@@ -134,8 +135,8 @@ namespace VSGenero.Project
         {
             var ext = Path.GetExtension(filename);
 
-            return String.Equals(ext, VSGeneroConstants.FileExtension4GL, StringComparison.OrdinalIgnoreCase) ||
-                String.Equals(ext, VSGeneroConstants.FileExtensionPER, StringComparison.OrdinalIgnoreCase);
+            return String.Equals(ext, GeneroConstants.FileExtension4GL, StringComparison.OrdinalIgnoreCase) ||
+                String.Equals(ext, GeneroConstants.FileExtensionPER, StringComparison.OrdinalIgnoreCase);
         }
     }
 }

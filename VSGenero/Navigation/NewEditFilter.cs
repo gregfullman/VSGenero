@@ -36,6 +36,9 @@ using VSGenero.EditorExtensions.Intellisense;
 using Microsoft.VisualStudio.VSCommon;
 using VSGenero.Refactoring;
 using VSGenero.Analysis.Parsing;
+using VSGenero.External;
+using VSGenero.External.Interfaces;
+using VSGenero.External.Analysis.Parsing;
 
 namespace VSGenero.Navigation
 {
@@ -1044,9 +1047,9 @@ namespace VSGenero.Navigation
         {
             var activeView = VSGeneroPackage.GetActiveTextView();
 
-            if (_textView.TextBuffer.ContentType.IsOfType(VSGeneroConstants.ContentType4GL) ||
-                _textView.TextBuffer.ContentType.IsOfType(VSGeneroConstants.ContentTypeINC) ||
-                _textView.TextBuffer.ContentType.IsOfType(VSGeneroConstants.ContentTypePER))
+            if (_textView.TextBuffer.ContentType.IsOfType(GeneroConstants.ContentType4GL) ||
+                _textView.TextBuffer.ContentType.IsOfType(GeneroConstants.ContentTypeINC) ||
+                _textView.TextBuffer.ContentType.IsOfType(GeneroConstants.ContentTypePER))
             {
                 if (_textView.Selection.IsEmpty ||
                     _textView.Selection.Mode == TextSelectionMode.Box ||
@@ -1068,9 +1071,9 @@ namespace VSGenero.Navigation
         private void QueryStatusRename(OLECMD[] prgCmds, int i)
         {
             IWpfTextView activeView = VSGeneroPackage.GetActiveTextView();
-            if (_textView.TextBuffer.ContentType.IsOfType(VSGeneroConstants.ContentType4GL) ||
-                _textView.TextBuffer.ContentType.IsOfType(VSGeneroConstants.ContentTypeINC) ||
-                _textView.TextBuffer.ContentType.IsOfType(VSGeneroConstants.ContentTypePER))
+            if (_textView.TextBuffer.ContentType.IsOfType(GeneroConstants.ContentType4GL) ||
+                _textView.TextBuffer.ContentType.IsOfType(GeneroConstants.ContentTypeINC) ||
+                _textView.TextBuffer.ContentType.IsOfType(GeneroConstants.ContentTypePER))
             {
                 prgCmds[i].cmdf = (uint)(OLECMDF.OLECMDF_ENABLED | OLECMDF.OLECMDF_SUPPORTED);
             }

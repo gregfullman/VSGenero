@@ -61,6 +61,10 @@ using Microsoft.VisualStudio.Text.Adornments;
 using VSGenero.Analysis;
 using VSGenero.EditorExtensions.BraceCompletion;
 using System.ComponentModel.Composition.Hosting;
+using VSGenero.External.Build;
+using VSGenero.External;
+using VSGenero.External.Interfaces;
+using VSGenero.External.Analysis;
 
 namespace VSGenero
 {
@@ -81,16 +85,16 @@ namespace VSGenero
     // in the Help/About dialog of Visual Studio.
     [InstalledProductRegistration("#110", "#112", "1.0", IconResourceID = 400)]
 
-    [ProvideEditorExtensionAttribute(typeof(EditorFactory), VSGeneroConstants.FileExtension4GL, 32)]
-    [ProvideEditorExtensionAttribute(typeof(EditorFactory), VSGeneroConstants.FileExtensionINC, 32)]
-    [ProvideEditorExtensionAttribute(typeof(EditorFactory), VSGeneroConstants.FileExtensionPER, 32)]
+    [ProvideEditorExtensionAttribute(typeof(EditorFactory), External.GeneroConstants.FileExtension4GL, 32)]
+    [ProvideEditorExtensionAttribute(typeof(EditorFactory), External.GeneroConstants.FileExtensionINC, 32)]
+    [ProvideEditorExtensionAttribute(typeof(EditorFactory), External.GeneroConstants.FileExtensionPER, 32)]
     [ProvideEditorLogicalView(typeof(EditorFactory), "{7651a701-06e5-11d1-8ebd-00a0c90f26ea}")]
 #if DEV12_OR_LATER
     [PeekSupportedContentType(".4gl")]
     [PeekSupportedContentType(".inc")]
 #endif  
-    [RegisterSnippetsAttribute(VSGeneroConstants.guidGenero4glLanguageService, false, 131, "Genero4GL", @"Snippets\CodeSnippets\SnippetsIndex.xml", @"Snippets\CodeSnippets\Snippets\", @"Snippets\CodeSnippets\Snippets\")]
-    [ProvideLanguageService(typeof(VSGenero4GLLanguageInfo), VSGeneroConstants.LanguageName4GL, 106,
+    [RegisterSnippetsAttribute(GeneroConstants.guidGenero4glLanguageService, false, 131, "Genero4GL", @"Snippets\CodeSnippets\SnippetsIndex.xml", @"Snippets\CodeSnippets\Snippets\", @"Snippets\CodeSnippets\Snippets\")]
+    [ProvideLanguageService(typeof(VSGenero4GLLanguageInfo), External.GeneroConstants.LanguageName4GL, 106,
                             RequestStockColors = true,
                             ShowSmartIndent = true,       // enable this when we want to support smart indenting
                             ShowCompletion = true,
@@ -98,9 +102,9 @@ namespace VSGenero
                             HideAdvancedMembersByDefault = true,
                             EnableAdvancedMembersOption = true,
                             ShowDropDownOptions = true)]
-    [LanguageBraceCompletion(VSGeneroConstants.LanguageName4GL, EnableCompletion = true)]
-    [ProvideLanguageExtension(typeof(VSGenero4GLLanguageInfo), VSGeneroConstants.FileExtension4GL)]
-    [ProvideLanguageService(typeof(VSGeneroPERLanguageInfo), VSGeneroConstants.LanguageNamePER, 107,
+    [LanguageBraceCompletion(External.GeneroConstants.LanguageName4GL, EnableCompletion = true)]
+    [ProvideLanguageExtension(typeof(VSGenero4GLLanguageInfo), External.GeneroConstants.FileExtension4GL)]
+    [ProvideLanguageService(typeof(VSGeneroPERLanguageInfo), External.GeneroConstants.LanguageNamePER, 107,
                             RequestStockColors = true,
                             //ShowSmartIndent = true,       // enable this when we want to support smart indenting
                             ShowCompletion = true,
@@ -108,9 +112,9 @@ namespace VSGenero
                             HideAdvancedMembersByDefault = true,
                             EnableAdvancedMembersOption = true,
                             ShowDropDownOptions = true)]
-    [LanguageBraceCompletion(VSGeneroConstants.LanguageNamePER, EnableCompletion = true)]
-    [ProvideLanguageExtension(typeof(VSGeneroPERLanguageInfo), VSGeneroConstants.FileExtensionPER)]
-    [ProvideLanguageService(typeof(VSGeneroINCLanguageInfo), VSGeneroConstants.LanguageNameINC, 108,
+    [LanguageBraceCompletion(External.GeneroConstants.LanguageNamePER, EnableCompletion = true)]
+    [ProvideLanguageExtension(typeof(VSGeneroPERLanguageInfo), External.GeneroConstants.FileExtensionPER)]
+    [ProvideLanguageService(typeof(VSGeneroINCLanguageInfo), External.GeneroConstants.LanguageNameINC, 108,
                             RequestStockColors = true,
                             ShowSmartIndent = true,       // enable this when we want to support smart indenting
                             ShowCompletion = true,
@@ -118,10 +122,10 @@ namespace VSGenero
                             HideAdvancedMembersByDefault = true,
                             EnableAdvancedMembersOption = true,
                             ShowDropDownOptions = true)]
-    [LanguageBraceCompletion(VSGeneroConstants.LanguageNameINC, EnableCompletion = true)]
-    [ProvideLanguageExtension(typeof(VSGeneroINCLanguageInfo), VSGeneroConstants.FileExtensionINC)]
-    [ProvideLanguageEditorOptionPage(typeof(Genero4GLIntellisenseOptionsPage), VSGeneroConstants.LanguageName4GL, "", "Intellisense", "113")]
-    [ProvideLanguageEditorOptionPage(typeof(Genero4GLAdvancedOptionsPage), VSGeneroConstants.LanguageName4GL, "", "Advanced", "114")]
+    [LanguageBraceCompletion(External.GeneroConstants.LanguageNameINC, EnableCompletion = true)]
+    [ProvideLanguageExtension(typeof(VSGeneroINCLanguageInfo), External.GeneroConstants.FileExtensionINC)]
+    [ProvideLanguageEditorOptionPage(typeof(Genero4GLIntellisenseOptionsPage), External.GeneroConstants.LanguageName4GL, "", "Intellisense", "113")]
+    [ProvideLanguageEditorOptionPage(typeof(Genero4GLAdvancedOptionsPage), External.GeneroConstants.LanguageName4GL, "", "Advanced", "114")]
 
     // This attribute is needed to let the shell know that this package exposes some menus.
     [ProvideMenuResource("Menus.ctmenu", 1)]
@@ -311,8 +315,8 @@ namespace VSGenero
         {
             var ext = Path.GetExtension(filename);
 
-            return String.Equals(ext, VSGeneroConstants.FileExtension4GL, StringComparison.OrdinalIgnoreCase) ||
-                String.Equals(ext, VSGeneroConstants.FileExtensionPER, StringComparison.OrdinalIgnoreCase);
+            return string.Equals(ext, External.GeneroConstants.FileExtension4GL, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(ext, External.GeneroConstants.FileExtensionPER, StringComparison.OrdinalIgnoreCase);
         }
 
         private GeneroLibraryManager _generoLibManager;
@@ -437,9 +441,9 @@ namespace VSGenero
                 {
                     var regSvc = ComponentModel.GetService<IContentTypeRegistryService>();
                     _programCodeContentTypes = new List<IContentType>();
-                    _programCodeContentTypes.Add(regSvc.GetContentType(VSGeneroConstants.ContentType4GL));
-                    _programCodeContentTypes.Add(regSvc.GetContentType(VSGeneroConstants.ContentTypeINC));
-                    _programCodeContentTypes.Add(regSvc.GetContentType(VSGeneroConstants.ContentTypePER));
+                    _programCodeContentTypes.Add(regSvc.GetContentType(External.GeneroConstants.ContentType4GL));
+                    _programCodeContentTypes.Add(regSvc.GetContentType(External.GeneroConstants.ContentTypeINC));
+                    _programCodeContentTypes.Add(regSvc.GetContentType(External.GeneroConstants.ContentTypePER));
                 }
                 return _programCodeContentTypes;
             }

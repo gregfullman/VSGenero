@@ -18,6 +18,7 @@ using System.Text;
 using System.Threading.Tasks;
 using VSGenero.Analysis.Parsing;
 using VSGenero.Analysis.Parsing.AST_4GL;
+using VSGenero.External.Analysis.Parsing;
 
 namespace VSGenero.Analysis
 {

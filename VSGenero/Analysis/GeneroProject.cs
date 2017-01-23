@@ -21,6 +21,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using VSGenero.Analysis.Parsing.AST_4GL;
 using VSGenero.Analysis.Parsing;
+using VSGenero.External.Analysis;
+using VSGenero.External.Analysis.Parsing;
 
 namespace VSGenero.Analysis
 {
@@ -142,7 +144,7 @@ namespace VSGenero.Analysis
             get { return null; }
         }
 
-        public bool HasChildFunctions(Genero4glAst ast)
+        public bool HasChildFunctions(GeneroAst ast)
         {
             return false;
         }
@@ -250,7 +252,7 @@ namespace VSGenero.Analysis
             return res;
         }
 
-        public IAnalysisResult GetMember(string name, Genero4glAst ast, out IGeneroProject definingProject, out IProjectEntry projEntry, bool function)
+        public IAnalysisResult GetMember(string name, GeneroAst ast, out IGeneroProject definingProject, out IProjectEntry projEntry, bool function)
         {
             definingProject = null;
             var res = GetMemberOfType(name, ast, true, true, true, true, out projEntry);
@@ -259,7 +261,7 @@ namespace VSGenero.Analysis
             return res;
         }
 
-        public IEnumerable<MemberResult> GetMembers(Genero4glAst ast, MemberType memberType, bool getArrayTypeMembers)
+        public IEnumerable<MemberResult> GetMembers(GeneroAst ast, MemberType memberType, bool getArrayTypeMembers)
         {
             string projNamespace = string.Format("{0}", this.Name);
             List<MemberResult> members = new List<MemberResult>();

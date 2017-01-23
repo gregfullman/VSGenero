@@ -21,13 +21,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using VSGenero.Analysis;
+using VSGenero.External;
 
 namespace VSGenero.EditorExtensions.Intellisense
 {
-    [Export(typeof(ISignatureHelpSourceProvider)), 
-     ContentType(VSGeneroConstants.ContentType4GL), 
-     ContentType(VSGeneroConstants.ContentTypeINC), 
-     ContentType(VSGeneroConstants.ContentTypePER),
+    [Export(typeof(ISignatureHelpSourceProvider)),
+     ContentType(External.GeneroConstants.ContentType4GL),
+     ContentType(External.GeneroConstants.ContentTypeINC),
+     ContentType(External.GeneroConstants.ContentTypePER),
      Order, 
      Name("Genero Signature Help Source")]
     class SignatureHelpSourceProvider : ISignatureHelpSourceProvider

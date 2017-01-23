@@ -21,13 +21,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using VSGenero.Analysis;
+using VSGenero.External;
+using VSGenero.External.Interfaces;
 
 namespace VSGenero.EditorExtensions.Intellisense
 {
     [Export(typeof(ICompletionSourceProvider)), 
-     ContentType(VSGeneroConstants.ContentType4GL), 
-     ContentType(VSGeneroConstants.ContentTypeINC), 
-     ContentType(VSGeneroConstants.ContentTypePER),
+     ContentType(GeneroConstants.ContentType4GL), 
+     ContentType(GeneroConstants.ContentTypeINC), 
+     ContentType(GeneroConstants.ContentTypePER),
      Order, 
      Name("CompletionProvider")]
     internal class CompletionSourceProvider : ICompletionSourceProvider

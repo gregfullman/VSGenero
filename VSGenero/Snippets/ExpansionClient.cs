@@ -23,6 +23,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
 using VSGenero.EditorExtensions;
+using VSGenero.External;
 
 namespace VSGenero.Snippets
 {
@@ -197,7 +198,7 @@ namespace VSGenero.Snippets
                 pszPath,
                 textSpan,
                 this,
-                VSGeneroConstants.guidGenero4glLanguageServiceGuid,
+                GeneroConstants.guidGenero4glLanguageServiceGuid,
                 0,
                 out _session
             );

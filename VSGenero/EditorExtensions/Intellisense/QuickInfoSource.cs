@@ -30,6 +30,7 @@ using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio;
 using VSGenero.Analysis.Interfaces;
 using VSGenero.Analysis.Parsing;
+using VSGenero.External.Interfaces;
 
 namespace VSGenero.EditorExtensions.Intellisense
 {

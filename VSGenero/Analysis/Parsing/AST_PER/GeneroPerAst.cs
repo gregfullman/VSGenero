@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using VSGenero.External.Analysis.Parsing;
+using VSGenero.External.Interfaces;
 
 namespace VSGenero.Analysis.Parsing.AST_PER
 {

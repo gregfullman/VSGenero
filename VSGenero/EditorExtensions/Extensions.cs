@@ -34,6 +34,10 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio;
 using System.ComponentModel;
+using VSGenero.External;
+using VSGenero.External.Snippets;
+using VSGenero.External.Interfaces;
+using VSGenero.External.Analysis.Parsing;
 
 namespace VSGenero.EditorExtensions
 {
@@ -49,10 +53,10 @@ namespace VSGenero.EditorExtensions
                 {
                     switch (Path.GetExtension(path).ToLower())
                     {
-                        case VSGeneroConstants.FileExtension4GL:
-                        case VSGeneroConstants.FileExtensionINC:
+                        case GeneroConstants.FileExtension4GL:
+                        case GeneroConstants.FileExtensionINC:
                             return typeof(Genero4glParser);
-                        case VSGeneroConstants.FileExtensionPER:
+                        case GeneroConstants.FileExtensionPER:
                             return typeof(GeneroPerParser);
                     }
                 }
@@ -86,10 +90,10 @@ namespace VSGenero.EditorExtensions
             {
                 switch (ext.ToLower())
                 {
-                    case VSGeneroConstants.FileExtension4GL:
-                    case VSGeneroConstants.FileExtensionINC:
+                    case GeneroConstants.FileExtension4GL:
+                    case GeneroConstants.FileExtensionINC:
                         return typeof (Genero4glParser);
-                    case VSGeneroConstants.FileExtensionPER:
+                    case GeneroConstants.FileExtensionPER:
                         return typeof (GeneroPerParser);
                 }
             }
@@ -273,7 +277,7 @@ namespace VSGenero.EditorExtensions
             return view.BufferGraph.MapDownToFirstMatch(
                new SnapshotPoint(view.TextBuffer.CurrentSnapshot, view.Caret.Position.BufferPosition),
                PointTrackingMode.Positive,
-               (x) => VSGeneroConstants.IsGenero4GLContent(x) || VSGeneroConstants.IsGeneroPERContent(x),
+               (x) => GeneroExtensions.IsGenero4GLContent(x) || GeneroExtensions.IsGeneroPERContent(x),
                PositionAffinity.Successor
             );
         }

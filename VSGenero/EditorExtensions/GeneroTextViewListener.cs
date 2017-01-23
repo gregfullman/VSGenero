@@ -24,12 +24,14 @@ using VSGenero.Analysis.Parsing;
 using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Language.StandardClassification;
+using VSGenero.External;
+using VSGenero.External.Interfaces;
 
 namespace VSGenero.EditorExtensions
 {
-    [ContentType(VSGeneroConstants.ContentType4GL)]
-    [ContentType(VSGeneroConstants.ContentTypePER)]
-    [ContentType(VSGeneroConstants.ContentTypeINC)]
+    [ContentType(GeneroConstants.ContentType4GL)]
+    [ContentType(GeneroConstants.ContentTypePER)]
+    [ContentType(GeneroConstants.ContentTypeINC)]
     [Export(typeof(IWpfTextViewCreationListener))]
     [TextViewRole(PredefinedTextViewRoles.Editable)]
     internal sealed class GeneroTextViewCreationListener : IWpfTextViewCreationListener

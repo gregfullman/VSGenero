@@ -23,6 +23,7 @@ using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
+using VSGenero.External;
 
 namespace VSGenero.Navigation
 {
@@ -65,7 +66,7 @@ namespace VSGenero.Navigation
         public abstract int GetLanguageName(out string bstrName);
     }
 
-    [Guid(VSGeneroConstants.guidGenero4glLanguageService)]
+    [Guid(GeneroConstants.guidGenero4glLanguageService)]
     public sealed class VSGenero4GLLanguageInfo : VSGeneroLanguageInfo, IVsLanguageDebugInfo
     {
         public VSGenero4GLLanguageInfo(IServiceProvider serviceProvider)
@@ -75,13 +76,13 @@ namespace VSGenero.Navigation
 
         public override int GetFileExtensions(out string pbstrExtensions)
         {
-            pbstrExtensions = VSGeneroConstants.FileExtension4GL;
+            pbstrExtensions = GeneroConstants.FileExtension4GL;
             return VSConstants.S_OK;
         }
 
         public override int GetLanguageName(out string bstrName)
         {
-            bstrName = VSGeneroConstants.LanguageName4GL;
+            bstrName = GeneroConstants.LanguageName4GL;
             return VSConstants.S_OK;
         }
 
@@ -166,13 +167,13 @@ namespace VSGenero.Navigation
 
         public override int GetFileExtensions(out string pbstrExtensions)
         {
-            pbstrExtensions = VSGeneroConstants.FileExtensionPER;
+            pbstrExtensions = GeneroConstants.FileExtensionPER;
             return VSConstants.S_OK;
         }
 
         public override int GetLanguageName(out string bstrName)
         {
-            bstrName = VSGeneroConstants.LanguageNamePER;
+            bstrName = GeneroConstants.LanguageNamePER;
             return VSConstants.S_OK;
         }
     }
@@ -187,13 +188,13 @@ namespace VSGenero.Navigation
 
         public override int GetFileExtensions(out string pbstrExtensions)
         {
-            pbstrExtensions = VSGeneroConstants.FileExtensionINC;
+            pbstrExtensions = GeneroConstants.FileExtensionINC;
             return VSConstants.S_OK;
         }
 
         public override int GetLanguageName(out string bstrName)
         {
-            bstrName = VSGeneroConstants.LanguageNameINC;
+            bstrName = GeneroConstants.LanguageNameINC;
             return VSConstants.S_OK;
         }
     }

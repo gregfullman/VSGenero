@@ -21,12 +21,13 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using VSGenero.External;
 
 namespace VSGenero.EditorExtensions
 {
     [Export(typeof(ISmartIndentProvider))]
-    [ContentType(VSGeneroConstants.ContentType4GL)]
-    [ContentType(VSGeneroConstants.ContentTypeINC)]
+    [ContentType(External.GeneroConstants.ContentType4GL)]
+    [ContentType(External.GeneroConstants.ContentTypeINC)]
     public sealed class SmartIndentProvider : ISmartIndentProvider
     {
         private sealed class Indent : ISmartIndent

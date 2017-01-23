@@ -24,6 +24,8 @@ using Microsoft.VisualStudio.VSCommon;
 using Microsoft.VisualStudio.Text;
 using VSGenero.Analysis.Parsing;
 using VSGenero.EditorExtensions;
+using VSGenero.External;
+using VSGenero.External.Analysis.Parsing;
 
 namespace VSGenero.Peek
 {
@@ -81,13 +83,13 @@ namespace VSGenero.Peek
                     switch (extension.ToLower())
                     {
                         case ".4gl":
-                            contentType = VSGeneroConstants.ContentType4GL;
+                            contentType = GeneroConstants.ContentType4GL;
                             break;
                         case ".inc":
-                            contentType = VSGeneroConstants.ContentTypeINC;
+                            contentType = GeneroConstants.ContentTypeINC;
                             break;
                         case ".per":
-                            contentType = VSGeneroConstants.ContentTypePER;
+                            contentType = GeneroConstants.ContentTypePER;
                             break;
                     }
                 }

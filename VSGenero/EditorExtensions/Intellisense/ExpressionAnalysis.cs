@@ -20,6 +20,7 @@ using System.Threading.Tasks;
 using VSGenero.Analysis;
 using VSGenero.Analysis.Parsing;
 using VSGenero.Analysis.Parsing.AST_4GL;
+using VSGenero.External.Interfaces;
 
 namespace VSGenero.EditorExtensions.Intellisense
 {

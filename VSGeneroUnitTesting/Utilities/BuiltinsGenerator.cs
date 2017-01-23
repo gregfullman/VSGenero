@@ -22,6 +22,7 @@ using System.Text.RegularExpressions;
 using System.Reflection;
 using System.IO;
 using VSGenero.Analysis.Parsing;
+using VSGenero.External.Analysis.Parsing;
 
 namespace VSGeneroUnitTesting.Utilities
 {

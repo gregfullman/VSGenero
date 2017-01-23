@@ -19,6 +19,7 @@ using System.Text;
 using System.Threading.Tasks;
 using VSGenero.Analysis;
 using VSGenero.Analysis.Parsing;
+using VSGenero.External.Analysis.Parsing;
 using VSGenero.Navigation;
 
 namespace VSGenero.Peek

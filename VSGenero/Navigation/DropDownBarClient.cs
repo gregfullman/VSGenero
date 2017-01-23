@@ -34,6 +34,8 @@ using Microsoft.VisualStudio.VSCommon;
 using Microsoft.VisualStudio.VSCommon.Utilities;
 using VSGenero.Analysis;
 using VSGenero.Analysis.Parsing.AST_4GL;
+using VSGenero.External.Analysis;
+using VSGenero.External.Analysis.Parsing;
 
 namespace VSGenero.Navigation
 {
@@ -361,7 +363,7 @@ namespace VSGenero.Navigation
             }
             else if(entry.FunctionDefinition.Location != null)
             {
-                entry.FunctionDefinition.Location.GotoSource(null, Analysis.Parsing.GeneroLanguageVersion.None);
+                entry.FunctionDefinition.Location.GotoSource(null, GeneroLanguageVersion.None);
             }
         }
 

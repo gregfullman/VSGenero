@@ -23,12 +23,14 @@ using System.Text;
 using System.Threading.Tasks;
 using VSGenero.Analysis;
 using VSGenero.Analysis.Parsing;
+using VSGenero.External;
+using VSGenero.External.Interfaces;
 
 namespace VSGenero.EditorExtensions
 {
-    [ContentType(VSGeneroConstants.ContentType4GL)]
-    [ContentType(VSGeneroConstants.ContentTypeINC)]
-    [ContentType(VSGeneroConstants.ContentTypePER)]
+    [ContentType(GeneroConstants.ContentType4GL)]
+    [ContentType(GeneroConstants.ContentTypeINC)]
+    [ContentType(GeneroConstants.ContentTypePER)]
     [Export(typeof(IClassifierProvider))]
     public class Genero4glClassifierProvider : IClassifierProvider
     {
@@ -52,9 +54,9 @@ namespace VSGenero.EditorExtensions
         public Genero4glClassifierProvider(IContentTypeRegistryService contentTypeRegistryService)
         {
             _types = new List<IContentType>();
-            _types.Add(contentTypeRegistryService.GetContentType(VSGeneroConstants.ContentType4GL));
-            _types.Add(contentTypeRegistryService.GetContentType(VSGeneroConstants.ContentTypeINC));
-            _types.Add(contentTypeRegistryService.GetContentType(VSGeneroConstants.ContentTypePER));
+            _types.Add(contentTypeRegistryService.GetContentType(GeneroConstants.ContentType4GL));
+            _types.Add(contentTypeRegistryService.GetContentType(GeneroConstants.ContentTypeINC));
+            _types.Add(contentTypeRegistryService.GetContentType(GeneroConstants.ContentTypePER));
         }
 
         /// <summary>

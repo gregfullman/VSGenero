@@ -16,6 +16,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using VSGenero.External.Analysis.Parsing;
+using VSGenero.External.Interfaces;
 
 namespace VSGenero.Analysis.Parsing.AST_4GL
 {
@@ -344,7 +346,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         protected LocationInfo _location;
         public LocationInfo Location { get { return _location; } }
 
-        public IAnalysisResult GetMember(string name, Genero4glAst ast, out IGeneroProject definingProject, out IProjectEntry projEntry, bool function)
+        public IAnalysisResult GetMember(string name, GeneroAst ast, out IGeneroProject definingProject, out IProjectEntry projEntry, bool function)
         {
             definingProject = null;
             projEntry = null;
@@ -375,7 +377,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             //}
         }
 
-        internal IEnumerable<IAnalysisResult> GetAnalysisMembers(Genero4glAst ast, MemberType memberType, out IGeneroProject definingProject, out IProjectEntry projectEntry, bool function)
+        internal IEnumerable<IAnalysisResult> GetAnalysisMembers(GeneroAst ast, MemberType memberType, out IGeneroProject definingProject, out IProjectEntry projectEntry, bool function)
         {
             definingProject = null;
             projectEntry = null;
@@ -416,7 +418,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 else
                 {
                     // try to determine if the _typeNameString is a user defined type, in which case we need to call its GetMembers function
-                    IAnalysisResult udt = ast.TryGetUserDefinedType(_typeNameString, LocationIndex);
+                    IAnalysisResult udt = (ast as Genero4glAst).TryGetUserDefinedType(_typeNameString, LocationIndex);
                     if (udt != null)
                     {
                         return udt.GetMembers(ast, memberType, function).Select(x => x.Var).Where(y => y != null);
@@ -499,7 +501,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             return members;
         }
 
-        public IEnumerable<MemberResult> GetMembers(Genero4glAst ast, MemberType memberType, bool getArrayTypeMembers)
+        public IEnumerable<MemberResult> GetMembers(GeneroAst ast, MemberType memberType, bool getArrayTypeMembers)
         {
             bool dummyDef;
             List<MemberResult> members = new List<MemberResult>();
@@ -540,7 +542,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 else
                 {
                     // try to determine if the _typeNameString is a user defined type (or package class), in which case we need to call its GetMembers function
-                    IAnalysisResult udt = ast.TryGetUserDefinedType(_typeNameString, LocationIndex);
+                    IAnalysisResult udt = (ast as Genero4glAst).TryGetUserDefinedType(_typeNameString, LocationIndex);
                     if (udt != null)
                     {
                         return udt.GetMembers(ast, memberType, getArrayTypeMembers);
@@ -590,7 +592,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         }
 
 
-        public bool HasChildFunctions(Genero4glAst ast)
+        public bool HasChildFunctions(GeneroAst ast)
         {
             if (Children.Count == 1)
             {
@@ -615,7 +617,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     else
                     {
                         // try to determine if the _typeNameString is a user defined type
-                        IAnalysisResult udt = ast.TryGetUserDefinedType(_typeNameString, LocationIndex);
+                        IAnalysisResult udt = (ast as Genero4glAst).TryGetUserDefinedType(_typeNameString, LocationIndex);
                         if (udt != null)
                         {
                             return udt.HasChildFunctions(ast);

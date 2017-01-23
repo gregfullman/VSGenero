@@ -8,7 +8,7 @@
  *
  * You must not remove this notice, or any other, from this software.
  *
- * ***************************************************************************/ 
+ * ***************************************************************************/
 
 using Microsoft.VisualStudio.Utilities;
 using System;
@@ -16,6 +16,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using VSGenero.External.Analysis;
+using VSGenero.External.Analysis.Parsing;
+using VSGenero.External.Interfaces;
 
 namespace VSGenero.Analysis.Parsing.AST_4GL
 {
@@ -4957,7 +4960,7 @@ GeneroLanguageVersion.Latest)
 
         public LocationInfo Location { get { return null; } }
 
-        public IAnalysisResult GetMember(string name, Genero4glAst ast, out IGeneroProject definingProject, out IProjectEntry projEntry, bool function)
+        public IAnalysisResult GetMember(string name, GeneroAst ast, out IGeneroProject definingProject, out IProjectEntry projEntry, bool function)
         {
             definingProject = null;
             projEntry = null;
@@ -4966,13 +4969,13 @@ GeneroLanguageVersion.Latest)
             return cls;
         }
 
-        public IEnumerable<MemberResult> GetMembers(Genero4glAst ast, MemberType memberType, bool getArrayTypeMembers)
+        public IEnumerable<MemberResult> GetMembers(GeneroAst ast, MemberType memberType, bool getArrayTypeMembers)
         {
             return _classes.Values.Where(x => ast.LanguageVersion >= x.MinimumLanguageVersion && ast.LanguageVersion <= x.MaximumLanguageVersion)
                                   .Select(x => new MemberResult(x.Name, x, GeneroMemberType.Class, ast));
         }
 
-        public bool HasChildFunctions(Genero4glAst ast)
+        public bool HasChildFunctions(GeneroAst ast)
         {
             return true;
         }
@@ -5089,7 +5092,7 @@ GeneroLanguageVersion.Latest)
 
         public LocationInfo Location { get { return null; } }
 
-        public IAnalysisResult GetMember(string name, Genero4glAst ast, out IGeneroProject definingProject, out IProjectEntry projEntry, bool function)
+        public IAnalysisResult GetMember(string name, GeneroAst ast, out IGeneroProject definingProject, out IProjectEntry projEntry, bool function)
         {
             definingProject = null;
             projEntry = null;
@@ -5098,13 +5101,13 @@ GeneroLanguageVersion.Latest)
             return method;
         }
 
-        public IEnumerable<MemberResult> GetMembers(Genero4glAst ast, MemberType memberType, bool getArrayTypeMembers)
+        public IEnumerable<MemberResult> GetMembers(GeneroAst ast, MemberType memberType, bool getArrayTypeMembers)
         {
             return _methods.Values.Where(x => ast.LanguageVersion >= x.MinimumLanguageVersion && ast.LanguageVersion <= x.MaximumLanguageVersion)
                                   .Select(x => new MemberResult(x.Name, x, GeneroMemberType.Method, ast));
         }
 
-        public bool HasChildFunctions(Genero4glAst ast)
+        public bool HasChildFunctions(GeneroAst ast)
         {
             return true;
         }
@@ -5184,7 +5187,7 @@ GeneroLanguageVersion.Latest)
 
         public AccessModifier AccessModifier
         {
-            get { return Analysis.AccessModifier.Public; }
+            get { return AccessModifier.Public; }
         }
 
         public string FunctionDocumentation
@@ -5289,7 +5292,7 @@ GeneroLanguageVersion.Latest)
 
         public LocationInfo Location { get { return null; } }
 
-        public IAnalysisResult GetMember(string name, Genero4glAst ast, out IGeneroProject definingProject, out IProjectEntry projEntry, bool function)
+        public IAnalysisResult GetMember(string name, GeneroAst ast, out IGeneroProject definingProject, out IProjectEntry projEntry, bool function)
         {
             definingProject = null;
             projEntry = null;
@@ -5301,7 +5304,7 @@ GeneroLanguageVersion.Latest)
             return null;
         }
 
-        public IEnumerable<MemberResult> GetMembers(Genero4glAst ast, MemberType memberType, bool getArrayTypeMembers)
+        public IEnumerable<MemberResult> GetMembers(GeneroAst ast, MemberType memberType, bool getArrayTypeMembers)
         {
             if(_returns != null && _returns.Count == 1)
             {
@@ -5311,7 +5314,7 @@ GeneroLanguageVersion.Latest)
             return new MemberResult[0];
         }
 
-        public bool HasChildFunctions(Genero4glAst ast)
+        public bool HasChildFunctions(GeneroAst ast)
         {
             return false;
         }

@@ -30,13 +30,15 @@ using VSGenero.Analysis;
 using Microsoft.VisualStudio.VSCommon;
 using VSGenero.Snippets;
 using Microsoft.VisualStudio.Shell;
+using VSGenero.External;
+using VSGenero.External.Interfaces;
 
 namespace VSGenero.EditorExtensions.Intellisense
 {
     [Export(typeof(IIntellisenseControllerProvider)),
-     ContentType(VSGeneroConstants.ContentType4GL),
-     ContentType(VSGeneroConstants.ContentTypeINC),
-     ContentType(VSGeneroConstants.ContentTypePER),
+     ContentType(GeneroConstants.ContentType4GL),
+     ContentType(GeneroConstants.ContentTypeINC),
+     ContentType(GeneroConstants.ContentTypePER),
      Order]
     class IntellisenseControllerProvider : IIntellisenseControllerProvider
     {
@@ -163,9 +165,9 @@ namespace VSGenero.EditorExtensions.Intellisense
     /// because the adapter does not exist.
     /// </summary>
     [Export(typeof(IVsTextViewCreationListener))]
-    [ContentType(VSGeneroConstants.ContentType4GL)]
-    [ContentType(VSGeneroConstants.ContentTypeINC)]
-    [ContentType(VSGeneroConstants.ContentTypePER)]
+    [ContentType(External.GeneroConstants.ContentType4GL)]
+    [ContentType(External.GeneroConstants.ContentTypeINC)]
+    [ContentType(External.GeneroConstants.ContentTypePER)]
     [TextViewRole(PredefinedTextViewRoles.Editable)]
     class TextViewCreationListener : IVsTextViewCreationListener
     {

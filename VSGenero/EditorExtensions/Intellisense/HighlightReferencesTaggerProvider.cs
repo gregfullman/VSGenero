@@ -23,12 +23,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using VSGenero.Analysis;
+using VSGenero.External;
+using VSGenero.External.Interfaces;
 
 namespace VSGenero.EditorExtensions.Intellisense
 {
-    [ContentType(VSGeneroConstants.ContentType4GL)]
-    [ContentType(VSGeneroConstants.ContentTypeINC)]
-    [ContentType(VSGeneroConstants.ContentTypePER)]
+    [ContentType(GeneroConstants.ContentType4GL)]
+    [ContentType(GeneroConstants.ContentTypeINC)]
+    [ContentType(GeneroConstants.ContentTypePER)]
     [Name("Genero Highlight References Tagger Provider")]
     [TagType(typeof(TextMarkerTag))]
     [Export(typeof(IViewTaggerProvider))]

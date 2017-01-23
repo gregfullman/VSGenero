@@ -8,7 +8,7 @@
  *
  * You must not remove this notice, or any other, from this software.
  *
- * ***************************************************************************/ 
+ * ***************************************************************************/
 
 using Microsoft.VisualStudio.Text;
 using System;
@@ -16,6 +16,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using VSGenero.External.Interfaces;
 
 namespace VSGenero.Analysis.Parsing.AST_4GL
 {
@@ -326,7 +327,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             return result;
         }
 
-        internal IEnumerable<IAnalysisResult> GetAnalysisResults(Genero4glAst ast, MemberType memberType, out IGeneroProject definingProject, out IProjectEntry projEntry, bool function)
+        internal IEnumerable<IAnalysisResult> GetAnalysisResults(GeneroAst ast, MemberType memberType, out IGeneroProject definingProject, out IProjectEntry projEntry, bool function)
         {
             definingProject = null;
             projEntry = null;
@@ -344,7 +345,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             return results;
         }
 
-        internal IEnumerable<MemberResult> GetMembersInternal(Genero4glAst ast, MemberType memberType, bool getArrayTypeMembers = false)
+        internal IEnumerable<MemberResult> GetMembersInternal(GeneroAst ast, MemberType memberType, bool getArrayTypeMembers = false)
         {
             List<MemberResult> results = new List<MemberResult>();
             if (getArrayTypeMembers)

@@ -22,6 +22,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using VSGenero.External;
 
 namespace VSGenero.EditorExtensions
 {
@@ -143,7 +144,7 @@ namespace VSGenero.EditorExtensions
             var pt = _textView.BufferGraph.MapDownToInsertionPoint(
                 new SnapshotPoint(_textView.TextBuffer.CurrentSnapshot, position),
                 PointTrackingMode.Positive,
-                VSGeneroConstants.IsGenero4GLContent
+                GeneroExtensions.IsGenero4GLContent
             );
 
             if (pt == null)

@@ -27,10 +27,11 @@ using VSGenero.Analysis;
 using VSGenero.Analysis.Parsing;
 using VSGenero.Analysis.Parsing.AST_4GL;
 using VSGenero.EditorExtensions.Intellisense;
+using VSGenero.External;
 
 namespace VSGenero.EditorExtensions
 {
-    [Export(typeof(ITaggerProvider)), ContentType(VSGeneroConstants.ContentType4GL), ContentType(VSGeneroConstants.ContentTypeINC)]
+    [Export(typeof(ITaggerProvider)), ContentType(External.GeneroConstants.ContentType4GL), ContentType(External.GeneroConstants.ContentTypeINC)]
     [TagType(typeof(IOutliningRegionTag))]
     class OutliningTaggerProvider : ITaggerProvider
     {

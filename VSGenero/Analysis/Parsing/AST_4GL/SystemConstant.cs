@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using VSGenero.External.Analysis.Parsing;
 
 namespace VSGenero.Analysis.Parsing.AST_4GL
 {
@@ -72,19 +73,19 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
         public LocationInfo Location { get { return null; } }
 
-        public IAnalysisResult GetMember(string name, Genero4glAst ast, out IGeneroProject definingProject, out IProjectEntry projEntry, bool function)
+        public IAnalysisResult GetMember(string name, GeneroAst ast, out IGeneroProject definingProject, out IProjectEntry projEntry, bool function)
         {
             definingProject = null;
             projEntry = null;
             return null;
         }
 
-        public IEnumerable<MemberResult> GetMembers(Genero4glAst ast, MemberType memberType, bool getArrayTypeMembers)
+        public IEnumerable<MemberResult> GetMembers(GeneroAst ast, MemberType memberType, bool getArrayTypeMembers)
         {
             return null;
         }
 
-        public bool HasChildFunctions(Genero4glAst ast)
+        public bool HasChildFunctions(GeneroAst ast)
         {
             return false;
         }

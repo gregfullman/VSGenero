@@ -26,10 +26,11 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using VSGenero.EditorExtensions;
 using VSGenero.Navigation;
 using VSGenero.Analysis;
+using VSGenero.External;
 
 namespace VSGenero.Peek
 {
-    [SupportsStandaloneFiles(true), Export(typeof(IPeekableItemSourceProvider)), Name("GeneroPeekableItemSourceProvider"), ContentType(VSGeneroConstants.ContentType4GL), ContentType(VSGeneroConstants.ContentTypeINC)]
+    [SupportsStandaloneFiles(true), Export(typeof(IPeekableItemSourceProvider)), Name("GeneroPeekableItemSourceProvider"), ContentType(External.GeneroConstants.ContentType4GL), ContentType(External.GeneroConstants.ContentTypeINC)]
     public class PeekableItemSourceProvider : IPeekableItemSourceProvider
     {
         [Import]

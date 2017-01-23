@@ -8,7 +8,7 @@
  *
  * You must not remove this notice, or any other, from this software.
  *
- * ***************************************************************************/ 
+ * ***************************************************************************/
 
 using System;
 using System.Collections.Generic;
@@ -17,6 +17,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
+using VSGenero.External;
+using VSGenero.External.Snippets;
 
 namespace VSGenero.Snippets
 {
@@ -81,7 +83,7 @@ namespace VSGenero.Snippets
 
             var code = xmlDoc.CreateElement("Code");
             var langAttrib = xmlDoc.CreateAttribute("Language");
-            langAttrib.Value = VSGeneroConstants.LanguageName4GL;
+            langAttrib.Value = GeneroConstants.LanguageName4GL;
             code.Attributes.Append(langAttrib);
             var cdata = xmlDoc.CreateCDataSection(dynSnippet.Code);
             code.AppendChild(cdata);

@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="12.0">
   <Import Project="..\packages\Microsoft.Net.Compilers.1.3.2\build\Microsoft.Net.Compilers.props" Condition="('$(VisualStudioVersion)'=='12.0'  Or '$(TargetVisualStudioVersion)'=='VS120') And Exists('..\packages\Microsoft.Net.Compilers.1.3.2\build\Microsoft.Net.Compilers.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <Choose>
@@ -94,7 +94,7 @@
     <RootNamespace>VSGenero</RootNamespace>
     <SignAssembly>True</SignAssembly>
     <AssemblyOriginatorKeyFile>Key.snk</AssemblyOriginatorKeyFile>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <!--<MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>-->
     <FileUpgradeFlags>
     </FileUpgradeFlags>
@@ -342,16 +342,13 @@
     <Compile Include="Analysis\Interfaces\ICommentValidator.cs" />
     <Compile Include="Analysis\Interfaces\IDatabaseInformationProvider.cs" />
     <Compile Include="Analysis\Interfaces\IFunctionInformationProvider.cs" />
-    <Compile Include="Analysis\Interfaces\IGeneroDebugger.cs" />
     <Compile Include="Analysis\Interfaces\IGeneroProject.cs" />
     <Compile Include="Analysis\Interfaces\IGeneroProjectEntry.cs" />
     <Compile Include="Analysis\Interfaces\ILocatedMember.cs" />
-    <Compile Include="Analysis\Interfaces\IProgramFileProvider.cs" />
     <Compile Include="Analysis\Interfaces\IProjectEntry.cs" />
     <Compile Include="Analysis\Interfaces\IReferenceableContainer.cs" />
     <Compile Include="Analysis\Interfaces\IReverseTokenizer.cs" />
     <Compile Include="Analysis\Interfaces\ISchemaFileProvider.cs" />
-    <Compile Include="Analysis\Interfaces\ITypeResolver.cs" />
     <Compile Include="Analysis\MemberTypeAttribute.cs" />
     <Compile Include="Analysis\Parsing\AST_4GL\BuiltinFunction.cs" />
     <Compile Include="Analysis\Parsing\AST_4GL\FglNameExpression.cs" />
@@ -463,7 +460,6 @@
     <Compile Include="Analysis\MemberResult.cs" />
     <Compile Include="Analysis\ParameterResult.cs" />
     <Compile Include="Analysis\Parsing\ErrorCodes.cs" />
-    <Compile Include="Analysis\Parsing\GeneroLanguageVersion.cs" />
     <Compile Include="Analysis\Parsing\ParseResult.cs" />
     <Compile Include="Analysis\Parsing\Severity.cs" />
     <Compile Include="Analysis\SetOfOneEnumerator.cs" />
@@ -481,10 +477,7 @@
     <Compile Include="EditorExtensions\GeneroLexer.cs" />
     <Compile Include="EditorExtensions\GeneroTextViewListener.cs" />
     <Compile Include="EditorExtensions\GeneroToken.cs" />
-    <Compile Include="EditorExtensions\IBuildEventProvider.cs" />
     <Compile Include="EditorExtensions\ICustomCommentOutliningProvider.cs" />
-    <Compile Include="EditorExtensions\IGeneroTextViewChangedListener.cs" />
-    <Compile Include="EditorExtensions\IGeneroTextViewCommandTarget.cs" />
     <Compile Include="EditorExtensions\Intellisense\AnalysisQueue.cs" />
     <Compile Include="EditorExtensions\Intellisense\AnalysisSynchronizationContext.cs" />
     <Compile Include="Analysis\Parsing\AsciiString.cs" />
@@ -659,9 +652,7 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="GlobalSuppressions.cs" />
-    <Compile Include="Snippets\DynamicSnippet.cs" />
     <Compile Include="Snippets\ExpansionClient.cs" />
-    <Compile Include="Snippets\ICustomSnippetProvider.cs" />
     <Compile Include="Snippets\IPublicFunctionSnippetizer.cs" />
     <Compile Include="Snippets\RegisterSnippetsAttribute.cs" />
     <Compile Include="Snippets\SnippetGenerator.cs" />
@@ -852,6 +843,10 @@
     <ProjectReference Include="..\VSCommon\VSCommon.csproj">
       <Project>{F68C18BD-A5FE-4CF5-A06F-AD1A0A80C7FB}</Project>
       <Name>VSCommon</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\VSGenero.External\VSGenero.External.csproj">
+      <Project>{E3BAEC99-7A14-4F94-BBB8-9965380E99E2}</Project>
+      <Name>VSGenero.External</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

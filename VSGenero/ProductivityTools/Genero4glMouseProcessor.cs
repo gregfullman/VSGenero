@@ -9,12 +9,13 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using VSGenero.External;
 
 namespace VSGenero.ProductivityTools
 {
     [Export(typeof(IMouseProcessorProvider))]
     [Name("Genero4glMouseProcessor")]
-    [ContentType(VSGeneroConstants.ContentType4GL)]
+    [ContentType(External.GeneroConstants.ContentType4GL)]
     [TextViewRole(PredefinedTextViewRoles.EmbeddedPeekTextView)]
     [TextViewRole(PredefinedTextViewRoles.PrimaryDocument)]
 #if DEV14_OR_LATER

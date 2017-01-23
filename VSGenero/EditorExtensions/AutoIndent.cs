@@ -25,6 +25,7 @@ using VSGenero.Analysis;
 using VSGenero.Analysis.Parsing;
 using VSGenero.Analysis.Parsing.AST_4GL;
 using Microsoft.VisualStudio.TextManager.Interop;
+using VSGenero.External;
 
 namespace VSGenero.EditorExtensions
 {
@@ -665,9 +666,9 @@ namespace VSGenero.EditorExtensions
 
         private static bool PythonContentTypePrediciate(ITextSnapshot snapshot)
         {
-            return snapshot.ContentType.IsOfType(VSGeneroConstants.ContentType4GL) ||
-                   snapshot.ContentType.IsOfType(VSGeneroConstants.ContentTypeINC) ||
-                   snapshot.ContentType.IsOfType(VSGeneroConstants.ContentTypePER);
+            return snapshot.ContentType.IsOfType(GeneroConstants.ContentType4GL) ||
+                   snapshot.ContentType.IsOfType(GeneroConstants.ContentTypeINC) ||
+                   snapshot.ContentType.IsOfType(GeneroConstants.ContentTypePER);
         }
 
         internal static int? GetLineIndentation(ITextSnapshotLine line, ITextView textView)
@@ -679,9 +680,9 @@ namespace VSGenero.EditorExtensions
             SkipPreceedingBlankLines(line, out baselineText, out baseline);
 
             ITextBuffer targetBuffer = textView.TextBuffer;
-            if (!targetBuffer.ContentType.IsOfType(VSGeneroConstants.ContentType4GL) ||
-                !targetBuffer.ContentType.IsOfType(VSGeneroConstants.ContentTypeINC) ||
-                !targetBuffer.ContentType.IsOfType(VSGeneroConstants.ContentTypePER))
+            if (!targetBuffer.ContentType.IsOfType(GeneroConstants.ContentType4GL) ||
+                !targetBuffer.ContentType.IsOfType(GeneroConstants.ContentTypeINC) ||
+                !targetBuffer.ContentType.IsOfType(GeneroConstants.ContentTypePER))
             {
                 var match = textView.BufferGraph.MapDownToFirstMatch(line.Start, PointTrackingMode.Positive, PythonContentTypePrediciate, PositionAffinity.Successor);
                 if (match == null)

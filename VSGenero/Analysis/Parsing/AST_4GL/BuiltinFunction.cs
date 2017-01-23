@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using VSGenero.External.Analysis;
+using VSGenero.External.Analysis.Parsing;
 
 namespace VSGenero.Analysis.Parsing.AST_4GL
 {
@@ -52,7 +54,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
         public AccessModifier AccessModifier
         {
-            get { return Analysis.AccessModifier.Public; }
+            get { return AccessModifier.Public; }
         }
 
         public string FunctionDocumentation
@@ -172,7 +174,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             }
         }
 
-        public IAnalysisResult GetMember(string name, Genero4glAst ast, out IGeneroProject definingProject, out IProjectEntry projEntry, bool function)
+        public IAnalysisResult GetMember(string name, GeneroAst ast, out IGeneroProject definingProject, out IProjectEntry projEntry, bool function)
         {
             definingProject = null;
             projEntry = null;
@@ -184,7 +186,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             return null;
         }
 
-        public IEnumerable<MemberResult> GetMembers(Genero4glAst ast, MemberType memberType, bool getArrayTypeMembers)
+        public IEnumerable<MemberResult> GetMembers(GeneroAst ast, MemberType memberType, bool getArrayTypeMembers)
         {
             if (_returns != null && _returns.Count == 1)
             {
@@ -194,7 +196,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             return new MemberResult[0];
         }
 
-        public bool HasChildFunctions(Genero4glAst ast)
+        public bool HasChildFunctions(GeneroAst ast)
         {
             return false;
         }
