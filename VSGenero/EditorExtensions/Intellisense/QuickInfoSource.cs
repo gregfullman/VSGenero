@@ -64,7 +64,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             }
 
             _curSession = session;
-            _curSession.Dismissed += CurSessionDismissed;
+            //_curSession.Dismissed += CurSessionDismissed;
             if (_provider._PublicFunctionProvider != null)
                 _provider._PublicFunctionProvider.SetFilename(_textBuffer.GetFilePath());
             if (_provider._DatabaseInfoProvider != null)
@@ -80,10 +80,10 @@ namespace VSGenero.EditorExtensions.Intellisense
             AugmentQuickInfoWorker(_provider, session, _textBuffer, _viewAdapter, vars, quickInfoContent, out applicableToSpan);
         }
 
-        private void CurSessionDismissed(object sender, EventArgs e)
-        {
-            _curSession = null;
-        }
+        //private void CurSessionDismissed(object sender, EventArgs e)
+        //{
+        //    _curSession = null;
+        //}
 
         internal static void AugmentQuickInfoWorker(QuickInfoSourceProvider provider, IQuickInfoSession session, ITextBuffer subjectBuffer, IVsTextView viewAdapter, ExpressionAnalysis exprAnalysis, System.Collections.Generic.IList<object> quickInfoContent, out ITrackingSpan applicableToSpan)
         {
@@ -234,6 +234,35 @@ namespace VSGenero.EditorExtensions.Intellisense
 
         #region ITypeResolver Members
 
+        public string GetQuickInfoTargetFullName()
+        {
+            IWpfTextView wpfTextView;
+            if (_textBuffer.Properties.TryGetProperty<IWpfTextView>(typeof(IWpfTextView), out wpfTextView))
+            {
+                if (_provider._PublicFunctionProvider != null)
+                    _provider._PublicFunctionProvider.SetFilename(_textBuffer.GetFilePath());
+                if (_provider._DatabaseInfoProvider != null)
+                    _provider._DatabaseInfoProvider.SetFilename(_textBuffer.GetFilePath());
+
+                var trackingSpan = wpfTextView.Caret.Position.CreateTrackingSpan(_textBuffer);
+
+                var expression = _textBuffer.CurrentSnapshot.AnalyzeExpression(
+                    trackingSpan,
+                    false,
+                    _provider._PublicFunctionProvider,
+                    _provider._DatabaseInfoProvider,
+                    _provider._ProgramFileProvider
+                );
+
+                if (expression != null && expression.Span != null)
+                {
+                    return expression.Span.GetSpan(_textBuffer.CurrentSnapshot).GetText();
+                }
+            }
+
+            return null;
+        }
+
         public ITypeResult GetGeneroType(string variableName, string filename, int lineNumber)
         {
             // TODO: need to
@@ -247,7 +276,7 @@ namespace VSGenero.EditorExtensions.Intellisense
 
             if(VSGeneroPackage.Instance.DefaultAnalyzer != null)
             {
-                var projectEntry = VSGeneroPackage.Instance.DefaultAnalyzer.AnalyzeFile(filename);  // This file should already be "analyzed"
+                var projectEntry = VSGeneroPackage.Instance.DefaultAnalyzer.AnalyzeFile(filename, false);  // This file should already be "analyzed"
                 if (projectEntry != null && projectEntry.Analysis != null)
                 {
                     IGeneroProject dummyProj;

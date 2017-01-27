@@ -40,21 +40,30 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
         public static async Task<bool> ReloadContextMap(bool downloadLatest = false)
         {
+            bool doLoad = false;
             lock (_contextMapLock)
             {
                 if (_contextMap == null)
+                {
                     _contextMap = new ContextCompletionMap();
+                    doLoad = true;
+                }
             }
 
             if (downloadLatest)
             {
                 if (!await _contextMap.DownloadLatestFile())
                     return false;
+                else
+                    doLoad = true;
             }
 
             lock(_contextMapLock)
             {
-                return _contextMap.LoadFromXML();
+                if (doLoad)
+                    return _contextMap.LoadFromXML();
+                else
+                    return false;
             }
         }
 

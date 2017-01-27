@@ -959,7 +959,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             }
         }
 
-        internal IGeneroProjectEntry AnalyzeFile(string path)
+        internal IGeneroProjectEntry AnalyzeFile(string path, bool enqueue)
         {
             IGeneroProjectEntry entry = null;
             if (path != null)
@@ -1024,7 +1024,8 @@ namespace VSGenero.EditorExtensions.Intellisense
                     }
                 }
 
-                _queue.EnqueueFile(entry, path);
+                if(enqueue)
+                    _queue.EnqueueFile(entry, path);
             }
             return entry;
         }
@@ -1910,7 +1911,7 @@ namespace VSGenero.EditorExtensions.Intellisense
 
             try
             {
-                IGeneroProjectEntry entry = AnalyzeFile(filename);
+                IGeneroProjectEntry entry = AnalyzeFile(filename, true);
                 if (onFileAnalyzed != null)
                 {
                     onFileAnalyzed(filename, entry);
@@ -1947,7 +1948,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                     {
                         break;
                     }
-                    IGeneroProjectEntry entry = AnalyzeFile(filename);
+                    IGeneroProjectEntry entry = AnalyzeFile(filename, true);
                     if (onFileAnalyzed != null)
                     {
                         onFileAnalyzed(filename, entry);
