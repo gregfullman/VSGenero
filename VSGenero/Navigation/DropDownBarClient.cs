@@ -12,30 +12,24 @@
  *
  * ***************************************************************************/
 
+using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.TextManager.Interop;
+using Microsoft.VisualStudio.VSCommon.Utilities;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Microsoft.VisualStudio.TextManager.Interop;
-using Microsoft.VisualStudio.Text.Editor;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Windows.Threading;
-using System.Windows.Forms;
-using Microsoft.VisualStudio;
-
-using VSGenero.EditorExtensions.Intellisense;
-using VSGenero.EditorExtensions;
-using Microsoft.VisualStudio.Text;
 using System.Drawing;
 using System.IO;
-using System.Threading.Tasks;
-using Microsoft.VisualStudio.VSCommon;
-using Microsoft.VisualStudio.VSCommon.Utilities;
+using System.Linq;
+using System.Threading;
+using System.Windows.Forms;
+using System.Windows.Threading;
 using VSGenero.Analysis;
 using VSGenero.Analysis.Parsing.AST_4GL;
-using System.Collections.Concurrent;
-using System.Threading;
+using VSGenero.EditorExtensions;
+using VSGenero.EditorExtensions.Intellisense;
 
 namespace VSGenero.Navigation
 {
@@ -175,29 +169,7 @@ namespace VSGenero.Navigation
             {
                 _curNestedIndex = -1;
                 _curTopLevelIndex = -1;
-
                 _calcEvent.Set();
-                //if (!_isWorking)
-                //{
-                //    _isWorking = true;
-                //    var bgWorker = new BackgroundWorker();
-                //    Action uiCallback = () =>
-                //    {
-                //        CaretPositionChanged(this,
-                //            new CaretPositionChangedEventArgs(null, _textView.Caret.Position, _textView.Caret.Position));
-                //    };
-                //    bgWorker.RunWorkerCompleted += (x, y) =>
-                //    {
-                //        _dispatcher.BeginInvoke(uiCallback, DispatcherPriority.Background);
-                //        _isWorking = false;
-                //    };
-
-                //    bgWorker.DoWork += (x, y) =>
-                //    {
-                //        CalculateTopLevelEntries();
-                //    };
-                //    bgWorker.RunWorkerAsync();
-                //}
             }
         }
 
