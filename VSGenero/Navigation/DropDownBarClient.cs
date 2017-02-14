@@ -34,6 +34,8 @@ using Microsoft.VisualStudio.VSCommon;
 using Microsoft.VisualStudio.VSCommon.Utilities;
 using VSGenero.Analysis;
 using VSGenero.Analysis.Parsing.AST_4GL;
+using System.Collections.Concurrent;
+using System.Threading;
 
 namespace VSGenero.Navigation
 {
@@ -52,6 +54,10 @@ namespace VSGenero.Navigation
         private static readonly ReadOnlyCollection<DropDownEntryInfo> EmptyEntries = new ReadOnlyCollection<DropDownEntryInfo>(new DropDownEntryInfo[0]);
 
         private const int TopLevelComboBoxId = 0;
+        private bool _endBackgroundCalc;
+        private Thread _calculationThread;
+        private AutoResetEvent _calcEvent = new AutoResetEvent(false);
+
         public DropDownBarClient(IWpfTextView textView, IGeneroProjectEntry pythonProjectEntry)
         {
             _projectEntry = pythonProjectEntry;
@@ -60,6 +66,8 @@ namespace VSGenero.Navigation
             _topLevelEntries = _nestedEntries = EmptyEntries;
             _dispatcher = Dispatcher.CurrentDispatcher;
             _textView.Caret.PositionChanged += CaretPositionChanged;
+            _calculationThread = new Thread(CalculationThread);
+            _calculationThread.Start();
         }
 
         private void CaretPositionChanged(object sender, CaretPositionChangedEventArgs e)
@@ -168,31 +176,51 @@ namespace VSGenero.Navigation
                 _curNestedIndex = -1;
                 _curTopLevelIndex = -1;
 
-                if (!_isWorking)
-                {
-                    _isWorking = true;
-                    var bgWorker = new BackgroundWorker();
-                    Action uiCallback = () =>
-                    {
-                        CaretPositionChanged(this,
-                            new CaretPositionChangedEventArgs(null, _textView.Caret.Position, _textView.Caret.Position));
-                    };
-                    bgWorker.RunWorkerCompleted += (x, y) =>
-                    {
-                        _dispatcher.BeginInvoke(uiCallback, DispatcherPriority.Background);
-                        _isWorking = false;
-                    };
+                _calcEvent.Set();
+                //if (!_isWorking)
+                //{
+                //    _isWorking = true;
+                //    var bgWorker = new BackgroundWorker();
+                //    Action uiCallback = () =>
+                //    {
+                //        CaretPositionChanged(this,
+                //            new CaretPositionChangedEventArgs(null, _textView.Caret.Position, _textView.Caret.Position));
+                //    };
+                //    bgWorker.RunWorkerCompleted += (x, y) =>
+                //    {
+                //        _dispatcher.BeginInvoke(uiCallback, DispatcherPriority.Background);
+                //        _isWorking = false;
+                //    };
 
-                    bgWorker.DoWork += (x, y) =>
-                    {
-                        CalculateTopLevelEntries();
-                    };
-                    bgWorker.RunWorkerAsync();
+                //    bgWorker.DoWork += (x, y) =>
+                //    {
+                //        CalculateTopLevelEntries();
+                //    };
+                //    bgWorker.RunWorkerAsync();
+                //}
+            }
+        }
+
+        private void CalculationThreadCallback()
+        {
+            CaretPositionChanged(this, new CaretPositionChangedEventArgs(null, _textView.Caret.Position, _textView.Caret.Position));
+        }
+        
+        private void CalculationThread(object param)
+        {
+            while(_calcEvent != null && !_endBackgroundCalc)
+            {
+                _calcEvent.WaitOne();
+                if (!_endBackgroundCalc)
+                {
+                    CalculateTopLevelEntries();
+                    Action uiCallback = CalculationThreadCallback;
+                    _dispatcher.BeginInvoke(uiCallback, DispatcherPriority.Background);
                 }
             }
         }
 
-        private bool _isWorking;
+        
 
         private void CalculateTopLevelEntries()
         {
@@ -385,6 +413,11 @@ namespace VSGenero.Navigation
         {
             _projectEntry.OnNewParseTree -= ParserOnNewParseTree;
             _textView.Caret.PositionChanged -= CaretPositionChanged;
+            // Trigger the event to release the wait (if waiting)
+            _endBackgroundCalc = true;
+            _calcEvent.Set();
+            _calcEvent.Close();
+            _calcEvent = null;
         }
 
         public void UpdateView(IWpfTextView textView)
