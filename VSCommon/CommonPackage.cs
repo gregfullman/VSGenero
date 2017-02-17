@@ -82,7 +82,6 @@ namespace Microsoft.VisualStudio.VSCommon
         protected static VSCommonPackage Instance;
         private uint _componentID;
         private static RunningDocumentTable _documentTable;
-        private static IVsRunningDocumentTable _vsDocumentTable;
         private IOleComponentManager _compMgr;
         private DTEEvents _packageDTEEvents = null;
 
