@@ -54,7 +54,9 @@ namespace VSGenero.SqlSupport
         {
             if(ppBuffer != null && contextDeterminator != null && _sqlExtractionFile != null)
             {
-#if DEV14_OR_LATER
+#if DEV15_OR_LATER
+                Assembly dll = Assembly.Load(@"Microsoft.VisualStudio.Data.Tools.SqlEditor, Version=15.0.0.0");
+#elif DEV14_OR_LATER
                 Assembly dll = Assembly.Load(@"Microsoft.VisualStudio.Data.Tools.SqlEditor, Version=14.0.0.0");
 #else
                 Assembly dll = Assembly.Load(@"Microsoft.VisualStudio.Data.Tools.SqlEditor, Version=12.0.0.0");
