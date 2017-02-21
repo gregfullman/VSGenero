@@ -46,11 +46,9 @@ namespace VSGenero
 
         public const string guidGenero4glLanguageService = "c41c558d-4373-4ae1-8424-fb04873a0e9c";
 
-//#if VS120
-//        internal const string ProjectImageList = "VSGenero.Resources.GeneroImageList.png";
-//#else
+        public const string GeneroUiContextGuid = "031034BF-DBB8-4B08-91C8-86AB7CEDD42C";
+
         internal const string ProjectImageList = "VSGenero.Resources.GeneroImageList.bmp";
-//#endif
         // Do not change below info without re-requesting PLK:
         internal const string ProjectSystemPackageGuid = "15490272-3C6B-4129-8E1D-795C8B6D8E9A"; //matches PLK
 

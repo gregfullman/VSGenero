@@ -126,8 +126,17 @@ namespace VSGenero
     // This attribute is needed to let the shell know that this package exposes some menus.
     [ProvideMenuResource("Menus.ctmenu", 1)]
 
+#if DEV14_OR_LATER
+    [ProvideAutoLoad(VSGeneroConstants.GeneroUiContextGuid)]
+    [ProvideUIContextRule(VSGeneroConstants.GeneroUiContextGuid,
+        name: "Genero auto-load",
+        expression: "(Genero4glFile | GeneroPerFile | GeneroIncFile)",
+        termNames: new[] { "Genero4glFile", "GeneroPerFile", "GeneroIncFile" },
+        termValues: new[] { "ActiveEditorContentType:Genero4GL", "ActiveEditorContentType:GeneroPER", "ActiveEditorContentType:GeneroINC" })]
+#else
     // This causes the package to autoload when Visual Studio starts (guid for UICONTEXT_NoSolution)
     [ProvideAutoLoad("{adfc4e64-0397-11d1-9f4e-00a0c911004f}")]
+#endif
 
     [Guid(GuidList.guidVSGeneroPkgString)]
     public sealed class VSGeneroPackage : VSCommonPackage
@@ -217,7 +226,7 @@ namespace VSGenero
 
         /////////////////////////////////////////////////////////////////////////////
         // Overriden Package Implementation
-        #region Package Members
+#region Package Members
 
         /// <summary>
         /// Initialization of the package; this method is called right after the package is sited, so this is the place
@@ -300,7 +309,7 @@ namespace VSGenero
             
         }
 
-        #endregion
+#endregion
 
         public override Type GetLibraryManagerType()
         {
@@ -392,7 +401,7 @@ namespace VSGenero
             set { _commentValidators = value; }
         }
 
-        #region Program File Provider
+#region Program File Provider
 
         private object _programFileProviderLock = new object();
         private IProgramFileProvider _programFileProvider;
@@ -426,7 +435,7 @@ namespace VSGenero
             DefaultAnalyzer.UpdateImportedProject(e.ImportModule, e.NewLocation);
         }
 
-        #endregion
+#endregion
 
         private List<IContentType> _programCodeContentTypes;
         public IList<IContentType> ProgramCodeContentTypes
