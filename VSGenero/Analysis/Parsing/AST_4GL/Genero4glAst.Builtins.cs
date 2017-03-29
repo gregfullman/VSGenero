@@ -8,9 +8,10 @@
  *
  * You must not remove this notice, or any other, from this software.
  *
- * ***************************************************************************/ 
+ * ***************************************************************************/
 
 using Microsoft.VisualStudio.Utilities;
+using NLog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -174,6 +175,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             {
                 if (!_builtinsInitialized)
                 {
+                    _logger.Debug("Initializing builtins...");
                     _arrayFunctions = new Dictionary<string, IFunctionResult>(StringComparer.OrdinalIgnoreCase);
                     _systemFunctions = new Dictionary<string, IFunctionResult>(StringComparer.OrdinalIgnoreCase);
                     _stringFunctions = new Dictionary<string, IFunctionResult>(StringComparer.OrdinalIgnoreCase);
@@ -917,6 +919,7 @@ new ParameterResult("width", "", "integer"),
 
 
                     _builtinsInitialized = true;
+                    _logger.Debug("Initializing builtins complete");
                 }
             }
         }

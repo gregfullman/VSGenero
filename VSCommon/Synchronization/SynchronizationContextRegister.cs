@@ -18,7 +18,7 @@ using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Threading;
 
-namespace Microsoft.VisualStudio.VSCommon.Utilities
+namespace Microsoft.VisualStudio.VSCommon.Synchronization
 {
     /// <summary>
     /// Flags that identify differences in behavior in various <see cref="SynchronizationContext"/> implementations.

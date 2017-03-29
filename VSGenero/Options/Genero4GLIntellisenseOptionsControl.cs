@@ -66,9 +66,9 @@ namespace VSGenero.Options
                 VSGeneroPackage.Instance.IntellisenseOptions4GL.SetPendingValue(Genero4GLIntellisenseOptions.CompletionAnalysisTypeSetting, CompletionAnalysisType.Context);
         }
 
-        private async void buttonReloadContexts_Click(object sender, EventArgs e)
+        private void buttonReloadContexts_Click(object sender, EventArgs e)
         {
-            bool success = await Genero4glAst.ReloadContextMap();
+            bool success = Genero4glAst.ReloadContextMap();
             if(success)
             {
                 labelReloadResult.Text = "Reload succeeded!";
@@ -103,9 +103,9 @@ namespace VSGenero.Options
                 labelDownloadResult.Visible = false;
         }
 
-        private async void buttonDownloadLatest_Click(object sender, EventArgs e)
+        private void buttonDownloadLatest_Click(object sender, EventArgs e)
         {
-            bool success = await Genero4glAst.ReloadContextMap(true);
+            bool success = Genero4glAst.ReloadContextMap(true);
             if (success)
             {
                 labelDownloadResult.Text = "Download/update succeeded!";

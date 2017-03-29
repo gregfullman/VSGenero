@@ -16,7 +16,7 @@ using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
-using Microsoft.VisualStudio.VSCommon.Utilities;
+using Microsoft.VisualStudio.VSCommon.Synchronization;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;

@@ -29,6 +29,10 @@ using EnvDTE80;
 using EnvDTE;
 using Microsoft.VisualStudioTools.Project;
 using Microsoft.VisualStudioTools;
+using System.IO;
+using NLog;
+using NLog.Config;
+using Microsoft.VisualStudio.VSCommon.Utilities;
 
 namespace Microsoft.VisualStudio.VSCommon
 {
@@ -79,11 +83,13 @@ namespace Microsoft.VisualStudio.VSCommon
 
     public abstract class VSCommonPackage : CommonPackage, IVsInstalledProduct, IOleComponent
     {
+        private bool _isExperimental;
         protected static VSCommonPackage Instance;
         private uint _componentID;
         private static RunningDocumentTable _documentTable;
         private IOleComponentManager _compMgr;
         private DTEEvents _packageDTEEvents = null;
+        private static Logger _logger;
 
         private static IVsActivityLog _activityLog;
         public static IVsActivityLog ActivityLog
@@ -105,8 +111,77 @@ namespace Microsoft.VisualStudio.VSCommon
             get { return _documentTable; }
         }
 
+        protected bool IsExperimentalInstance
+        {
+            get { return _isExperimental; }
+        }
+
+        protected abstract string PackageName { get; }
+
+        protected virtual string GetDefaultNLogConfigFileContents()
+        {
+            using (var embeddedFile = typeof(CommonPackage).Assembly.GetManifestResourceStream("Microsoft.VisualStudio.VSCommon.NLog.config"))
+            using (var sr = new StreamReader(embeddedFile))
+            {
+                string fileContents = sr.ReadToEnd();
+                return fileContents.Replace("__PRODUCTNAME__", ProductName);
+            }
+        }
+
+        protected string ProductName
+        {
+            get
+            {
+                return string.Format("{0}{1}", PackageName, (_isExperimental ? "_Exp" : string.Empty));
+            }
+        }
+
+        public string SettingsDirectory
+        {
+            get
+            {
+                return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), ProductName);
+            }
+        }
+
+        private void LogManager_ConfigurationChanged(object sender, LoggingConfigurationChangedEventArgs e)
+        {
+            LogManager.ReconfigExistingLoggers();
+        }
+
         protected override void Initialize()
         {
+            // determine whether we're running the experimental instance.
+            _isExperimental = false;
+            string[] args = Environment.GetCommandLineArgs();
+            if (args.Length >= 3 && args[2].Equals("exp", StringComparison.OrdinalIgnoreCase))
+            {
+                _isExperimental = true;
+            }
+
+            // Initialize NLog
+            if (LogManager.Configuration == null)
+            {
+                string path = Path.Combine(SettingsDirectory, string.Format("{0}_NLog.config", PackageName));
+                if(!File.Exists(path))
+                {
+                    // Get the template from resources and write it to the directory.
+                    if (!Directory.Exists(SettingsDirectory))
+                        Directory.CreateDirectory(SettingsDirectory);
+                    File.WriteAllText(path, GetDefaultNLogConfigFileContents());
+                }
+                if (File.Exists(path))
+                {
+                    LogManager.Configuration = new XmlLoggingConfiguration(path);
+                    // Register for changes to the config file
+                    LogManager.ConfigurationChanged += LogManager_ConfigurationChanged;
+                }
+            }
+
+            // Get the current logger now, since we have the configuration
+            _logger = LogManager.GetCurrentClassLogger();
+            _logger.Trace("VS arguments: [{0}]", string.Join(",", args));
+
             var componentManager = _compMgr = (IOleComponentManager)GetService(typeof(SOleComponentManager));
             OLECRINFO[] crinfo = new OLECRINFO[1];
             crinfo[0].cbSize = (uint)Marshal.SizeOf(typeof(OLECRINFO));
@@ -476,6 +551,7 @@ namespace Microsoft.VisualStudio.VSCommon
 
         public event EventHandler<ComponentManagerEventArgs> OnIdle;
 
+        [MethodTracing(AttributeExclude = true)]
         public int FDoIdle(uint grfidlef)
         {
             var onIdle = OnIdle;
@@ -543,6 +619,7 @@ namespace Microsoft.VisualStudio.VSCommon
         }
     }
 
+    [MethodTracing(AttributeExclude = true)]
     public class ComponentManagerEventArgs : EventArgs
     {
         private readonly IOleComponentManager _compMgr;

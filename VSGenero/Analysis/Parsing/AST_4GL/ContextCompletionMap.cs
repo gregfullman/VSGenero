@@ -41,12 +41,12 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             }
         }
 
-        internal async Task<bool> DownloadLatestFile()
+        internal bool DownloadLatestFile()
         {
             WebClient client = new WebClient();
             try
             {
-                await client.DownloadFileTaskAsync(_githubFile, Filename);
+                client.DownloadFile(_githubFile, Filename);
                 return true;
             }
             catch (Exception e)

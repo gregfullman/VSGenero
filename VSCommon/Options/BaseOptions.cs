@@ -1,5 +1,6 @@
 ﻿using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.VSCommon.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -11,6 +12,7 @@ namespace Microsoft.VisualStudio.VSCommon.Options
         public HashSet<string> ChangedOptions { get; set; }
     }
 
+    [MethodTracing(AttributeExclude = true)]
     public abstract class BaseOptions
     {
         public event EventHandler<OptionsChangedEventArgs> OptionsChanged;

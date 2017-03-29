@@ -1,15 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Windows.Forms;
 using System.Collections;
-using System.Reflection;
-using System.IO;
 using System.Diagnostics;
+using System.IO;
+using System.Reflection;
+using System.Windows.Forms;
 
 namespace Microsoft.VisualStudio.VSCommon.Utilities
 {
@@ -47,19 +41,6 @@ namespace Microsoft.VisualStudio.VSCommon.Utilities
 
         private void buttonSave_Click(object sender, EventArgs e)
         {
-            //string filename = Path.Combine(Path.GetDirectoryName(Assembly.GetAssembly(typeof(ExceptionForm)).Location), string.Format("exception_info_{0}.txt", DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss")));
-            //using (FileStream fs = new FileStream(filename, FileMode.Create))
-            //using (StreamWriter sw = new StreamWriter(fs))
-            //{
-            //    SaveGeneralInfo(sw);
-            //    sw.WriteLine();
-            //    SaveStackTrace(sw);
-            //    sw.WriteLine();
-            //    SaveInnerException(sw);
-            //    sw.WriteLine();
-            //    SaveOtherInfo(sw);
-            //}
-
             Process.Start("notepad.exe", _filename);
         }
 

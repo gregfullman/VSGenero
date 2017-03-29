@@ -1,3 +1,3 @@
 ﻿using Microsoft.VisualStudio.VSCommon.Utilities;
 
-[assembly: ExceptionHandler(AttributeTargetTypes = "VSGenero.*")]
+[assembly: MethodTracing(AttributeTargetTypes = "VSGenero.*")]

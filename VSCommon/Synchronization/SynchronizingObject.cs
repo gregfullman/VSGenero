@@ -18,7 +18,7 @@ using System.ComponentModel;
 using System.Diagnostics.Contracts;
 using System.Threading;
 
-namespace Microsoft.VisualStudio.VSCommon.Utilities
+namespace Microsoft.VisualStudio.VSCommon.Synchronization
 {
     /// <summary>
     /// Allows objects that use <see cref="ISynchronizeInvoke"/> (usually using a property named SynchronizingObject) to synchronize to a generic <see cref="SynchronizationContext"/>.

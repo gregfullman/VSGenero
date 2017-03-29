@@ -111,11 +111,15 @@ namespace VSGenero.EditorExtensions
                 _categoryMap = FillCategoryMap(_classificationRegistry);
             }
 
-            Genero4glClassifier res;
-            if (!buffer.Properties.TryGetProperty<Genero4glClassifier>(typeof(Genero4glClassifier), out res) &&
-                ContentTypes.Any(x => buffer.ContentType.IsOfType(x.TypeName))) {
-                res = new Genero4glClassifier(this, buffer);
-                buffer.Properties.AddProperty(typeof(Genero4glClassifier), res);
+            Genero4glClassifier res = null;
+            if (buffer != null && buffer.Properties != null)
+            {
+                if (!buffer.Properties.TryGetProperty<Genero4glClassifier>(typeof(Genero4glClassifier), out res) &&
+                    ContentTypes.Any(x => x != null && buffer.ContentType != null && buffer.ContentType.IsOfType(x.TypeName)))
+                {
+                    res = new Genero4glClassifier(this, buffer);
+                    buffer.Properties.AddProperty(typeof(Genero4glClassifier), res);
+                }
             }
 
             if(VSGeneroPackage.Instance.GlobalFunctionProvider == null)
@@ -138,6 +142,10 @@ namespace VSGenero.EditorExtensions
                 VSGeneroPackage.Instance.CommentValidators = _CommentValidators;
             }
 
+            if(res == null)
+            {
+                return GetClassifier();
+            }
             return res;
         }
 

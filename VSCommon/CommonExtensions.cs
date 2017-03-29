@@ -213,5 +213,17 @@ namespace Microsoft.VisualStudio.VSCommon
                 (path[path.Length - 1] == Path.DirectorySeparatorChar ||
                  path[path.Length - 1] == Path.AltDirectorySeparatorChar));
         }
+
+        public static void CopyStream(Stream input, Stream output)
+        {
+            // Insert null checking here for production
+            byte[] buffer = new byte[8192];
+
+            int bytesRead;
+            while ((bytesRead = input.Read(buffer, 0, buffer.Length)) > 0)
+            {
+                output.Write(buffer, 0, bytesRead);
+            }
+        }
     }
 }

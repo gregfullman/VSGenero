@@ -226,7 +226,16 @@ namespace VSGenero
 
         /////////////////////////////////////////////////////////////////////////////
         // Overriden Package Implementation
-#region Package Members
+        #region Package Members
+
+        protected override string PackageName
+        {
+            get
+            {
+                return "VSGenero";
+            }
+        }
+
 
         /// <summary>
         /// Initialization of the package; this method is called right after the package is sited, so this is the place

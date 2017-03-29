@@ -21,7 +21,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 {
     public partial class Genero4glAst
     {
-        private static bool _packagesInitialized = false;
+        private static bool _packagesInitialized;
         private static object _packagesInitLock = new object();
 
         private Dictionary<string, bool> _importedPackages;
@@ -54,6 +54,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             {
                 if(!_packagesInitialized)
                 {
+                    _logger.Debug("Initializing packages...");
                     #region Generated Package Init Code
                     Packages.Add("base", new GeneroPackage("base", false, new List<GeneroPackageClass>
 {
@@ -4878,6 +4879,7 @@ GeneroLanguageVersion.Latest)
                     GeneroLanguageVersion.Latest));
                     #endregion
                     _packagesInitialized = true;
+                    _logger.Debug("Initializing packages complete");
                 }
             }
         }

@@ -8,13 +8,10 @@
  *
  * You must not remove this notice, or any other, from this software.
  *
- * ***************************************************************************/ 
+ * ***************************************************************************/
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace VSGenero.Analysis.Parsing.AST_4GL
 {
@@ -37,32 +34,28 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
         #region Context Map Init
 
-        public static async Task<bool> ReloadContextMap(bool downloadLatest = false)
+        public static bool ReloadContextMap(bool downloadLatest = false)
         {
             bool doLoad = false;
             lock (_contextMapLock)
             {
                 if (_contextMap == null)
                 {
+                    _logger.Debug("Creating a new context map");
                     _contextMap = new ContextCompletionMap();
                     doLoad = true;
                 }
-            }
-
-            if (downloadLatest)
-            {
-                if (!await _contextMap.DownloadLatestFile())
-                    return false;
-                else
-                    doLoad = true;
-            }
-
-            lock(_contextMapLock)
-            {
+                
                 if (doLoad)
+                {
+                    _logger.Debug("Loading context map");
                     return _contextMap.LoadFromXML();
+                }
                 else
+                {
+                    _logger.Debug("Context map already loaded");
                     return false;
+                }
             }
         }
 

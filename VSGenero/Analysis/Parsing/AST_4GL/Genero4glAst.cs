@@ -11,18 +11,18 @@
  *
  * ***************************************************************************/
 
+using NLog;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace VSGenero.Analysis.Parsing.AST_4GL
 {
     public partial class Genero4glAst : GeneroAst
     {
+        private static Logger _logger = LogManager.GetCurrentClassLogger();
+
         public Genero4glAst(AstNode4gl body, int[] lineLocations, GeneroLanguageVersion langVersion = GeneroLanguageVersion.None, IProjectEntry projEntry = null, string filename = null)
             : base(body, lineLocations, langVersion, projEntry, filename)
         {
