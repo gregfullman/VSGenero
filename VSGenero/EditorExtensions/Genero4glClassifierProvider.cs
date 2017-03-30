@@ -115,31 +115,37 @@ namespace VSGenero.EditorExtensions
             if (buffer != null && buffer.Properties != null)
             {
                 if (!buffer.Properties.TryGetProperty<Genero4glClassifier>(typeof(Genero4glClassifier), out res) &&
-                    ContentTypes.Any(x => x != null && buffer.ContentType != null && buffer.ContentType.IsOfType(x.TypeName)))
+                    ContentTypes != null && 
+                    ContentTypes.Any(x => x != null && 
+                                          buffer.ContentType != null && 
+                                          buffer.ContentType.IsOfType(x.TypeName)))
                 {
                     res = new Genero4glClassifier(this, buffer);
                     buffer.Properties.AddProperty(typeof(Genero4glClassifier), res);
                 }
             }
 
-            if(VSGeneroPackage.Instance.GlobalFunctionProvider == null)
+            if (VSGeneroPackage.Instance != null)
             {
-                VSGeneroPackage.Instance.GlobalFunctionProvider = _PublicFunctionProvider;
-            }
+                if (VSGeneroPackage.Instance.GlobalFunctionProvider == null)
+                {
+                    VSGeneroPackage.Instance.GlobalFunctionProvider = _PublicFunctionProvider;
+                }
 
-            if(VSGeneroPackage.Instance.ProgramFileProvider == null)
-            {
-                VSGeneroPackage.Instance.ProgramFileProvider = _ProgramFileProvider;
-            }
+                if (VSGeneroPackage.Instance.ProgramFileProvider == null)
+                {
+                    VSGeneroPackage.Instance.ProgramFileProvider = _ProgramFileProvider;
+                }
 
-            if(VSGeneroPackage.Instance.GlobalDatabaseProvider == null)
-            {
-                VSGeneroPackage.Instance.GlobalDatabaseProvider = _DatabaseInfoProvider;
-            }
+                if (VSGeneroPackage.Instance.GlobalDatabaseProvider == null)
+                {
+                    VSGeneroPackage.Instance.GlobalDatabaseProvider = _DatabaseInfoProvider;
+                }
 
-            if(VSGeneroPackage.Instance.CommentValidators == null)
-            {
-                VSGeneroPackage.Instance.CommentValidators = _CommentValidators;
+                if (VSGeneroPackage.Instance.CommentValidators == null)
+                {
+                    VSGeneroPackage.Instance.CommentValidators = _CommentValidators;
+                }
             }
 
             if(res == null)
