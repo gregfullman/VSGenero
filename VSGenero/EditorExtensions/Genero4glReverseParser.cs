@@ -104,29 +104,35 @@ namespace VSGenero.EditorExtensions
 
         internal static IEnumerator<ClassificationSpan> ReverseClassificationSpanEnumerator(Genero4glClassifier classifier, SnapshotPoint startPoint)
         {
-            var startLine = startPoint.GetContainingLine();
-            int curLine = startLine.LineNumber;
-            var tokens = classifier.GetClassificationSpans(new SnapshotSpan(startLine.Start, startPoint));
-
-            for (; ; )
+            if (classifier != null && startPoint != null)
             {
-                for (int i = tokens.Count - 1; i >= 0; i--)
+                var startLine = startPoint.GetContainingLine();
+                if (startLine != null)
                 {
-                    yield return tokens[i];
-                }
+                    int curLine = startLine.LineNumber;
+                    var tokens = classifier.GetClassificationSpans(new SnapshotSpan(startLine.Start, startPoint));
 
-                // indicate the line break
-                yield return null;
+                    for (;;)
+                    {
+                        for (int i = tokens.Count - 1; i >= 0; i--)
+                        {
+                            yield return tokens[i];
+                        }
 
-                curLine--;
-                if (curLine >= 0)
-                {
-                    var prevLine = startPoint.Snapshot.GetLineFromLineNumber(curLine);
-                    tokens = classifier.GetClassificationSpans(prevLine.Extent);
-                }
-                else
-                {
-                    break;
+                        // indicate the line break
+                        yield return null;
+
+                        curLine--;
+                        if (curLine >= 0 && startPoint.Snapshot != null)
+                        {
+                            var prevLine = startPoint.Snapshot.GetLineFromLineNumber(curLine);
+                            tokens = classifier.GetClassificationSpans(prevLine.Extent);
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
                 }
             }
         }

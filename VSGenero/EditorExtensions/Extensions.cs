@@ -300,12 +300,17 @@ namespace VSGenero.EditorExtensions
             GeneroProjectAnalyzer analyzer;
 
             // exists for tests where we don't run in VS and for the existing changes preview
-            if (buffer != null && buffer.Properties != null && buffer.Properties.TryGetProperty<GeneroProjectAnalyzer>(typeof(GeneroProjectAnalyzer), out analyzer))
+            if (buffer != null && 
+                buffer.Properties != null && 
+                buffer.Properties.TryGetProperty<GeneroProjectAnalyzer>(typeof(GeneroProjectAnalyzer), out analyzer))
             {
                 return analyzer;
             }
 
-            return VSGeneroPackage.Instance.DefaultAnalyzer;
+            if (VSGeneroPackage.Instance != null)
+                return VSGeneroPackage.Instance.DefaultAnalyzer;
+            else
+                return null;
         }
 
         public static IProjectEntry GetAnalysis(this ITextBuffer buffer)
