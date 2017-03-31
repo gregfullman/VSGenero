@@ -48,7 +48,7 @@ namespace VSGenero.SqlSupport
 
         public SqlTextViewCreationListener()
         {
-            if (_commandService == null)
+            if (_commandService == null && VSGeneroPackage.Instance != null)
             {
                 _commandService = VSGeneroPackage.Instance.GetPackageService(typeof(IMenuCommandService)) as OleMenuCommandService;
                 _sqlEditorConnectCmdId = new CommandID(new Guid("{b371c497-6d81-4b13-9db8-8e3e6abad0c3}"), 0x300);
