@@ -12,6 +12,7 @@
         <UpgradeBackupLocation>
         </UpgradeBackupLocation>
         <OldToolsVersion>4.0</OldToolsVersion>
+        <VSInstallPath>$(VSAPPIDDIR)</VSInstallPath>
       </PropertyGroup>
     </When>
     <When Condition=" '$(VisualStudioVersion)'=='14.0'  Or '$(TargetVisualStudioVersion)'=='VS140' ">
@@ -22,6 +23,7 @@
         <UpgradeBackupLocation>
         </UpgradeBackupLocation>
         <OldToolsVersion>4.0</OldToolsVersion>
+        <VSInstallPath>$(VS140COMNTOOLS)..\IDE\</VSInstallPath>
       </PropertyGroup>
     </When>
     <When Condition=" '$(VisualStudioVersion)'=='12.0'  Or '$(TargetVisualStudioVersion)'=='VS120' ">
@@ -32,6 +34,7 @@
         <UpgradeBackupLocation>
         </UpgradeBackupLocation>
         <OldToolsVersion>4.0</OldToolsVersion>
+        <VSInstallPath>$(VS120COMNTOOLS)..\IDE\</VSInstallPath>
       </PropertyGroup>
     </When>
   </Choose>
@@ -275,8 +278,19 @@
     </Reference>
     <Reference Include="Microsoft.VisualStudio.ExtensionManager, Version=$(VisualStudioVersion).0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <Private>False</Private>
+      <HintPath>$(VSInstallPath)PrivateAssemblies\Microsoft.VisualStudio.ExtensionManager.dll</HintPath>
     </Reference>
   </ItemGroup>
+  <Choose>
+    <When Condition="'$(VisualStudioVersion)' &gt;= '15.0'">
+      <ItemGroup>
+        <Reference Include="Microsoft.VisualStudio.ExtensionEngine, Version=$(VisualStudioVersion).0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+          <Private>False</Private>
+          <HintPath>$(VSInstallPath)Microsoft.VisualStudio.ExtensionEngine.dll</HintPath>
+        </Reference>
+      </ItemGroup>
+    </When>
+  </Choose>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' &gt;= '14.0'">
       <ItemGroup>
