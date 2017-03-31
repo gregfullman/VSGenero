@@ -1,6 +1,7 @@
 ﻿using Microsoft.VisualStudio.VSCommon.Options;
 using System;
 using System.Drawing;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using VSGenero.Analysis.Parsing.AST_4GL;
 using VSGenero.EditorExtensions.Intellisense;
@@ -66,9 +67,9 @@ namespace VSGenero.Options
                 VSGeneroPackage.Instance.IntellisenseOptions4GL.SetPendingValue(Genero4GLIntellisenseOptions.CompletionAnalysisTypeSetting, CompletionAnalysisType.Context);
         }
 
-        private void buttonReloadContexts_Click(object sender, EventArgs e)
+        private async void buttonReloadContexts_Click(object sender, EventArgs e)
         {
-            bool success = Genero4glAst.ReloadContextMap();
+            bool success = await Task.Factory.StartNew(() => ContextCompletionMap.Instance.LoadFromXML());
             if(success)
             {
                 labelReloadResult.Text = "Reload succeeded!";
@@ -103,9 +104,9 @@ namespace VSGenero.Options
                 labelDownloadResult.Visible = false;
         }
 
-        private void buttonDownloadLatest_Click(object sender, EventArgs e)
+        private async void buttonDownloadLatest_Click(object sender, EventArgs e)
         {
-            bool success = Genero4glAst.ReloadContextMap(true);
+            bool success = await ContextCompletionMap.Instance.DownloadLatestFile();
             if (success)
             {
                 labelDownloadResult.Text = "Download/update succeeded!";

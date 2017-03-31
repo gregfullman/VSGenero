@@ -12,12 +12,54 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 {
     public class ContextCompletionMap
     {
+        private object _initializeLock = new object();
         private const string _githubFile = @"https://gitcdn.xyz/repo/gregfullman/VSGenero/master/VSGenero/CompletionContexts.xml";
         private readonly Dictionary<object, IEnumerable<ContextPossibilities>> _contextMap;
 
-        public ContextCompletionMap()
+        private ContextCompletionMap()
         {
             _contextMap = new Dictionary<object, IEnumerable<ContextPossibilities>>();
+        }
+
+        private static ContextCompletionMap _instance;
+        public static ContextCompletionMap Instance
+        {
+            get
+            {
+                if (_instance == null)
+                    _instance = new ContextCompletionMap();
+                return _instance;
+            }
+        }
+
+        public void Initialize(object state)
+        {
+            lock(_initializeLock)
+            {
+                bool getAssemblyFile = false;
+                if(File.Exists(Filename))
+                {
+                    // Make sure it's the correct file
+                    var firstLine = File.ReadLines(Filename).First();
+                    if (!firstLine.Contains(string.Format("Version=\"{0}", VSGeneroPackage.Instance.ProductVersion.ToString())))
+                        getAssemblyFile = true;
+                }
+
+                // First, check to see if the file exists.
+                if(getAssemblyFile || !File.Exists(Filename))
+                {
+                    if (!Directory.Exists(VSGeneroPackage.Instance.SettingsDirectory))
+                        Directory.CreateDirectory(VSGeneroPackage.Instance.SettingsDirectory);
+                    // Copy the embedded resource file into the correct location
+                    using (var embeddedFile = typeof(ContextCompletionMap).Assembly.GetManifestResourceStream("VSGenero.CompletionContexts.xml"))
+                    using (var file = new FileStream(Filename, FileMode.Create, FileAccess.Write))
+                    {
+                        embeddedFile.CopyTo(file);
+                    }
+                }
+
+                LoadFromXML();
+            }
         }
 
         internal void Add(object key, IEnumerable<ContextPossibilities> contextPossibilities)
@@ -36,18 +78,19 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             get
             {
                 if (_filename == null)
-                    _filename = Path.Combine(Path.GetDirectoryName(Assembly.GetAssembly(typeof(ContextCompletionMap)).Location), "CompletionContexts.xml");
+                    _filename = Path.Combine(VSGeneroPackage.Instance.SettingsDirectory, "CompletionContexts.xml");
                 return _filename;
             }
         }
 
-        internal bool DownloadLatestFile()
+        internal async Task<bool> DownloadLatestFile()
         {
             WebClient client = new WebClient();
             try
             {
-                client.DownloadFile(_githubFile, Filename);
-                return true;
+                await client.DownloadFileTaskAsync(new Uri(_githubFile), Filename);
+                await Task.Factory.StartNew(() => Initialize(null));
+                return await Task.Factory.StartNew<bool>(() => LoadFromXML());
             }
             catch (Exception e)
             {

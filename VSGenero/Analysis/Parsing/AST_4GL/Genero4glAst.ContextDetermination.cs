@@ -32,34 +32,6 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         private static bool _includeDatabaseTables;
         private static string _contextString;
 
-        #region Context Map Init
-
-        public static bool ReloadContextMap(bool downloadLatest = false)
-        {
-            bool doLoad = false;
-            lock (_contextMapLock)
-            {
-                if (_contextMap == null)
-                {
-                    _logger.Debug("Creating a new context map");
-                    _contextMap = new ContextCompletionMap();
-                    doLoad = true;
-                }
-                
-                if (doLoad)
-                {
-                    _logger.Debug("Loading context map");
-                    return _contextMap.LoadFromXML();
-                }
-                else
-                {
-                    _logger.Debug("Context map already loaded");
-                    return false;
-                }
-            }
-        }
-
-        #endregion
 
         #region Context Provider Functions
 
@@ -288,8 +260,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
                 // Look for the token in the context map
                 IEnumerable<ContextPossibilities> possibilities;
-                if (_contextMap.TryGetValue(tokInfo.Token.Kind, out possibilities) ||
-                    _contextMap.TryGetValue(tokInfo.Category, out possibilities))
+                if (ContextCompletionMap.Instance.TryGetValue(tokInfo.Token.Kind, out possibilities) ||
+                    ContextCompletionMap.Instance.TryGetValue(tokInfo.Category, out possibilities))
                 {
                     var matchContainer = new ContextPossibilityMatchContainer(possibilities);
                     IEnumerable<ContextPossibilities> matchingPossibilities;
@@ -340,8 +312,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
                 // Look for the token in the context map
                 IEnumerable<ContextPossibilities> possibilities;
-                if (_contextMap.TryGetValue(tokInfo.Token.Kind, out possibilities) ||
-                    _contextMap.TryGetValue(tokInfo.Category, out possibilities))
+                if (ContextCompletionMap.Instance.TryGetValue(tokInfo.Token.Kind, out possibilities) ||
+                    ContextCompletionMap.Instance.TryGetValue(tokInfo.Category, out possibilities))
                 {
                     var matchContainer = new ContextPossibilityMatchContainer(possibilities);
                     IEnumerable<ContextPossibilities> matchingPossibilities;

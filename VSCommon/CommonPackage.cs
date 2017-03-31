@@ -33,6 +33,7 @@ using System.IO;
 using NLog;
 using NLog.Config;
 using Microsoft.VisualStudio.VSCommon.Utilities;
+using Microsoft.VisualStudio.ExtensionManager;
 
 namespace Microsoft.VisualStudio.VSCommon
 {
@@ -117,6 +118,7 @@ namespace Microsoft.VisualStudio.VSCommon
         }
 
         protected abstract string PackageName { get; }
+        protected abstract string PackageId { get; }
 
         protected virtual string GetDefaultNLogConfigFileContents()
         {
@@ -144,6 +146,8 @@ namespace Microsoft.VisualStudio.VSCommon
             }
         }
 
+        public Version ProductVersion { get; private set; }
+
         private void LogManager_ConfigurationChanged(object sender, LoggingConfigurationChangedEventArgs e)
         {
             LogManager.ReconfigExistingLoggers();
@@ -158,6 +162,12 @@ namespace Microsoft.VisualStudio.VSCommon
             {
                 _isExperimental = true;
             }
+
+            // get the product version
+            IVsExtensionManager manager = GetService(typeof(SVsExtensionManager)) as IVsExtensionManager;
+            IInstalledExtension myExtension = manager.GetInstalledExtension(PackageId);
+            if(myExtension != null)
+                ProductVersion = myExtension.Header.Version;
 
             // Initialize NLog
             if (LogManager.Configuration == null)

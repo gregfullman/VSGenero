@@ -1,4 +1,4 @@
-﻿<ContextMap xmlns="CompletionContextSchema">
+﻿<ContextMap xmlns="CompletionContextSchema" Version="0.9.9.9">
   <ContextEntry Entry="absolute" Type="keyword">
     <ContextPossibility>
       <ContextSetProviders>

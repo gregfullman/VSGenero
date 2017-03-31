@@ -61,6 +61,7 @@ using Microsoft.VisualStudio.Text.Adornments;
 using VSGenero.Analysis;
 using VSGenero.EditorExtensions.BraceCompletion;
 using System.ComponentModel.Composition.Hosting;
+using VSGenero.Analysis.Parsing.AST_4GL;
 
 namespace VSGenero
 {
@@ -236,6 +237,13 @@ namespace VSGenero
             }
         }
 
+        protected override string PackageId
+        {
+            get
+            {
+                return VSGeneroConstants.VsixIdentity;
+            }
+        }
 
         /// <summary>
         /// Initialization of the package; this method is called right after the package is sited, so this is the place
@@ -245,6 +253,8 @@ namespace VSGenero
         {
             base.Initialize();
             var services = (IServiceContainer)this;
+
+            ThreadPool.QueueUserWorkItem(new WaitCallback(ContextCompletionMap.Instance.Initialize), null);
 
             var langService4GL = new VSGenero4GLLanguageInfo(this);
             services.AddService(langService4GL.GetType(), langService4GL, true);

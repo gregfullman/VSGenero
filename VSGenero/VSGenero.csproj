@@ -803,9 +803,7 @@
     </When>
   </Choose>
   <ItemGroup>
-    <Content Include="CompletionContexts.xml">
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
+    <EmbeddedResource Include="CompletionContexts.xml" />
     <Content Include="Snippets\CodeSnippets\Snippets\if.snippet">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>

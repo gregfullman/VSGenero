@@ -26,7 +26,6 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         public Genero4glAst(AstNode4gl body, int[] lineLocations, GeneroLanguageVersion langVersion = GeneroLanguageVersion.None, IProjectEntry projEntry = null, string filename = null)
             : base(body, lineLocations, langVersion, projEntry, filename)
         {
-            ReloadContextMap();
             InitializeBuiltins();
             InitializeImportedPackages();   // for this instance
             InitializePackages();
