@@ -143,13 +143,15 @@ namespace VSGenero.EditorExtensions.Intellisense
         public void DisconnectSubjectBuffer(ITextBuffer subjectBuffer)
         {
             // only disconnect if we own the buffer parser
-            Debug.Assert(_bufferParser != null, "SetBufferParser has not been called");
-            BufferParser existingParser;
-            if (subjectBuffer.Properties.TryGetProperty<BufferParser>(typeof(BufferParser), out existingParser) &&
-                --existingParser.AttachedViews == 0)
+            if(_bufferParser != null)
             {
-                _bufferParser.RemoveBuffer(subjectBuffer);
-            }
+                BufferParser existingParser;
+                if (subjectBuffer.Properties.TryGetProperty<BufferParser>(typeof(BufferParser), out existingParser) &&
+                    --existingParser.AttachedViews == 0)
+                {
+                    _bufferParser.RemoveBuffer(subjectBuffer);
+                }
+            }    
         }
 
         /// <summary>
