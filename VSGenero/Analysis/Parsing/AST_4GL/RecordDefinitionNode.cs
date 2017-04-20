@@ -41,6 +41,15 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         private bool _isPublic;
         public bool IsPublic { get { return _isPublic; } }
 
+        public override void PropagateSyntaxTree(GeneroAst ast)
+        {
+            foreach (var kvp in MemberDictionary)
+            {
+                kvp.Value.PropagateSyntaxTree(ast);
+            }
+            base.PropagateSyntaxTree(ast);
+        }
+
         public Dictionary<string, ITypeResult> GetMemberTypes()
         {
             var result = new Dictionary<string, ITypeResult>(StringComparer.OrdinalIgnoreCase);

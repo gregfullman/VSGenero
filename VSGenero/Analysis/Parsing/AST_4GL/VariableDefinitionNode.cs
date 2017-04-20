@@ -154,6 +154,11 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 return GeneroLanguageVersion.Latest;
             }
         }
+
+        public void PropagateSyntaxTree(GeneroAst ast)
+        {
+            Type?.PropagateSyntaxTree(ast);
+        }
     }
 
     /// <summary>
