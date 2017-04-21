@@ -267,13 +267,13 @@ namespace VSGenero.Navigation
 
         public int GetEntryAttributes(int iCombo, int iIndex, out uint pAttr)
         {
-            if (_topLevelEntries[iIndex].ProjectEntry != _projectEntry)
+            pAttr = (uint)DROPDOWNFONTATTR.FONTATTR_PLAIN;
+            if (iIndex >= 0 && iIndex < _topLevelEntries.Count)
             {
-                pAttr = (uint)DROPDOWNFONTATTR.FONTATTR_GRAY;
-            }
-            else
-            {
-                pAttr = (uint)DROPDOWNFONTATTR.FONTATTR_PLAIN;
+                if (_topLevelEntries[iIndex].ProjectEntry != _projectEntry)
+                {
+                    pAttr = (uint)DROPDOWNFONTATTR.FONTATTR_GRAY;
+                }
             }
             return VSConstants.S_OK;
         }

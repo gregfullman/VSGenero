@@ -31,7 +31,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
     /// </summary>
     public class ValidateStatement : FglStatement
     {
-        public List<FglNameExpression> TargetVariables { get; private set; }
+        public List<FglNameExpression> TargetVariables { get; private set; } = new List<FglNameExpression>();
         public string TableName { get; private set; }
         public string ColumnName { get; private set; }
 
