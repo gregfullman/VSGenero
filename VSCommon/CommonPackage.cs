@@ -459,6 +459,10 @@ namespace Microsoft.VisualStudio.VSCommon
             {
                 line = 1;
             }
+            catch(NullReferenceException nre)
+            {
+                line = 1;
+            }
             // Make sure that the text is visible.
             viewAdapter.CenterLines(line, 1);
         }

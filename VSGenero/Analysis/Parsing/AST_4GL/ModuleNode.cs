@@ -197,21 +197,21 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     if (processed == NodesProcessed.SchemaSpec || processed == NodesProcessed.MemberDefinitions)
                     {
                         defNode.Children.Add(globalNode.StartIndex, globalNode);
-                        foreach (var cGlobKVP in globalNode.Constants)
+                        foreach (var cGlobKVP in globalNode.Constants.Where(x => !string.IsNullOrWhiteSpace(x.Key)))
                         {
                             if (!defNode.GlobalConstants.ContainsKey(cGlobKVP.Key))
                                 defNode.GlobalConstants.Add(cGlobKVP);
                             else
                                 parser.ReportSyntaxError(cGlobKVP.Value.LocationIndex, cGlobKVP.Value.LocationIndex + cGlobKVP.Value.Name.Length, string.Format("Global constant {0} defined more than once.", cGlobKVP.Key), Severity.Error);
                         }
-                        foreach (var tGlobKVP in globalNode.Types)
+                        foreach (var tGlobKVP in globalNode.Types.Where(x => !string.IsNullOrWhiteSpace(x.Key)))
                         {
                             if (!defNode.GlobalTypes.ContainsKey(tGlobKVP.Key))
                                 defNode.GlobalTypes.Add(tGlobKVP);
                             else
                                 parser.ReportSyntaxError(tGlobKVP.Value.LocationIndex, tGlobKVP.Value.LocationIndex + tGlobKVP.Value.Name.Length, string.Format("Global type {0} defined more than once.", tGlobKVP.Key), Severity.Error);
                         }
-                        foreach (var vGlobKVP in globalNode.Variables)
+                        foreach (var vGlobKVP in globalNode.Variables.Where(x => !string.IsNullOrWhiteSpace(x.Key)))
                         {
                             if (!defNode.GlobalVariables.ContainsKey(vGlobKVP.Key))
                                 defNode.GlobalVariables.Add(vGlobKVP);
@@ -250,7 +250,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     if (processed == NodesProcessed.SchemaSpec || processed == NodesProcessed.MemberDefinitions)
                     {
                         defNode.Children.Add(constNode.StartIndex, constNode);
-                        foreach (var def in constNode.GetDefinitions())
+                        foreach (var def in constNode.GetDefinitions().Where(x => !string.IsNullOrWhiteSpace(x.Name)))
                         {
                             def.Scope = "module constant";
                             if (!defNode.Constants.ContainsKey(def.Name))
@@ -278,7 +278,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     {
                         if(!defNode.Children.ContainsKey(typeNode.StartIndex))
                             defNode.Children.Add(typeNode.StartIndex, typeNode);
-                        foreach (var def in typeNode.GetDefinitions())
+                        foreach (var def in typeNode.GetDefinitions().Where(x => !string.IsNullOrWhiteSpace(x.Name)))
                         {
                             def.Scope = "module type";
                             if (!defNode.Types.ContainsKey(def.Name))
@@ -306,7 +306,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     {
                         defNode.Children.Add(defineNode.StartIndex, defineNode);
                         foreach (var def in defineNode.GetDefinitions())
-                            foreach (var vardef in def.VariableDefinitions)
+                            foreach (var vardef in def.VariableDefinitions.Where(x => !string.IsNullOrWhiteSpace(x.Name)))
                             {
                                 vardef.Scope = "module variable";
                                 vardef.SetIsPublic(defineNode.AccessModifier == AccessModifier.Public);
@@ -338,7 +338,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         foreach (var cursor in mainBlock.Children.Values.Where(x => x is PrepareStatement || x is DeclareStatement))
                         {
                             IAnalysisResult curRes = cursor as IAnalysisResult;
-                            if (!defNode.Cursors.ContainsKey(curRes.Name))
+                            if (!string.IsNullOrWhiteSpace(curRes.Name) && !defNode.Cursors.ContainsKey(curRes.Name))
                                 defNode.Cursors.Add(curRes.Name, curRes);
                         }
                     }

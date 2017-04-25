@@ -10,6 +10,7 @@
  *
  * ***************************************************************************/ 
 
+using NLog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,6 +22,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 {
     public class DeclareStatement : FglStatement, IAnalysisResult
     {
+        private static Logger _logger = LogManager.GetCurrentClassLogger();
         public string Identifier { get; private set; }
         public bool Scroll { get; private set; }
         public bool WithHold { get; private set; }
@@ -200,7 +202,15 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     {
                         sb.AppendLine(" from:");
                         sb.AppendLine();
-                        string formatted = SqlStatementExtractor.FormatSqlStatement(strExpr.LiteralValue);
+                        string formatted = null;
+                        try
+                        {
+                            SqlStatementExtractor.FormatSqlStatement(strExpr.LiteralValue);
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.Info(ex, "Unable to format SQL");
+                        }
                         if (formatted != null)
                             sb.Append(formatted);
                         else

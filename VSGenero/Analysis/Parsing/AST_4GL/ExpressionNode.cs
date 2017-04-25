@@ -615,11 +615,15 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         protected override string GetStringForm()
         {
             StringBuilder sb = new StringBuilder();
-            sb.Append(Function.Name);
+            if(Function != null)
+                sb.Append(Function.Name);
             sb.Append("(");
             for (int i = 0; i < Parameters.Count; i++)
             {
-                sb.Append(Parameters[i].ToString());
+                if (Parameters[i] != null)
+                    sb.Append(Parameters[i].ToString());
+                else
+                    sb.Append("(null)");
                 if (i + 1 < Parameters.Count)
                     sb.Append(", ");
             }

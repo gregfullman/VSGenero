@@ -169,7 +169,12 @@ namespace VSGenero.EditorExtensions
                 }
                 else if (change.LineCountDelta < 0)
                 {
-                    _tokenCache.DeleteLines(snapshot.GetLineNumberFromPosition(change.NewEnd) + 1, -change.LineCountDelta);
+                    try
+                    {
+                        _tokenCache.DeleteLines(snapshot.GetLineNumberFromPosition(change.NewEnd) + 1, -change.LineCountDelta);
+                    }
+                    catch (ArgumentOutOfRangeException)
+                    { }
                 }
 
                 ApplyChange(tokenizer, snapshot, change.NewSpan);

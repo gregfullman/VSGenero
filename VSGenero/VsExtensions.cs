@@ -22,6 +22,7 @@ using Microsoft.VisualStudioTools.Project;
 using Microsoft.VisualStudioTools.Project.Automation;
 using VsShellUtil = Microsoft.VisualStudio.Shell.VsShellUtilities;
 using Microsoft.VisualStudioTools;
+using System.Runtime.InteropServices;
 
 namespace VSGenero
 {
@@ -117,7 +118,12 @@ namespace VSGenero
             if (uiThread == null)
             {
                 Trace.TraceWarning("Returning NoOpUIThread instance from GetUIThread");
-                Debug.Assert(VsShellUtil.ShellIsShuttingDown, "No UIThread service but shell is not shutting down");
+                try
+                {
+                    Debug.Assert(VsShellUtil.ShellIsShuttingDown, "No UIThread service but shell is not shutting down");
+                }
+                catch (InvalidComObjectException)
+                { }
                 return new NoOpUIThread();
             }
             return uiThread;

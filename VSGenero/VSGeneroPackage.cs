@@ -158,8 +158,27 @@ namespace VSGenero
         {
             get
             {
+                if(_langPrefs == null)
+                {
+                    InitializeLangPrefs();
+                }
                 return _langPrefs;
             }
+        }
+
+        private void InitializeLangPrefs()
+        {
+            IVsTextManager textMgr = (IVsTextManager)Instance.GetService(typeof(SVsTextManager));
+            var langPrefs = new LANGPREFERENCES[1];
+            langPrefs[0].guidLang = typeof(VSGenero4GLLanguageInfo).GUID;
+            int result = textMgr.GetUserPreferences(null, null, langPrefs, null);
+            _langPrefs = new Genero4GLLanguagePreferences(langPrefs[0]);
+
+            Guid guid = typeof(IVsTextManagerEvents2).GUID;
+            IConnectionPoint connectionPoint;
+            ((IConnectionPointContainer)textMgr).FindConnectionPoint(ref guid, out connectionPoint);
+            uint cookie;
+            connectionPoint.Advise(_langPrefs, out cookie);
         }
 
         public new static VSGeneroPackage Instance;
@@ -283,17 +302,7 @@ namespace VSGenero
                 },
                 promote: true);
 
-            IVsTextManager textMgr = (IVsTextManager)Instance.GetService(typeof(SVsTextManager));
-            var langPrefs = new LANGPREFERENCES[1];
-            langPrefs[0].guidLang = typeof(VSGenero4GLLanguageInfo).GUID;
-            int result = textMgr.GetUserPreferences(null, null, langPrefs, null);
-            _langPrefs = new Genero4GLLanguagePreferences(langPrefs[0]);
-
-            Guid guid = typeof(IVsTextManagerEvents2).GUID;
-            IConnectionPoint connectionPoint;
-            ((IConnectionPointContainer)textMgr).FindConnectionPoint(ref guid, out connectionPoint);
-            uint cookie;
-            connectionPoint.Advise(_langPrefs, out cookie);
+            InitializeLangPrefs();
 
             // TODO: not sure if this is needed...need to test
             DTE dte = (DTE)GetService(typeof(DTE));
@@ -462,12 +471,19 @@ namespace VSGenero
             get
             {
                 if (_programCodeContentTypes == null)
-                {
-                    var regSvc = ComponentModel.GetService<IContentTypeRegistryService>();
                     _programCodeContentTypes = new List<IContentType>();
-                    _programCodeContentTypes.Add(regSvc.GetContentType(VSGeneroConstants.ContentType4GL));
-                    _programCodeContentTypes.Add(regSvc.GetContentType(VSGeneroConstants.ContentTypeINC));
-                    _programCodeContentTypes.Add(regSvc.GetContentType(VSGeneroConstants.ContentTypePER));
+                if(_programCodeContentTypes.Count == 0)
+                {  
+                    if (ComponentModel != null)
+                    {
+                        var regSvc = ComponentModel.GetService<IContentTypeRegistryService>();
+                        if (regSvc != null)
+                        {
+                            _programCodeContentTypes.Add(regSvc.GetContentType(VSGeneroConstants.ContentType4GL));
+                            _programCodeContentTypes.Add(regSvc.GetContentType(VSGeneroConstants.ContentTypeINC));
+                            _programCodeContentTypes.Add(regSvc.GetContentType(VSGeneroConstants.ContentTypePER));
+                        }
+                    }
                 }
                 return _programCodeContentTypes;
             }

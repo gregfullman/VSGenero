@@ -299,7 +299,7 @@ namespace VSGenero.Navigation
 
             var priorityVariables = new Dictionary<string, IAnalysisVariable>(StringComparer.OrdinalIgnoreCase);
 
-            foreach (var v in provider.Variables)
+            foreach (var v in provider.Variables.Where(x => x.Location != null))
             {
                 switch (v.Type)
                 {

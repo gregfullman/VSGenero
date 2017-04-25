@@ -46,7 +46,9 @@ namespace VSGenero.EditorExtensions
             /// <returns></returns>
             public int? GetDesiredIndentation(ITextSnapshotLine line)
             {
-                if (VSGeneroPackage.Instance.LangPrefs.IndentMode == vsIndentStyle.vsIndentStyleSmart)
+                if (VSGeneroPackage.Instance != null &&
+                    VSGeneroPackage.Instance.LangPrefs != null && 
+                    VSGeneroPackage.Instance.LangPrefs.IndentMode == vsIndentStyle.vsIndentStyleSmart)
                 {
                     return AutoIndent.GetLineIndentation(line, _textView);
                 }

@@ -10,6 +10,7 @@
  *
  * ***************************************************************************/ 
 
+using NLog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,6 +22,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 {
     public class PrepareStatement : FglStatement, IAnalysisResult
     {
+        private static Logger _logger = LogManager.GetCurrentClassLogger();
         public string Identifier { get; private set; }
 
         public bool CanGetValueFromDebugger
@@ -110,7 +112,15 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 sb.Append("\n\n");
                 if (!string.IsNullOrWhiteSpace(_sqlStatement))
                 {
-                    string formatted = SqlStatementExtractor.FormatSqlStatement(_sqlStatement);
+                    string formatted = null;
+                    try
+                    {
+                        SqlStatementExtractor.FormatSqlStatement(_sqlStatement);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.Info(ex, "Unable to format SQL");
+                    }
                     if (formatted != null)
                         sb.Append(formatted);
                     else

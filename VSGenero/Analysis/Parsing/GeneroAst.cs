@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NLog;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,6 +9,7 @@ namespace VSGenero.Analysis.Parsing
 {
     public abstract class GeneroAst : ILocationResolver
     {
+        private static Logger _logger = LogManager.GetCurrentClassLogger();
         internal IFunctionInformationProvider _functionProvider;
         internal IDatabaseInformationProvider _databaseProvider;
         internal IProgramFileProvider _programFileProvider;
@@ -129,7 +131,13 @@ namespace VSGenero.Analysis.Parsing
 
         internal int LineNumberToIndex(int lineNumber)
         {
-            return _lineLocations[lineNumber];
+            if (lineNumber < 0)
+                lineNumber = 0;
+            else if (lineNumber >= _lineLocations.Length)
+                lineNumber = _lineLocations.Length - 1;
+            if(lineNumber >= 0)
+                return _lineLocations[lineNumber];
+            return 1;
         }
 
         public LocationInfo ResolveLocation(IProjectEntry entry, object location)
@@ -201,6 +209,13 @@ namespace VSGenero.Analysis.Parsing
                 return _projEntry == null ?
                     new LocationInfo(_filename, loc.Line, loc.Column, locIndex) :
                     new LocationInfo(_projEntry, loc.Line, loc.Column, locIndex);
+            }
+            else
+            {
+                if (location != null)
+                    _logger.Info("Unable to resolve location for location {0}, type {1}, filename {2}", location, location.GetType(), _filename);
+                else
+                    _logger.Info("Unable to resolve location because it is null. Filename {0}", _filename);
             }
 
             return null;
