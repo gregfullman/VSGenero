@@ -12,15 +12,12 @@
  * ***************************************************************************/
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using VSGenero.Analysis.Parsing.AST_4GL;
 using VSGenero.Analysis.Parsing;
+using VSGenero.Analysis.Parsing.AST_4GL;
 
 namespace VSGenero.Analysis
 {
@@ -250,16 +247,19 @@ namespace VSGenero.Analysis
             return res;
         }
 
-        public IAnalysisResult GetMember(string name, Genero4glAst ast, out IGeneroProject definingProject, out IProjectEntry projEntry, bool function)
+        public IAnalysisResult GetMember(GetMemberInput input)
         {
-            definingProject = null;
-            var res = GetMemberOfType(name, ast, true, true, true, true, out projEntry);
+            IProjectEntry projEntry = null;
+            var res = GetMemberOfType(input.Name, input.AST, true, true, true, true, out projEntry);
             if (projEntry != null && projEntry is IGeneroProjectEntry)
-                definingProject = (projEntry as IGeneroProjectEntry).ParentProject;
+            { 
+                input.ProjectEntry = projEntry;
+                input.DefiningProject = (projEntry as IGeneroProjectEntry).ParentProject;
+            }
             return res;
         }
 
-        public IEnumerable<MemberResult> GetMembers(Genero4glAst ast, MemberType memberType, bool getArrayTypeMembers)
+        public IEnumerable<MemberResult> GetMembers(GetMultipleMembersInput input)
         {
             string projNamespace = string.Format("{0}", this.Name);
             List<MemberResult> members = new List<MemberResult>();
@@ -273,31 +273,31 @@ namespace VSGenero.Analysis
                     IModuleResult modRes = projEntry.Value.Analysis.Body as IModuleResult;
                     if (modRes != null)
                     {
-                        if (memberType.HasFlag(MemberType.Variables))
+                        if (input.MemberType.HasFlag(MemberType.Variables))
                         {
-                            members.AddRange(modRes.GlobalVariables.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Variable, ast)));
-                            members.AddRange(modRes.Variables.Where(x => x.Value.IsPublic).Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Variable, ast)));
-                            members.AddRange(projEntry.Value.GetIncludedFiles().Where(x => x.Analysis != null).SelectMany(x => x.Analysis.GetDefinedMembers(1, AstMemberType.Variables)));
+                            members.AddRange(modRes.GlobalVariables.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Variable, input.AST)));
+                            members.AddRange(modRes.Variables.Where(x => x.Value.IsPublic).Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Variable, input.AST)));
+                            members.AddRange(projEntry.Value.GetIncludedFiles().Where(x => x.Analysis != null).SelectMany(x => x.Analysis.GetDefinedMembers(1, AstMemberType.Variables, input.IsMemberAccess)));
                         }
 
-                        if (memberType.HasFlag(MemberType.Types))
+                        if (input.MemberType.HasFlag(MemberType.Types))
                         {
-                            members.AddRange(modRes.GlobalTypes.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Class, ast)));
-                            members.AddRange(modRes.Types.Where(x => x.Value.IsPublic).Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Class, ast)));
-                            members.AddRange(projEntry.Value.GetIncludedFiles().Where(x => x.Analysis != null).SelectMany(x => x.Analysis.GetDefinedMembers(1, AstMemberType.UserDefinedTypes)));
+                            members.AddRange(modRes.GlobalTypes.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Class, input.AST)));
+                            members.AddRange(modRes.Types.Where(x => x.Value.IsPublic).Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Class, input.AST)));
+                            members.AddRange(projEntry.Value.GetIncludedFiles().Where(x => x.Analysis != null).SelectMany(x => x.Analysis.GetDefinedMembers(1, AstMemberType.UserDefinedTypes, input.IsMemberAccess)));
                         }
 
-                        if (memberType.HasFlag(MemberType.Constants))
+                        if (input.MemberType.HasFlag(MemberType.Constants))
                         {
-                            members.AddRange(modRes.GlobalConstants.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Constant, ast)));
-                            members.AddRange(modRes.Constants.Where(x => x.Value.IsPublic).Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Constant, ast)));
-                            members.AddRange(projEntry.Value.GetIncludedFiles().Where(x => x.Analysis != null).SelectMany(x => x.Analysis.GetDefinedMembers(1, AstMemberType.Constants)));
+                            members.AddRange(modRes.GlobalConstants.Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Constant, input.AST)));
+                            members.AddRange(modRes.Constants.Where(x => x.Value.IsPublic).Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Constant, input.AST)));
+                            members.AddRange(projEntry.Value.GetIncludedFiles().Where(x => x.Analysis != null).SelectMany(x => x.Analysis.GetDefinedMembers(1, AstMemberType.Constants, input.IsMemberAccess)));
                         }
 
-                        if (memberType.HasFlag(MemberType.Functions))
+                        if (input.MemberType.HasFlag(MemberType.Functions))
                         {
-                            members.AddRange(modRes.Functions.Where(x => x.Value.IsPublic).Select(x => new MemberResult(x.Key, x.Value, x.Value.FunctionType, ast)));
-                            members.AddRange(projEntry.Value.GetIncludedFiles().Where(x => x.Analysis != null).SelectMany(x => x.Analysis.GetDefinedMembers(1, AstMemberType.Functions)));
+                            members.AddRange(modRes.Functions.Where(x => x.Value.IsPublic).Select(x => new MemberResult(x.Key, x.Value, x.Value.FunctionType, input.AST)));
+                            members.AddRange(projEntry.Value.GetIncludedFiles().Where(x => x.Analysis != null).SelectMany(x => x.Analysis.GetDefinedMembers(1, AstMemberType.Functions, input.IsMemberAccess)));
                         }
                     }
                 }

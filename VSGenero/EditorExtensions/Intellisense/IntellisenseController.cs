@@ -22,19 +22,14 @@ using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudioTools.Project;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Input;
-using VSGenero.Snippets;
-using VSGenero.EditorExtensions;
-using VSGenero.Analysis;
-using IServiceProvider = System.IServiceProvider;
-using VSGenero.Analysis.Parsing;
-using VSGenero.Analysis.Parsing.AST_4GL;
 using System.Runtime.InteropServices;
+using System.Windows.Input;
+using VSGenero.Analysis;
+using VSGenero.Analysis.Parsing;
+using VSGenero.Snippets;
+using IServiceProvider = System.IServiceProvider;
 
 namespace VSGenero.EditorExtensions.Intellisense
 {
@@ -215,11 +210,11 @@ namespace VSGenero.EditorExtensions.Intellisense
                     //        TriggerCompletionSession(false);
                     //    }
                     //    break;
-                    case '&':
                     case '.':
                         if (VSGeneroPackage.Instance.LangPrefs.AutoListMembers && AreSurroundingCharactersWhitespace(ch, true))
                         {
-                            TriggerCompletionSession(false);
+                            // TODO: need to indicate that this is a member-only intellisense session
+                            TriggerCompletionSession(false, true);
                         }
                         break;
                     case '(':
@@ -258,7 +253,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                     default:
                         if (VSGeneroPackage.Instance.LangPrefs.AutoListMembers && IsIdentifierChar(ch) && _activeSession == null && AreSurroundingCharactersWhitespace(ch))
                         {
-                            TriggerCompletionSession(false);
+                            TriggerCompletionSession(false, false);
                         }
                         break;
                 }
@@ -509,10 +504,13 @@ namespace VSGenero.EditorExtensions.Intellisense
 
         Span? _parentSpan = null;
 
-        internal void TriggerCompletionSession(bool completeWord)
+        public const string MemberAccessSession = "MemberAccessSession";
+
+        internal void TriggerCompletionSession(bool completeWord, bool isMemberAccess)
         {
             Dismiss();
 
+            _textView.Properties[MemberAccessSession] = isMemberAccess;
             _activeSession = CompletionBroker.TriggerCompletion(_textView);
 
             if (_activeSession != null)

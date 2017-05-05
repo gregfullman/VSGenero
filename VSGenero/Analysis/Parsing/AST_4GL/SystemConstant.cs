@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace VSGenero.Analysis.Parsing.AST_4GL
 {
@@ -72,14 +69,12 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
         public LocationInfo Location { get { return null; } }
 
-        public IAnalysisResult GetMember(string name, Genero4glAst ast, out IGeneroProject definingProject, out IProjectEntry projEntry, bool function)
+        public IAnalysisResult GetMember(GetMemberInput input)
         {
-            definingProject = null;
-            projEntry = null;
             return null;
         }
 
-        public IEnumerable<MemberResult> GetMembers(Genero4glAst ast, MemberType memberType, bool getArrayTypeMembers)
+        public IEnumerable<MemberResult> GetMembers(GetMultipleMembersInput input)
         {
             return null;
         }

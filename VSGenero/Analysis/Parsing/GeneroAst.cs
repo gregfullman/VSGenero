@@ -2,8 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace VSGenero.Analysis.Parsing
 {
@@ -243,7 +241,7 @@ namespace VSGenero.Analysis.Parsing
             return containingNode;
         }
 
-        public abstract IEnumerable<MemberResult> GetDefinedMembers(int index, AstMemberType memberType);
+        public abstract IEnumerable<MemberResult> GetDefinedMembers(int index, AstMemberType memberType, bool isMemberAccess = false);
 
         public abstract IAnalysisResult GetValueByIndex(string exprText, int index, IFunctionInformationProvider functionProvider,
                                                IDatabaseInformationProvider databaseProvider, IProgramFileProvider programFileProvider,
@@ -259,6 +257,7 @@ namespace VSGenero.Analysis.Parsing
 
         public abstract IEnumerable<MemberResult> GetContextMembers(int index, IReverseTokenizer revTokenizer, IFunctionInformationProvider functionProvider,
                                                            IDatabaseInformationProvider databaseProvider, IProgramFileProvider programFileProvider,
+                                                           bool isMemberAccess,
                                                            out bool includePublicFunctions, out bool includeDatabaseTables, string contextStr,
                                                            GetMemberOptions options = GetMemberOptions.IntersectMultipleResults);
 

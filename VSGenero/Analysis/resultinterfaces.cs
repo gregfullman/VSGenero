@@ -11,12 +11,8 @@
  *
  * ***************************************************************************/
 
-using Microsoft.VisualStudio.Utilities;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using VSGenero.Analysis.Parsing;
 using VSGenero.Analysis.Parsing.AST_4GL;
 
@@ -46,8 +42,8 @@ namespace VSGenero.Analysis
         GeneroLanguageVersion MinimumLanguageVersion { get; }
         GeneroLanguageVersion MaximumLanguageVersion { get; }
 
-        IAnalysisResult GetMember(string name, Genero4glAst ast, out IGeneroProject definingProject, out IProjectEntry projectEntry, bool function);
-        IEnumerable<MemberResult> GetMembers(Genero4glAst ast, MemberType memberType, bool getArrayTypeMembers);
+        IAnalysisResult GetMember(GetMemberInput input);
+        IEnumerable<MemberResult> GetMembers(GetMultipleMembersInput input);
     }
 
     public interface IVariableResult : IAnalysisResult

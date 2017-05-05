@@ -310,15 +310,19 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
                 if (res != null)
                 {
-                    IGeneroProject tempProj;
-                    IProjectEntry tempProjEntry;
                     if (ast != null)
                     {
-                        IAnalysisResult tempRes = res.GetMember(dotPiece, ast, out tempProj, out tempProjEntry, lookForFunctions);
-                        if (tempProj != null && definingProject != tempProj)
-                            definingProject = tempProj;
-                        if(tempProjEntry != null && projectEntry != tempProjEntry)
-                            projectEntry = tempProjEntry;
+                        var gmi = new GetMemberInput
+                        {
+                            Name = dotPiece,
+                            AST = ast,
+                            IsFunction = lookForFunctions
+                        };
+                        IAnalysisResult tempRes = res.GetMember(gmi);
+                        if (gmi.DefiningProject != null && definingProject != gmi.DefiningProject)
+                            definingProject = gmi.DefiningProject;
+                        if(gmi.ProjectEntry != null && projectEntry != gmi.ProjectEntry)
+                            projectEntry = gmi.ProjectEntry;
                         res = tempRes;
                         if (tempRes == null)
                         {

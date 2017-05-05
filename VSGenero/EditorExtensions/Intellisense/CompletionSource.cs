@@ -13,13 +13,8 @@
 
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
-using Microsoft.VisualStudio.VSCommon;
+using System.Collections.Generic;
 
 namespace VSGenero.EditorExtensions.Intellisense
 {
@@ -33,6 +28,10 @@ namespace VSGenero.EditorExtensions.Intellisense
                 IndentSize = session.TextView.Options.GetIndentSize(),
                 TabSize = session.TextView.Options.GetTabSize()
             };
+
+            bool isMemberAccess = false;
+            session.TextView.Properties.TryGetProperty<bool>(IntellisenseController.MemberAccessSession, out isMemberAccess);
+            options.IsMemberAccess = isMemberAccess;
 
             if (VSGeneroPackage.Instance != null)
             {

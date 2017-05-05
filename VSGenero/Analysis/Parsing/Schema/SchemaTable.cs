@@ -92,19 +92,17 @@ namespace VSGenero.Analysis.Parsing.Schema
             return false;
         }
 
-        public IAnalysisResult GetMember(string name, Genero4glAst ast, out IGeneroProject definingProject, out IProjectEntry projectEntry, bool function)
+        public IAnalysisResult GetMember(GetMemberInput input)
         {
-            definingProject = null;
-            projectEntry = null;
             SchemaColumn column = null;
-            _columns.TryGetValue(name, out column);
+            _columns.TryGetValue(input.Name, out column);
             return column;
         }
 
-        public IEnumerable<MemberResult> GetMembers(Genero4glAst ast, MemberType memberType, bool getArrayTypeMembers)
+        public IEnumerable<MemberResult> GetMembers(GetMultipleMembersInput input)
         {
-            List<MemberResult> dot = new List<MemberResult> { new MemberResult("*", GeneroMemberType.DbColumn, ast) };
-            return dot.Union(_columns.Values.Select(x => new MemberResult(x.Name, x, GeneroMemberType.DbColumn, ast)));
+            List<MemberResult> dot = new List<MemberResult> { new MemberResult("*", GeneroMemberType.DbColumn, input.AST) };
+            return dot.Union(_columns.Values.Select(x => new MemberResult(x.Name, x, GeneroMemberType.DbColumn, input.AST)));
         }
 
         #endregion

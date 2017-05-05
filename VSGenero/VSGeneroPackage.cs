@@ -12,24 +12,14 @@
  * ***************************************************************************/
 
 using System;
-using System.Linq;
-using System.Diagnostics;
-using System.Globalization;
 using System.Runtime.InteropServices;
 using System.ComponentModel.Design;
 using System.Collections.Generic;
-using System.Timers;
-using System.ComponentModel;
-using System.ComponentModel.Composition;
 using System.Threading;
-
-using Microsoft.Win32;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Text;
@@ -37,16 +27,13 @@ using Microsoft.VisualStudio.Utilities;
 
 using VSGenero.Navigation;
 using Microsoft.VisualStudio.VSCommon;
-using Microsoft.VisualStudio.VSCommon.Utilities;
 
 using EnvDTE;
 using EnvDTE80;
-using Extensibility;
 
 using Microsoft.VisualStudioTools;
 using Microsoft.VisualStudioTools.Navigation;
 using Microsoft.VisualStudioTools.Project;
-using NativeMethods = Microsoft.VisualStudioTools.Project.NativeMethods;
 using VSGenero.EditorExtensions;
 using System.IO;
 using VSGenero.Options;
@@ -60,7 +47,6 @@ using VSGenero.EditorExtensions.Intellisense;
 using Microsoft.VisualStudio.Text.Adornments;
 using VSGenero.Analysis;
 using VSGenero.EditorExtensions.BraceCompletion;
-using System.ComponentModel.Composition.Hosting;
 using VSGenero.Analysis.Parsing.AST_4GL;
 
 namespace VSGenero
@@ -242,8 +228,6 @@ namespace VSGenero
             return null;
         }
 
-        internal IBuildTaskProvider _BuildTaskProvider;
-
         /////////////////////////////////////////////////////////////////////////////
         // Overriden Package Implementation
         #region Package Members
@@ -318,23 +302,6 @@ namespace VSGenero
 
             var dte2 = (DTE2)Package.GetGlobalService(typeof(SDTE));
             var sp = new ServiceProvider(dte2 as Microsoft.VisualStudio.OLE.Interop.IServiceProvider);
-            try
-            {
-
-                var mefContainer = sp.GetService(typeof(Microsoft.VisualStudio.ComponentModelHost.SComponentModel))
-                                    as Microsoft.VisualStudio.ComponentModelHost.IComponentModel;
-                var exportSpec = mefContainer?.DefaultExportProvider.GetExport<IBuildTaskProvider>();
-                if (exportSpec != null)
-                {
-                    _BuildTaskProvider = exportSpec.Value;
-                }
-                if (DefaultAnalyzer != null)
-                { }
-            }
-            catch (Exception)
-            { }
-
-            
         }
 
 #endregion
@@ -405,29 +372,16 @@ namespace VSGenero
 
         private GeneroProjectAnalyzer CreateAnalyzer()
         {
-            return new GeneroProjectAnalyzer(this, _BuildTaskProvider);
+            return new GeneroProjectAnalyzer(this, BuildTaskProvider);
         }
 
-        private IFunctionInformationProvider _functionProvider;
-        public IFunctionInformationProvider GlobalFunctionProvider
-        {
-            get { return _functionProvider; }
-            set { _functionProvider = value; }
-        }
+        public IFunctionInformationProvider GlobalFunctionProvider { get; set; }
 
-        private IDatabaseInformationProvider _dbProvider;
-        public IDatabaseInformationProvider GlobalDatabaseProvider
-        {
-            get { return _dbProvider; }
-            set { _dbProvider = value; }
-        }
+        public IDatabaseInformationProvider GlobalDatabaseProvider { get;  set;}
 
-        private IEnumerable<ICommentValidator> _commentValidators;
-        public IEnumerable<ICommentValidator> CommentValidators
-        {
-            get { return _commentValidators; }
-            set { _commentValidators = value; }
-        }
+        public IEnumerable<ICommentValidator> CommentValidators { get; set; }
+
+        public IBuildTaskProvider BuildTaskProvider { get; set; }
 
 #region Program File Provider
 

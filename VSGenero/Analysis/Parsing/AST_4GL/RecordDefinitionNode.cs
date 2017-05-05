@@ -8,14 +8,12 @@
  *
  * You must not remove this notice, or any other, from this software.
  *
- * ***************************************************************************/ 
+ * ***************************************************************************/
 
-using Microsoft.VisualStudio.Text;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace VSGenero.Analysis.Parsing.AST_4GL
 {
@@ -203,10 +201,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
         public LocationInfo Location { get { return null; } }
 
-        public IAnalysisResult GetMember(string name, Genero4glAst ast, out IGeneroProject definingProject, out IProjectEntry projEntry, bool function)
+        public IAnalysisResult GetMember(GetMemberInput input)
         {
-            definingProject = null;
-            projEntry = null;
             if (MemberDictionary.Count == 0 && MimicTableName != null)
             {
                 return null;
@@ -214,12 +210,12 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             else
             {
                 VariableDef varDef = null;
-                MemberDictionary.TryGetValue(name, out varDef);
+                MemberDictionary.TryGetValue(input.Name, out varDef);
                 return varDef;
             }
         }
 
-        internal IEnumerable<IAnalysisResult> GetAnalysisResults(Genero4glAst ast)
+        internal IEnumerable<IAnalysisResult> GetAnalysisResults(GeneroAst ast)
         {
             if (MemberDictionary.Count == 0 && MimicTableName != null && ast._databaseProvider != null)
             {
@@ -232,20 +228,20 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             }
         }
 
-        public IEnumerable<MemberResult> GetMembers(Genero4glAst ast, MemberType memberType, bool getArrayTypeMembers)
+        public IEnumerable<MemberResult> GetMembers(GetMultipleMembersInput input)
         {
             if (MemberDictionary.Count == 0 && MimicTableName != null)
             {
                 // get the table's columns
-                if (ast._databaseProvider != null)
+                if (input.AST._databaseProvider != null)
                 {
-                    return ast._databaseProvider.GetColumns(MimicTableName.Name).Select(x => new MemberResult(x.Name, x, GeneroMemberType.DbColumn, ast));
+                    return input.AST._databaseProvider.GetColumns(MimicTableName.Name).Select(x => new MemberResult(x.Name, x, GeneroMemberType.DbColumn, input.AST));
                 }
             }
             else
             {
-                List<MemberResult> dot = new List<MemberResult> { new MemberResult("*", GeneroMemberType.Variable, ast) };
-                return dot.Union(MemberDictionary.Values.Select(x => new MemberResult(x.Name, x, GeneroMemberType.Variable, ast)));
+                List<MemberResult> dot = new List<MemberResult> { new MemberResult("*", GeneroMemberType.Variable, input.AST) };
+                return dot.Union(MemberDictionary.Values.Select(x => new MemberResult(x.Name, x, GeneroMemberType.Variable, input.AST)));
             }
             return new MemberResult[0];
         }

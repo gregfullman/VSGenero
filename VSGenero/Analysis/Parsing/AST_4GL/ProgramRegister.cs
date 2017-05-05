@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace VSGenero.Analysis.Parsing.AST_4GL
 {
@@ -90,14 +89,12 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
         public LocationInfo Location { get { return null; } }
 
-        public IAnalysisResult GetMember(string name, Genero4glAst ast, out IGeneroProject definingProject, out IProjectEntry projEntry, bool function)
+        public IAnalysisResult GetMember(GetMemberInput input)
         {
-            definingProject = null;
-            projEntry = null;
             ProgramRegister progReg = null;
             if (_childRegisters != null)
             {
-                _childRegisters.TryGetValue(name, out progReg);
+                _childRegisters.TryGetValue(input.Name, out progReg);
             }
             else
             {
@@ -106,11 +103,11 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             return progReg;
         }
 
-        public IEnumerable<MemberResult> GetMembers(Genero4glAst ast, MemberType memberType, bool getArrayTypeMembers)
+        public IEnumerable<MemberResult> GetMembers(GetMultipleMembersInput input)
         {
             if (_childRegisters != null)
             {
-                return _childRegisters.Values.Select(x => new MemberResult(x.Name, x, GeneroMemberType.Variable, ast));
+                return _childRegisters.Values.Select(x => new MemberResult(x.Name, x, GeneroMemberType.Variable, input.AST));
             }
             return null;
         }

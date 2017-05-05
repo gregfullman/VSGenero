@@ -8,14 +8,11 @@
  *
  * You must not remove this notice, or any other, from this software.
  *
- * ***************************************************************************/ 
+ * ***************************************************************************/
 
-using Microsoft.VisualStudio.Text;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace VSGenero.Analysis.Parsing.AST_4GL
 {
@@ -326,10 +323,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             return result;
         }
 
-        internal IEnumerable<IAnalysisResult> GetAnalysisResults(Genero4glAst ast, MemberType memberType, out IGeneroProject definingProject, out IProjectEntry projEntry, bool function)
+        internal IEnumerable<IAnalysisResult> GetAnalysisResults(MemberType memberType, GetMemberInput input)
         {
-            definingProject = null;
-            projEntry = null;
             List<IAnalysisResult> results = new List<IAnalysisResult>();
             if (Children.Count == 1)
             {
@@ -337,31 +332,37 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 var node = Children[Children.Keys[0]];
                 if(node is TypeReference)
                 {
-                    results.AddRange((node as TypeReference).GetAnalysisMembers(ast, memberType, out definingProject, out projEntry, function));
+                    results.AddRange((node as TypeReference).GetAnalysisMembers(memberType, input));
                 }
             }
-            results.AddRange(Genero4glAst.ArrayFunctions.Values.Where(x => ast.LanguageVersion >= x.MinimumLanguageVersion && ast.LanguageVersion <= x.MaximumLanguageVersion));
+            results.AddRange(Genero4glAst.ArrayFunctions.Values.Where(x => input.AST.LanguageVersion >= x.MinimumLanguageVersion && input.AST.LanguageVersion <= x.MaximumLanguageVersion));
             return results;
         }
 
-        internal IEnumerable<MemberResult> GetMembersInternal(Genero4glAst ast, MemberType memberType, bool getArrayTypeMembers = false)
+        internal IEnumerable<MemberResult> GetMembersInternal(GetMultipleMembersInput input)
         {
             List<MemberResult> results = new List<MemberResult>();
-            if (getArrayTypeMembers)
+            if (input.GetArrayTypeMembers)
             {
                 if (Children.Count == 1)
                 {
                     var node = Children[Children.Keys[0]];
                     if (node is TypeReference)
                     {
-                        results.AddRange((node as TypeReference).GetMembers(ast, memberType, false));   // We don't want to continue getting array type members further down
+                        var newInput = new GetMultipleMembersInput
+                        {
+                            AST = input.AST,
+                            MemberType = input.MemberType
+                            // We don't want to continue getting array type members further down
+                        };
+                        results.AddRange((node as TypeReference).GetMembers(newInput));   
                     }
                 }
             }
             else
             {
-                results.AddRange(Genero4glAst.ArrayFunctions.Values.Where(x => ast.LanguageVersion >= x.MinimumLanguageVersion && ast.LanguageVersion <= x.MaximumLanguageVersion)
-                                                                       .Select(x => new MemberResult(x.Name, x, GeneroMemberType.Method, ast)));
+                results.AddRange(Genero4glAst.ArrayFunctions.Values.Where(x => input.AST.LanguageVersion >= x.MinimumLanguageVersion && input.AST.LanguageVersion <= x.MaximumLanguageVersion)
+                                                                       .Select(x => new MemberResult(x.Name, x, GeneroMemberType.Method, input.AST)));
             }
 
             return results;

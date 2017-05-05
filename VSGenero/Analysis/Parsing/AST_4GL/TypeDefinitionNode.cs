@@ -8,14 +8,11 @@
  *
  * You must not remove this notice, or any other, from this software.
  *
- * ***************************************************************************/ 
+ * ***************************************************************************/
 
-using Microsoft.VisualStudio.Text;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace VSGenero.Analysis.Parsing.AST_4GL
 {
@@ -140,24 +137,22 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         private LocationInfo _location;
         public LocationInfo Location { get { return _location; } }
 
-        public IAnalysisResult GetMember(string name, Genero4glAst ast, out IGeneroProject definingProject, out IProjectEntry projEntry, bool function)
+        public IAnalysisResult GetMember(GetMemberInput input)
         {
-            definingProject = null;
-            projEntry = null;
             if (Children.Count == 1 &&
                Children[Children.Keys[0]] is TypeReference)
             {
-                return (Children[Children.Keys[0]] as TypeReference).GetMember(name, ast, out definingProject, out projEntry, function);
+                return (Children[Children.Keys[0]] as TypeReference).GetMember(input);
             }
             return null;
         }
 
-        public IEnumerable<MemberResult> GetMembers(Genero4glAst ast, MemberType memberType, bool getArrayTypeMembers)
+        public IEnumerable<MemberResult> GetMembers(GetMultipleMembersInput input)
         {
             if(Children.Count == 1 &&
                Children[Children.Keys[0]] is TypeReference)
             {
-                return (Children[Children.Keys[0]] as TypeReference).GetMembers(ast, memberType, getArrayTypeMembers);
+                return (Children[Children.Keys[0]] as TypeReference).GetMembers(input);
             }
             return null;
         }

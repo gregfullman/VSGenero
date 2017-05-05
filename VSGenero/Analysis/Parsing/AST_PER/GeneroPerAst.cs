@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace VSGenero.Analysis.Parsing.AST_PER
 {
@@ -24,14 +21,14 @@ namespace VSGenero.Analysis.Parsing.AST_PER
             return new MemberResult[0];
         }
 
-        public override IEnumerable<MemberResult> GetContextMembers(int index, IReverseTokenizer revTokenizer, IFunctionInformationProvider functionProvider, IDatabaseInformationProvider databaseProvider, IProgramFileProvider programFileProvider, out bool includePublicFunctions, out bool includeDatabaseTables, string contextStr, GetMemberOptions options = GetMemberOptions.IntersectMultipleResults)
+        public override IEnumerable<MemberResult> GetContextMembers(int index, IReverseTokenizer revTokenizer, IFunctionInformationProvider functionProvider, IDatabaseInformationProvider databaseProvider, IProgramFileProvider programFileProvider, bool isMemberAccess, out bool includePublicFunctions, out bool includeDatabaseTables, string contextStr, GetMemberOptions options = GetMemberOptions.IntersectMultipleResults)
         {
             includePublicFunctions = false;
             includeDatabaseTables = false;
             return new MemberResult[0];
         }
 
-        public override IEnumerable<MemberResult> GetDefinedMembers(int index, AstMemberType memberType)
+        public override IEnumerable<MemberResult> GetDefinedMembers(int index, AstMemberType memberType, bool isMemberAccess = false)
         {
             return new MemberResult[0];
         }

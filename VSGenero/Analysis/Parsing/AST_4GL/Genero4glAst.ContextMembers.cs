@@ -10,11 +10,8 @@
  *
  * ***************************************************************************/
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace VSGenero.Analysis.Parsing.AST_4GL
 {
@@ -207,13 +204,13 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             return type;
         }
 
-        public override IEnumerable<MemberResult> GetDefinedMembers(int index, AstMemberType memberType)
+        public override IEnumerable<MemberResult> GetDefinedMembers(int index, AstMemberType memberType, bool isMemberAccess = false)
         {
             HashSet<MemberResult> members = new HashSet<MemberResult>();
 
             HashSet<GeneroPackage> includedPackages = new HashSet<GeneroPackage>();
 
-            if(memberType.HasFlag(AstMemberType.SystemTypes))
+            if(memberType.HasFlag(AstMemberType.SystemTypes) && !isMemberAccess)
             {
                 // Built-in types
                 members.AddRange(BuiltinTypes.Select(x => new MemberResult(Tokens.TokenKinds[x], GeneroMemberType.Keyword, this)));
@@ -225,17 +222,17 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     includedPackages.Add(package);
                 }
             }
-            if (memberType.HasFlag(AstMemberType.Constants))
+            if (memberType.HasFlag(AstMemberType.Constants) && !isMemberAccess)
             {
                 members.AddRange(SystemConstants.Where(x => this.LanguageVersion >= x.Value.MinimumLanguageVersion && this.LanguageVersion <= x.Value.MaximumLanguageVersion)
                                                 .Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Keyword, this)));
                 members.AddRange(SystemMacros.Where(x => this.LanguageVersion >= x.Value.MinimumLanguageVersion && this.LanguageVersion <= x.Value.MaximumLanguageVersion)
                                              .Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Constant, this)));
             }
-            if (memberType.HasFlag(AstMemberType.Variables))
+            if (memberType.HasFlag(AstMemberType.Variables) && !isMemberAccess)
                 members.AddRange(SystemVariables.Where(x => this.LanguageVersion >= x.Value.MinimumLanguageVersion && this.LanguageVersion <= x.Value.MaximumLanguageVersion)
                                                 .Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Keyword, this)));
-            if (memberType.HasFlag(AstMemberType.Functions))
+            if (memberType.HasFlag(AstMemberType.Functions) && !isMemberAccess)
             {
                 members.AddRange(SystemFunctions.Where(x => this.LanguageVersion >= x.Value.MinimumLanguageVersion && this.LanguageVersion <= x.Value.MaximumLanguageVersion)
                                                 .Select(x => new MemberResult(x.Key, x.Value, GeneroMemberType.Function, this)));
@@ -503,8 +500,14 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                             {
                                 // Get suggested member type based on what comes before the member we're doing access on
                                 MemberType memberType = GetSuggestedMemberType(startIndex - 1, revTokenizer);
-
-                                IEnumerable<MemberResult> memberList = analysisRes.GetMembers(this, memberType, var[var.Length - 1].Equals(']'));
+                                var gmi = new GetMultipleMembersInput
+                                {
+                                    AST = this,
+                                    MemberType = memberType,
+                                    GetArrayTypeMembers = var[var.Length - 1].Equals(']'),
+                                    IsMemberAccess = true
+                                };
+                                IEnumerable<MemberResult> memberList = analysisRes.GetMembers(gmi);
                                 if (memberList != null)
                                 {
                                     results.AddRange(memberList);

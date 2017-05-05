@@ -856,8 +856,8 @@ namespace VSGenero.Navigation
                                 IntellisenseController.ForceCompletions = true;
                                 try
                                 {
-                                    controller.TriggerCompletionSession((VSConstants.VSStd2KCmdID) nCmdID ==
-                                                                        VSConstants.VSStd2KCmdID.COMPLETEWORD);
+                                    controller.TriggerCompletionSession((VSConstants.VSStd2KCmdID) nCmdID == VSConstants.VSStd2KCmdID.COMPLETEWORD,
+                                                                        (VSConstants.VSStd2KCmdID) nCmdID == VSConstants.VSStd2KCmdID.SHOWMEMBERLIST);
                                 }
                                 finally
                                 {

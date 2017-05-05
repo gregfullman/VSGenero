@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace VSGenero.Analysis.Parsing.AST_4GL
 {
@@ -110,19 +108,17 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             }
         }
 
-        public IAnalysisResult GetMember(string name, Genero4glAst ast, out IGeneroProject definingProject, out IProjectEntry projectEntry, bool function)
+        public IAnalysisResult GetMember(GetMemberInput input)
         {
-            definingProject = null;
-            projectEntry = null;
             IFunctionResult funcRes = null;
-            _memberFunctions.TryGetValue(name, out funcRes);
+            _memberFunctions.TryGetValue(input.Name, out funcRes);
             return funcRes;
         }
 
-        public IEnumerable<MemberResult> GetMembers(Genero4glAst ast, MemberType memberType, bool getArrayTypeMembers)
+        public IEnumerable<MemberResult> GetMembers(GetMultipleMembersInput input)
         {
-            return _memberFunctions.Values.Where(x => ast.LanguageVersion >= x.MinimumLanguageVersion && ast.LanguageVersion <= x.MaximumLanguageVersion)
-                                          .Select(x => new MemberResult(x.Name, x, GeneroMemberType.Function, ast));
+            return _memberFunctions.Values.Where(x => input.AST.LanguageVersion >= x.MinimumLanguageVersion && input.AST.LanguageVersion <= x.MaximumLanguageVersion)
+                                          .Select(x => new MemberResult(x.Name, x, GeneroMemberType.Function, input.AST));
         }
 
         public bool HasChildFunctions(Genero4glAst ast)

@@ -13,10 +13,7 @@
 * ***************************************************************************/
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using VSGenero.Analysis.Parsing;
 
 namespace VSGenero.Analysis
 {
@@ -78,5 +75,24 @@ namespace VSGenero.Analysis
         {
             return (self & GetMemberOptions.IncludeExpressionKeywords) != 0;
         }
+    }
+
+    public class GetMemberInput
+    {
+        public string Name { get; set; }
+        public GeneroAst AST { get; set; }
+
+        public bool IsFunction { get; set; }
+
+        public IGeneroProject DefiningProject { get; set; }
+        public IProjectEntry ProjectEntry { get; set; }
+    }
+
+    public class GetMultipleMembersInput
+    {
+        public GeneroAst AST { get; set; }
+        public MemberType MemberType { get; set; }
+        public bool GetArrayTypeMembers { get; set; }
+        public bool IsMemberAccess { get; set; }
     }
 }

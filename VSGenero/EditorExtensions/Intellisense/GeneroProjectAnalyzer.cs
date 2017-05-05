@@ -11,33 +11,24 @@
  *
  * ***************************************************************************/
 
+using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudioTools;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using VSGenero.Navigation;
-using Microsoft.VisualStudio.VSCommon;
-using Microsoft.VisualStudioTools;
-using System.IO;
-using VSGenero.Analysis;
-using Microsoft.VisualStudio.Language.Intellisense;
-using System.Diagnostics;
-using VSGenero.Analysis.Parsing.AST_4GL;
-using Microsoft.VisualStudio.Text.Tagging;
-using Microsoft.VisualStudio;
-using System.Windows.Forms;
-using System.Runtime.InteropServices;
-using VSGenero.Analysis.Parsing;
-using System.ComponentModel.Composition;
 using System.Text.RegularExpressions;
+using System.Threading;
+using VSGenero.Analysis;
+using VSGenero.Analysis.Parsing;
+using VSGenero.Navigation;
 
 namespace VSGenero.EditorExtensions.Intellisense
 {
@@ -1091,7 +1082,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                                                           IFunctionInformationProvider functionProvider, IDatabaseInformationProvider databaseProvider,
                                                           IProgramFileProvider programFileProvider)
         {
-            return TryGetCompletions(options.AnalysisType, snapshot, span, point, options, functionProvider, databaseProvider, programFileProvider);
+            return TryGetCompletions(snapshot, span, point, options, functionProvider, databaseProvider, programFileProvider);
         }
 
         /// <summary>
@@ -1702,11 +1693,11 @@ namespace VSGenero.EditorExtensions.Intellisense
             return snapshot.CreateTrackingSpan(newSpan, SpanTrackingMode.EdgeInclusive);
         }
 
-        private static CompletionAnalysis TryGetCompletions(CompletionAnalysisType completionsType, ITextSnapshot snapshot, ITrackingSpan span, ITrackingPoint point, CompletionOptions options,
+        private static CompletionAnalysis TryGetCompletions(ITextSnapshot snapshot, ITrackingSpan span, ITrackingPoint point, CompletionOptions options,
                                                             IFunctionInformationProvider functionProvider, IDatabaseInformationProvider databaseProvider,
                                                             IProgramFileProvider programFileProvider)
         {
-            if (completionsType == CompletionAnalysisType.Test)
+            if (options.AnalysisType == CompletionAnalysisType.Test)
                 return new TestCompletionAnalysis(span, snapshot.TextBuffer, options);
 
             int currPos = point.GetPosition(snapshot);
@@ -1774,10 +1765,10 @@ namespace VSGenero.EditorExtensions.Intellisense
                 bool includeDatabaseTables = false;
                 IEnumerable<MemberResult> members = null;
 
-                if (completionsType == CompletionAnalysisType.Context)
-                    members = entry.Analysis.GetContextMembers(start, parser, functionProvider, databaseProvider, programFileProvider, 
+                if (options.AnalysisType == CompletionAnalysisType.Context)
+                    members = entry.Analysis.GetContextMembers(start, parser, functionProvider, databaseProvider, programFileProvider, options.IsMemberAccess,
                                                                out includePublicFunctions, out includeDatabaseTables, span.GetText(snapshot));
-                else if (completionsType == CompletionAnalysisType.Normal)
+                else if (options.AnalysisType == CompletionAnalysisType.Normal)
                     members = entry.Analysis.GetAllAvailableMembersByIndex(start, parser, out includePublicFunctions, out includeDatabaseTables);
 
                 if (members != null)

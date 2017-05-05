@@ -2,10 +2,10 @@
 
 namespace Microsoft.VisualStudio.VSCommon.Options
 {
-    public abstract class BaseOptionsUserControl : UserControl
+    public class BaseOptionsUserControl : UserControl
     {
         protected bool IsInitializing;
-        protected abstract void Initialize();
+        protected virtual void Initialize() { }
 
         public void InitializeData()
         {

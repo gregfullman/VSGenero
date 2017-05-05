@@ -8,13 +8,11 @@
  *
  * You must not remove this notice, or any other, from this software.
  *
- * ***************************************************************************/ 
+ * ***************************************************************************/
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace VSGenero.Analysis.Parsing.AST_4GL
 {
@@ -286,14 +284,12 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             }
         }
 
-        public IAnalysisResult GetMember(string name, Genero4glAst ast, out IGeneroProject definingProject, out IProjectEntry projectEntry, bool function)
+        public IAnalysisResult GetMember(GetMemberInput input)
         {
-            definingProject = null;
-            projectEntry = null;
-            return this.Children.Values.Cast<CreatedTableColumn>().FirstOrDefault(x => x.ColumnName.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+            return this.Children.Values.Cast<CreatedTableColumn>().FirstOrDefault(x => x.ColumnName.Name.Equals(input.Name, StringComparison.OrdinalIgnoreCase));
         }
 
-        public IEnumerable<MemberResult> GetMembers(Genero4glAst ast, MemberType memberType, bool getArrayTypeMembers)
+        public IEnumerable<MemberResult> GetMembers(GetMultipleMembersInput input)
         {
             return this.Children.Values.Cast<CreatedTableColumn>().Select(x => new MemberResult(x.ColumnName.Name, x, GeneroMemberType.DbColumn, SyntaxTree));
         }
@@ -469,14 +465,12 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             }
         }
 
-        public IAnalysisResult GetMember(string name, Genero4glAst ast, out IGeneroProject definingProject, out IProjectEntry projectEntry, bool function)
+        public IAnalysisResult GetMember(GetMemberInput input)
         {
-            definingProject = null;
-            projectEntry = null;
             return null;
         }
 
-        public IEnumerable<MemberResult> GetMembers(Genero4glAst ast, MemberType memberType, bool getArrayTypeMembers)
+        public IEnumerable<MemberResult> GetMembers(GetMultipleMembersInput input)
         {
             return new MemberResult[0];
         }

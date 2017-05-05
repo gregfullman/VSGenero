@@ -11,11 +11,6 @@
  *
  * ***************************************************************************/
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using VSGenero.Analysis;
 
 namespace VSGenero.EditorExtensions.Intellisense
@@ -29,6 +24,8 @@ namespace VSGenero.EditorExtensions.Intellisense
 
     public class CompletionOptions
     {
+        public bool IsMemberAccess { get; set; }
+
         /// <summary>
         /// The set of options used by the analyzer.
         /// </summary>

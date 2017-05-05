@@ -18,7 +18,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using VSGenero.Analysis;
 using VSGenero.Analysis.Parsing;
 
@@ -77,7 +76,7 @@ namespace VSGenero.EditorExtensions
         {
             var startLine = startPoint.GetContainingLine();
             int curLine = startLine.LineNumber;
-            var tokens = classifier.GetTokens(new SnapshotSpan(startLine.Start, startPoint));
+            var tokens = classifier.GetTokens(new SnapshotSpan(startLine.Start, startPoint), false);
 
             for (; ; )
             {
@@ -93,7 +92,7 @@ namespace VSGenero.EditorExtensions
                 if (curLine >= 0)
                 {
                     var prevLine = startPoint.Snapshot.GetLineFromLineNumber(curLine);
-                    tokens = classifier.GetTokens(prevLine.Extent);
+                    tokens = classifier.GetTokens(prevLine.Extent, false);
                 }
                 else
                 {
@@ -553,7 +552,7 @@ namespace VSGenero.EditorExtensions
                             {
                                 endCheck = _snapshot.Length - enumerator.Current.Span.End.Position;
                             }
-                            var nextTokens = _classifier.GetTokens(new SnapshotSpan(_snapshot, new Span(enumerator.Current.Span.End.Position - 1, endCheck))).ToList();
+                            var nextTokens = _classifier.GetTokens(new SnapshotSpan(_snapshot, new Span(enumerator.Current.Span.End.Position - 1, endCheck)), false).ToList();
                             int parenIndex = -1;
                             if (nextTokens.Count > 0)
                             {

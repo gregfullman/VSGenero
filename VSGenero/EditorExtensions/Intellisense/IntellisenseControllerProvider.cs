@@ -11,9 +11,9 @@
  *
  * ***************************************************************************/
 
-using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Language.Intellisense;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.IncrementalSearch;
@@ -23,13 +23,8 @@ using Microsoft.VisualStudio.Utilities;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using VSGenero.Analysis;
-using Microsoft.VisualStudio.VSCommon;
 using VSGenero.Snippets;
-using Microsoft.VisualStudio.Shell;
 
 namespace VSGenero.EditorExtensions.Intellisense
 {
@@ -68,6 +63,12 @@ namespace VSGenero.EditorExtensions.Intellisense
         internal IProgramFileProvider _ProgramFileProvider = null;
 
         [Import(AllowDefault = true)]
+        internal IBuildTaskProvider _BuildTaskProvider = null;
+
+        [ImportMany(typeof(ICommentValidator))]
+        internal IEnumerable<ICommentValidator> _CommentValidators = null;
+
+        [Import(AllowDefault = true)]
         internal IGeneroTextViewCommandTarget GeneroCommandTarget;
 
         internal IServiceProvider _ServiceProvider;
@@ -77,6 +78,34 @@ namespace VSGenero.EditorExtensions.Intellisense
         {
             _ServiceProvider = serviceProvider;
             Instance = this;
+
+            if (VSGeneroPackage.Instance != null)
+            {
+                if (VSGeneroPackage.Instance.GlobalFunctionProvider == null)
+                {
+                    VSGeneroPackage.Instance.GlobalFunctionProvider = _PublicFunctionProvider;
+                }
+
+                if (VSGeneroPackage.Instance.ProgramFileProvider == null)
+                {
+                    VSGeneroPackage.Instance.ProgramFileProvider = _ProgramFileProvider;
+                }
+
+                if (VSGeneroPackage.Instance.GlobalDatabaseProvider == null)
+                {
+                    VSGeneroPackage.Instance.GlobalDatabaseProvider = _DatabaseInfoProvider;
+                }
+
+                if (VSGeneroPackage.Instance.BuildTaskProvider == null)
+                {
+                    VSGeneroPackage.Instance.BuildTaskProvider = _BuildTaskProvider;
+                }
+
+                if (VSGeneroPackage.Instance.CommentValidators == null)
+                {
+                    VSGeneroPackage.Instance.CommentValidators = _CommentValidators;
+                }
+            }
         }
 
         internal static IntellisenseControllerProvider Instance { get; private set; }

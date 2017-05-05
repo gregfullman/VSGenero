@@ -10,12 +10,10 @@
  *
  * ***************************************************************************/
 
-using Microsoft.VisualStudio.Text;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace VSGenero.Analysis.Parsing.AST_4GL
 {
@@ -344,11 +342,9 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         protected LocationInfo _location;
         public LocationInfo Location { get { return _location; } }
 
-        public IAnalysisResult GetMember(string name, Genero4glAst ast, out IGeneroProject definingProject, out IProjectEntry projEntry, bool function)
+        public IAnalysisResult GetMember(GetMemberInput input)
         {
-            definingProject = null;
-            projEntry = null;
-
+            string name = input.Name;
             // need to handle cases where the name is a function call. I think the only time this would happen is if name ends with ')'
             if (name.EndsWith(")"))
             {
@@ -370,15 +366,13 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             {
                 MemberType memType = Analysis.MemberType.All;
                 // TODO: there's probably a better way to do this
-                return GetAnalysisMembers(ast, memType, out definingProject, out projEntry, function).Where(x => x.Name.Equals(name, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+                return GetAnalysisMembers(memType, input).Where(x => x.Name.Equals(name, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
             }
             //}
         }
 
-        internal IEnumerable<IAnalysisResult> GetAnalysisMembers(Genero4glAst ast, MemberType memberType, out IGeneroProject definingProject, out IProjectEntry projectEntry, bool function)
+        internal IEnumerable<IAnalysisResult> GetAnalysisMembers(MemberType memberType, GetMemberInput input)
         {
-            definingProject = null;
-            projectEntry = null;
             bool dummyDef;
             List<IAnalysisResult> members = new List<IAnalysisResult>();
             if (Children.Count == 1)
@@ -387,11 +381,11 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 var node = Children[Children.Keys[0]];
                 if (node is ArrayTypeReference)
                 {
-                    return (node as ArrayTypeReference).GetAnalysisResults(ast, memberType, out definingProject, out projectEntry, function);
+                    return (node as ArrayTypeReference).GetAnalysisResults(memberType, input);
                 }
                 else if (node is RecordDefinitionNode)
                 {
-                    return (node as RecordDefinitionNode).GetAnalysisResults(ast);
+                    return (node as RecordDefinitionNode).GetAnalysisResults(input.AST);
                 }
             }
             else
@@ -403,64 +397,78 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 }
                 else if (_typeNameString.Equals("string", StringComparison.OrdinalIgnoreCase))
                 {
-                    return Genero4glAst.StringFunctions.Values.Where(x => ast.LanguageVersion >= x.MinimumLanguageVersion && ast.LanguageVersion <= x.MaximumLanguageVersion);
+                    return Genero4glAst.StringFunctions.Values.Where(x => input.AST.LanguageVersion >= x.MinimumLanguageVersion && input.AST.LanguageVersion <= x.MaximumLanguageVersion);
                 }
                 else if(_typeNameString.Equals("text", StringComparison.OrdinalIgnoreCase))
                 {
-                    return Genero4glAst.TextFunctions.Values.Where(x => ast.LanguageVersion >= x.MinimumLanguageVersion && ast.LanguageVersion <= x.MaximumLanguageVersion);
+                    return Genero4glAst.TextFunctions.Values.Where(x => input.AST.LanguageVersion >= x.MinimumLanguageVersion && input.AST.LanguageVersion <= x.MaximumLanguageVersion);
                 }
                 else if(_typeNameString.Equals("byte", StringComparison.OrdinalIgnoreCase))
                 {
-                    return Genero4glAst.ByteFunctions.Values.Where(x => ast.LanguageVersion >= x.MinimumLanguageVersion && ast.LanguageVersion <= x.MaximumLanguageVersion);
+                    return Genero4glAst.ByteFunctions.Values.Where(x => input.AST.LanguageVersion >= x.MinimumLanguageVersion && input.AST.LanguageVersion <= x.MaximumLanguageVersion);
                 }
                 else
                 {
+                    var gmi = new GetMultipleMembersInput
+                    {
+                        AST = input.AST,
+                        MemberType = memberType,
+                        GetArrayTypeMembers = input.IsFunction
+                    };
+
                     // try to determine if the _typeNameString is a user defined type, in which case we need to call its GetMembers function
-                    IAnalysisResult udt = ast.TryGetUserDefinedType(_typeNameString, LocationIndex);
+                    IAnalysisResult udt = (input.AST as Genero4glAst).TryGetUserDefinedType(_typeNameString, LocationIndex);
                     if (udt != null)
                     {
-                        return udt.GetMembers(ast, memberType, function).Select(x => x.Var).Where(y => y != null);
+                        return udt.GetMembers(gmi).Select(x => x.Var).Where(y => y != null);
                     }
 
-                    if (ast.ProjectEntry != null)
+                    IGeneroProject definingProject;
+                    IProjectEntry projectEntry;
+                    if (input.AST.ProjectEntry != null)
                     {
-                        foreach (var includedFile in ast.ProjectEntry.GetIncludedFiles())
+                        foreach (var includedFile in input.AST.ProjectEntry.GetIncludedFiles())
                         {
                             if (includedFile.Analysis != null)
                             {
                                 var res = includedFile.Analysis.GetValueByIndex(_typeNameString, 1, null, null, null, false, out dummyDef, out definingProject, out projectEntry);
                                 if (res != null)
                                 {
-                                    return res.GetMembers(ast, memberType, function).Select(x => x.Var).Where(y => y != null);
+                                    input.DefiningProject = definingProject;
+                                    input.ProjectEntry = projectEntry;
+                                    return res.GetMembers(gmi).Select(x => x.Var).Where(y => y != null);
                                 }
                             }
                         }
 
                         // try to get the _typeNameString from types available in imported modules
-                        if (ast.ProjectEntry.ParentProject.ReferencedProjects.Count > 0)
+                        if (input.AST.ProjectEntry.ParentProject.ReferencedProjects.Count > 0)
                         {
-                            foreach (var refProj in ast.ProjectEntry.ParentProject.ReferencedProjects.Values)
+                            foreach (var refProj in input.AST.ProjectEntry.ParentProject.ReferencedProjects.Values)
                             {
                                 if (refProj is GeneroProject)
                                 {
                                     IProjectEntry dummyProj;
-                                    udt = (refProj as GeneroProject).GetMemberOfType(_typeNameString, ast, false, true, false, false, out dummyProj);
+                                    udt = (refProj as GeneroProject).GetMemberOfType(_typeNameString, input.AST, false, true, false, false, out dummyProj);
                                     if (udt != null)
                                     {
-                                        definingProject = refProj;
-                                        projectEntry = dummyProj;
-                                        return udt.GetMembers(ast, memberType, function).Select(x => x.Var).Where(y => y != null);
+                                        input.DefiningProject = refProj;
+                                        input.ProjectEntry = dummyProj;
+                                        return udt.GetMembers(gmi).Select(x => x.Var).Where(y => y != null);
                                     }
                                 }
                             }
                         }
                     }
 
+                    
                     // check for package class
-                    udt = ast.GetValueByIndex(_typeNameString, LocationIndex, ast._functionProvider, ast._databaseProvider, ast._programFileProvider, false, out dummyDef, out definingProject, out projectEntry);
+                    udt = input.AST.GetValueByIndex(_typeNameString, LocationIndex, input.AST._functionProvider, input.AST._databaseProvider, input.AST._programFileProvider, false, out dummyDef, out definingProject, out projectEntry);
                     if (udt != null)
                     {
-                        return udt.GetMembers(ast, memberType, function).Select(x => x.Var).Where(y => y != null);
+                        input.DefiningProject = definingProject;
+                        input.ProjectEntry = projectEntry;
+                        return udt.GetMembers(gmi).Select(x => x.Var).Where(y => y != null);
                     }
                 }
             }
@@ -484,7 +492,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             }
         }
 
-        internal IEnumerable<MemberResult> GetArrayMembers(Genero4glAst ast, MemberType memberType, bool getArrayTypeMembers)
+        internal IEnumerable<MemberResult> GetArrayMembers(GetMultipleMembersInput input)
         {
             List<MemberResult> members = new List<MemberResult>();
             if (Children.Count == 1)
@@ -493,13 +501,13 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 var node = Children[Children.Keys[0]];
                 if (node is ArrayTypeReference)
                 {
-                    return (node as ArrayTypeReference).GetMembersInternal(ast, memberType, getArrayTypeMembers);
+                    return (node as ArrayTypeReference).GetMembersInternal(input);
                 }
             }
             return members;
         }
 
-        public IEnumerable<MemberResult> GetMembers(Genero4glAst ast, MemberType memberType, bool getArrayTypeMembers)
+        public IEnumerable<MemberResult> GetMembers(GetMultipleMembersInput input)
         {
             bool dummyDef;
             List<MemberResult> members = new List<MemberResult>();
@@ -509,11 +517,11 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 var node = Children[Children.Keys[0]];
                 if (node is ArrayTypeReference)
                 {
-                    return (node as ArrayTypeReference).GetMembersInternal(ast, memberType, getArrayTypeMembers);
+                    return (node as ArrayTypeReference).GetMembersInternal(input);
                 }
                 else if (node is RecordDefinitionNode)
                 {
-                    return (node as RecordDefinitionNode).GetMembers(ast, memberType, getArrayTypeMembers);
+                    return (node as RecordDefinitionNode).GetMembers(input);
                 }
             }
             else
@@ -524,29 +532,29 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 }
                 else if (_typeNameString.Equals("string", StringComparison.OrdinalIgnoreCase))
                 {
-                    return Genero4glAst.StringFunctions.Values.Where(x => ast.LanguageVersion >= x.MinimumLanguageVersion && ast.LanguageVersion <= x.MaximumLanguageVersion)
-                                                              .Select(x => new MemberResult(x.Name, x, GeneroMemberType.Method, ast));
+                    return Genero4glAst.StringFunctions.Values.Where(x => input.AST.LanguageVersion >= x.MinimumLanguageVersion && input.AST.LanguageVersion <= x.MaximumLanguageVersion)
+                                                              .Select(x => new MemberResult(x.Name, x, GeneroMemberType.Method, input.AST));
                 }
                 else if (_typeNameString.Equals("text", StringComparison.OrdinalIgnoreCase))
                 {
-                    return Genero4glAst.TextFunctions.Values.Where(x => ast.LanguageVersion >= x.MinimumLanguageVersion && ast.LanguageVersion <= x.MaximumLanguageVersion)
-                                                            .Select(x => new MemberResult(x.Name, x, GeneroMemberType.Method, ast));
+                    return Genero4glAst.TextFunctions.Values.Where(x => input.AST.LanguageVersion >= x.MinimumLanguageVersion && input.AST.LanguageVersion <= x.MaximumLanguageVersion)
+                                                            .Select(x => new MemberResult(x.Name, x, GeneroMemberType.Method, input.AST));
                 }
                 else if (_typeNameString.Equals("byte", StringComparison.OrdinalIgnoreCase))
                 {
-                    return Genero4glAst.ByteFunctions.Values.Where(x => ast.LanguageVersion >= x.MinimumLanguageVersion && ast.LanguageVersion <= x.MaximumLanguageVersion)
-                                                            .Select(x => new MemberResult(x.Name, x, GeneroMemberType.Method, ast));
+                    return Genero4glAst.ByteFunctions.Values.Where(x => input.AST.LanguageVersion >= x.MinimumLanguageVersion && input.AST.LanguageVersion <= x.MaximumLanguageVersion)
+                                                            .Select(x => new MemberResult(x.Name, x, GeneroMemberType.Method, input.AST));
                 }
                 else
                 {
                     // try to determine if the _typeNameString is a user defined type (or package class), in which case we need to call its GetMembers function
-                    IAnalysisResult udt = ast.TryGetUserDefinedType(_typeNameString, LocationIndex);
+                    IAnalysisResult udt = (input.AST as Genero4glAst).TryGetUserDefinedType(_typeNameString, LocationIndex);
                     if (udt != null)
                     {
-                        return udt.GetMembers(ast, memberType, getArrayTypeMembers);
+                        return udt.GetMembers(input);
                     }
 
-                    foreach (var includedFile in ast.ProjectEntry.GetIncludedFiles())
+                    foreach (var includedFile in input.AST.ProjectEntry.GetIncludedFiles())
                     {
                         if (includedFile.Analysis != null)
                         {
@@ -555,22 +563,22 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                             var res = includedFile.Analysis.GetValueByIndex(_typeNameString, 1, null, null, null, false, out dummyDef, out dummyProj, out dummyProjEntry);
                             if (res != null)
                             {
-                                return res.GetMembers(ast, memberType, getArrayTypeMembers);
+                                return res.GetMembers(input);
                             }
                         }
                     }
 
-                    if (ast.ProjectEntry.ParentProject.ReferencedProjects.Count > 0)
+                    if (input.AST.ProjectEntry.ParentProject.ReferencedProjects.Count > 0)
                     {
-                        foreach (var refProj in ast.ProjectEntry.ParentProject.ReferencedProjects.Values)
+                        foreach (var refProj in input.AST.ProjectEntry.ParentProject.ReferencedProjects.Values)
                         {
                             if (refProj is GeneroProject)
                             {
                                 IProjectEntry dummyProj;
-                                udt = (refProj as GeneroProject).GetMemberOfType(_typeNameString, ast, false, true, false, false, out dummyProj);
+                                udt = (refProj as GeneroProject).GetMemberOfType(_typeNameString, input.AST, false, true, false, false, out dummyProj);
                                 if (udt != null)
                                 {
-                                    return udt.GetMembers(ast, memberType, getArrayTypeMembers);
+                                    return udt.GetMembers(input);
                                 }
                             }
                         }
@@ -579,10 +587,10 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     // check for package class
                     IGeneroProject dummyProject;
                     IProjectEntry projEntry;
-                    udt = ast.GetValueByIndex(_typeNameString, LocationIndex, ast._functionProvider, ast._databaseProvider, ast._programFileProvider, false, out dummyDef, out dummyProject, out projEntry);
+                    udt = input.AST.GetValueByIndex(_typeNameString, LocationIndex, input.AST._functionProvider, input.AST._databaseProvider, input.AST._programFileProvider, false, out dummyDef, out dummyProject, out projEntry);
                     if (udt != null)
                     {
-                        return udt.GetMembers(ast, memberType, getArrayTypeMembers);
+                        return udt.GetMembers(input);
                     }
                 }
             }

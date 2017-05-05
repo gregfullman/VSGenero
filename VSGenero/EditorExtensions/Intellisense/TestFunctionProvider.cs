@@ -11,13 +11,9 @@
  *
  * ***************************************************************************/
 
-using Microsoft.VisualStudio.Utilities;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.Composition;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using VSGenero.Analysis;
 using VSGenero.Analysis.Parsing;
 using VSGenero.Analysis.Parsing.AST_4GL;
@@ -93,18 +89,16 @@ namespace VSGenero.EditorExtensions.Intellisense
             return _collections.Count > 0;
         }
 
-        public IAnalysisResult GetMember(string name, Genero4glAst ast, out IGeneroProject definingProject, out IProjectEntry projEntry, bool function)
+        public IAnalysisResult GetMember(GetMemberInput input)
         {
-            definingProject = null;
-            projEntry = null;
             TestFunctionCollection collection = null;
-            _collections.TryGetValue(name, out collection);
+            _collections.TryGetValue(input.Name, out collection);
             return collection;
         }
 
-        public IEnumerable<MemberResult> GetMembers(Genero4glAst ast, MemberType memberType, bool getArrayTypeMembers)
+        public IEnumerable<MemberResult> GetMembers(GetMultipleMembersInput input)
         {
-            return _collections.Values.Select(x => new MemberResult(x.Name, x, GeneroMemberType.Class, ast));
+            return _collections.Values.Select(x => new MemberResult(x.Name, x, GeneroMemberType.Class, input.AST));
         }
 
 
@@ -216,16 +210,14 @@ namespace VSGenero.EditorExtensions.Intellisense
             return _functions.Count > 0;
         }
 
-        public IAnalysisResult GetMember(string name, Genero4glAst ast, out IGeneroProject definingProject, out IProjectEntry projEntry, bool function)
+        public IAnalysisResult GetMember(GetMemberInput input)
         {
-            definingProject = null;
-            projEntry = null;
-            return GetFunction(name);
+            return GetFunction(input.Name);
         }
 
-        public IEnumerable<MemberResult> GetMembers(Genero4glAst ast, MemberType memberType, bool getArrayTypeMembers)
+        public IEnumerable<MemberResult> GetMembers(GetMultipleMembersInput input)
         {
-            return _functions.Values.Select(x => new MemberResult(x.Name, x, GeneroMemberType.Method, ast));
+            return _functions.Values.Select(x => new MemberResult(x.Name, x, GeneroMemberType.Method, input.AST));
         }
 
         internal TestFunction GetFunction(string name)
@@ -346,14 +338,12 @@ namespace VSGenero.EditorExtensions.Intellisense
             return false;
         }
 
-        public IAnalysisResult GetMember(string name, Genero4glAst ast, out IGeneroProject definingProject, out IProjectEntry projEntry, bool function)
+        public IAnalysisResult GetMember(GetMemberInput input)
         {
-            definingProject = null;
-            projEntry = null;
             return null;
         }
 
-        public IEnumerable<MemberResult> GetMembers(Genero4glAst ast, MemberType memberType, bool getArrayTypeMembers)
+        public IEnumerable<MemberResult> GetMembers(GetMultipleMembersInput input)
         {
             return new List<MemberResult>();
         }

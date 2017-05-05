@@ -15,12 +15,9 @@ using Microsoft.VisualStudio.Language.StandardClassification;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Utilities;
-using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using VSGenero.Analysis;
 using VSGenero.Analysis.Parsing;
 
@@ -72,6 +69,9 @@ namespace VSGenero.EditorExtensions
 
         [Import(AllowDefault = true)]
         internal IProgramFileProvider _ProgramFileProvider = null;
+
+        [Import(AllowDefault = true)]
+        internal IBuildTaskProvider _BuildTaskProvider = null;
 
         [ImportMany(typeof(ICommentValidator))]
         internal IEnumerable<ICommentValidator> _CommentValidators = null;
@@ -140,6 +140,11 @@ namespace VSGenero.EditorExtensions
                 if (VSGeneroPackage.Instance.GlobalDatabaseProvider == null)
                 {
                     VSGeneroPackage.Instance.GlobalDatabaseProvider = _DatabaseInfoProvider;
+                }
+
+                if(VSGeneroPackage.Instance.BuildTaskProvider == null)
+                {
+                    VSGeneroPackage.Instance.BuildTaskProvider = _BuildTaskProvider;
                 }
 
                 if (VSGeneroPackage.Instance.CommentValidators == null)
