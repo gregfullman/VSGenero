@@ -510,7 +510,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     result = true;
                     parser.NextToken();
 
-                    if (!options.AllowAnythingForFunctionParams)
+                    if (!options.AllowAnythingForFunctionParams && !_skipValidationFunctionNames.Contains(name.Name))
                     {
                         // Parameters can be any expression, comma seperated
                         ExpressionNode expr;
