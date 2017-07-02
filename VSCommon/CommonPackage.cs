@@ -222,40 +222,47 @@ namespace Microsoft.VisualStudio.VSCommon
 
         public void RegisterCommands(IEnumerable<CommonCommand> commands, Guid cmdSet)
         {
-            OleMenuCommandService mcs = GetService(typeof(IMenuCommandService)) as OleMenuCommandService;
-            if (null != mcs)
+            try
             {
-                lock (_commandsLock)
+                OleMenuCommandService mcs = GetService(typeof(IMenuCommandService)) as OleMenuCommandService;
+                if (null != mcs)
                 {
-                    foreach (var command in commands)
+                    lock (_commandsLock)
                     {
-                        var beforeQueryStatus = command.BeforeQueryStatus;
-                        CommandID toolwndCommandID = new CommandID(cmdSet, command.CommandId);
-                        if (beforeQueryStatus == null)
+                        foreach (var command in commands)
                         {
-                            MenuCommand menuToolWin = new MenuCommand(command.DoCommand, toolwndCommandID);
-                            mcs.AddCommand(menuToolWin);
-                            _commands[command] = menuToolWin;
-                        }
-                        else
-                        {
-                            OleMenuCommand menuToolWin = new OleMenuCommand(command.DoCommand, toolwndCommandID);
-                            menuToolWin.BeforeQueryStatus += beforeQueryStatus;
-                            if (command is ComboBoxCommand)
+                            var beforeQueryStatus = command.BeforeQueryStatus;
+                            CommandID toolwndCommandID = new CommandID(cmdSet, command.CommandId);
+                            if (beforeQueryStatus == null)
                             {
-                                var cbCommand = (command as ComboBoxCommand);
-                                if (cbCommand.ParameterDescription != null)
-                                    menuToolWin.ParametersDescription = cbCommand.ParameterDescription;
-                                CommandID getListCommandId = new CommandID(cmdSet, cbCommand.GetListCommandId);
-                                OleMenuCommand getListCmd = new OleMenuCommand(cbCommand.DoGetListCommand, getListCommandId);
-                                mcs.AddCommand(getListCmd);
+                                MenuCommand menuToolWin = new MenuCommand(command.DoCommand, toolwndCommandID);
+                                mcs.AddCommand(menuToolWin);
+                                _commands[command] = menuToolWin;
                             }
+                            else
+                            {
+                                OleMenuCommand menuToolWin = new OleMenuCommand(command.DoCommand, toolwndCommandID);
+                                menuToolWin.BeforeQueryStatus += beforeQueryStatus;
+                                if (command is ComboBoxCommand)
+                                {
+                                    var cbCommand = (command as ComboBoxCommand);
+                                    if (cbCommand.ParameterDescription != null)
+                                        menuToolWin.ParametersDescription = cbCommand.ParameterDescription;
+                                    CommandID getListCommandId = new CommandID(cmdSet, cbCommand.GetListCommandId);
+                                    OleMenuCommand getListCmd = new OleMenuCommand(cbCommand.DoGetListCommand, getListCommandId);
+                                    mcs.AddCommand(getListCmd);
+                                }
 
-                            mcs.AddCommand(menuToolWin);
-                            _commands[command] = menuToolWin;
+                                mcs.AddCommand(menuToolWin);
+                                _commands[command] = menuToolWin;
+                            }
                         }
                     }
                 }
+            }
+            catch(Exception e)
+            {
+                _logger.Info(e, "Command registration failed, likely because it was already done.");
             }
         }
 

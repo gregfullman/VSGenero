@@ -50,6 +50,7 @@ namespace VSGenero.Analysis
 
     public interface IProgramFileProvider
     {
+        bool ShouldAnalyzeDirectory(string filename);
         IEnumerable<string> GetProgramFilenames(string filename);
         string GetImportModuleFilename(string importModule, string currentFilename);
         IEnumerable<string> GetAvailableImportModules(string currentFilename);

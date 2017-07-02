@@ -881,6 +881,12 @@ namespace VSGenero.EditorExtensions.Intellisense
                 return false;
             }
 
+            if (VSGeneroPackage.Instance.ProgramFileProvider != null &&
+               !VSGeneroPackage.Instance.ProgramFileProvider.ShouldAnalyzeDirectory(path))
+            {
+                return false;
+            }
+
             // For now, we're going to assume that the scope of the program
             // is the directory in which the specified file resides.
             return true;
