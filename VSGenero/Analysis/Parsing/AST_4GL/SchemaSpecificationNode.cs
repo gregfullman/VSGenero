@@ -30,7 +30,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
     /// </summary>
     public class SchemaSpecificationNode : AstNode4gl
     {
-        public FglNameExpression SchemaName { get; private set; }
+        public ExpressionNode SchemaName { get; private set; }
 
         public static bool TryParseDefine(Genero4glParser parser, out SchemaSpecificationNode defNode)
         {
@@ -52,7 +52,16 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 }
                 else
                 {
-                    parser.ReportSyntaxError(defNode.StartIndex, parser.Token.Span.End, "Invalid token type found.");
+                    StringExpressionNode strExp;
+                    if (StringExpressionNode.TryGetExpressionNode(parser, out strExp))
+                    {
+                        defNode.SchemaName = nameExp;
+                        defNode.EndIndex = parser.Token.Span.End;
+                    }
+                    else
+                    {
+                        parser.ReportSyntaxError(defNode.StartIndex, parser.Token.Span.End, "Invalid token type found.");
+                    }
                 }
             }
             else
@@ -86,7 +95,17 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     }
                     else
                     {
-                        parser.ReportSyntaxError(defNode.StartIndex, parser.Token.Span.End, "Invalid token type found.");
+                        StringExpressionNode strExp;
+                        if (StringExpressionNode.TryGetExpressionNode(parser, out strExp))
+                        {
+                            defNode.SchemaName = nameExp;
+                            defNode.EndIndex = parser.Token.Span.End;
+                            defNode.IsComplete = true;
+                        }
+                        else
+                        {
+                            parser.ReportSyntaxError(defNode.StartIndex, parser.Token.Span.End, "Invalid token type found.");
+                        }
                     }
                 }
                 else if(defNode != null)
