@@ -181,6 +181,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
             ArrayTypeReference arrayType;
             RecordDefinitionNode recordDef;
+            FunctionTypeReference functionType;
             if (ArrayTypeReference.TryParseNode(parser, out arrayType) && arrayType != null)
             {
                 result = true;
@@ -189,6 +190,17 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 defNode.EndIndex = arrayType.EndIndex;
                 defNode._isPublic = isPublic;
                 defNode.Children.Add(arrayType.StartIndex, arrayType);
+                defNode.IsComplete = true;
+            }
+            else if(parser.LanguageVersion >= GeneroLanguageVersion.V310 &&
+                    FunctionTypeReference.TryParseNode(parser, out functionType) && functionType != null)
+            {
+                result = true;
+                defNode = new TypeReference();
+                defNode.StartIndex = functionType.StartIndex;
+                defNode.EndIndex = functionType.EndIndex;
+                defNode._isPublic = isPublic;
+                defNode.Children.Add(functionType.StartIndex, functionType);
                 defNode.IsComplete = true;
             }
             else if (RecordDefinitionNode.TryParseNode(parser, out recordDef, isPublic) && recordDef != null)

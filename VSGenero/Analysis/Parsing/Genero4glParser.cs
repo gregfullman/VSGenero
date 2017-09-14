@@ -37,14 +37,24 @@ namespace VSGenero.Analysis.Parsing
 
         #endregion
 
+        private GeneroLanguageVersion _languageVersion = GeneroLanguageVersion.None;
+        public override GeneroLanguageVersion LanguageVersion
+        {
+            get
+            {
+                return _languageVersion;
+            }
+        }
+
         protected override GeneroAst CreateAst()
         {
+            _languageVersion = GeneroLanguageVersionExtensions.GetLanguageVersion(_filename);
             ModuleNode moduleNode = null;
             if (ModuleNode.TryParseNode(this, out moduleNode))
             {
                 var ast = new Genero4glAst(moduleNode, 
-                                           _tokenizer.GetLineLocations(), 
-                                           GeneroLanguageVersionExtensions.GetLanguageVersion(_filename), 
+                                           _tokenizer.GetLineLocations(),
+                                           LanguageVersion, 
                                            _projectEntry, 
                                            _filename);
                 UpdateNodeAndTree(moduleNode, ast);

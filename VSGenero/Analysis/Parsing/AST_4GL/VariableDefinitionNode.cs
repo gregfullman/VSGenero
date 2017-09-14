@@ -197,7 +197,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             }
         }
 
-        public static bool TryParseNode(IParser parser, out VariableDefinitionNode defNode, Action<VariableDef> binder = null)
+        public static bool TryParseNode(IParser parser, out VariableDefinitionNode defNode, Action<VariableDef> binder = null, bool reportSyntaxError = true, bool allowShorthandDefinition = true)
         {
             defNode = null;
             bool result = false;
@@ -210,7 +210,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             {
                 identifiers.Add(new Tuple<string, int>(tok.Token.Value.ToString(), tok.Span.Start));
                 peekaheadCount++;
-                if (!parser.PeekToken(TokenKind.Comma, peekaheadCount))
+                if (!parser.PeekToken(TokenKind.Comma, peekaheadCount) || !allowShorthandDefinition)
                     break;
                 peekaheadCount++;
                 tok = parser.PeekTokenWithSpan(peekaheadCount);
@@ -242,7 +242,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 }
                 else
                 {
-                    parser.ReportSyntaxError("No type defined for variable(s).");
+                    if(reportSyntaxError)
+                        parser.ReportSyntaxError("No type defined for variable(s).");
                     result = false;
                 }
 

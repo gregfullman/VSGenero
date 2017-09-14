@@ -14,11 +14,11 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
     {
         private object _initializeLock = new object();
         private const string _githubFile = @"https://gitcdn.xyz/repo/gregfullman/VSGenero/master/VSGenero/CompletionContexts.xml";
-        private readonly Dictionary<object, IEnumerable<ContextPossibilities>> _contextMap;
+        private readonly Dictionary<object, ContextEntry> _contextMap;
 
         private ContextCompletionMap()
         {
-            _contextMap = new Dictionary<object, IEnumerable<ContextPossibilities>>();
+            _contextMap = new Dictionary<object, ContextEntry>();
         }
 
         private static ContextCompletionMap _instance;
@@ -62,12 +62,12 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             }
         }
 
-        internal void Add(object key, IEnumerable<ContextPossibilities> contextPossibilities)
+        internal void Add(object key, ContextEntry contextEntry)
         {
-            _contextMap.Add(key, contextPossibilities);
+            _contextMap.Add(key, contextEntry);
         }
 
-        internal bool TryGetValue(object key, out IEnumerable<ContextPossibilities> value)
+        internal bool TryGetValue(object key, out ContextEntry value)
         {
             return _contextMap.TryGetValue(key, out value);
         }
@@ -132,12 +132,20 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                             return false;
                         }
 
-                        List<ContextPossibilities> possibilities = new List<ContextPossibilities>();
+                        GeneroLanguageVersion contextEntryGLV = GeneroLanguageVersion.None;
+                        if (contextEntry.Attributes["minLanguageVersion"] != null)
+                            contextEntryGLV = GeneroLanguageVersionExtensions.ToLanguageVersion(contextEntry.Attributes["minLanguageVersion"].Value);
+
+                        List<ContextPossibility> possibilities = new List<ContextPossibility>();
                         foreach(XmlNode contextPossibility in contextEntry.ChildNodes)
                         {
-                            var singleTokens = new List<TokenKind>();
+                            var singleTokens = new List<SingleToken>();
                             var setProviders = new List<ContextSetProviderContainer>();
                             var backwardItems = new List<BackwardTokenSearchItem>();
+
+                            GeneroLanguageVersion contextPossibilityGLV = GeneroLanguageVersion.None;
+                            if (contextPossibility.Attributes["minLanguageVersion"] != null)
+                                contextPossibilityGLV = GeneroLanguageVersionExtensions.ToLanguageVersion(contextPossibility.Attributes["minLanguageVersion"].Value);
 
                             foreach(XmlNode possibility in contextPossibility.ChildNodes)
                             {
@@ -157,7 +165,10 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                                 {
                                                     tokenKind = (TokenKind)Enum.Parse(typeof(TokenKind), tokenNode.InnerText);
                                                 }
-                                                singleTokens.Add(tokenKind);
+                                                GeneroLanguageVersion singleTokenGLV = GeneroLanguageVersion.None;
+                                                if(tokenNode.Attributes["minLanguageVersion"] != null)
+                                                    singleTokenGLV = GeneroLanguageVersionExtensions.ToLanguageVersion(tokenNode.Attributes["minLanguageVersion"].Value);
+                                                singleTokens.Add(new SingleToken(tokenKind, singleTokenGLV));
                                             }
                                         }
                                         break;
@@ -178,10 +189,14 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                                     var del = Delegate.CreateDelegate(typeof(ContextSetProvider), provider);
                                                     if(del != null)
                                                     {
+                                                        GeneroLanguageVersion providerGLV = GeneroLanguageVersion.None;
+                                                        if (setProviderNode.Attributes["minLanguageVersion"] != null)
+                                                            providerGLV = GeneroLanguageVersionExtensions.ToLanguageVersion(setProviderNode.Attributes["minLanguageVersion"].Value);
                                                         setProviders.Add(new ContextSetProviderContainer
                                                         {
                                                             Provider = del as ContextSetProvider,
-                                                            ReturningTypes = mt
+                                                            ReturningTypes = mt,
+                                                            MinimumLanguageVersion = providerGLV
                                                         });
                                                     }
                                                 }
@@ -195,6 +210,10 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                                 if(backwardItemNode.Name == "BackwardTokenSearchItem" &&
                                                    backwardItemNode.ChildNodes.Count == 1)
                                                 {
+                                                    GeneroLanguageVersion bsiGLV = GeneroLanguageVersion.None;
+                                                    if (backwardItemNode.Attributes["minLanguageVersion"] != null)
+                                                        bsiGLV = GeneroLanguageVersionExtensions.ToLanguageVersion(backwardItemNode.Attributes["minLanguageVersion"].Value);
+
                                                     bool match = true;
                                                     if (backwardItemNode.Attributes != null && backwardItemNode.Attributes["Match"] != null)
                                                         match = bool.Parse(backwardItemNode.Attributes["Match"].Value);
@@ -211,7 +230,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                                         {
                                                             tokenKind = (TokenKind)Enum.Parse(typeof(TokenKind), backwardItem.InnerText);
                                                         }
-                                                        backwardItems.Add(new BackwardTokenSearchItem(tokenKind, match));
+                                                        backwardItems.Add(new BackwardTokenSearchItem(tokenKind, match, bsiGLV));
                                                     }
                                                     else if(backwardItem.Name == "OrderedTokenSet")
                                                     {
@@ -245,7 +264,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                                                 tokenSet.Add(tokenItem);
                                                             }
                                                         }
-                                                        backwardItems.Add(new BackwardTokenSearchItem(new OrderedTokenSet(tokenSet), match));
+                                                        backwardItems.Add(new BackwardTokenSearchItem(new OrderedTokenSet(tokenSet), match, bsiGLV));
                                                     }
                                                 }
                                             }
@@ -253,10 +272,10 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                         break;
                                 }
                             }
-                            possibilities.Add(new ContextPossibilities(singleTokens.ToArray(), setProviders.ToArray(), backwardItems.ToArray()));
+                            possibilities.Add(new ContextPossibility(singleTokens.ToArray(), setProviders.ToArray(), backwardItems.ToArray(), contextPossibilityGLV));
                         }
                         // add to the dictionary
-                        _contextMap.Add(key, possibilities);
+                        _contextMap.Add(key, new ContextEntry(possibilities, contextEntryGLV));
                     }
                 }
             }
@@ -306,7 +325,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 contextEntry.Attributes.Append(CreateAttribute(contextXml, "Type", type));
 
                 XmlElement contextPossibility;
-                foreach(var possibility in entry.Value)
+                foreach(var possibility in entry.Value.ContextPossibilities)
                 {
                     contextPossibility = contextXml.CreateElement("ContextPossibility");
 
@@ -316,7 +335,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         XmlElement singleToken;
                         foreach(var token in possibility.SingleTokens)
                         {
-                            if (Tokens.TokenKinds.TryGetValue(token, out name))
+                            if (Tokens.TokenKinds.TryGetValue(token.Token, out name))
                             {
                                 singleToken = contextXml.CreateElement("Token");
                                 singleToken.InnerText = name;

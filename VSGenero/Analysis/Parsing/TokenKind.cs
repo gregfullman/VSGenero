@@ -410,6 +410,7 @@ namespace VSGenero.Analysis.Parsing
         RestartKeyword,
         ReturningKeyword,
         ReturnKeyword,
+        ReturnsKeyword,
         ReverseKeyword,
         RightKeyword,
         RollbackKeyword,

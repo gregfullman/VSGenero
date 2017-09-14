@@ -21,6 +21,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
     {
         public MemberType ReturningTypes { get; set; }
         public ContextSetProvider Provider { get; set; }
+        public GeneroLanguageVersion MinimumLanguageVersion { get; set; }
     }
 
     public partial class Genero4glAst
@@ -260,12 +261,12 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     continue;   // linebreak
 
                 // Look for the token in the context map
-                IEnumerable<ContextPossibilities> possibilities;
-                if (ContextCompletionMap.Instance.TryGetValue(tokInfo.Token.Kind, out possibilities) ||
-                    ContextCompletionMap.Instance.TryGetValue(tokInfo.Category, out possibilities))
+                ContextEntry contextEntry;
+                if (ContextCompletionMap.Instance.TryGetValue(tokInfo.Token.Kind, out contextEntry) ||
+                    ContextCompletionMap.Instance.TryGetValue(tokInfo.Category, out contextEntry))
                 {
-                    var matchContainer = new ContextPossibilityMatchContainer(possibilities);
-                    IEnumerable<ContextPossibilities> matchingPossibilities;
+                    var matchContainer = new ContextPossibilityMatchContainer(contextEntry, this);
+                    IEnumerable<ContextPossibility> matchingPossibilities;
                     if (matchContainer.TryMatchContextPossibility(tokInfo.SourceSpan.Start.Index, revTokenizer, out matchingPossibilities))
                     {
                         if (onlyVerifyEmptyContext)
@@ -312,12 +313,12 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     continue;   // linebreak
 
                 // Look for the token in the context map
-                IEnumerable<ContextPossibilities> possibilities;
-                if (ContextCompletionMap.Instance.TryGetValue(tokInfo.Token.Kind, out possibilities) ||
-                    ContextCompletionMap.Instance.TryGetValue(tokInfo.Category, out possibilities))
+                ContextEntry contextEntry;
+                if (ContextCompletionMap.Instance.TryGetValue(tokInfo.Token.Kind, out contextEntry) ||
+                    ContextCompletionMap.Instance.TryGetValue(tokInfo.Category, out contextEntry))
                 {
-                    var matchContainer = new ContextPossibilityMatchContainer(possibilities);
-                    IEnumerable<ContextPossibilities> matchingPossibilities;
+                    var matchContainer = new ContextPossibilityMatchContainer(contextEntry, this);
+                    IEnumerable<ContextPossibility> matchingPossibilities;
                     if (matchContainer.TryMatchContextPossibility(tokInfo.SourceSpan.Start.Index, revTokenizer, out matchingPossibilities))
                     {
                         if (onlyVerifyEmptyContext)
@@ -341,10 +342,10 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             }
         }
 
-        private void LoadPossibilitySet(int index, ContextPossibilities matchedPossibility, List<MemberResult> members)
+        private void LoadPossibilitySet(int index, ContextPossibility matchedPossibility, List<MemberResult> members)
         {
             members.AddRange(matchedPossibility.SingleTokens.Select(x =>
-                new MemberResult(Tokens.TokenKinds[x], GeneroMemberType.Keyword, _instance)));
+                new MemberResult(Tokens.TokenKinds[x.Token], GeneroMemberType.Keyword, _instance)));
             foreach (var provider in matchedPossibility.SetProviders)
                 members.AddRange(provider.Provider(index));
         }
@@ -353,21 +354,23 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         {
             private Dictionary<object, List<BackwardTokenSearchItem>> _flatMatchingSet;
             private HashSet<object> _flatNonMatchingSet;
-            private List<ContextPossibilities> _possibilitiesWithNoBackwardSearch;
+            private List<ContextPossibility> _possibilitiesWithNoBackwardSearch;
             private int _matchingRound;
+            private GeneroAst _parentTree;
 
-            public ContextPossibilityMatchContainer(IEnumerable<ContextPossibilities> possibilities)
+            public ContextPossibilityMatchContainer(ContextEntry contextEntry, GeneroAst parentTree)
             {
+                _parentTree = parentTree;
                 _matchingRound = 0;
                 _flatMatchingSet = new Dictionary<object, List<BackwardTokenSearchItem>>();
                 _flatNonMatchingSet = new HashSet<object>();
-                _possibilitiesWithNoBackwardSearch = new List<ContextPossibilities>();
-                InitializeQueues(possibilities);
+                _possibilitiesWithNoBackwardSearch = new List<ContextPossibility>();
+                InitializeQueues(contextEntry);
             }
 
-            private void InitializeQueues(IEnumerable<ContextPossibilities> possibilities)
+            private void InitializeQueues(ContextEntry contextEntry)
             {
-                foreach (var possibility in possibilities)
+                foreach (var possibility in contextEntry.ContextPossibilities)
                 {
                     if (possibility.BackwardSearchItems.Length > 0)
                     {
@@ -404,9 +407,9 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 }
             }
 
-            public bool TryMatchContextPossibility(int index, IReverseTokenizer revTokenizer, out IEnumerable<ContextPossibilities> matchingPossibilities)
+            public bool TryMatchContextPossibility(int index, IReverseTokenizer revTokenizer, out IEnumerable<ContextPossibility> matchingPossibilities)
             {
-                List<ContextPossibilities> retList = new List<ContextPossibilities>();
+                List<ContextPossibility> retList = new List<ContextPossibility>();
                 bool isMatch = false;
 
                 if (_flatMatchingSet.Count > 0)
@@ -431,9 +434,10 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         {
                             // need to attempt matching the match list
                             // 1) grab the potential matches with an ordered set and attempt to completely match each set. If one of the sets completely matches, we have a winner
-                            foreach (var potentialMatch in matchList.Where(x => x.TokenSet != null))
+                            foreach (var potentialMatch in matchList.Where(x => _parentTree.LanguageVersion >= x.MinimumLanguageVersion && x.TokenSet != null))
                             {
-                                if (AttemptOrderedSetMatch(tokInfo.SourceSpan.Start.Index, revTokenizer, potentialMatch.TokenSet))
+                                if (AttemptOrderedSetMatch(tokInfo.SourceSpan.Start.Index, revTokenizer, potentialMatch.TokenSet) &&
+                                    _parentTree.LanguageVersion >= potentialMatch.ParentContext.MinimumLanguageVersion)
                                 {
                                     retList.Add(potentialMatch.ParentContext);
                                     isMatch = true;
@@ -449,7 +453,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                 (x.SingleToken is TokenCategory && (TokenCategory)x.SingleToken != TokenCategory.None)).ToList();
                             if (singleMatches.Count > 0)
                             {
-                                retList.AddRange(singleMatches.Select(x => x.ParentContext));
+                                retList.AddRange(singleMatches.Where(x => _parentTree.LanguageVersion >= x.MinimumLanguageVersion).Select(x => x.ParentContext));
                                 isMatch = true;// singleMatches.All(x => x.Match);  // TODO: the match flag isn't being used....need to figure that out.
                                 break;
                             }
@@ -462,9 +466,10 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         {
                             // need to attempt matching the match list
                             // 1) grab the potential matches with an ordered set and attempt to completely match each set. If one of the sets completely matches, we have a winner
-                            foreach (var potentialMatch in _flatNonMatchingSet.SelectMany(x => _flatMatchingSet[x]).Where(x => x.TokenSet != null))
+                            foreach (var potentialMatch in _flatNonMatchingSet.SelectMany(x => _flatMatchingSet[x]).Where(x => _parentTree.LanguageVersion >= x.MinimumLanguageVersion && x.TokenSet != null))
                             {
-                                if (AttemptOrderedSetMatch(tokInfo.SourceSpan.Start.Index, revTokenizer, potentialMatch.TokenSet, false))
+                                if (AttemptOrderedSetMatch(tokInfo.SourceSpan.Start.Index, revTokenizer, potentialMatch.TokenSet, false) &&
+                                    _parentTree.LanguageVersion >= potentialMatch.ParentContext.MinimumLanguageVersion)
                                 {
                                     retList.Add(potentialMatch.ParentContext);
                                     isMatch = true;
@@ -480,7 +485,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                 (x.SingleToken is TokenCategory && (TokenCategory)x.SingleToken != TokenCategory.None)).ToList();
                             if (singleMatches.Count > 0)
                             {
-                                retList.AddRange(singleMatches.Select(x => x.ParentContext));
+                                retList.AddRange(singleMatches.Where(x => _parentTree.LanguageVersion >= x.MinimumLanguageVersion).Select(x => x.ParentContext));
                                 isMatch = true;
                                 break;
                             }
@@ -500,7 +505,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
                 if (!isMatch && _possibilitiesWithNoBackwardSearch.Count > 0)
                 {
-                    retList.AddRange(_possibilitiesWithNoBackwardSearch);
+                    retList.AddRange(_possibilitiesWithNoBackwardSearch.Where(x => _parentTree.LanguageVersion >= x.MinimumLanguageVersion));
                     isMatch = true;
                 }
 
@@ -564,15 +569,29 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         }
     }
 
-    internal class ContextPossibilities
+    internal class ContextEntry : LanguageVersionSupported
     {
-        public TokenKind[] SingleTokens { get; private set; }
+        public IEnumerable<ContextPossibility> ContextPossibilities { get; private set; }
+
+        public ContextEntry(IEnumerable<ContextPossibility> contextPossibles,
+                            GeneroLanguageVersion minLangVersion = GeneroLanguageVersion.None)
+            : base(minLangVersion)
+        {
+            ContextPossibilities = contextPossibles;
+        }
+    }
+
+    internal class ContextPossibility : LanguageVersionSupported
+    {
+        public SingleToken[] SingleTokens { get; private set; }
         public ContextSetProviderContainer[] SetProviders { get; private set; }
         public BackwardTokenSearchItem[] BackwardSearchItems { get; private set; }
 
-        public ContextPossibilities(TokenKind[] singleTokens,
+        public ContextPossibility(SingleToken[] singleTokens,
             ContextSetProviderContainer[] setProviders,
-            BackwardTokenSearchItem[] backwardSearchItems)
+            BackwardTokenSearchItem[] backwardSearchItems, 
+            GeneroLanguageVersion minLangVersion = GeneroLanguageVersion.None)
+            : base(minLangVersion)
         {
             SingleTokens = singleTokens;
             SetProviders = setProviders;
@@ -580,21 +599,23 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         }
     }
 
-    internal class BackwardTokenSearchItem
+    internal class BackwardTokenSearchItem : LanguageVersionSupported
     {
         public OrderedTokenSet TokenSet { get; private set; }
         public object SingleToken { get; private set; }
         public bool Match { get; private set; }
-        public ContextPossibilities ParentContext { get; set; }
+        public ContextPossibility ParentContext { get; set; }
 
-        public BackwardTokenSearchItem(OrderedTokenSet tokenSet, bool match = true)
+        public BackwardTokenSearchItem(OrderedTokenSet tokenSet, bool match = true, GeneroLanguageVersion minLangVersion = GeneroLanguageVersion.None)
+            : base(minLangVersion)
         {
             TokenSet = tokenSet;
             SingleToken = TokenKind.EndOfFile;
             Match = match;
         }
 
-        public BackwardTokenSearchItem(TokenKind singleToken, bool match = true)
+        public BackwardTokenSearchItem(TokenKind singleToken, bool match = true, GeneroLanguageVersion minLangVersion = GeneroLanguageVersion.None)
+            : base(minLangVersion)
         {
             SingleToken = singleToken;
             TokenSet = null;
@@ -602,13 +623,35 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         }
     }
 
-    internal class OrderedTokenSet
+    internal class SingleToken : LanguageVersionSupported
+    {
+        public TokenKind Token { get; private set; }
+
+        public SingleToken(TokenKind token, GeneroLanguageVersion minLangVersion = GeneroLanguageVersion.None)
+            : base(minLangVersion)
+        {
+            Token = token;
+        }
+    }
+
+    internal class OrderedTokenSet : LanguageVersionSupported
     {
         public List<object> Set { get; private set; }
 
-        public OrderedTokenSet(IEnumerable<object> tokenSet)
+        public OrderedTokenSet(IEnumerable<object> tokenSet, GeneroLanguageVersion minLangVersion = GeneroLanguageVersion.None)
+            : base(minLangVersion)
         {
             Set = new List<object>(tokenSet);
+        }
+    }
+
+    internal abstract class LanguageVersionSupported
+    {
+        public GeneroLanguageVersion MinimumLanguageVersion { get; private set; }
+
+        protected LanguageVersionSupported(GeneroLanguageVersion minLangVersion)
+        {
+            MinimumLanguageVersion = minLangVersion;
         }
     }
 }

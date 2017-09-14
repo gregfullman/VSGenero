@@ -1288,6 +1288,7 @@
         <Token>record</Token>
         <Token>array</Token>
         <Token>dynamic</Token>
+        <Token minLanguageVersion="3.10">function</Token>
       </SingleTokens>
       <ContextSetProviders>
         <Provider>GetTypes</Provider>
@@ -1910,6 +1911,7 @@
         <Token>record</Token>
         <Token>array</Token>
         <Token>dynamic</Token>
+        <Token minLanguageVersion="3.10">function</Token>
       </SingleTokens>
       <ContextSetProviders>
         <Provider>GetTypes</Provider>

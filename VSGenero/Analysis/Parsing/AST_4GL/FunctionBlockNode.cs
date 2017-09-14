@@ -100,6 +100,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         private List<TokenWithSpan> _argsInOrder = new List<TokenWithSpan>();
 
         private List<ReturnStatement> _internalReturns = new List<ReturnStatement>();
+        private List<TypeReference> _explicitReturns = new List<TypeReference>();
 
         protected bool AddArgument(TokenWithSpan token, out string errMsg)
         {
@@ -210,25 +211,70 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 else
                     parser.NextToken();
 
-                // get the parameters
-                while (parser.PeekToken(TokenCategory.Keyword) || parser.PeekToken(TokenCategory.Identifier))
+                bool paramsParsed = false;
+                if(parser.LanguageVersion >= GeneroLanguageVersion.V310)
                 {
-                    parser.NextToken();
-                    string errMsg;
-                    if (!defNode.AddArgument(parser.Token, out errMsg))
+                    while (parser.PeekToken(TokenCategory.Keyword) || parser.PeekToken(TokenCategory.Identifier))
                     {
-                        parser.ReportSyntaxError(errMsg);
+                        var paramName = parser.PeekTokenWithSpan();
+                        string errMsg;
+                        if (!defNode.AddArgument(paramName, out errMsg))
+                        {
+                            parser.ReportSyntaxError(errMsg);
+                        }
+                        // try parsing the parameters as variable definitions
+                        VariableDefinitionNode varDefNode = null;
+                        if (VariableDefinitionNode.TryParseNode(parser, out varDefNode, defNode.BindArgument, false, false))
+                        {
+                            defNode.Children.Add(varDefNode.StartIndex, varDefNode);
+                            foreach (var vardef in varDefNode.VariableDefinitions)
+                            {
+                                vardef.Scope = "local variable";
+                                if (!defNode.Variables.ContainsKey(vardef.Name))
+                                    defNode.Variables.Add(vardef.Name, vardef);
+                                else
+                                    parser.ReportSyntaxError(vardef.LocationIndex, vardef.LocationIndex + vardef.Name.Length, string.Format("Variable {0} defined more than once.", vardef.Name), Severity.Error);
+                            }
+                            paramsParsed = true;
+                        }
+                        if (parser.PeekToken(TokenKind.Comma))
+                            parser.NextToken();
                     }
-                    if (parser.PeekToken(TokenKind.Comma))
-                        parser.NextToken();
+                }
 
-                    // TODO: probably need to handle "end" "function" case...won't right now
+                if (!paramsParsed)
+                {
+                    // get the parameters
+                    while (parser.PeekToken(TokenCategory.Keyword) || parser.PeekToken(TokenCategory.Identifier))
+                    {
+                        parser.NextToken();
+                        string errMsg;
+                        if (!defNode.AddArgument(parser.Token, out errMsg))
+                        {
+                            parser.ReportSyntaxError(errMsg);
+                        }
+                        if (parser.PeekToken(TokenKind.Comma))
+                            parser.NextToken();
+
+                        // TODO: probably need to handle "end" "function" case...won't right now
+                    }
                 }
 
                 if (!parser.PeekToken(TokenKind.RightParenthesis))
                     parser.ReportSyntaxError("A function must specify zero or more parameters in the form: ([param1][,...])");
                 else
                     parser.NextToken();
+
+                if(parser.LanguageVersion >= GeneroLanguageVersion.V310)
+                {
+                    ReturnsStatement returnsStatement;
+                    if(ReturnsStatement.TryParseNode(parser, out returnsStatement))
+                    {
+                        defNode._explicitReturns = new List<TypeReference>();
+                        foreach (var ret in returnsStatement.ReturnTypes)
+                            defNode._explicitReturns.Add(ret);
+                    }
+                }
 
                 List<List<TokenKind>> breakSequences =
                     new List<List<TokenKind>>(Genero4glAst.ValidStatementKeywords
@@ -390,6 +436,14 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                 string type = ret.GetExpressionType(SyntaxTree as Genero4glAst);
                                 _returns[i] = type;
                             }
+                        }
+                    }
+                    else if(_explicitReturns != null && _explicitReturns.Count > 0)
+                    {
+                        _returns = new string[_explicitReturns.Count];
+                        for(int i = 0; i < _explicitReturns.Count; i++)
+                        {
+                            _returns[i] = _explicitReturns[i].ToString();
                         }
                     }
                     else
