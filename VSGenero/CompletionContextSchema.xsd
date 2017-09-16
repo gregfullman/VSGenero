@@ -117,6 +117,7 @@
                       </xs:complexType>
                     </xs:element>
                   </xs:sequence>
+                  <xs:attribute name="minLanguageVersion" type="GeneroLanguageVersion" use="optional"/>
                 </xs:complexType>
               </xs:element>
             </xs:sequence>

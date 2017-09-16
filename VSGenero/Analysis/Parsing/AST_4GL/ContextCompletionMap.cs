@@ -104,7 +104,14 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             {
                 _contextMap.Clear();
                 XmlDocument contextXml = new XmlDocument();
-                contextXml.Load(Filename);
+                XmlReaderSettings rdrSettings = new XmlReaderSettings
+                {
+                    IgnoreComments = true
+                };
+                using (var reader = XmlReader.Create(Filename, rdrSettings))
+                {
+                    contextXml.Load(Filename);
+                }
                 foreach(XmlNode contextEntry in contextXml.LastChild.ChildNodes)
                 {
                     if (contextEntry.Name == "ContextEntry")
@@ -207,8 +214,9 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                         {
                                             foreach(XmlNode backwardItemNode in possibility.ChildNodes)
                                             {
-                                                if(backwardItemNode.Name == "BackwardTokenSearchItem" &&
-                                                   backwardItemNode.ChildNodes.Count == 1)
+                                                var childNodes = backwardItemNode.ChildNodes.Cast<XmlNode>().Where(x => !(x is XmlComment)).ToList();
+                                                if (backwardItemNode.Name == "BackwardTokenSearchItem" &&
+                                                   childNodes.Count == 1)
                                                 {
                                                     GeneroLanguageVersion bsiGLV = GeneroLanguageVersion.None;
                                                     if (backwardItemNode.Attributes["minLanguageVersion"] != null)
@@ -217,7 +225,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                                     bool match = true;
                                                     if (backwardItemNode.Attributes != null && backwardItemNode.Attributes["Match"] != null)
                                                         match = bool.Parse(backwardItemNode.Attributes["Match"].Value);
-                                                    XmlNode backwardItem = backwardItemNode.ChildNodes[0];
+                                                    XmlNode backwardItem = childNodes[0];
                                                     if(backwardItem.Name == "Token")
                                                     {
                                                         TokenKind tokenKind;

@@ -176,6 +176,19 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             {
                 return new IFunctionResult[1] { member as IFunctionResult };
             }
+            else if(member is VariableDef &&
+                    (member as VariableDef).Type != null)
+            {
+                var typeRef = (member as VariableDef).Type;
+                if(typeRef.ResolvedType != null && typeRef.ResolvedType is TypeDefinitionNode)
+                {
+                    var tdn = typeRef.ResolvedType as TypeDefinitionNode;
+                    if(tdn.TypeRef != null && tdn.TypeRef is FunctionTypeReference)
+                    {
+                        return new IFunctionResult[1] { tdn.TypeRef as FunctionTypeReference };
+                    }
+                }
+            }
 
             if (_functionProvider != null)
             {
@@ -365,19 +378,22 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
                     if (containingNode != null && containingNode is IFunctionResult)
                     {
+                        IFunctionResult func = containingNode as IFunctionResult;
+                        if((getVariables && func.Variables.TryGetValue(dotPiece, out res)))
+                        {
+                            continue;
+                        }
                         if (!lookForFunctions)
                         {
                             // Check for local vars, types, and constants
-                            IFunctionResult func = containingNode as IFunctionResult;
-                            if ((getVariables && func.Variables.TryGetValue(dotPiece, out res)) ||
-                                (getTypes && func.Types.TryGetValue(dotPiece, out res)) ||
+                            if ((getTypes && func.Types.TryGetValue(dotPiece, out res)) ||
                                 (getConstants && func.Constants.TryGetValue(dotPiece, out res)))
                             {
                                 continue;
                             }
 
                             List<Tuple<IAnalysisResult, IndexSpan>> limitedScopeVars;
-                            if((getVariables &&func.LimitedScopeVariables.TryGetValue(dotPiece, out limitedScopeVars)))
+                            if((getVariables && func.LimitedScopeVariables.TryGetValue(dotPiece, out limitedScopeVars)))
                             {
                                 foreach(var item in limitedScopeVars)
                                 {

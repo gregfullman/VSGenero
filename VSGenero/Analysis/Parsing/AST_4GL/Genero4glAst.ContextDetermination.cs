@@ -415,7 +415,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 if (_flatMatchingSet.Count > 0)
                 {
                     // start reverse parsing
-                    var enumerator = revTokenizer.GetReversedTokens().Where(x => x.SourceSpan.Start.Index < index).GetEnumerator();
+                    IEnumerator<TokenInfo> enumerator = revTokenizer.GetReversedTokens().Where(x => x.SourceSpan.Start.Index < index).GetEnumerator();
                     while (true)
                     {
                         if (!enumerator.MoveNext())
@@ -423,20 +423,21 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                             isMatch = false;
                             break;
                         }
-                        var tokInfo = enumerator.Current;
-                        if (tokInfo.Equals(default(TokenInfo)) || tokInfo.Token.Kind == TokenKind.NewLine || tokInfo.Token.Kind == TokenKind.NLToken || tokInfo.Token.Kind == TokenKind.Comment)
+                        TokenInfo tokenInfo = enumerator.Current;
+                        if (tokenInfo.Equals(default(TokenInfo)) || tokenInfo.Token.Kind == TokenKind.NewLine || tokenInfo.Token.Kind == TokenKind.NLToken || tokenInfo.Token.Kind == TokenKind.Comment)
                             continue;   // linebreak
 
+                        string info = tokenInfo.ToString();
                         // look for the token in the matching dictionary
                         List<BackwardTokenSearchItem> matchList;
-                        if (_flatMatchingSet.TryGetValue(tokInfo.Token.Kind, out matchList) ||
-                            _flatMatchingSet.TryGetValue(tokInfo.Category, out matchList))
+                        if (_flatMatchingSet.TryGetValue(tokenInfo.Token.Kind, out matchList) ||
+                            _flatMatchingSet.TryGetValue(tokenInfo.Category, out matchList))
                         {
                             // need to attempt matching the match list
                             // 1) grab the potential matches with an ordered set and attempt to completely match each set. If one of the sets completely matches, we have a winner
                             foreach (var potentialMatch in matchList.Where(x => _parentTree.LanguageVersion >= x.MinimumLanguageVersion && x.TokenSet != null))
                             {
-                                if (AttemptOrderedSetMatch(tokInfo.SourceSpan.Start.Index, revTokenizer, potentialMatch.TokenSet) &&
+                                if (AttemptOrderedSetMatch(tokenInfo.SourceSpan.Start.Index, revTokenizer, potentialMatch.TokenSet) &&
                                     _parentTree.LanguageVersion >= potentialMatch.ParentContext.MinimumLanguageVersion)
                                 {
                                     retList.Add(potentialMatch.ParentContext);
@@ -461,14 +462,14 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                             // At this point, nothing was matched correctly, so we continue
                         }
                         else if (_flatNonMatchingSet.Count > 0 &&
-                                (!_flatNonMatchingSet.Contains(tokInfo.Token.Kind) ||
-                                !_flatNonMatchingSet.Contains(tokInfo.Category)))
+                                (!_flatNonMatchingSet.Contains(tokenInfo.Token.Kind) ||
+                                !_flatNonMatchingSet.Contains(tokenInfo.Category)))
                         {
                             // need to attempt matching the match list
                             // 1) grab the potential matches with an ordered set and attempt to completely match each set. If one of the sets completely matches, we have a winner
                             foreach (var potentialMatch in _flatNonMatchingSet.SelectMany(x => _flatMatchingSet[x]).Where(x => _parentTree.LanguageVersion >= x.MinimumLanguageVersion && x.TokenSet != null))
                             {
-                                if (AttemptOrderedSetMatch(tokInfo.SourceSpan.Start.Index, revTokenizer, potentialMatch.TokenSet, false) &&
+                                if (AttemptOrderedSetMatch(tokenInfo.SourceSpan.Start.Index, revTokenizer, potentialMatch.TokenSet, false) &&
                                     _parentTree.LanguageVersion >= potentialMatch.ParentContext.MinimumLanguageVersion)
                                 {
                                     retList.Add(potentialMatch.ParentContext);
@@ -494,7 +495,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         }
                         else
                         {
-                            if (Genero4glAst.ValidStatementKeywords.Contains(tokInfo.Token.Kind))
+                            if (Genero4glAst.ValidStatementKeywords.Contains(tokenInfo.Token.Kind))
                             {
                                 isMatch = false;
                                 break;

@@ -193,14 +193,15 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 defNode.IsComplete = true;
             }
             else if(parser.LanguageVersion >= GeneroLanguageVersion.V310 &&
-                    FunctionTypeReference.TryParseNode(parser, out functionType) && functionType != null)
+                    FunctionTypeReference.TryParseNode(parser, out functionType, isPublic) && functionType != null)
             {
                 result = true;
-                defNode = new TypeReference();
-                defNode.StartIndex = functionType.StartIndex;
-                defNode.EndIndex = functionType.EndIndex;
+                //defNode = new TypeReference();
+                //defNode.StartIndex = functionType.StartIndex;
+                //defNode.EndIndex = functionType.EndIndex;
+                defNode = functionType;
                 defNode._isPublic = isPublic;
-                defNode.Children.Add(functionType.StartIndex, functionType);
+                //defNode.Children.Add(functionType.StartIndex, functionType);
                 defNode.IsComplete = true;
             }
             else if (RecordDefinitionNode.TryParseNode(parser, out recordDef, isPublic) && recordDef != null)
@@ -341,7 +342,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             }
         }
 
-        public string Name
+        public virtual string Name
         {
             get { return ToString(); }
         }

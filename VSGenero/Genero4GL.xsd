@@ -6,6 +6,17 @@
     xmlns:mstns="GeneroXML"
     xmlns:xs="http://www.w3.org/2001/XMLSchema"
 >
+  <xs:simpleType name="GeneroLanguageVersion">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="2.32"/>
+      <xs:enumeration value="2.40"/>
+      <xs:enumeration value="2.41"/>
+      <xs:enumeration value="2.50"/>
+      <xs:enumeration value="3.00"/>
+      <xs:enumeration value="3.10"/>
+    </xs:restriction>
+  </xs:simpleType>
+
   <xs:element name="Genero4GL">
     <xs:complexType>
       <xs:all>
@@ -51,15 +62,15 @@
                               </xs:all>
                               <xs:attribute name="name" type="xs:string"/>
                               <xs:attribute name="description" type="xs:string"/>
-                              <xs:attribute name="minVersion" type="xs:string" use="optional"/>
-                              <xs:attribute name="maxVersion" type="xs:string" use="optional"/>
+                              <xs:attribute name="minVersion" type="GeneroLanguageVersion" use="optional"/>
+                              <xs:attribute name="maxVersion" type="GeneroLanguageVersion" use="optional"/>
                             </xs:complexType>
                           </xs:element>
                         </xs:sequence>
                         <xs:attribute name="name" type="xs:string"/>
                         <xs:attribute name="desc" type="xs:string"/>
-                        <xs:attribute name="minVersion" type="xs:string" use="optional"/>
-                        <xs:attribute name="maxVersion" type="xs:string" use="optional"/>
+                        <xs:attribute name="minVersion" type="GeneroLanguageVersion" use="optional"/>
+                        <xs:attribute name="maxVersion" type="GeneroLanguageVersion" use="optional"/>
                       </xs:complexType>
                     </xs:element>
                   </xs:sequence>
@@ -118,8 +129,8 @@
                                                     </xs:restriction>
                                                   </xs:simpleType>
                                                 </xs:attribute>
-                                                <xs:attribute name="minVersion" type="xs:string" use="optional"/>
-                                                <xs:attribute name="maxVersion" type="xs:string" use="optional"/>
+                                                <xs:attribute name="minVersion" type="GeneroLanguageVersion" use="optional"/>
+                                                <xs:attribute name="maxVersion" type="GeneroLanguageVersion" use="optional"/>
                                               </xs:complexType>
                                             </xs:element>
                                           </xs:sequence>
@@ -128,8 +139,8 @@
                                     </xs:sequence>
                                     <xs:attribute name="name" type="xs:string"/>
                                     <xs:attribute name="isStatic" type="xs:boolean"/>
-                                    <xs:attribute name="minVersion" type="xs:string" use="optional"/>
-                                    <xs:attribute name="maxVersion" type="xs:string" use="optional"/>
+                                    <xs:attribute name="minVersion" type="GeneroLanguageVersion" use="optional"/>
+                                    <xs:attribute name="maxVersion" type="GeneroLanguageVersion" use="optional"/>
                                   </xs:complexType>
                                 </xs:element>
                               </xs:sequence>
@@ -145,8 +156,8 @@
                             </xs:restriction>
                           </xs:simpleType>
                         </xs:attribute>
-                        <xs:attribute name="minVersion" type="xs:string" use="optional"/>
-                        <xs:attribute name="maxVersion" type="xs:string" use="optional"/>
+                        <xs:attribute name="minVersion" type="GeneroLanguageVersion" use="optional"/>
+                        <xs:attribute name="maxVersion" type="GeneroLanguageVersion" use="optional"/>
                       </xs:complexType>
                     </xs:element>
                   </xs:sequence>
@@ -208,15 +219,15 @@
                               </xs:all>
                               <xs:attribute name="name" type="xs:string"/>
                               <xs:attribute name="description" type="xs:string"/>
-                              <xs:attribute name="minVersion" type="xs:string" use="optional"/>
-                              <xs:attribute name="maxVersion" type="xs:string" use="optional"/>
+                              <xs:attribute name="minVersion" type="GeneroLanguageVersion" use="optional"/>
+                              <xs:attribute name="maxVersion" type="GeneroLanguageVersion" use="optional"/>
                             </xs:complexType>
                           </xs:element>
                         </xs:sequence>
                         <xs:attribute name="name" type="xs:string"/>
                         <xs:attribute name="desc" type="xs:string"/>
-                        <xs:attribute name="minVersion" type="xs:string" use="optional"/>
-                        <xs:attribute name="maxVersion" type="xs:string" use="optional"/>
+                        <xs:attribute name="minVersion" type="GeneroLanguageVersion" use="optional"/>
+                        <xs:attribute name="maxVersion" type="GeneroLanguageVersion" use="optional"/>
                       </xs:complexType>
                     </xs:element>
                   </xs:sequence>

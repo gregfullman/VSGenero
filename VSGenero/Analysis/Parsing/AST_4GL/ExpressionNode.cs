@@ -180,6 +180,19 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     else
                         parser.ReportSyntaxError("Invalid select statement found in expression.");
                 }
+                else if(parser.LanguageVersion >= GeneroLanguageVersion.V310 && parser.PeekToken(TokenKind.FunctionKeyword))
+                {
+                    // Parse a function reference statement
+                    FunctionReferenceExpressionNode funcRefNode;
+                    if(FunctionReferenceExpressionNode.TryParseExpression(parser, out funcRefNode))
+                    {
+                        result = true;
+                        if (node == null)
+                            node = funcRefNode;
+                        else
+                            node.AppendExpression(funcRefNode); // Don't think is could be valid
+                    }
+                }
                 else if (parser.PeekToken(TokenCategory.Identifier) ||
                         parser.PeekToken(TokenCategory.Keyword))
                 {
@@ -460,6 +473,40 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             }
 
             return result;
+        }
+    }
+
+    public class FunctionReferenceExpressionNode : FglExpressionNode
+    {
+        private FglNameExpression _functionName;
+
+        public static bool TryParseExpression(IParser parser, out FunctionReferenceExpressionNode node)
+        {
+            node = null;
+            bool result = false;
+            if (parser.PeekToken(TokenKind.FunctionKeyword))
+            {
+                result = true;
+                parser.NextToken();
+                node = new FunctionReferenceExpressionNode();
+
+                FglNameExpression name;
+                if (FglNameExpression.TryParseNode(parser, out name))
+                {
+                    node._functionName = name;
+                }
+            }
+            return result;
+        }
+
+        public override string GetExpressionType(GeneroAst ast)
+        {
+            return "FUNCTION";
+        }
+
+        protected override string GetStringForm()
+        {
+            return string.Format("FUNCTION {0}", _functionName.Name);
         }
     }
 

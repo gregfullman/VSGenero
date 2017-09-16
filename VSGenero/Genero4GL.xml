@@ -1392,6 +1392,36 @@
                 <Returns>
                 </Returns>
               </Method>
+              <Method name="filenameToURI" desc="Converts a file name to an URI to be used as a web component image resource." scope="static" minVersion="3.00">
+                <Parameters>
+                  <Parameter name="filename" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="uri" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="getChildCount" desc="Get the number of children in a parent container." scope="static">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="getChildInstances" desc="Get the number of child instances for a given application name." scope="static">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="getContainer" desc="Get the parent container of the current program." scope="static">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
               <Method name="getDocument" desc="Returns the DOM document of the abstract user interface tree." scope="static">
                 <Parameters>
                 </Parameters>
@@ -1413,6 +1443,20 @@
                   <Return name="result" type="string"/>
                 </Returns>
               </Method>
+              <Method name="getImage" desc="Returns the icon image of the program." scope="static">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="getName" desc="Performs function calls to the current front end." scope="static">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
               <Method name="getRootNode" desc="Get the root DOM node of the abstract user interface." scope="static">
                 <Parameters>
                 </Parameters>
@@ -1420,21 +1464,28 @@
                   <Return name="result" type="om.DomNode"/>
                 </Returns>
               </Method>
-              <Method name="loadStartMenu" desc="Load the start menu file." scope="static">
+              <Method name="getText" desc="Returns the title of the program." scope="static">
                 <Parameters>
-                  <Parameter name="filename" type="string"/>
                 </Parameters>
                 <Returns>
+                  <Return name="result" type="string"/>
                 </Returns>
               </Method>
-              <Method name="loadToolBar" desc="Load a default toolbar file." scope="static">
+              <Method name="getType" desc="Returns the type of the program." scope="static">
                 <Parameters>
-                  <Parameter name="filename" type="string"/>
                 </Parameters>
                 <Returns>
+                  <Return name="result" type="string"/>
                 </Returns>
               </Method>
               <Method name="loadActionDefaults" desc="Load the default action defaults file." scope="static">
+                <Parameters>
+                  <Parameter name="filename" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="loadStartMenu" desc="Load the start menu file." scope="static">
                 <Parameters>
                   <Parameter name="filename" type="string"/>
                 </Parameters>
@@ -1448,32 +1499,24 @@
                 <Returns>
                 </Returns>
               </Method>
-              <Method name="setName" desc="Define the name of the current program for the front-end." scope="static">
+              <Method name="loadToolBar" desc="Load a default toolbar file." scope="static">
+                <Parameters>
+                  <Parameter name="filename" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="loadTopMenu" desc="Load a default topmenu file." scope="static">
+                <Parameters>
+                  <Parameter name="filename" type="string"/>
+                </Parameters>
+                <Returns></Returns>
+              </Method>
+              <Method name="setContainer" desc="Define the parent container for the current program." scope="static">
                 <Parameters>
                   <Parameter name="name" type="string"/>
                 </Parameters>
                 <Returns>
-                </Returns>
-              </Method>
-              <Method name="getName" desc="Performs function calls to the current front end." scope="static">
-                <Parameters>
-                </Parameters>
-                <Returns>
-                  <Return name="result" type="string"/>
-                </Returns>
-              </Method>
-              <Method name="setText" desc="Defines the title for the program." scope="static">
-                <Parameters>
-                  <Parameter name="title" type="string"/>
-                </Parameters>
-                <Returns>
-                </Returns>
-              </Method>
-              <Method name="getText" desc="Returns the title of the program." scope="static">
-                <Parameters>
-                </Parameters>
-                <Returns>
-                  <Return name="result" type="string"/>
                 </Returns>
               </Method>
               <Method name="setImage" desc="Defines the icon image of the program." scope="static">
@@ -1483,25 +1526,11 @@
                 <Returns>
                 </Returns>
               </Method>
-              <Method name="getImage" desc="Returns the icon image of the program." scope="static">
+              <Method name="setName" desc="Define the name of the current program for the front-end." scope="static">
                 <Parameters>
+                  <Parameter name="name" type="string"/>
                 </Parameters>
                 <Returns>
-                  <Return name="result" type="string"/>
-                </Returns>
-              </Method>
-              <Method name="setType" desc="Defines the type of the program for the front-end." scope="static">
-                <Parameters>
-                  <Parameter name="type" type="string"/>
-                </Parameters>
-                <Returns>
-                </Returns>
-              </Method>
-              <Method name="getType" desc="Returns the type of the program." scope="static">
-                <Parameters>
-                </Parameters>
-                <Returns>
-                  <Return name="result" type="string"/>
                 </Returns>
               </Method>
               <Method name="setSize" desc="Specify the initial size of the parent container window." scope="static">
@@ -1512,33 +1541,18 @@
                 <Returns>
                 </Returns>
               </Method>
-              <Method name="setContainer" desc="Define the parent container for the current program." scope="static">
+              <Method name="setText" desc="Defines the title for the program." scope="static">
                 <Parameters>
-                  <Parameter name="name" type="string"/>
+                  <Parameter name="title" type="string"/>
                 </Parameters>
                 <Returns>
                 </Returns>
               </Method>
-              <Method name="getContainer" desc="Get the parent container of the current program." scope="static">
+              <Method name="setType" desc="Defines the type of the program for the front-end." scope="static">
                 <Parameters>
+                  <Parameter name="type" type="string"/>
                 </Parameters>
                 <Returns>
-                  <Return name="result" type="string"/>
-                </Returns>
-              </Method>
-              <Method name="getChildCount" desc="Get the number of children in a parent container." scope="static">
-                <Parameters>
-                </Parameters>
-                <Returns>
-                  <Return name="result" type="integer"/>
-                </Returns>
-              </Method>
-              <Method name="getChildInstances" desc="Get the number of child instances for a given application name." scope="static">
-                <Parameters>
-                  <Parameter name="name" type="string"/>
-                </Parameters>
-                <Returns>
-                  <Return name="result" type="integer"/>
                 </Returns>
               </Method>
               <Method name="refresh" desc="Synchronize the user interface with the front-end." scope="static">
@@ -1738,6 +1752,46 @@
           </Class>
           <Class name="Dialog" isStatic="false">
             <Methods>
+              <Method name="createConstructByName" desc="Creates a new ui.Dialog object to handle a CONSTRUCT BY NAME." scope="static" minVersion="3.00">
+                <Parameters>
+                  <Parameter name="fields" type="dynamic array of record name string, type string end record"/>
+                </Parameters>
+                <Returns>
+                  <Return name="dialog" type="ui.Dialog"/>
+                </Returns>
+              </Method>
+              <Method name="createDisplayArrayTo" desc="Creates a new ui.Dialog object to handle a DISPLAY ARRAY." scope="static" minVersion="3.00">
+                <Parameters>
+                  <Parameter name="fields" type="dynamic array of record name string, type string end record"/>
+                </Parameters>
+                <Returns>
+                  <Return name="dialog" type="ui.Dialog"/>
+                </Returns>
+              </Method>
+              <Method name="createInputArrayFrom" desc="Creates a new ui.Dialog object to implement a dynamic INPUT ARRAY FROM." scope="static" minVersion="3.10">
+                <Parameters>
+                  <Parameter name="fields" type="dynamic array of record name string, type string end record"/>
+                  <Parameter name="screenRecord" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="dialog" type="ui.Dialog"/>
+                </Returns>
+              </Method>
+              <Method name="createInputByName" desc="Creates a new ui.Dialog object to handle an INPUT BY NAME." scope="static" minVersion="3.00">
+                <Parameters>
+                  <Parameter name="fields" type="dynamic array of record name string, type string end record"/>
+                </Parameters>
+                <Returns>
+                  <Return name="dialog" type="ui.Dialog"/>
+                </Returns>
+              </Method>
+              <Method name="createMultipleDialog" desc="Creates a new ui.Dialog object to implement a dynamic DIALOG multiple-dialog." scope="static" minVersion="3.10">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="dialog" type="ui.Dialog"/>
+                </Returns>
+              </Method>
               <Method name="getCurrent" desc="Returns the current dialog object." scope="static">
                 <Parameters>
                 </Parameters>
@@ -1758,12 +1812,43 @@
                 <Returns>
                 </Returns>
               </Method>
-              <Method name="validate" desc="Check form level validation rules." scope="instance">
+              <Method name="addConstructByName" desc="Adds a sub-dialog of type CONSTRUCT BY NAME to an existing ui.Dialog dynamic dialog." scope="instance" minVersion="3.10">
                 <Parameters>
-                  <Parameter name="field-list" type="string"/>
+                  <Parameter name="fields" type="dynamic array of record name string, type string end record"/>
+                  <Parameter name="name" type="string"/>
                 </Parameters>
                 <Returns>
-                  <Return name="result" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="addDisplayArrayTo" desc="Adds a sub-dialog of type DISPLAY ARRAY TO to an existing ui.Dialog dynamic dialog." scope="instance" minVersion="3.10">
+                <Parameters>
+                  <Parameter name="fields" type="dynamic array of record name string, type string end record"/>
+                  <Parameter name="screenRecord" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="addInputArrayFrom" desc="Adds a sub-dialog of type INPUT ARRAY FROM to an existing ui.Dialog dynamic dialog." scope="instance" minVersion="3.10">
+                <Parameters>
+                  <Parameter name="fields" type="dynamic array of record name string, type string end record"/>
+                  <Parameter name="screenRecord" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="addInputByName" desc="Adds a sub-dialog of type INPUT BY NAME to an existing ui.Dialog dynamic dialog." scope="instance" minVersion="3.10">
+                <Parameters>
+                  <Parameter name="fields" type="dynamic array of record name string, type string end record"/>
+                  <Parameter name="name" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="addTrigger" desc="Adds an event trigger to the dynamic dialog" scope="instance" minVersion="3.00">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                </Parameters>
+                <Returns>
                 </Returns>
               </Method>
               <Method name="appendRow" desc="Appends a new row in the specified list." scope="instance">
@@ -1781,10 +1866,30 @@
                 <Returns>
                 </Returns>
               </Method>
-              <Method name="deleteRow" desc="Deletes a row from the specified list." scope="instance">
+              <Method name="arrayToVisualIndex" desc="Converts the program array index to the visual index for a given screen array." scope="instance" minVersion="3.00">
                 <Parameters>
                   <Parameter name="name" type="string"/>
-                  <Parameter name="index" type="integer"/>
+                  <Parameter name="arrayIndex" type="integer"/>
+                </Parameters>
+                <Returns>
+                  <Return name="visualIndex" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="cancel" desc="Cancels a parent dialog from a sub-dialog." scope="instance" minVersion="3.10">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="close" desc="Closes a dynamic dialog." scope="instance" minVersion="3.10">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="deleteAllRows" desc="Deletes all rows from the specified list." scope="instance">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
                 </Parameters>
                 <Returns>
                 </Returns>
@@ -1797,9 +1902,10 @@
                 <Returns>
                 </Returns>
               </Method>
-              <Method name="deleteAllRows" desc="Deletes all rows from the specified list." scope="instance">
+              <Method name="deleteRow" desc="Deletes a row from the specified list." scope="instance">
                 <Parameters>
                   <Parameter name="name" type="string"/>
+                  <Parameter name="index" type="integer"/>
                 </Parameters>
                 <Returns>
                 </Returns>
@@ -1843,6 +1949,14 @@
                   <Return name="result" type="boolean"/>
                 </Returns>
               </Method>
+              <Method name="getFieldValue" desc="Returns the value of a field controlled by a dynamic dialog." scope="instance" minVersion="3.00">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="fgl-type"/>
+                </Returns>
+              </Method>
               <Method name="getForm" desc="Returns the current form used by the dialog." scope="instance">
                 <Parameters>
                 </Parameters>
@@ -1850,7 +1964,23 @@
                   <Return name="result" type="ui.Form"/>
                 </Returns>
               </Method>
-              <Method name="insertRow" desc="Inserts a new row in the specified list." scope="instance">
+              <Method name="getQueryFromField" desc="Returns the SQL condition of a field used in a query by example dialog." scope="instance" minVersion="3.00">
+                <Parameters>
+                  <Parameter name="fieldName" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="sqlCondition" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="getSortKey" desc="Returns the name of the sort field selected by the user." scope="instance" minVersion="3.00">
+                <Parameters>
+                  <Parameter name="screenArray" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="fieldName" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="insertNode" desc="Inserts a new node in the specified tree." scope="instance">
                 <Parameters>
                   <Parameter name="name" type="string"/>
                   <Parameter name="index" type="integer"/>
@@ -1858,7 +1988,7 @@
                 <Returns>
                 </Returns>
               </Method>
-              <Method name="insertNode" desc="Inserts a new node in the specified tree." scope="instance">
+              <Method name="insertRow" desc="Inserts a new row in the specified list." scope="instance">
                 <Parameters>
                   <Parameter name="name" type="string"/>
                   <Parameter name="index" type="integer"/>
@@ -1873,6 +2003,21 @@
                 </Parameters>
                 <Returns>
                   <Return name="result" type="boolean"/>
+                </Returns>
+              </Method>
+              <Method name="isSortReverse" desc="Indicates the sort order direction (FALSE=ascending, TRUE=descending)" scope="instance" minVersion="3.10">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="boolean"/>
+                </Returns>
+              </Method>
+              <Method name="nextEvent" desc="Waits for a dialog event." scope="instance" minVersion="3.00">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="event" type="string"/>
                 </Returns>
               </Method>
               <Method name="nextField" desc="Registering the next field to jump to." scope="instance">
@@ -1890,14 +2035,6 @@
                   <Return name="result" type="string"/>
                 </Returns>
               </Method>
-              <Method name="setArrayLength" desc="Sets the total number of rows in the specified list." scope="instance">
-                <Parameters>
-                  <Parameter name="name" type="string"/>
-                  <Parameter name="len" type="integer"/>
-                </Parameters>
-                <Returns>
-                </Returns>
-              </Method>
               <Method name="setActionActive" desc="Enabling and disabling dialog actions." scope="instance">
                 <Parameters>
                   <Parameter name="name" type="string"/>
@@ -1906,10 +2043,64 @@
                 <Returns>
                 </Returns>
               </Method>
+              <Method name="setActionComment" desc="Set the comment/hint of a default action view." scope="instance" minVersion="3.10">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                  <Parameter name="comment" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
               <Method name="setActionHidden" desc="Handling default action view visibility." scope="instance">
                 <Parameters>
                   <Parameter name="name" type="string"/>
                   <Parameter name="hide" type="integer"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="setActionImage" desc="Set the image of a default action view." scope="instance" minVersion="3.10">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                  <Parameter name="image" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="setActionText" desc="Defining the text of a default action view." scope="instance" minVersion="3.10">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                  <Parameter name="text" type="string"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="setArrayAttributes" desc="Define cell decoration attributes array for the specified list (singular or multiple dialogs)." scope="instance">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                  <Parameter name="array" type="array"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="setArrayLength" desc="Sets the total number of rows in the specified list." scope="instance">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                  <Parameter name="len" type="integer"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="setCellAttributes" desc="Define cell decoration attributes array for the specified list (singular dialog only)." scope="instance">
+                <Parameters>
+                  <Parameter name="program-array" type="array"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="setCompleterItems" desc="Define autocompletion items for the a field defined with COMPLETER attribute." scope="instance" minVersion="3.00">
+                <Parameters>
+                  <Parameter name="itemsArray" type="dynamic array of string"/>
                 </Parameters>
                 <Returns>
                 </Returns>
@@ -1938,17 +2129,10 @@
                 <Returns>
                 </Returns>
               </Method>
-              <Method name="setArrayAttributes" desc="Define cell decoration attributes array for the specified list (singular or multiple dialogs)." scope="instance">
+              <Method name="setFieldValue" desc="Sets the value of a field controlled by the dialog object." scope="instance" minVersion="3.00">
                 <Parameters>
                   <Parameter name="name" type="string"/>
-                  <Parameter name="array" type="array"/>
-                </Parameters>
-                <Returns>
-                </Returns>
-              </Method>
-              <Method name="setCellAttributes" desc="Define cell decoration attributes array for the specified list (singular dialog only)." scope="instance">
-                <Parameters>
-                  <Parameter name="program-array" type="array"/>
+                  <Parameter name="value" type="fgl-type"/>
                 </Parameters>
                 <Returns>
                 </Returns>
@@ -1967,6 +2151,22 @@
                   <Parameter name="start" type="integer"/>
                   <Parameter name="end" type="integer"/>
                   <Parameter name="value" type="boolean"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="validate" desc="Check form level validation rules." scope="instance">
+                <Parameters>
+                  <Parameter name="field-list" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="visualToArrayIndex" desc="Converts the visual index to the program array index for a given screen array." scope="instance" minVersion="3.00">
+                <Parameters>
+                  <Parameter name="name" type="string"/>
+                  <Parameter name="index" type="integer"/>
                 </Parameters>
                 <Returns>
                 </Returns>
@@ -2712,8 +2912,70 @@
       </Package>
       <Package name="util" type="extension">
         <Classes>
+          <Class name="Date" isStatic="true" minVersion="3.00">
+            <Methods>
+              <Method name="parse" desc="Converts a string to a DATE value according to a format specification." scope="static" minVersion="3.00">
+                <Parameters>
+                  <Parameter name="source" type="string"/>
+                  <Parameter name="format" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="res" type="date"/>
+                </Returns>
+              </Method>
+              <Method name="isLeapYear" desc="Checks is the year passed as parameter is a leap year." scope="static" minVersion="3.00">
+                <Parameters>
+                  <Parameter name="year" type="integer"/>
+                </Parameters>
+                <Returns>
+                  <Return name="res" type="boolean"/>
+                </Returns>
+              </Method>
+            </Methods>
+          </Class>
           <Class name="DateTime" isStatic="true">
             <Methods>
+              <Method name="format" desc="Formats a datetime value according to format specification." scope="static" minVersion="3.00">
+                <Parameters>
+                  <Parameter name="value" type="datetime q1 to q2"/>
+                  <Parameter name="format" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="value" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="fromSecondsSinceEpoch" desc="Converts a number of seconds since Epoch to a datetime." scope="static" minVersion="3.00">
+                <Parameters>
+                  <Parameter name="seconds" type="float"/>
+                </Parameters>
+                <Returns>
+                  <Return name="local" type="datetime q1 to q2"/>
+                </Returns>
+              </Method>
+              <Method name="getCurrentAsUTC" desc="Returns the current date/time in UTC." scope="static" minVersion="3.00">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="utc" type="DATETIME YEAR TO FRACTION(5)"/>
+                </Returns>
+              </Method>
+              <Method name="parse" desc="Converts a string to a DATETIME value according to a format specification." scope="static" minVersion="3.00">
+                <Parameters>
+                  <Parameter name="source" type="string"/>
+                  <Parameter name="format" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="res" type="DATETIME q1 to q2"/>
+                </Returns>
+              </Method>
+              <Method name="toLocalTime" desc="Converts a UTC datetime to the local time." scope="static" minVersion="3.00">
+                <Parameters>
+                  <Parameter name="utc" type="datetime q1 to q2"/>
+                </Parameters>
+                <Returns>
+                  <Return name="local" type="datetime q1 to q2"/>
+                </Returns>
+              </Method>
               <Method name="toLocalTime" desc="Converts a UTC datetime to the local time." scope="static">
                 <Parameters>
                   <Parameter name="utc_datetime" type="datetime q1 to q2"/>
@@ -2728,6 +2990,28 @@
                 </Parameters>
                 <Returns>
                   <Return name="utc_datetime" type="datetime q1 to q2"/>
+                </Returns>
+              </Method>
+            </Methods>
+          </Class>
+          <Class name="Interval" isStatic="true" minVersion="3.00">
+            <Methods>
+              <Method name="format" desc="Formats an interval value according to format specification." scope="static" minVersion="3.00">
+                <Parameters>
+                  <Parameter name="value" type="INTERVAL q1 to q2"/>
+                  <Parameter name="format" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="res" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="parse" desc="Converts a string to a DATETIME value according to a format specification." scope="static" minVersion="3.00">
+                <Parameters>
+                  <Parameter name="source" type="string"/>
+                  <Parameter name="format" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="res" type="INTERVAL q1 to q2"/>
                 </Returns>
               </Method>
             </Methods>
@@ -3067,18 +3351,12 @@
         <Classes>
           <Class name="Path" isStatic="true">
             <Methods>
-              <Method name="separator" desc="Returns the character used to separate path segments." scope="static">
+              <Method name="atime" desc="Returns the time of the last file access." scope="static">
                 <Parameters>
+                  <Parameter name="fname" type="string"/>
                 </Parameters>
                 <Returns>
-                  <Return name="result" type="string"/>
-                </Returns>
-              </Method>
-              <Method name="pathseparator" desc="Returns the character used in environment variables to separate path elements." scope="static">
-                <Parameters>
-                </Parameters>
-                <Returns>
-                  <Return name="result" type="string"/>
+                  <Return name="result" type="integer"/>
                 </Returns>
               </Method>
               <Method name="basename" desc="Returns the last element of a path." scope="static">
@@ -3089,7 +3367,73 @@
                   <Return name="result" type="string"/>
                 </Returns>
               </Method>
-              <Method name="dirname" desc="Returns all components of a path excluding the last one." scope="static">
+              <Method name="copy" desc="Creates a new file by copying an existing file." scope="static">
+                <Parameters>
+                  <Parameter name="source" type="string"/>
+                  <Parameter name="dest" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="chdir" desc="Changes the current working directory." scope="static">
+                <Parameters>
+                  <Parameter name="newdir" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="chRwx" desc="Changes the UNIX permissions of a file." scope="static">
+                <Parameters>
+                  <Parameter name="fname" type="string"/>
+                  <Parameter name="mode" type="integer"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="chOwn" desc="Changes the UNIX owner and group of a file." scope="static">
+                <Parameters>
+                  <Parameter name="fname" type="string"/>
+                  <Parameter name="uid" type="integer"/>
+                  <Parameter name="gui" type="integer"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="chVolume" desc="Changes the current working volume." scope="static">
+                <Parameters>
+                  <Parameter name="new" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="delete" desc="Deletes a file or a directory." scope="static">
+                <Parameters>
+                  <Parameter name="dname" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="dirclose" desc="Closes the directory referenced by the directory opened by os.Path.diropen()." scope="static">
+                <Parameters>
+                  <Parameter name="dirhandle" type="integer"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="dirFMask" desc="Defines a filter mask for os.Path.diropen()." scope="static">
+                <Parameters>
+                  <Parameter name="mask" type="integer"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="dirName" desc="Returns all components of a path excluding the last one." scope="static">
                 <Parameters>
                   <Parameter name="filename" type="string"/>
                 </Parameters>
@@ -3097,37 +3441,36 @@
                   <Return name="result" type="string"/>
                 </Returns>
               </Method>
-              <Method name="rootname" desc="Returns the file path without the file extension of the last element of the file path." scope="static">
+              <Method name="dirNext" desc="Reads the next entry in the directory opened with os.Path.diropen()." scope="static">
                 <Parameters>
-                  <Parameter name="filename" type="string"/>
+                  <Parameter name="dirhandle" type="integer"/>
                 </Parameters>
                 <Returns>
-                  <Return name="result" type="string"/>
+                  <Return name="direntry" type="string"/>
                 </Returns>
               </Method>
-              <Method name="join" desc="Joins two path segments adding the platform-dependent separator." scope="static">
+              <Method name="dirOpen" desc="Opens a directory and returns an integer handle to this directory." scope="static">
                 <Parameters>
-                  <Parameter name="begin" type="string"/>
-                  <Parameter name="end" type="string"/>
+                  <Parameter name="dname" type="string"/>
                 </Parameters>
                 <Returns>
-                  <Return name="result" type="string"/>
+                  <Return name="dirhandle" type="integer"/>
                 </Returns>
               </Method>
-              <Method name="pathtype" desc="Checks if a path is a relative path or an absolute path." scope="static">
+              <Method name="dirSort" desc="Defines the sort criteria and sort order for os.Path.diropen()." scope="static">
                 <Parameters>
-                  <Parameter name="path" type="string"/>
+                  <Parameter name="criteria" type="string"/>
+                  <Parameter name="order" type="integer"/>
                 </Parameters>
                 <Returns>
-                  <Return name="result" type="string"/>
                 </Returns>
               </Method>
-              <Method name="fullpath" desc="Returns the canonical equivalent of a path." scope="static">
+              <Method name="executable" desc="Checks if a file is executable." scope="static">
                 <Parameters>
-                  <Parameter name="path" type="string"/>
+                  <Parameter name="fname" type="string"/>
                 </Parameters>
                 <Returns>
-                  <Return name="result" type="string"/>
+                  <Return name="result" type="integer"/>
                 </Returns>
               </Method>
               <Method name="exists" desc="Checks if a file exists." scope="static">
@@ -3146,31 +3489,30 @@
                   <Return name="result" type="string"/>
                 </Returns>
               </Method>
-              <Method name="readable" desc="Checks if a file is readable." scope="static">
+              <Method name="fullPath" desc="Returns the canonical equivalent of a path." scope="static">
+                <Parameters>
+                  <Parameter name="path" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="gid" desc="Returns the UNIX group id of a file." scope="static">
                 <Parameters>
                   <Parameter name="fname" type="string"/>
                 </Parameters>
                 <Returns>
-                  <Return name="result" type="integer"/>
+                  <Return name="id" type="integer"/>
                 </Returns>
               </Method>
-              <Method name="writable" desc="Checks if a file is writable." scope="static">
+              <Method name="homeDir" desc="Returns the path to the HOME directory of the current user." scope="static">
                 <Parameters>
-                  <Parameter name="fname" type="string"/>
                 </Parameters>
                 <Returns>
-                  <Return name="result" type="integer"/>
+                  <Return name="homedir" type="string"/>
                 </Returns>
               </Method>
-              <Method name="executable" desc="Checks if a file is executable." scope="static">
-                <Parameters>
-                  <Parameter name="fname" type="string"/>
-                </Parameters>
-                <Returns>
-                  <Return name="result" type="integer"/>
-                </Returns>
-              </Method>
-              <Method name="isfile" desc="Checks if a file is a regular file." scope="static">
+              <Method name="isdirectory" desc="Checks if a file is hidden." scope="static">
                 <Parameters>
                   <Parameter name="fname" type="string"/>
                 </Parameters>
@@ -3178,7 +3520,7 @@
                   <Return name="result" type="boolean"/>
                 </Returns>
               </Method>
-              <Method name="isdirectory" desc="Checks if a file is hidden." scope="static">
+              <Method name="isfile" desc="Checks if a file is a regular file." scope="static">
                 <Parameters>
                   <Parameter name="fname" type="string"/>
                 </Parameters>
@@ -3202,71 +3544,20 @@
                   <Return name="result" type="boolean"/>
                 </Returns>
               </Method>
-              <Method name="type" desc="Returns the file type as a string." scope="static">
+              <Method name="join" desc="Joins two path segments adding the platform-dependent separator." scope="static">
                 <Parameters>
-                  <Parameter name="fname" type="string"/>
+                  <Parameter name="begin" type="string"/>
+                  <Parameter name="end" type="string"/>
                 </Parameters>
                 <Returns>
                   <Return name="result" type="string"/>
                 </Returns>
               </Method>
-              <Method name="size" desc="Returns the size of a file." scope="static">
+              <Method name="makeTempName" desc="Generates a temporary file name." scope="static" minVersion="3.00">
                 <Parameters>
-                  <Parameter name="fname" type="string"/>
                 </Parameters>
                 <Returns>
-                  <Return name="result" type="integer"/>
-                </Returns>
-              </Method>
-              <Method name="atime" desc="Returns the time of the last file access." scope="static">
-                <Parameters>
-                  <Parameter name="fname" type="string"/>
-                </Parameters>
-                <Returns>
-                  <Return name="result" type="integer"/>
-                </Returns>
-              </Method>
-              <Method name="chown" desc="Changes the UNIX owner and group of a file." scope="static">
-                <Parameters>
-                  <Parameter name="fname" type="string"/>
-                  <Parameter name="uid" type="integer"/>
-                  <Parameter name="gui" type="integer"/>
-                </Parameters>
-                <Returns>
-                  <Return name="result" type="integer"/>
-                </Returns>
-              </Method>
-              <Method name="uid" desc="Returns the UNIX user id of a file." scope="static">
-                <Parameters>
-                  <Parameter name="fname" type="string"/>
-                </Parameters>
-                <Returns>
-                  <Return name="id" type="integer"/>
-                </Returns>
-              </Method>
-              <Method name="gid" desc="Returns the UNIX group id of a file." scope="static">
-                <Parameters>
-                  <Parameter name="fname" type="string"/>
-                </Parameters>
-                <Returns>
-                  <Return name="id" type="integer"/>
-                </Returns>
-              </Method>
-              <Method name="rwx" desc="Returns the UNIX file permissions of a file." scope="static">
-                <Parameters>
-                  <Parameter name="fname" type="string"/>
-                </Parameters>
-                <Returns>
-                  <Return name="mode" type="integer"/>
-                </Returns>
-              </Method>
-              <Method name="chrwx" desc="Changes the UNIX permissions of a file." scope="static">
-                <Parameters>
-                  <Parameter name="fname" type="string"/>
-                  <Parameter name="mode" type="integer"/>
-                </Parameters>
-                <Returns>
-                  <Return name="result" type="integer"/>
+                  <Return name="result" type="string"/>
                 </Returns>
               </Method>
               <Method name="mtime" desc="Returns the time of the last file modification." scope="static">
@@ -3277,56 +3568,27 @@
                   <Return name="result" type="integer"/>
                 </Returns>
               </Method>
-              <Method name="homedir" desc="Returns the path to the HOME directory of the current user." scope="static">
-                <Parameters>
-                </Parameters>
-                <Returns>
-                  <Return name="homedir" type="string"/>
-                </Returns>
-              </Method>
-              <Method name="rootdir" desc="Returns the root directory of the current working path." scope="static">
-                <Parameters>
-                </Parameters>
-                <Returns>
-                  <Return name="rootdir" type="string"/>
-                </Returns>
-              </Method>
-              <Method name="dirfmask" desc="Defines a filter mask for os.Path.diropen()." scope="static">
-                <Parameters>
-                  <Parameter name="mask" type="integer"/>
-                </Parameters>
-                <Returns>
-                </Returns>
-              </Method>
-              <Method name="dirsort" desc="Defines the sort criteria and sort order for os.Path.diropen()." scope="static">
-                <Parameters>
-                  <Parameter name="criteria" type="string"/>
-                  <Parameter name="order" type="integer"/>
-                </Parameters>
-                <Returns>
-                </Returns>
-              </Method>
-              <Method name="diropen" desc="Opens a directory and returns an integer handle to this directory." scope="static">
+              <Method name="mkDir" desc="Creates a new directory." scope="static">
                 <Parameters>
                   <Parameter name="dname" type="string"/>
                 </Parameters>
                 <Returns>
-                  <Return name="dirhandle" type="integer"/>
+                  <Return name="result" type="integer"/>
                 </Returns>
               </Method>
-              <Method name="dirclose" desc="Closes the directory referenced by the directory opened by os.Path.diropen()." scope="static">
+              <Method name="pathSeparator" desc="Returns the character used in environment variables to separate path elements." scope="static">
                 <Parameters>
-                  <Parameter name="dirhandle" type="integer"/>
                 </Parameters>
                 <Returns>
+                  <Return name="result" type="string"/>
                 </Returns>
               </Method>
-              <Method name="dirnext" desc="Reads the next entry in the directory opened with os.Path.diropen()." scope="static">
+              <Method name="pathType" desc="Checks if a path is a relative path or an absolute path." scope="static">
                 <Parameters>
-                  <Parameter name="dirhandle" type="integer"/>
+                  <Parameter name="path" type="string"/>
                 </Parameters>
                 <Returns>
-                  <Return name="direntry" type="string"/>
+                  <Return name="result" type="string"/>
                 </Returns>
               </Method>
               <Method name="pwd" desc="Returns the current working directory." scope="static">
@@ -3336,40 +3598,9 @@
                   <Return name="result" type="string"/>
                 </Returns>
               </Method>
-              <Method name="chdir" desc="Changes the current working directory." scope="static">
+              <Method name="readable" desc="Checks if a file is readable." scope="static">
                 <Parameters>
-                  <Parameter name="newdir" type="string"/>
-                </Parameters>
-                <Returns>
-                  <Return name="result" type="integer"/>
-                </Returns>
-              </Method>
-              <Method name="volumes" desc="Returns the available volumes." scope="static">
-                <Parameters>
-                </Parameters>
-                <Returns>
-                  <Return name="volumes" type="string"/>
-                </Returns>
-              </Method>
-              <Method name="chvolumes" desc="Changes the current working volume." scope="static">
-                <Parameters>
-                  <Parameter name="new" type="string"/>
-                </Parameters>
-                <Returns>
-                  <Return name="result" type="integer"/>
-                </Returns>
-              </Method>
-              <Method name="mkdir" desc="Creates a new directory." scope="static">
-                <Parameters>
-                  <Parameter name="dname" type="string"/>
-                </Parameters>
-                <Returns>
-                  <Return name="result" type="integer"/>
-                </Returns>
-              </Method>
-              <Method name="delete" desc="Deletes a file or a directory." scope="static">
-                <Parameters>
-                  <Parameter name="dname" type="string"/>
+                  <Parameter name="fname" type="string"/>
                 </Parameters>
                 <Returns>
                   <Return name="result" type="integer"/>
@@ -3384,10 +3615,70 @@
                   <Return name="result" type="integer"/>
                 </Returns>
               </Method>
-              <Method name="copy" desc="Creates a new file by copying an existing file." scope="static">
+              <Method name="separator" desc="Returns the character used to separate path segments." scope="static">
                 <Parameters>
-                  <Parameter name="source" type="string"/>
-                  <Parameter name="dest" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="size" desc="Returns the size of a file." scope="static">
+                <Parameters>
+                  <Parameter name="fname" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="rootDir" desc="Returns the root directory of the current working path." scope="static">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="rootdir" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="rootName" desc="Returns the file path without the file extension of the last element of the file path." scope="static">
+                <Parameters>
+                  <Parameter name="filename" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="rwx" desc="Returns the UNIX file permissions of a file." scope="static">
+                <Parameters>
+                  <Parameter name="fname" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="mode" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="type" desc="Returns the file type as a string." scope="static">
+                <Parameters>
+                  <Parameter name="fname" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="uid" desc="Returns the UNIX user id of a file." scope="static">
+                <Parameters>
+                  <Parameter name="fname" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="id" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="volumes" desc="Returns the available volumes." scope="static">
+                <Parameters>
+                </Parameters>
+                <Returns>
+                  <Return name="volumes" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="writable" desc="Checks if a file is writable." scope="static">
+                <Parameters>
+                  <Parameter name="fname" type="string"/>
                 </Parameters>
                 <Returns>
                   <Return name="result" type="integer"/>
@@ -3615,23 +3906,11 @@
           </Class>
           <Class name="WebServiceEngine" isStatic="true">
             <Methods>
-              <Method name="RegisterService" desc="Registers a service in the engine." scope="static">
+              <Method name="Flush" desc="Get a handle for an incoming HTTP service request." scope="static" minVersion="3.00">
                 <Parameters>
-                  <Parameter name="service" type="com.WebService"/>
-                </Parameters>
-                <Returns></Returns>
-              </Method>
-              <Method name="Start" desc="Starts the Web Service engine." scope="static">
-                <Parameters>
-                </Parameters>
-                <Returns></Returns>
-              </Method>
-              <Method name="ProcessServices" desc="Specifies the wait period for an HTTP input request, to process an operation of one of the registered Web Services." scope="static">
-                <Parameters>
-                  <Parameter name="timeout" type="integer"/>
                 </Parameters>
                 <Returns>
-                  <Return name="result" type="integer"/>
+                  <Return name="status" type="integer"/>
                 </Returns>
               </Method>
               <Method name="GetHTTPServiceRequest" desc="Get a handle for an incoming HTTP service request." scope="static">
@@ -3640,6 +3919,14 @@
                 </Parameters>
                 <Returns>
                   <Return name="result" type="com.HTTPServiceRequest"/>
+                </Returns>
+              </Method>
+              <Method name="GetOption" desc="Returns the value of a Web Service engine option." scope="static">
+                <Parameters>
+                  <Parameter name="option" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
                 </Returns>
               </Method>
               <Method name="HandleRequest" desc="Get a handle for an incoming HTTP service request." scope="static">
@@ -3651,6 +3938,14 @@
                   <Return name="result" type="com.HTTPServiceRequest"/>
                 </Returns>
               </Method>
+              <Method name="ProcessServices" desc="Specifies the wait period for an HTTP input request, to process an operation of one of the registered Web Services." scope="static">
+                <Parameters>
+                  <Parameter name="timeout" type="integer"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="integer"/>
+                </Returns>
+              </Method>
               <Method name="SetFaultCode" desc="Get a handle for an incoming HTTP service request." scope="static">
                 <Parameters>
                   <Parameter name="code" type="string"/>
@@ -3659,16 +3954,16 @@
                 <Returns>
                 </Returns>
               </Method>
-              <Method name="SetFaultString" desc="Defines the description of a SOAP Fault." scope="static">
+              <Method name="SetFaultDetail" desc="Defines the published SOAP Fault." scope="static" minVersion="2.40">
                 <Parameters>
-                  <Parameter name="desc" type="string"/>
+                  <Parameter name="fault" type="string"/>
                 </Parameters>
                 <Returns>
                 </Returns>
               </Method>
-              <Method name="SetFaultDetail" desc="Defines the published SOAP Fault." scope="static" minVersion="2.40">
+              <Method name="SetFaultString" desc="Defines the description of a SOAP Fault." scope="static">
                 <Parameters>
-                  <Parameter name="fault" type="string"/>
+                  <Parameter name="desc" type="string"/>
                 </Parameters>
                 <Returns>
                 </Returns>
@@ -3681,13 +3976,16 @@
                 <Returns>
                 </Returns>
               </Method>
-              <Method name="GetOption" desc="Returns the value of a Web Service engine option." scope="static">
+              <Method name="RegisterService" desc="Registers a service in the engine." scope="static">
                 <Parameters>
-                  <Parameter name="option" type="string"/>
+                  <Parameter name="service" type="com.WebService"/>
                 </Parameters>
-                <Returns>
-                  <Return name="result" type="string"/>
-                </Returns>
+                <Returns></Returns>
+              </Method>
+              <Method name="Start" desc="Starts the Web Service engine." scope="static">
+                <Parameters>
+                </Parameters>
+                <Returns></Returns>
               </Method>
             </Methods>
           </Class>
@@ -4276,6 +4574,7 @@
           </Class>
           <Class name="TCPRequest" isStatic="false">
             <Methods>
+              <!--TODO: left off on Genero 3.0 updates, com.TCPRequest.setKeepConnection-->
               <Method name="Create" desc="Creates a new TCP request object." scope="static">
                 <Parameters>
                   <Parameter name="url" type="string"/>
@@ -4416,6 +4715,39 @@
                 </Parameters>
                 <Returns>
                   <Return name="result" type="integer"/>
+                </Returns>
+              </Method>
+            </Methods>
+          </Class>
+          <Class name="APNS" isStatic="true" minVersion="3.00">
+            <Methods>
+              <Method name="DecodeError" desc="Decodes content of BYTE data returned from the APNS server in case of error." scope="static" minVersion="3.00">
+                <Parameters>
+                  <Parameter name="data" type="byte"/>
+                </Parameters>
+                <Returns>
+                  <Return name="uuid" type="string"/>
+                  <Return name="error" type="integer"/>
+                </Returns>
+              </Method>
+              <Method name="DecodeFeedback" desc="Decodes content of BYTE data returned from the APNS feedback service." scope="static" minVersion="3.00">
+                <Parameters>
+                  <Parameter name="data" type="byte"/>
+                  <Parameter name="unregs" type="dynamic array of record timestamp integer, deviceToken string end record"/>
+                </Parameters>
+                <Returns>
+                </Returns>
+              </Method>
+              <Method name="EncodeMessage" desc="Encodes an APNS specific push notification message into a BYTE." scope="static" minVersion="3.00">
+                <Parameters>
+                  <Parameter name="data" type="byte"/>
+                  <Parameter name="deviceToken" type="string"/>
+                  <Parameter name="json" type="string"/>
+                  <Parameter name="uuid" type="string"/>
+                  <Parameter name="expiration" type="integer"/>
+                  <Parameter name="priority" type="smallint"/>
+                </Parameters>
+                <Returns>
                 </Returns>
               </Method>
             </Methods>
@@ -6600,7 +6932,15 @@
           </Class>
           <Class name="Base64" isStatic="true">
             <Methods>
-              <Method name="ToString" desc="Decodes the given base64 string." scope="static">
+              <Method name="FromByte" desc="Encodes the given BYTE data in base64." scope="static">
+                <Parameters>
+                  <Parameter name="source" type="byte"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="FromHexBinary" desc="Decodes the given hexadecimal string to base64." scope="static">
                 <Parameters>
                   <Parameter name="source" type="string"/>
                 </Parameters>
@@ -6616,26 +6956,10 @@
                   <Return name="result" type="string"/>
                 </Returns>
               </Method>
-              <Method name="ToHexBinary" desc="Decodes the given base64 string to hexadecimal." scope="static">
+              <Method name="FromStringWithCharset" desc="Encodes the given string in base64, according to a given charset." scope="static" minVersion="3.00">
                 <Parameters>
                   <Parameter name="source" type="string"/>
-                </Parameters>
-                <Returns>
-                  <Return name="result" type="string"/>
-                </Returns>
-              </Method>
-              <Method name="FromHexBinary" desc="Decodes the given hexadecimal string to base64." scope="static">
-                <Parameters>
-                  <Parameter name="source" type="string"/>
-                </Parameters>
-                <Returns>
-                  <Return name="result" type="string"/>
-                </Returns>
-              </Method>
-              <Method name="Xor" desc="Computes the exclusive disjunction between two base64 encoded strings." scope="static">
-                <Parameters>
-                  <Parameter name="b64str1" type="string"/>
-                  <Parameter name="b64str2" type="string"/>
+                  <Parameter name="charset" type="string"/>
                 </Parameters>
                 <Returns>
                   <Return name="result" type="string"/>
@@ -6657,11 +6981,61 @@
                 <Returns>
                 </Returns>
               </Method>
+              <Method name="ToHexBinary" desc="Decodes the given base64 string to hexadecimal." scope="static">
+                <Parameters>
+                  <Parameter name="source" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="ToByte" desc="Decodes the given base64 string into a BYTE." scope="static">
+                <Parameters>
+                  <Parameter name="source" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="byte"/>
+                </Returns>
+              </Method>
+              <Method name="ToString" desc="Decodes the given base64 string." scope="static">
+                <Parameters>
+                  <Parameter name="source" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="ToStringWithCharset" desc="Decodes the given base64 string." scope="static" minVersion="3.00">
+                <Parameters>
+                  <Parameter name="source" type="string"/>
+                  <Parameter name="charset" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="Xor" desc="Computes the exclusive disjunction between two base64 encoded strings." scope="static">
+                <Parameters>
+                  <Parameter name="b64str1" type="string"/>
+                  <Parameter name="b64str2" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
             </Methods>
           </Class>
           <Class name="HexBinary" isStatic="true">
             <Methods>
-              <Method name="ToString" desc="Decodes an hexadecimal string to a clear, human-readable string." scope="static">
+              <Method name="FromBase64" desc="Converts a base64 string to the hexadecimal equivalent." scope="static">
+                <Parameters>
+                  <Parameter name="source" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="FromByte" desc="Encodes BYTE data in hexadecimal." scope="static">
                 <Parameters>
                   <Parameter name="source" type="string"/>
                 </Parameters>
@@ -6677,26 +7051,10 @@
                   <Return name="result" type="string"/>
                 </Returns>
               </Method>
-              <Method name="ToBase64" desc="Converts an hexadecimal string to the base64 equivalent" scope="static">
+              <Method name="FromStringWithCharset" desc="Encodes a given string in hexadecimal, according to a given charset." scope="static" minVersion="3.00">
                 <Parameters>
                   <Parameter name="source" type="string"/>
-                </Parameters>
-                <Returns>
-                  <Return name="result" type="string"/>
-                </Returns>
-              </Method>
-              <Method name="FromBase64" desc="Converts a base64 string to the hexadecimal equivalent." scope="static">
-                <Parameters>
-                  <Parameter name="source" type="string"/>
-                </Parameters>
-                <Returns>
-                  <Return name="result" type="string"/>
-                </Returns>
-              </Method>
-              <Method name="Xor" desc="Computes the exclusive disjunction between two hexadecimal encoded strings." scope="static">
-                <Parameters>
-                  <Parameter name="hexstr1" type="string"/>
-                  <Parameter name="hexstr2" type="string"/>
+                  <Parameter name="charset" type="string"/>
                 </Parameters>
                 <Returns>
                   <Return name="result" type="string"/>
@@ -6718,16 +7076,52 @@
                 <Returns>
                 </Returns>
               </Method>
+              <Method name="ToBase64" desc="Converts an hexadecimal string to the base64 equivalent" scope="static">
+                <Parameters>
+                  <Parameter name="source" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="ToByte" desc="Decodes an hexadecimal string into a BYTE variable." scope="static">
+                <Parameters>
+                  <Parameter name="source" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="ToString" desc="Decodes an hexadecimal string to a clear, human-readable string." scope="static">
+                <Parameters>
+                  <Parameter name="source" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="ToStringWithCharset" desc="Decodes an hexadecimal string to a clear, human-readable string, according to a given charset." scope="static" minVersion="3.00">
+                <Parameters>
+                  <Parameter name="source" type="string"/>
+                  <Parameter name="charset" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
+              <Method name="Xor" desc="Computes the exclusive disjunction between two hexadecimal encoded strings." scope="static">
+                <Parameters>
+                  <Parameter name="hexstr1" type="string"/>
+                  <Parameter name="hexstr2" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
             </Methods>
           </Class>
           <Class name="Digest" isStatic="true">
             <Methods>
-              <Method name="CreateDigest" desc="Defines a new digest context by specifying the algorithm to be used." scope="static">
-                <Parameters>
-                  <Parameter name="algo" type="string"/>
-                </Parameters>
-                <Returns></Returns>
-              </Method>
               <Method name="AddData" desc="Adds a data from a BYTE variable to the digest buffer." scope="static">
                 <Parameters>
                   <Parameter name="data" type="byte"/>
@@ -6752,6 +7146,28 @@
                 </Parameters>
                 <Returns></Returns>
               </Method>
+              <Method name="AddStringDataWithCharset" desc="Adds a data string to the digest buffer, after converting to the specified character set." scope="static" minVersion="3.00">
+                <Parameters>
+                  <Parameter name="data" type="string"/>
+                  <Parameter name="charset" type="string"/>
+                </Parameters>
+                <Returns></Returns>
+              </Method>
+              <Method name="CreateDigest" desc="Defines a new digest context by specifying the algorithm to be used." scope="static">
+                <Parameters>
+                  <Parameter name="algo" type="string"/>
+                </Parameters>
+                <Returns></Returns>
+              </Method>
+              <Method name="CreateDigestString" desc="Creates a SHA1 digest from the given string." scope="static">
+                <Parameters>
+                  <Parameter name="password" type="string"/>
+                  <Parameter name="randBase64" type="string"/>
+                </Parameters>
+                <Returns>
+                  <Return name="result" type="string"/>
+                </Returns>
+              </Method>
               <Method name="DoBase64Digest" desc="Creates a digest of the buffered data and returns the result in base64 format." scope="static">
                 <Parameters>
                 </Parameters>
@@ -6764,15 +7180,6 @@
                 </Parameters>
                 <Returns>
                   <Return name="hexBinDigest" type="string"/>
-                </Returns>
-              </Method>
-              <Method name="CreateDigestString" desc="Creates a SHA1 digest from the given string." scope="static">
-                <Parameters>
-                  <Parameter name="password" type="string"/>
-                  <Parameter name="randBase64" type="string"/>
-                </Parameters>
-                <Returns>
-                  <Return name="result" type="string"/>
                 </Returns>
               </Method>
             </Methods>

@@ -232,7 +232,7 @@ namespace VSGenero.EditorExtensions
             SnapshotSpan? start = null;
             paramIndex = 0;
             sigStart = null;
-            bool nestingChanged = false, lastTokenWasCommaOrOperator = true, lastTokenWasKeywordArgAssignment = false, lastTokenWasDot = false;
+            bool nestingChanged = false, lastTokenWasCommaOrOperator = true, lastTokenWasKeywordArgAssignment = false, lastTokenWasDot = false, firstTokenWasIdentOrKeyword = false;
             int otherNesting = 0;
             bool isSigHelp = nesting != 0;
             isParameterName = false;
@@ -525,6 +525,12 @@ namespace VSGenero.EditorExtensions
                     {
                         return null;
                     }
+                    else if(firstTokenWasIdentOrKeyword && text.ToLower() == "function")
+                    {
+                        isFunctionCallOrDefinition = true;
+                        break;
+
+                    }
                     else if (!lastTokenWasCommaOrOperator)
                     {
                         break;
@@ -574,6 +580,12 @@ namespace VSGenero.EditorExtensions
                             {
                                 // we might have a function call or function name
                                 isFunctionCallOrDefinition = true;
+                            }
+
+                            if(token.ClassificationType.IsOfType(PredefinedClassificationTypeNames.Identifier) ||
+                               token.ClassificationType.IsOfType(PredefinedClassificationTypeNames.Keyword))
+                            {
+                                firstTokenWasIdentOrKeyword = true;
                             }
                         }
                         lastTokenWasCommaOrOperator = false;
