@@ -94,6 +94,17 @@ GeneroLanguageVersion.Latest),
         {
         }, new List<string> {"string"},
 GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("isMobile", "base.Application", true, "Indicates if the application runs on a mobile device.", new List<ParameterResult>
+        {
+        }, new List<string> {"boolean"},
+GeneroLanguageVersion.V300,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("reloadResources", "base.Application", true, "Resets FGLRESOURCEPATH and reloads localized string resources.", new List<ParameterResult>
+        {
+            new ParameterResult("newResourcePath", "", "string")
+        }, new List<string> {},
+GeneroLanguageVersion.V310,
 GeneroLanguageVersion.Latest)
     },
 GeneroLanguageVersion.None,
@@ -137,6 +148,14 @@ GeneroLanguageVersion.Latest),
             new ParameterResult("timeout", "", "integer")
         }, new List<string> {},
 GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("openServerSocket", "base.Channel", false, "Open a TCP server socket channel.", new List<ParameterResult>
+        {
+            new ParameterResult("interface", "", "string"),
+            new ParameterResult("port", "", "integer"),
+            new ParameterResult("mode", "", "string")
+        }, new List<string> {},
+GeneroLanguageVersion.V310,
 GeneroLanguageVersion.Latest),
         new GeneroPackageClassMethod("setDelimiter", "base.Channel", false, "Define the value delimiter for a channel.", new List<ParameterResult>
         {
@@ -473,6 +492,28 @@ GeneroLanguageVersion.Latest)
         }, new List<string> {},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("filenameToURI", "ui.Interface", true, "Converts a file name to an URI to be used as a web component image resource.", new List<ParameterResult>
+        {
+            new ParameterResult("filename", "", "string")
+        }, new List<string> {"integer"},
+GeneroLanguageVersion.V300,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("getChildCount", "ui.Interface", true, "Get the number of children in a parent container.", new List<ParameterResult>
+        {
+        }, new List<string> {"integer"},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("getChildInstances", "ui.Interface", true, "Get the number of child instances for a given application name.", new List<ParameterResult>
+        {
+            new ParameterResult("name", "", "string")
+        }, new List<string> {"integer"},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("getContainer", "ui.Interface", true, "Get the parent container of the current program.", new List<ParameterResult>
+        {
+        }, new List<string> {"string"},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
         new GeneroPackageClassMethod("getDocument", "ui.Interface", true, "Returns the DOM document of the abstract user interface tree.", new List<ParameterResult>
         {
         }, new List<string> {"om.DomDocument"},
@@ -488,24 +529,38 @@ GeneroLanguageVersion.Latest),
         }, new List<string> {"string"},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("getImage", "ui.Interface", true, "Returns the icon image of the program.", new List<ParameterResult>
+        {
+        }, new List<string> {"string"},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("getName", "ui.Interface", true, "Performs function calls to the current front end.", new List<ParameterResult>
+        {
+        }, new List<string> {"string"},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
         new GeneroPackageClassMethod("getRootNode", "ui.Interface", true, "Get the root DOM node of the abstract user interface.", new List<ParameterResult>
         {
         }, new List<string> {"om.DomNode"},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("loadStartMenu", "ui.Interface", true, "Load the start menu file.", new List<ParameterResult>
+        new GeneroPackageClassMethod("getText", "ui.Interface", true, "Returns the title of the program.", new List<ParameterResult>
         {
-            new ParameterResult("filename", "", "string")
-        }, new List<string> {},
+        }, new List<string> {"string"},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("loadToolBar", "ui.Interface", true, "Load a default toolbar file.", new List<ParameterResult>
+        new GeneroPackageClassMethod("getType", "ui.Interface", true, "Returns the type of the program.", new List<ParameterResult>
         {
-            new ParameterResult("filename", "", "string")
-        }, new List<string> {},
+        }, new List<string> {"string"},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
         new GeneroPackageClassMethod("loadActionDefaults", "ui.Interface", true, "Load the default action defaults file.", new List<ParameterResult>
+        {
+            new ParameterResult("filename", "", "string")
+        }, new List<string> {},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("loadStartMenu", "ui.Interface", true, "Load the start menu file.", new List<ParameterResult>
         {
             new ParameterResult("filename", "", "string")
         }, new List<string> {},
@@ -517,54 +572,15 @@ GeneroLanguageVersion.Latest),
         }, new List<string> {},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("setName", "ui.Interface", true, "Define the name of the current program for the front-end.", new List<ParameterResult>
+        new GeneroPackageClassMethod("loadToolBar", "ui.Interface", true, "Load a default toolbar file.", new List<ParameterResult>
         {
-            new ParameterResult("name", "", "string")
+            new ParameterResult("filename", "", "string")
         }, new List<string> {},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("getName", "ui.Interface", true, "Performs function calls to the current front end.", new List<ParameterResult>
+        new GeneroPackageClassMethod("loadTopMenu", "ui.Interface", true, "Load a default topmenu file.", new List<ParameterResult>
         {
-        }, new List<string> {"string"},
-GeneroLanguageVersion.None,
-GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("setText", "ui.Interface", true, "Defines the title for the program.", new List<ParameterResult>
-        {
-            new ParameterResult("title", "", "string")
-        }, new List<string> {},
-GeneroLanguageVersion.None,
-GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("getText", "ui.Interface", true, "Returns the title of the program.", new List<ParameterResult>
-        {
-        }, new List<string> {"string"},
-GeneroLanguageVersion.None,
-GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("setImage", "ui.Interface", true, "Defines the icon image of the program.", new List<ParameterResult>
-        {
-            new ParameterResult("icon", "", "string")
-        }, new List<string> {},
-GeneroLanguageVersion.None,
-GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("getImage", "ui.Interface", true, "Returns the icon image of the program.", new List<ParameterResult>
-        {
-        }, new List<string> {"string"},
-GeneroLanguageVersion.None,
-GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("setType", "ui.Interface", true, "Defines the type of the program for the front-end.", new List<ParameterResult>
-        {
-            new ParameterResult("type", "", "string")
-        }, new List<string> {},
-GeneroLanguageVersion.None,
-GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("getType", "ui.Interface", true, "Returns the type of the program.", new List<ParameterResult>
-        {
-        }, new List<string> {"string"},
-GeneroLanguageVersion.None,
-GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("setSize", "ui.Interface", true, "Specify the initial size of the parent container window.", new List<ParameterResult>
-        {
-            new ParameterResult("height", "", "integer"),
-            new ParameterResult("width", "", "integer")
+            new ParameterResult("filename", "", "string")
         }, new List<string> {},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
@@ -574,20 +590,35 @@ GeneroLanguageVersion.Latest),
         }, new List<string> {},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("getContainer", "ui.Interface", true, "Get the parent container of the current program.", new List<ParameterResult>
+        new GeneroPackageClassMethod("setImage", "ui.Interface", true, "Defines the icon image of the program.", new List<ParameterResult>
         {
-        }, new List<string> {"string"},
+            new ParameterResult("icon", "", "string")
+        }, new List<string> {},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("getChildCount", "ui.Interface", true, "Get the number of children in a parent container.", new List<ParameterResult>
-        {
-        }, new List<string> {"integer"},
-GeneroLanguageVersion.None,
-GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("getChildInstances", "ui.Interface", true, "Get the number of child instances for a given application name.", new List<ParameterResult>
+        new GeneroPackageClassMethod("setName", "ui.Interface", true, "Define the name of the current program for the front-end.", new List<ParameterResult>
         {
             new ParameterResult("name", "", "string")
-        }, new List<string> {"integer"},
+        }, new List<string> {},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("setSize", "ui.Interface", true, "Specify the initial size of the parent container window.", new List<ParameterResult>
+        {
+            new ParameterResult("height", "", "integer"),
+            new ParameterResult("width", "", "integer")
+        }, new List<string> {},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("setText", "ui.Interface", true, "Defines the title for the program.", new List<ParameterResult>
+        {
+            new ParameterResult("title", "", "string")
+        }, new List<string> {},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("setType", "ui.Interface", true, "Defines the type of the program for the front-end.", new List<ParameterResult>
+        {
+            new ParameterResult("type", "", "string")
+        }, new List<string> {},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
         new GeneroPackageClassMethod("refresh", "ui.Interface", true, "Synchronize the user interface with the front-end.", new List<ParameterResult>
@@ -664,6 +695,15 @@ GeneroLanguageVersion.Latest),
         new GeneroPackageClassMethod("setDefaultInitializer", "ui.Form", true, "Define the default initializer for all forms.", new List<ParameterResult>
         {
             new ParameterResult("funcname", "", "string")
+        }, new List<string> {},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("displayTo", "ui.Form", true, "Displays values to form fields or screen arrays.", new List<ParameterResult>
+        {
+            new ParameterResult("value", "", "type"),
+            new ParameterResult("formFieldName", "", "string"),
+            new ParameterResult("screenLine", "", "integer"),
+            new ParameterResult("attributes", "", "string")
         }, new List<string> {},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
@@ -756,6 +796,36 @@ GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
     new GeneroPackageClass("Dialog", "ui", false, new List<GeneroPackageClassMethod>
     {
+        new GeneroPackageClassMethod("createConstructByName", "ui.Dialog", true, "Creates a new ui.Dialog object to handle a CONSTRUCT BY NAME.", new List<ParameterResult>
+        {
+            new ParameterResult("fields", "", "dynamic array of record name string, type string end record")
+        }, new List<string> {"ui.Dialog"},
+GeneroLanguageVersion.V300,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("createDisplayArrayTo", "ui.Dialog", true, "Creates a new ui.Dialog object to handle a DISPLAY ARRAY.", new List<ParameterResult>
+        {
+            new ParameterResult("fields", "", "dynamic array of record name string, type string end record")
+        }, new List<string> {"ui.Dialog"},
+GeneroLanguageVersion.V300,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("createInputArrayFrom", "ui.Dialog", true, "Creates a new ui.Dialog object to implement a dynamic INPUT ARRAY FROM.", new List<ParameterResult>
+        {
+            new ParameterResult("fields", "", "dynamic array of record name string, type string end record"),
+            new ParameterResult("screenRecord", "", "string")
+        }, new List<string> {"ui.Dialog"},
+GeneroLanguageVersion.V310,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("createInputByName", "ui.Dialog", true, "Creates a new ui.Dialog object to handle an INPUT BY NAME.", new List<ParameterResult>
+        {
+            new ParameterResult("fields", "", "dynamic array of record name string, type string end record")
+        }, new List<string> {"ui.Dialog"},
+GeneroLanguageVersion.V300,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("createMultipleDialog", "ui.Dialog", true, "Creates a new ui.Dialog object to implement a dynamic DIALOG multiple-dialog.", new List<ParameterResult>
+        {
+        }, new List<string> {"ui.Dialog"},
+GeneroLanguageVersion.V310,
+GeneroLanguageVersion.Latest),
         new GeneroPackageClassMethod("getCurrent", "ui.Dialog", true, "Returns the current dialog object.", new List<ParameterResult>
         {
         }, new List<string> {"ui.Dialog"},
@@ -772,11 +842,39 @@ GeneroLanguageVersion.Latest),
         }, new List<string> {},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("validate", "ui.Dialog", false, "Check form level validation rules.", new List<ParameterResult>
+        new GeneroPackageClassMethod("addConstructByName", "ui.Dialog", false, "Adds a sub-dialog of type CONSTRUCT BY NAME to an existing ui.Dialog dynamic dialog.", new List<ParameterResult>
         {
-            new ParameterResult("field-list", "", "string")
-        }, new List<string> {"integer"},
-GeneroLanguageVersion.None,
+            new ParameterResult("fields", "", "dynamic array of record name string, type string end record"),
+            new ParameterResult("name", "", "string")
+        }, new List<string> {},
+GeneroLanguageVersion.V310,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("addDisplayArrayTo", "ui.Dialog", false, "Adds a sub-dialog of type DISPLAY ARRAY TO to an existing ui.Dialog dynamic dialog.", new List<ParameterResult>
+        {
+            new ParameterResult("fields", "", "dynamic array of record name string, type string end record"),
+            new ParameterResult("screenRecord", "", "string")
+        }, new List<string> {},
+GeneroLanguageVersion.V310,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("addInputArrayFrom", "ui.Dialog", false, "Adds a sub-dialog of type INPUT ARRAY FROM to an existing ui.Dialog dynamic dialog.", new List<ParameterResult>
+        {
+            new ParameterResult("fields", "", "dynamic array of record name string, type string end record"),
+            new ParameterResult("screenRecord", "", "string")
+        }, new List<string> {},
+GeneroLanguageVersion.V310,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("addInputByName", "ui.Dialog", false, "Adds a sub-dialog of type INPUT BY NAME to an existing ui.Dialog dynamic dialog.", new List<ParameterResult>
+        {
+            new ParameterResult("fields", "", "dynamic array of record name string, type string end record"),
+            new ParameterResult("name", "", "string")
+        }, new List<string> {},
+GeneroLanguageVersion.V310,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("addTrigger", "ui.Dialog", false, "Adds an event trigger to the dynamic dialog", new List<ParameterResult>
+        {
+            new ParameterResult("name", "", "string")
+        }, new List<string> {},
+GeneroLanguageVersion.V300,
 GeneroLanguageVersion.Latest),
         new GeneroPackageClassMethod("appendRow", "ui.Dialog", false, "Appends a new row in the specified list.", new List<ParameterResult>
         {
@@ -791,10 +889,26 @@ GeneroLanguageVersion.Latest),
         }, new List<string> {},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("deleteRow", "ui.Dialog", false, "Deletes a row from the specified list.", new List<ParameterResult>
+        new GeneroPackageClassMethod("arrayToVisualIndex", "ui.Dialog", false, "Converts the program array index to the visual index for a given screen array.", new List<ParameterResult>
         {
             new ParameterResult("name", "", "string"),
-            new ParameterResult("index", "", "integer")
+            new ParameterResult("arrayIndex", "", "integer")
+        }, new List<string> {"integer"},
+GeneroLanguageVersion.V300,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("cancel", "ui.Dialog", false, "Cancels a parent dialog from a sub-dialog.", new List<ParameterResult>
+        {
+        }, new List<string> {},
+GeneroLanguageVersion.V310,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("close", "ui.Dialog", false, "Closes a dynamic dialog.", new List<ParameterResult>
+        {
+        }, new List<string> {},
+GeneroLanguageVersion.V310,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("deleteAllRows", "ui.Dialog", false, "Deletes all rows from the specified list.", new List<ParameterResult>
+        {
+            new ParameterResult("name", "", "string")
         }, new List<string> {},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
@@ -805,9 +919,10 @@ GeneroLanguageVersion.Latest),
         }, new List<string> {},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("deleteAllRows", "ui.Dialog", false, "Deletes all rows from the specified list.", new List<ParameterResult>
+        new GeneroPackageClassMethod("deleteRow", "ui.Dialog", false, "Deletes a row from the specified list.", new List<ParameterResult>
         {
-            new ParameterResult("name", "", "string")
+            new ParameterResult("name", "", "string"),
+            new ParameterResult("index", "", "integer")
         }, new List<string> {},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
@@ -840,19 +955,37 @@ GeneroLanguageVersion.Latest),
         }, new List<string> {"boolean"},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("getFieldValue", "ui.Dialog", false, "Returns the value of a field controlled by a dynamic dialog.", new List<ParameterResult>
+        {
+            new ParameterResult("name", "", "string")
+        }, new List<string> {"fgl-type"},
+GeneroLanguageVersion.V300,
+GeneroLanguageVersion.Latest),
         new GeneroPackageClassMethod("getForm", "ui.Dialog", false, "Returns the current form used by the dialog.", new List<ParameterResult>
         {
         }, new List<string> {"ui.Form"},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("insertRow", "ui.Dialog", false, "Inserts a new row in the specified list.", new List<ParameterResult>
+        new GeneroPackageClassMethod("getQueryFromField", "ui.Dialog", false, "Returns the SQL condition of a field used in a query by example dialog.", new List<ParameterResult>
+        {
+            new ParameterResult("fieldName", "", "string")
+        }, new List<string> {"string"},
+GeneroLanguageVersion.V300,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("getSortKey", "ui.Dialog", false, "Returns the name of the sort field selected by the user.", new List<ParameterResult>
+        {
+            new ParameterResult("screenArray", "", "string")
+        }, new List<string> {"string"},
+GeneroLanguageVersion.V300,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("insertNode", "ui.Dialog", false, "Inserts a new node in the specified tree.", new List<ParameterResult>
         {
             new ParameterResult("name", "", "string"),
             new ParameterResult("index", "", "integer")
         }, new List<string> {},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("insertNode", "ui.Dialog", false, "Inserts a new node in the specified tree.", new List<ParameterResult>
+        new GeneroPackageClassMethod("insertRow", "ui.Dialog", false, "Inserts a new row in the specified list.", new List<ParameterResult>
         {
             new ParameterResult("name", "", "string"),
             new ParameterResult("index", "", "integer")
@@ -866,6 +999,17 @@ GeneroLanguageVersion.Latest),
         }, new List<string> {"boolean"},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("isSortReverse", "ui.Dialog", false, "Indicates the sort order direction (FALSE=ascending, TRUE=descending)", new List<ParameterResult>
+        {
+            new ParameterResult("name", "", "string")
+        }, new List<string> {"boolean"},
+GeneroLanguageVersion.V310,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("nextEvent", "ui.Dialog", false, "Waits for a dialog event.", new List<ParameterResult>
+        {
+        }, new List<string> {"string"},
+GeneroLanguageVersion.V300,
+GeneroLanguageVersion.Latest),
         new GeneroPackageClassMethod("nextField", "ui.Dialog", false, "Registering the next field to jump to.", new List<ParameterResult>
         {
             new ParameterResult("name", "", "string")
@@ -878,13 +1022,6 @@ GeneroLanguageVersion.Latest),
         }, new List<string> {"string"},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("setArrayLength", "ui.Dialog", false, "Sets the total number of rows in the specified list.", new List<ParameterResult>
-        {
-            new ParameterResult("name", "", "string"),
-            new ParameterResult("len", "", "integer")
-        }, new List<string> {},
-GeneroLanguageVersion.None,
-GeneroLanguageVersion.Latest),
         new GeneroPackageClassMethod("setActionActive", "ui.Dialog", false, "Enabling and disabling dialog actions.", new List<ParameterResult>
         {
             new ParameterResult("name", "", "string"),
@@ -892,12 +1029,59 @@ GeneroLanguageVersion.Latest),
         }, new List<string> {},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("setActionComment", "ui.Dialog", false, "Set the comment/hint of a default action view.", new List<ParameterResult>
+        {
+            new ParameterResult("name", "", "string"),
+            new ParameterResult("comment", "", "string")
+        }, new List<string> {},
+GeneroLanguageVersion.V310,
+GeneroLanguageVersion.Latest),
         new GeneroPackageClassMethod("setActionHidden", "ui.Dialog", false, "Handling default action view visibility.", new List<ParameterResult>
         {
             new ParameterResult("name", "", "string"),
             new ParameterResult("hide", "", "integer")
         }, new List<string> {},
 GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("setActionImage", "ui.Dialog", false, "Set the image of a default action view.", new List<ParameterResult>
+        {
+            new ParameterResult("name", "", "string"),
+            new ParameterResult("image", "", "string")
+        }, new List<string> {},
+GeneroLanguageVersion.V310,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("setActionText", "ui.Dialog", false, "Defining the text of a default action view.", new List<ParameterResult>
+        {
+            new ParameterResult("name", "", "string"),
+            new ParameterResult("text", "", "string")
+        }, new List<string> {},
+GeneroLanguageVersion.V310,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("setArrayAttributes", "ui.Dialog", false, "Define cell decoration attributes array for the specified list (singular or multiple dialogs).", new List<ParameterResult>
+        {
+            new ParameterResult("name", "", "string"),
+            new ParameterResult("array", "", "dynamic-array-type")
+        }, new List<string> {},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("setArrayLength", "ui.Dialog", false, "Sets the total number of rows in the specified list.", new List<ParameterResult>
+        {
+            new ParameterResult("name", "", "string"),
+            new ParameterResult("len", "", "integer")
+        }, new List<string> {},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("setCellAttributes", "ui.Dialog", false, "Define cell decoration attributes array for the specified list (singular dialog only).", new List<ParameterResult>
+        {
+            new ParameterResult("program-array", "", "array")
+        }, new List<string> {},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("setCompleterItems", "ui.Dialog", false, "Define autocompletion items for the a field defined with COMPLETER attribute.", new List<ParameterResult>
+        {
+            new ParameterResult("itemsArray", "", "dynamic array of string")
+        }, new List<string> {},
+GeneroLanguageVersion.V300,
 GeneroLanguageVersion.Latest),
         new GeneroPackageClassMethod("setCurrentRow", "ui.Dialog", false, "Sets the current row in the specified list.", new List<ParameterResult>
         {
@@ -920,18 +1104,12 @@ GeneroLanguageVersion.Latest),
         }, new List<string> {},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("setArrayAttributes", "ui.Dialog", false, "Define cell decoration attributes array for the specified list (singular or multiple dialogs).", new List<ParameterResult>
+        new GeneroPackageClassMethod("setFieldValue", "ui.Dialog", false, "Sets the value of a field controlled by the dialog object.", new List<ParameterResult>
         {
             new ParameterResult("name", "", "string"),
-            new ParameterResult("array", "", "array")
+            new ParameterResult("value", "", "fgl-type")
         }, new List<string> {},
-GeneroLanguageVersion.None,
-GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("setCellAttributes", "ui.Dialog", false, "Define cell decoration attributes array for the specified list (singular dialog only).", new List<ParameterResult>
-        {
-            new ParameterResult("program-array", "", "array")
-        }, new List<string> {},
-GeneroLanguageVersion.None,
+GeneroLanguageVersion.V300,
 GeneroLanguageVersion.Latest),
         new GeneroPackageClassMethod("setSelectionMode", "ui.Dialog", false, "Defines the row selection mode for the specified list.", new List<ParameterResult>
         {
@@ -948,6 +1126,19 @@ GeneroLanguageVersion.Latest),
             new ParameterResult("value", "", "boolean")
         }, new List<string> {},
 GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("validate", "ui.Dialog", false, "Check form level validation rules.", new List<ParameterResult>
+        {
+            new ParameterResult("field-list", "", "string")
+        }, new List<string> {"integer"},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("visualToArrayIndex", "ui.Dialog", false, "Converts the visual index to the program array index for a given screen array.", new List<ParameterResult>
+        {
+            new ParameterResult("name", "", "string"),
+            new ParameterResult("index", "", "integer")
+        }, new List<string> {},
+GeneroLanguageVersion.V300,
 GeneroLanguageVersion.Latest)
     },
 GeneroLanguageVersion.None,
@@ -1561,13 +1752,56 @@ GeneroLanguageVersion.Latest)
                     GeneroLanguageVersion.Latest));
                     Packages.Add("util", new GeneroPackage("util", true, new List<GeneroPackageClass>
 {
+    new GeneroPackageClass("Date", "util", true, new List<GeneroPackageClassMethod>
+    {
+        new GeneroPackageClassMethod("parse", "util.Date", true, "Converts a string to a DATE value according to a format specification.", new List<ParameterResult>
+        {
+            new ParameterResult("source", "", "string"),
+            new ParameterResult("format", "", "string")
+        }, new List<string> {"date"},
+GeneroLanguageVersion.V300,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("isLeapYear", "util.Date", true, "Checks is the year passed as parameter is a leap year.", new List<ParameterResult>
+        {
+            new ParameterResult("year", "", "integer")
+        }, new List<string> {"boolean"},
+GeneroLanguageVersion.V300,
+GeneroLanguageVersion.Latest)
+    },
+GeneroLanguageVersion.V300,
+GeneroLanguageVersion.Latest),
     new GeneroPackageClass("DateTime", "util", true, new List<GeneroPackageClassMethod>
     {
+        new GeneroPackageClassMethod("format", "util.DateTime", true, "Formats a datetime value according to format specification.", new List<ParameterResult>
+        {
+            new ParameterResult("value", "", "datetime q1 to q2"),
+            new ParameterResult("format", "", "string")
+        }, new List<string> {"string"},
+GeneroLanguageVersion.V300,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("fromSecondsSinceEpoch", "util.DateTime", true, "Converts a number of seconds since Epoch to a datetime.", new List<ParameterResult>
+        {
+            new ParameterResult("seconds", "", "float")
+        }, new List<string> {"datetime q1 to q2"},
+GeneroLanguageVersion.V300,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("getCurrentAsUTC", "util.DateTime", true, "Returns the current date/time in UTC.", new List<ParameterResult>
+        {
+        }, new List<string> {"DATETIME YEAR TO FRACTION(5)"},
+GeneroLanguageVersion.V300,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("parse", "util.DateTime", true, "Converts a string to a DATETIME value according to a format specification.", new List<ParameterResult>
+        {
+            new ParameterResult("source", "", "string"),
+            new ParameterResult("format", "", "string")
+        }, new List<string> {"DATETIME q1 to q2"},
+GeneroLanguageVersion.V300,
+GeneroLanguageVersion.Latest),
         new GeneroPackageClassMethod("toLocalTime", "util.DateTime", true, "Converts a UTC datetime to the local time.", new List<ParameterResult>
         {
-            new ParameterResult("utc_datetime", "", "datetime q1 to q2")
+            new ParameterResult("utc", "", "datetime q1 to q2")
         }, new List<string> {"datetime q1 to q2"},
-GeneroLanguageVersion.None,
+GeneroLanguageVersion.V300,
 GeneroLanguageVersion.Latest),
         new GeneroPackageClassMethod("toUTC", "util.DateTime", true, "Converts a datetime value to the UTC datetime.", new List<ParameterResult>
         {
@@ -1577,6 +1811,25 @@ GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest)
     },
 GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+    new GeneroPackageClass("Interval", "util", true, new List<GeneroPackageClassMethod>
+    {
+        new GeneroPackageClassMethod("format", "util.Interval", true, "Formats an interval value according to format specification.", new List<ParameterResult>
+        {
+            new ParameterResult("value", "", "INTERVAL q1 to q2"),
+            new ParameterResult("format", "", "string")
+        }, new List<string> {"string"},
+GeneroLanguageVersion.V300,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("parse", "util.Interval", true, "Converts a string to a DATETIME value according to a format specification.", new List<ParameterResult>
+        {
+            new ParameterResult("source", "", "string"),
+            new ParameterResult("format", "", "string")
+        }, new List<string> {"INTERVAL q1 to q2"},
+GeneroLanguageVersion.V300,
+GeneroLanguageVersion.Latest)
+    },
+GeneroLanguageVersion.V300,
 GeneroLanguageVersion.Latest),
     new GeneroPackageClass("Math", "util", true, new List<GeneroPackageClassMethod>
     {
@@ -1839,6 +2092,110 @@ GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest)
     },
 GeneroLanguageVersion.V250,
+GeneroLanguageVersion.Latest),
+    new GeneroPackageClass("Integer", "util", true, new List<GeneroPackageClassMethod>
+    {
+        new GeneroPackageClassMethod("abs", "util.Integer", true, "Returns the absolute value of an integer.", new List<ParameterResult>
+        {
+            new ParameterResult("i", "", "integer")
+        }, new List<string> {"integer"},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("and", "util.Integer", true, "Returns the result of a bitwise AND on two INTEGER values.", new List<ParameterResult>
+        {
+            new ParameterResult("x", "", "integer"),
+            new ParameterResult("y", "", "integer")
+        }, new List<string> {"integer"},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("andNot", "util.Integer", true, "Returns the result of a bitwise AND of the 1st INTEGER and the inverted 2nd INTEGER.", new List<ParameterResult>
+        {
+            new ParameterResult("x", "", "integer"),
+            new ParameterResult("y", "", "integer")
+        }, new List<string> {"integer"},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("clearBit", "util.Integer", true, "Returns the INTEGER parameter with the bit at the designated position set to 0.", new List<ParameterResult>
+        {
+            new ParameterResult("i", "", "integer"),
+            new ParameterResult("n", "", "smallint")
+        }, new List<string> {"integer"},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("not", "util.Integer", true, "Returns the INTEGER value with all bits inverted.", new List<ParameterResult>
+        {
+            new ParameterResult("i", "", "integer")
+        }, new List<string> {"integer"},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("or", "util.Integer", true, "Returns the result of a bitwise OR on two INTEGER values.", new List<ParameterResult>
+        {
+            new ParameterResult("x", "", "integer"),
+            new ParameterResult("y", "", "integer")
+        }, new List<string> {"integer"},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("parseHexString", "util.Integer", true, "Returns an INTEGER from its hexadecimal (base 16) string representation", new List<ParameterResult>
+        {
+            new ParameterResult("s", "", "string")
+        }, new List<string> {"integer"},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("parseBinaryString", "util.Integer", true, "Returns an INTEGER from its binary (base 2) string representation", new List<ParameterResult>
+        {
+            new ParameterResult("s", "", "string")
+        }, new List<string> {"integer"},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("setBit", "util.Integer", true, "Returns the INTEGER parameter with the bit at the designated position set to 1.", new List<ParameterResult>
+        {
+            new ParameterResult("i", "", "integer"),
+            new ParameterResult("n", "", "smallint")
+        }, new List<string> {"integer"},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("shiftLeft", "util.Integer", true, "Returns the INTEGER value left-shifted by the given bit places.", new List<ParameterResult>
+        {
+            new ParameterResult("i", "", "integer"),
+            new ParameterResult("n", "", "smallint")
+        }, new List<string> {"integer"},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("shiftRight", "util.Integer", true, "Returns the INTEGER value right-shifted by the given bit places.", new List<ParameterResult>
+        {
+            new ParameterResult("i", "", "integer"),
+            new ParameterResult("n", "", "smallint")
+        }, new List<string> {"integer"},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("testBit", "util.Integer", true, "Returns TRUE, if in the INTEGER value, the bit at the designed position is set.", new List<ParameterResult>
+        {
+            new ParameterResult("i", "", "integer"),
+            new ParameterResult("n", "", "integer")
+        }, new List<string> {"boolean"},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("toHexString", "util.Integer", true, "Returns the string representation of an INTEGER, as an unsigned integer in base 16.", new List<ParameterResult>
+        {
+            new ParameterResult("i", "", "integer")
+        }, new List<string> {"string"},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("toBinaryString", "util.Integer", true, "Returns the string representation of an INTEGER, as an unsigned integer in base 2.", new List<ParameterResult>
+        {
+            new ParameterResult("i", "", "integer")
+        }, new List<string> {"string"},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("xor", "util.Integer", true, "Returns the result of a bitwise XOR on two INTEGER values.", new List<ParameterResult>
+        {
+            new ParameterResult("x", "", "integer"),
+            new ParameterResult("y", "", "integer")
+        }, new List<string> {"integer"},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest)
+    },
+GeneroLanguageVersion.V310,
 GeneroLanguageVersion.Latest)
 },
                     GeneroLanguageVersion.None,
@@ -1847,14 +2204,10 @@ GeneroLanguageVersion.Latest)
 {
     new GeneroPackageClass("Path", "os", true, new List<GeneroPackageClassMethod>
     {
-        new GeneroPackageClassMethod("separator", "os.Path", true, "Returns the character used to separate path segments.", new List<ParameterResult>
+        new GeneroPackageClassMethod("atime", "os.Path", true, "Returns the time of the last file access.", new List<ParameterResult>
         {
-        }, new List<string> {"string"},
-GeneroLanguageVersion.None,
-GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("pathseparator", "os.Path", true, "Returns the character used in environment variables to separate path elements.", new List<ParameterResult>
-        {
-        }, new List<string> {"string"},
+            new ParameterResult("fname", "", "string")
+        }, new List<string> {"integer"},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
         new GeneroPackageClassMethod("basename", "os.Path", true, "Returns the last element of a path.", new List<ParameterResult>
@@ -1863,35 +2216,87 @@ GeneroLanguageVersion.Latest),
         }, new List<string> {"string"},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("dirname", "os.Path", true, "Returns all components of a path excluding the last one.", new List<ParameterResult>
+        new GeneroPackageClassMethod("copy", "os.Path", true, "Creates a new file by copying an existing file.", new List<ParameterResult>
+        {
+            new ParameterResult("source", "", "string"),
+            new ParameterResult("dest", "", "string")
+        }, new List<string> {"integer"},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("chdir", "os.Path", true, "Changes the current working directory.", new List<ParameterResult>
+        {
+            new ParameterResult("newdir", "", "string")
+        }, new List<string> {"integer"},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("chRwx", "os.Path", true, "Changes the UNIX permissions of a file.", new List<ParameterResult>
+        {
+            new ParameterResult("fname", "", "string"),
+            new ParameterResult("mode", "", "integer")
+        }, new List<string> {"integer"},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("chOwn", "os.Path", true, "Changes the UNIX owner and group of a file.", new List<ParameterResult>
+        {
+            new ParameterResult("fname", "", "string"),
+            new ParameterResult("uid", "", "integer"),
+            new ParameterResult("gui", "", "integer")
+        }, new List<string> {"integer"},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("chVolume", "os.Path", true, "Changes the current working volume.", new List<ParameterResult>
+        {
+            new ParameterResult("new", "", "string")
+        }, new List<string> {"integer"},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("delete", "os.Path", true, "Deletes a file or a directory.", new List<ParameterResult>
+        {
+            new ParameterResult("dname", "", "string")
+        }, new List<string> {"integer"},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("dirclose", "os.Path", true, "Closes the directory referenced by the directory opened by os.Path.diropen().", new List<ParameterResult>
+        {
+            new ParameterResult("dirhandle", "", "integer")
+        }, new List<string> {},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("dirFMask", "os.Path", true, "Defines a filter mask for os.Path.diropen().", new List<ParameterResult>
+        {
+            new ParameterResult("mask", "", "integer")
+        }, new List<string> {},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("dirName", "os.Path", true, "Returns all components of a path excluding the last one.", new List<ParameterResult>
         {
             new ParameterResult("filename", "", "string")
         }, new List<string> {"string"},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("rootname", "os.Path", true, "Returns the file path without the file extension of the last element of the file path.", new List<ParameterResult>
+        new GeneroPackageClassMethod("dirNext", "os.Path", true, "Reads the next entry in the directory opened with os.Path.diropen().", new List<ParameterResult>
         {
-            new ParameterResult("filename", "", "string")
+            new ParameterResult("dirhandle", "", "integer")
         }, new List<string> {"string"},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("join", "os.Path", true, "Joins two path segments adding the platform-dependent separator.", new List<ParameterResult>
+        new GeneroPackageClassMethod("dirOpen", "os.Path", true, "Opens a directory and returns an integer handle to this directory.", new List<ParameterResult>
         {
-            new ParameterResult("begin", "", "string"),
-            new ParameterResult("end", "", "string")
-        }, new List<string> {"string"},
+            new ParameterResult("dname", "", "string")
+        }, new List<string> {"integer"},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("pathtype", "os.Path", true, "Checks if a path is a relative path or an absolute path.", new List<ParameterResult>
+        new GeneroPackageClassMethod("dirSort", "os.Path", true, "Defines the sort criteria and sort order for os.Path.diropen().", new List<ParameterResult>
         {
-            new ParameterResult("path", "", "string")
-        }, new List<string> {"string"},
+            new ParameterResult("criteria", "", "string"),
+            new ParameterResult("order", "", "integer")
+        }, new List<string> {},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("fullpath", "os.Path", true, "Returns the canonical equivalent of a path.", new List<ParameterResult>
+        new GeneroPackageClassMethod("executable", "os.Path", true, "Checks if a file is executable.", new List<ParameterResult>
         {
-            new ParameterResult("path", "", "string")
-        }, new List<string> {"string"},
+            new ParameterResult("fname", "", "string")
+        }, new List<string> {"integer"},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
         new GeneroPackageClassMethod("exists", "os.Path", true, "Checks if a file exists.", new List<ParameterResult>
@@ -1906,31 +2311,30 @@ GeneroLanguageVersion.Latest),
         }, new List<string> {"string"},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("readable", "os.Path", true, "Checks if a file is readable.", new List<ParameterResult>
+        new GeneroPackageClassMethod("fullPath", "os.Path", true, "Returns the canonical equivalent of a path.", new List<ParameterResult>
+        {
+            new ParameterResult("path", "", "string")
+        }, new List<string> {"string"},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("gid", "os.Path", true, "Returns the UNIX group id of a file.", new List<ParameterResult>
         {
             new ParameterResult("fname", "", "string")
         }, new List<string> {"integer"},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("writable", "os.Path", true, "Checks if a file is writable.", new List<ParameterResult>
+        new GeneroPackageClassMethod("homeDir", "os.Path", true, "Returns the path to the HOME directory of the current user.", new List<ParameterResult>
         {
-            new ParameterResult("fname", "", "string")
-        }, new List<string> {"integer"},
+        }, new List<string> {"string"},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("executable", "os.Path", true, "Checks if a file is executable.", new List<ParameterResult>
-        {
-            new ParameterResult("fname", "", "string")
-        }, new List<string> {"integer"},
-GeneroLanguageVersion.None,
-GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("isfile", "os.Path", true, "Checks if a file is a regular file.", new List<ParameterResult>
+        new GeneroPackageClassMethod("isdirectory", "os.Path", true, "Checks if a file is hidden.", new List<ParameterResult>
         {
             new ParameterResult("fname", "", "string")
         }, new List<string> {"boolean"},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("isdirectory", "os.Path", true, "Checks if a file is hidden.", new List<ParameterResult>
+        new GeneroPackageClassMethod("isfile", "os.Path", true, "Checks if a file is a regular file.", new List<ParameterResult>
         {
             new ParameterResult("fname", "", "string")
         }, new List<string> {"boolean"},
@@ -1948,56 +2352,17 @@ GeneroLanguageVersion.Latest),
         }, new List<string> {"boolean"},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("type", "os.Path", true, "Returns the file type as a string.", new List<ParameterResult>
+        new GeneroPackageClassMethod("join", "os.Path", true, "Joins two path segments adding the platform-dependent separator.", new List<ParameterResult>
         {
-            new ParameterResult("fname", "", "string")
+            new ParameterResult("begin", "", "string"),
+            new ParameterResult("end", "", "string")
         }, new List<string> {"string"},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("size", "os.Path", true, "Returns the size of a file.", new List<ParameterResult>
+        new GeneroPackageClassMethod("makeTempName", "os.Path", true, "Generates a temporary file name.", new List<ParameterResult>
         {
-            new ParameterResult("fname", "", "string")
-        }, new List<string> {"integer"},
-GeneroLanguageVersion.None,
-GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("atime", "os.Path", true, "Returns the time of the last file access.", new List<ParameterResult>
-        {
-            new ParameterResult("fname", "", "string")
-        }, new List<string> {"integer"},
-GeneroLanguageVersion.None,
-GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("chown", "os.Path", true, "Changes the UNIX owner and group of a file.", new List<ParameterResult>
-        {
-            new ParameterResult("fname", "", "string"),
-            new ParameterResult("uid", "", "integer"),
-            new ParameterResult("gui", "", "integer")
-        }, new List<string> {"integer"},
-GeneroLanguageVersion.None,
-GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("uid", "os.Path", true, "Returns the UNIX user id of a file.", new List<ParameterResult>
-        {
-            new ParameterResult("fname", "", "string")
-        }, new List<string> {"integer"},
-GeneroLanguageVersion.None,
-GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("gid", "os.Path", true, "Returns the UNIX group id of a file.", new List<ParameterResult>
-        {
-            new ParameterResult("fname", "", "string")
-        }, new List<string> {"integer"},
-GeneroLanguageVersion.None,
-GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("rwx", "os.Path", true, "Returns the UNIX file permissions of a file.", new List<ParameterResult>
-        {
-            new ParameterResult("fname", "", "string")
-        }, new List<string> {"integer"},
-GeneroLanguageVersion.None,
-GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("chrwx", "os.Path", true, "Changes the UNIX permissions of a file.", new List<ParameterResult>
-        {
-            new ParameterResult("fname", "", "string"),
-            new ParameterResult("mode", "", "integer")
-        }, new List<string> {"integer"},
-GeneroLanguageVersion.None,
+        }, new List<string> {"string"},
+GeneroLanguageVersion.V300,
 GeneroLanguageVersion.Latest),
         new GeneroPackageClassMethod("mtime", "os.Path", true, "Returns the time of the last file modification.", new List<ParameterResult>
         {
@@ -2005,44 +2370,20 @@ GeneroLanguageVersion.Latest),
         }, new List<string> {"integer"},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("homedir", "os.Path", true, "Returns the path to the HOME directory of the current user.", new List<ParameterResult>
-        {
-        }, new List<string> {"string"},
-GeneroLanguageVersion.None,
-GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("rootdir", "os.Path", true, "Returns the root directory of the current working path.", new List<ParameterResult>
-        {
-        }, new List<string> {"string"},
-GeneroLanguageVersion.None,
-GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("dirfmask", "os.Path", true, "Defines a filter mask for os.Path.diropen().", new List<ParameterResult>
-        {
-            new ParameterResult("mask", "", "integer")
-        }, new List<string> {},
-GeneroLanguageVersion.None,
-GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("dirsort", "os.Path", true, "Defines the sort criteria and sort order for os.Path.diropen().", new List<ParameterResult>
-        {
-            new ParameterResult("criteria", "", "string"),
-            new ParameterResult("order", "", "integer")
-        }, new List<string> {},
-GeneroLanguageVersion.None,
-GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("diropen", "os.Path", true, "Opens a directory and returns an integer handle to this directory.", new List<ParameterResult>
+        new GeneroPackageClassMethod("mkDir", "os.Path", true, "Creates a new directory.", new List<ParameterResult>
         {
             new ParameterResult("dname", "", "string")
         }, new List<string> {"integer"},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("dirclose", "os.Path", true, "Closes the directory referenced by the directory opened by os.Path.diropen().", new List<ParameterResult>
+        new GeneroPackageClassMethod("pathSeparator", "os.Path", true, "Returns the character used in environment variables to separate path elements.", new List<ParameterResult>
         {
-            new ParameterResult("dirhandle", "", "integer")
-        }, new List<string> {},
+        }, new List<string> {"string"},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("dirnext", "os.Path", true, "Reads the next entry in the directory opened with os.Path.diropen().", new List<ParameterResult>
+        new GeneroPackageClassMethod("pathType", "os.Path", true, "Checks if a path is a relative path or an absolute path.", new List<ParameterResult>
         {
-            new ParameterResult("dirhandle", "", "integer")
+            new ParameterResult("path", "", "string")
         }, new List<string> {"string"},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
@@ -2051,32 +2392,9 @@ GeneroLanguageVersion.Latest),
         }, new List<string> {"string"},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("chdir", "os.Path", true, "Changes the current working directory.", new List<ParameterResult>
+        new GeneroPackageClassMethod("readable", "os.Path", true, "Checks if a file is readable.", new List<ParameterResult>
         {
-            new ParameterResult("newdir", "", "string")
-        }, new List<string> {"integer"},
-GeneroLanguageVersion.None,
-GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("volumes", "os.Path", true, "Returns the available volumes.", new List<ParameterResult>
-        {
-        }, new List<string> {"string"},
-GeneroLanguageVersion.None,
-GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("chvolumes", "os.Path", true, "Changes the current working volume.", new List<ParameterResult>
-        {
-            new ParameterResult("new", "", "string")
-        }, new List<string> {"integer"},
-GeneroLanguageVersion.None,
-GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("mkdir", "os.Path", true, "Creates a new directory.", new List<ParameterResult>
-        {
-            new ParameterResult("dname", "", "string")
-        }, new List<string> {"integer"},
-GeneroLanguageVersion.None,
-GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("delete", "os.Path", true, "Deletes a file or a directory.", new List<ParameterResult>
-        {
-            new ParameterResult("dname", "", "string")
+            new ParameterResult("fname", "", "string")
         }, new List<string> {"integer"},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
@@ -2087,10 +2405,54 @@ GeneroLanguageVersion.Latest),
         }, new List<string> {"integer"},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("copy", "os.Path", true, "Creates a new file by copying an existing file.", new List<ParameterResult>
+        new GeneroPackageClassMethod("separator", "os.Path", true, "Returns the character used to separate path segments.", new List<ParameterResult>
         {
-            new ParameterResult("source", "", "string"),
-            new ParameterResult("dest", "", "string")
+        }, new List<string> {"string"},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("size", "os.Path", true, "Returns the size of a file.", new List<ParameterResult>
+        {
+            new ParameterResult("fname", "", "string")
+        }, new List<string> {"integer"},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("rootDir", "os.Path", true, "Returns the root directory of the current working path.", new List<ParameterResult>
+        {
+        }, new List<string> {"string"},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("rootName", "os.Path", true, "Returns the file path without the file extension of the last element of the file path.", new List<ParameterResult>
+        {
+            new ParameterResult("filename", "", "string")
+        }, new List<string> {"string"},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("rwx", "os.Path", true, "Returns the UNIX file permissions of a file.", new List<ParameterResult>
+        {
+            new ParameterResult("fname", "", "string")
+        }, new List<string> {"integer"},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("type", "os.Path", true, "Returns the file type as a string.", new List<ParameterResult>
+        {
+            new ParameterResult("fname", "", "string")
+        }, new List<string> {"string"},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("uid", "os.Path", true, "Returns the UNIX user id of a file.", new List<ParameterResult>
+        {
+            new ParameterResult("fname", "", "string")
+        }, new List<string> {"integer"},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("volumes", "os.Path", true, "Returns the available volumes.", new List<ParameterResult>
+        {
+        }, new List<string> {"string"},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("writable", "os.Path", true, "Checks if a file is writable.", new List<ParameterResult>
+        {
+            new ParameterResult("fname", "", "string")
         }, new List<string> {"integer"},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest)
@@ -2293,6 +2655,62 @@ GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
     new GeneroPackageClass("WebServiceEngine", "com", true, new List<GeneroPackageClassMethod>
     {
+        new GeneroPackageClassMethod("Flush", "com.WebServiceEngine", true, "Get a handle for an incoming HTTP service request.", new List<ParameterResult>
+        {
+        }, new List<string> {"integer"},
+GeneroLanguageVersion.V300,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("GetHTTPServiceRequest", "com.WebServiceEngine", true, "Get a handle for an incoming HTTP service request.", new List<ParameterResult>
+        {
+            new ParameterResult("timeout", "", "integer")
+        }, new List<string> {"com.HTTPServiceRequest"},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("GetOption", "com.WebServiceEngine", true, "Returns the value of a Web Service engine option.", new List<ParameterResult>
+        {
+            new ParameterResult("option", "", "string")
+        }, new List<string> {"string"},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("HandleRequest", "com.WebServiceEngine", true, "Get a handle for an incoming HTTP service request.", new List<ParameterResult>
+        {
+            new ParameterResult("timeout", "", "integer"),
+            new ParameterResult("status", "", "integer")
+        }, new List<string> {"com.HTTPServiceRequest"},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("ProcessServices", "com.WebServiceEngine", true, "Specifies the wait period for an HTTP input request, to process an operation of one of the registered Web Services.", new List<ParameterResult>
+        {
+            new ParameterResult("timeout", "", "integer")
+        }, new List<string> {"integer"},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("SetFaultCode", "com.WebServiceEngine", true, "Get a handle for an incoming HTTP service request.", new List<ParameterResult>
+        {
+            new ParameterResult("code", "", "string"),
+            new ParameterResult("code_ns", "", "string")
+        }, new List<string> {},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("SetFaultDetail", "com.WebServiceEngine", true, "Defines the published SOAP Fault.", new List<ParameterResult>
+        {
+            new ParameterResult("fault", "", "string")
+        }, new List<string> {},
+GeneroLanguageVersion.V240,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("SetFaultString", "com.WebServiceEngine", true, "Defines the description of a SOAP Fault.", new List<ParameterResult>
+        {
+            new ParameterResult("desc", "", "string")
+        }, new List<string> {},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("SetOption", "com.WebServiceEngine", true, "Sets an option for the Web Service engine.", new List<ParameterResult>
+        {
+            new ParameterResult("option", "", "string"),
+            new ParameterResult("value", "", "string")
+        }, new List<string> {},
+GeneroLanguageVersion.V240,
+GeneroLanguageVersion.Latest),
         new GeneroPackageClassMethod("RegisterService", "com.WebServiceEngine", true, "Registers a service in the engine.", new List<ParameterResult>
         {
             new ParameterResult("service", "", "com.WebService")
@@ -2303,67 +2721,47 @@ GeneroLanguageVersion.Latest),
         {
         }, new List<string> {},
 GeneroLanguageVersion.None,
-GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("ProcessServices", "com.WebServiceEngine", true, "Specifies the wait period for an HTTP input request, to process an operation of one of the registered Web Services.", new List<ParameterResult>
-        {
-            new ParameterResult("timeout", "", "integer")
-        }, new List<string> {"integer"},
-GeneroLanguageVersion.None,
-GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("GetHTTPServiceRequest", "com.WebServiceEngine", true, "Get a handle for an incoming HTTP service request.", new List<ParameterResult>
-        {
-            new ParameterResult("timeout", "", "integer")
-        }, new List<string> {"com.HTTPServiceRequest"},
-GeneroLanguageVersion.None,
-GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("HandleRequest", "com.WebServiceEngine", true, "Get a handle for an incoming HTTP service request.", new List<ParameterResult>
-        {
-            new ParameterResult("timeout", "", "integer"),
-            new ParameterResult("status", "", "integer")
-        }, new List<string> {"com.HTTPServiceRequest"},
-GeneroLanguageVersion.None,
-GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("SetFaultCode", "com.WebServiceEngine", true, "Get a handle for an incoming HTTP service request.", new List<ParameterResult>
-        {
-            new ParameterResult("code", "", "string"),
-            new ParameterResult("code_ns", "", "string")
-        }, new List<string> {},
-GeneroLanguageVersion.None,
-GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("SetFaultString", "com.WebServiceEngine", true, "Defines the description of a SOAP Fault.", new List<ParameterResult>
-        {
-            new ParameterResult("desc", "", "string")
-        }, new List<string> {},
-GeneroLanguageVersion.None,
-GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("SetFaultDetail", "com.WebServiceEngine", true, "Defines the published SOAP Fault.", new List<ParameterResult>
-        {
-            new ParameterResult("fault", "", "string")
-        }, new List<string> {},
-GeneroLanguageVersion.V240,
-GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("SetOption", "com.WebServiceEngine", true, "Sets an option for the Web Service engine.", new List<ParameterResult>
-        {
-            new ParameterResult("option", "", "string"),
-            new ParameterResult("value", "", "string")
-        }, new List<string> {},
-GeneroLanguageVersion.V240,
-GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("GetOption", "com.WebServiceEngine", true, "Returns the value of a Web Service engine option.", new List<ParameterResult>
-        {
-            new ParameterResult("option", "", "string")
-        }, new List<string> {"string"},
-GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest)
     },
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
     new GeneroPackageClass("HTTPServiceRequest", "com", false, new List<GeneroPackageClassMethod>
     {
-        new GeneroPackageClassMethod("getURL", "com.HTTPServiceRequest", false, "Returns the URL of the HTTP service request.", new List<ParameterResult>
+        new GeneroPackageClassMethod("addResponsePart", "com.HTTPServiceRequest", false, "Adds a new part to the HTTP root part response.", new List<ParameterResult>
         {
-        }, new List<string> {"string"},
+            new ParameterResult("part-object", "", "com.HTTPPart")
+        }, new List<string> {},
 GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("beginXmlRequest", "com.HTTPServiceRequest", false, "Starts an HTTP streaming request.", new List<ParameterResult>
+        {
+        }, new List<string> {"xml.StaxReader"},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("beginXmlResponse", "com.HTTPServiceRequest", false, "Starts an HTTP streaming response.", new List<ParameterResult>
+        {
+            new ParameterResult("code", "", "integer"),
+            new ParameterResult("desc", "", "string")
+        }, new List<string> {"xml.StaxWriter"},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("endXmlRequest", "com.HTTPServiceRequest", false, "Terminates an HTTP streaming request.", new List<ParameterResult>
+        {
+            new ParameterResult("reader", "", "xml.StaxReader")
+        }, new List<string> {},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("endXmlResponse", "com.HTTPServiceRequest", false, "Terminates an HTTP streaming response.", new List<ParameterResult>
+        {
+            new ParameterResult("writer", "", "xml.StaxWriter")
+        }, new List<string> {},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("findRequestCookie", "com.HTTPServiceRequest", false, "Enables the server to retrieve a cookie sent by the client by name.", new List<ParameterResult>
+        {
+            new ParameterResult("name", "", "string")
+        }, new List<string> {"string"},
+GeneroLanguageVersion.V310,
 GeneroLanguageVersion.Latest),
         new GeneroPackageClassMethod("getMethod", "com.HTTPServiceRequest", false, "Returns the HTTP method of the service request.", new List<ParameterResult>
         {
@@ -2373,11 +2771,6 @@ GeneroLanguageVersion.Latest),
         new GeneroPackageClassMethod("getRequestVersion", "com.HTTPServiceRequest", false, "Returns the HTTP version of the service request.", new List<ParameterResult>
         {
         }, new List<string> {"string"},
-GeneroLanguageVersion.None,
-GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("hasRequestKeepConnection", "com.HTTPServiceRequest", false, "Returns TRUE if the connection remains after sending a response.", new List<ParameterResult>
-        {
-        }, new List<string> {"boolean"},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
         new GeneroPackageClassMethod("getRequestHeader", "com.HTTPServiceRequest", false, "Returns the request header name.", new List<ParameterResult>
@@ -2402,14 +2795,72 @@ GeneroLanguageVersion.Latest),
         }, new List<string> {"string"},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("readFromEncodedRequest", "com.HTTPServiceRequest", false, "Returns the string of a GET request with UTF-8 conversion option.", new List<ParameterResult>
+        new GeneroPackageClassMethod("getRequestMultipartType", "com.HTTPServiceRequest", false, "Returns the multipart type of an incoming request.", new List<ParameterResult>
         {
-            new ParameterResult("utf8", "", "boolean")
         }, new List<string> {"string"},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("getRequestPart", "com.HTTPServiceRequest", false, "Returns the HTTPPart object at the specified index position.", new List<ParameterResult>
+        {
+            new ParameterResult("idx", "", "integer")
+        }, new List<string> {"com.HTTPPart"},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("getRequestPartCount", "com.HTTPServiceRequest", false, "Returns the number of additional multipart elements.", new List<ParameterResult>
+        {
+        }, new List<string> {"integer"},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("getRequestPartFromContentID", "com.HTTPServiceRequest", false, "Returns the HTTPPart object of the given Content-ID value.", new List<ParameterResult>
+        {
+            new ParameterResult("id", "", "string")
+        }, new List<string> {"com.HTTPPart"},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("getURL", "com.HTTPServiceRequest", false, "Returns the URL of the HTTP service request.", new List<ParameterResult>
+        {
+        }, new List<string> {"string"},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("getURLHost", "com.HTTPServiceRequest", false, "Returns the host name of the client sending the request to the server.", new List<ParameterResult>
+        {
+        }, new List<string> {"string"},
+GeneroLanguageVersion.V310,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("getURLPath", "com.HTTPServiceRequest", false, "Returns the complete path of the client sending the request to the server.", new List<ParameterResult>
+        {
+        }, new List<string> {"string"},
+GeneroLanguageVersion.V310,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("getURLPort", "com.HTTPServiceRequest", false, "Returns the port number of the client sending the request to the server.", new List<ParameterResult>
+        {
+        }, new List<string> {"integer"},
+GeneroLanguageVersion.V310,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("getURLQuery", "com.HTTPServiceRequest", false, "Takes a dynamic array of RECORD of two strings and fills that array with the decoded query string of current incoming request.", new List<ParameterResult>
+        {
+            new ParameterResult("queries", "", "dynamic array of record name string, value string end record")
+        }, new List<string> {},
+GeneroLanguageVersion.V310,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("hasRequestKeepConnection", "com.HTTPServiceRequest", false, "Returns TRUE if the connection remains after sending a response.", new List<ParameterResult>
+        {
+        }, new List<string> {"boolean"},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
         new GeneroPackageClassMethod("readDataRequest", "com.HTTPServiceRequest", false, "Returns the body of a request into a BYTE.", new List<ParameterResult>
         {
+        }, new List<string> {"string"},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("readFileRequest", "com.HTTPServiceRequest", false, "Returns the body of a request into a file.", new List<ParameterResult>
+        {
+        }, new List<string> {"string"},
+GeneroLanguageVersion.V300,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("readFromEncodedRequest", "com.HTTPServiceRequest", false, "Returns the string of a GET request with UTF-8 conversion option.", new List<ParameterResult>
+        {
+            new ParameterResult("utf8", "", "boolean")
         }, new List<string> {"string"},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
@@ -2423,41 +2874,26 @@ GeneroLanguageVersion.Latest),
         }, new List<string> {"xml.DomDocument"},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("beginXmlRequest", "com.HTTPServiceRequest", false, "Starts an HTTP streaming request.", new List<ParameterResult>
-        {
-        }, new List<string> {"xml.StaxReader"},
-GeneroLanguageVersion.None,
-GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("endXmlRequest", "com.HTTPServiceRequest", false, "Terminates an HTTP streaming request.", new List<ParameterResult>
-        {
-            new ParameterResult("reader", "", "xml.StaxReader")
-        }, new List<string> {},
-GeneroLanguageVersion.None,
-GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("setResponseCharset", "com.HTTPServiceRequest", false, "Defines the HTTP response character set.", new List<ParameterResult>
-        {
-            new ParameterResult("charset", "", "string")
-        }, new List<string> {},
-GeneroLanguageVersion.None,
-GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("setResponseVersion", "com.HTTPServiceRequest", false, "Defines the HTTP response version.", new List<ParameterResult>
-        {
-            new ParameterResult("version", "", "string")
-        }, new List<string> {},
-GeneroLanguageVersion.None,
-GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("setResponseHeader", "com.HTTPServiceRequest", false, "Defines a header for the HTTP response.", new List<ParameterResult>
-        {
-            new ParameterResult("name", "", "string"),
-            new ParameterResult("value", "", "string")
-        }, new List<string> {},
-GeneroLanguageVersion.None,
-GeneroLanguageVersion.Latest),
         new GeneroPackageClassMethod("sendDataResponse", "com.HTTPServiceRequest", false, "Sends an HTTP response with data of a BYTE variable.", new List<ParameterResult>
         {
             new ParameterResult("code", "", "integer"),
             new ParameterResult("desc", "", "string"),
             new ParameterResult("data", "", "byte")
+        }, new List<string> {},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("sendFileResponse", "com.HTTPServiceRequest", false, "Sends and HTTP response with the data contained in a file.", new List<ParameterResult>
+        {
+            new ParameterResult("code", "", "integer"),
+            new ParameterResult("desc", "", "string"),
+            new ParameterResult("filepath", "", "string")
+        }, new List<string> {},
+GeneroLanguageVersion.V300,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("sendResponse", "com.HTTPServiceRequest", false, "Sends an HTTP response without body.", new List<ParameterResult>
+        {
+            new ParameterResult("code", "", "integer"),
+            new ParameterResult("desc", "", "string")
         }, new List<string> {},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
@@ -2477,46 +2913,23 @@ GeneroLanguageVersion.Latest),
         }, new List<string> {},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("sendResponse", "com.HTTPServiceRequest", false, "Sends an HTTP response without body.", new List<ParameterResult>
+        new GeneroPackageClassMethod("setResponseCharset", "com.HTTPServiceRequest", false, "Defines the HTTP response character set.", new List<ParameterResult>
         {
-            new ParameterResult("code", "", "integer"),
-            new ParameterResult("desc", "", "string")
+            new ParameterResult("charset", "", "string")
         }, new List<string> {},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("beginXmlResponse", "com.HTTPServiceRequest", false, "Starts an HTTP streaming response.", new List<ParameterResult>
+        new GeneroPackageClassMethod("setResponseCookies", "com.HTTPServiceRequest", false, "Allows the server to return cookies to be set on client application sending the request.", new List<ParameterResult>
         {
-            new ParameterResult("code", "", "integer"),
-            new ParameterResult("desc", "", "string")
-        }, new List<string> {"xml.StaxWriter"},
-GeneroLanguageVersion.None,
-GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("endXmlResponse", "com.HTTPServiceRequest", false, "Terminates an HTTP streaming response.", new List<ParameterResult>
-        {
-            new ParameterResult("writer", "", "xml.StaxWriter")
+            new ParameterResult("cookies", "", "record")
         }, new List<string> {},
-GeneroLanguageVersion.None,
+GeneroLanguageVersion.V310,
 GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("getRequestMultipartType", "com.HTTPServiceRequest", false, "Returns the multipart type of an incoming request.", new List<ParameterResult>
+        new GeneroPackageClassMethod("setResponseHeader", "com.HTTPServiceRequest", false, "Defines a header for the HTTP response.", new List<ParameterResult>
         {
-        }, new List<string> {"string"},
-GeneroLanguageVersion.None,
-GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("getRequestPartCount", "com.HTTPServiceRequest", false, "Returns the number of additional multipart elements.", new List<ParameterResult>
-        {
-        }, new List<string> {"integer"},
-GeneroLanguageVersion.None,
-GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("getRequestPart", "com.HTTPServiceRequest", false, "Returns the HTTPPart object at the specified index position.", new List<ParameterResult>
-        {
-            new ParameterResult("idx", "", "integer")
-        }, new List<string> {"com.HTTPPart"},
-GeneroLanguageVersion.None,
-GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("getRequestPartFromContentID", "com.HTTPServiceRequest", false, "Returns the HTTPPart object of the given Content-ID value.", new List<ParameterResult>
-        {
-            new ParameterResult("id", "", "string")
-        }, new List<string> {"com.HTTPPart"},
+            new ParameterResult("name", "", "string"),
+            new ParameterResult("value", "", "string")
+        }, new List<string> {},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
         new GeneroPackageClassMethod("setResponseMultipartType", "com.HTTPServiceRequest", false, "Sets HTTP response in multipart mode of given type.", new List<ParameterResult>
@@ -2527,9 +2940,9 @@ GeneroLanguageVersion.Latest),
         }, new List<string> {},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("addResponsePart", "com.HTTPServiceRequest", false, "Adds a new part to the HTTP root part response.", new List<ParameterResult>
+        new GeneroPackageClassMethod("setResponseVersion", "com.HTTPServiceRequest", false, "Defines the HTTP response version.", new List<ParameterResult>
         {
-            new ParameterResult("part-object", "", "com.HTTPPart")
+            new ParameterResult("version", "", "string")
         }, new List<string> {},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest)
@@ -2538,34 +2951,19 @@ GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
     new GeneroPackageClass("HTTPRequest", "com", false, new List<GeneroPackageClassMethod>
     {
-        new GeneroPackageClassMethod("Create", "com.HTTPRequest", true, "Creates an new HTTPRequest object from a URL.", new List<ParameterResult>
+        new GeneroPackageClassMethod("addPart", "com.HTTPRequest", false, "Adds a new part to the HTTP root part request.", new List<ParameterResult>
         {
-            new ParameterResult("url", "", "string")
-        }, new List<string> {"com.HTTPRequest"},
-GeneroLanguageVersion.None,
-GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("setVersion", "com.HTTPRequest", false, "Sets the HTTP version of the request.", new List<ParameterResult>
-        {
-            new ParameterResult("version", "", "string")
+            new ParameterResult("part", "", "com.HTTPPart")
         }, new List<string> {},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("setMethod", "com.HTTPRequest", false, "Sets the HTTP method of the request.", new List<ParameterResult>
+        new GeneroPackageClassMethod("beginXmlRequest", "com.HTTPRequest", false, "Starts a streaming HTTP request.", new List<ParameterResult>
         {
-            new ParameterResult("method", "", "string")
-        }, new List<string> {},
+        }, new List<string> {"xml.StaxWriter"},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("setHeader", "com.HTTPRequest", false, "Sets an HTTP header for the request.", new List<ParameterResult>
+        new GeneroPackageClassMethod("clearAuthentication", "com.HTTPRequest", false, "Removes user-defined authentication.", new List<ParameterResult>
         {
-            new ParameterResult("name", "", "string"),
-            new ParameterResult("value", "", "string")
-        }, new List<string> {},
-GeneroLanguageVersion.None,
-GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("removeHeader", "com.HTTPRequest", false, "Removes an HTTP header for the request according to a name.", new List<ParameterResult>
-        {
-            new ParameterResult("name", "", "string")
         }, new List<string> {},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
@@ -2574,53 +2972,28 @@ GeneroLanguageVersion.Latest),
         }, new List<string> {},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("setCharset", "com.HTTPRequest", false, "Defines the charset used when sending text or XML.", new List<ParameterResult>
+        new GeneroPackageClassMethod("Create", "com.HTTPRequest", true, "Creates an new HTTPRequest object from a URL.", new List<ParameterResult>
         {
-            new ParameterResult("charset", "", "string")
+            new ParameterResult("url", "", "string")
+        }, new List<string> {"com.HTTPRequest"},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("doDataRequest", "com.HTTPRequest", false, "Performs the request by sending binary data.", new List<ParameterResult>
+        {
+            new ParameterResult("data", "", "byte")
         }, new List<string> {},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("setAuthentication", "com.HTTPRequest", false, "Defines the user login and password to authenticate to the server.", new List<ParameterResult>
+        new GeneroPackageClassMethod("doFileRequest", "com.HTTPRequest", false, "Performs the request by sending data contained in a file.", new List<ParameterResult>
         {
-            new ParameterResult("login", "", "string"),
-            new ParameterResult("pass", "", "string"),
-            new ParameterResult("scheme", "", "string"),
-            new ParameterResult("realm", "", "string")
+            new ParameterResult("filepath", "", "string")
         }, new List<string> {},
-GeneroLanguageVersion.None,
+GeneroLanguageVersion.V300,
 GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("clearAuthentication", "com.HTTPRequest", false, "Removes user-defined authentication.", new List<ParameterResult>
+        new GeneroPackageClassMethod("doFormEncodedRequest", "com.HTTPRequest", false, "Performs an \"application/x-www-form-urlencoded forms\" encoded query.", new List<ParameterResult>
         {
-        }, new List<string> {},
-GeneroLanguageVersion.None,
-GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("setKeepConnection", "com.HTTPRequest", false, "Defines if connection is kept open if a new request occurs.", new List<ParameterResult>
-        {
-            new ParameterResult("keep", "", "boolean")
-        }, new List<string> {},
-GeneroLanguageVersion.None,
-GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("setTimeOut", "com.HTTPRequest", false, "Defines the timeout for a reading or writing operation.", new List<ParameterResult>
-        {
-            new ParameterResult("timeout", "", "integer")
-        }, new List<string> {},
-GeneroLanguageVersion.None,
-GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("setConnectionTimeOut", "com.HTTPRequest", false, "Defines the timeout for the establishment of the connection.", new List<ParameterResult>
-        {
-            new ParameterResult("timeout", "", "integer")
-        }, new List<string> {},
-GeneroLanguageVersion.None,
-GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("setMaximumResponseLength", "com.HTTPRequest", false, "Defines the maximum size in Kbyte a response.", new List<ParameterResult>
-        {
-            new ParameterResult("length", "", "integer")
-        }, new List<string> {},
-GeneroLanguageVersion.None,
-GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("setAutoReply", "com.HTTPRequest", false, "Defines the auto reply option for response methods.", new List<ParameterResult>
-        {
-            new ParameterResult("reply", "", "boolean")
+            new ParameterResult("query", "", "string"),
+            new ParameterResult("utf8", "", "boolean")
         }, new List<string> {},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
@@ -2641,28 +3014,15 @@ GeneroLanguageVersion.Latest),
         }, new List<string> {},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("doDataRequest", "com.HTTPRequest", false, "Performs the request by sending binary data.", new List<ParameterResult>
-        {
-            new ParameterResult("data", "", "byte")
-        }, new List<string> {},
-GeneroLanguageVersion.None,
-GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("doFormEncodedRequest", "com.HTTPRequest", false, "Performs an \"application/x-www-form-urlencoded forms\" encoded query.", new List<ParameterResult>
-        {
-            new ParameterResult("query", "", "string"),
-            new ParameterResult("utf8", "", "boolean")
-        }, new List<string> {},
-GeneroLanguageVersion.None,
-GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("beginXmlRequest", "com.HTTPRequest", false, "Starts a streaming HTTP request.", new List<ParameterResult>
-        {
-        }, new List<string> {"xml.StaxWriter"},
-GeneroLanguageVersion.None,
-GeneroLanguageVersion.Latest),
         new GeneroPackageClassMethod("endXmlRequest", "com.HTTPRequest", false, "Terminates a streaming HTTP request.", new List<ParameterResult>
         {
             new ParameterResult("writer", "", "xml.StaxWriter")
         }, new List<string> {},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("getAsyncResponse", "com.HTTPRequest", false, "Returns (asynchronously) the response produced by one of request methods.", new List<ParameterResult>
+        {
+        }, new List<string> {"com.HTTPResponse"},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
         new GeneroPackageClassMethod("getResponse", "com.HTTPRequest", false, "Returns the response produced by one of request methods.", new List<ParameterResult>
@@ -2670,9 +3030,68 @@ GeneroLanguageVersion.Latest),
         }, new List<string> {"com.HTTPResponse"},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("getAsyncResponse", "com.HTTPRequest", false, "Returns (asynchronously) the response produced by one of request methods.", new List<ParameterResult>
+        new GeneroPackageClassMethod("removeHeader", "com.HTTPRequest", false, "Removes an HTTP header for the request according to a name.", new List<ParameterResult>
         {
-        }, new List<string> {"com.HTTPResponse"},
+            new ParameterResult("name", "", "string")
+        }, new List<string> {},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("setAuthentication", "com.HTTPRequest", false, "Defines the user login and password to authenticate to the server.", new List<ParameterResult>
+        {
+            new ParameterResult("login", "", "string"),
+            new ParameterResult("pass", "", "string"),
+            new ParameterResult("scheme", "", "string"),
+            new ParameterResult("realm", "", "string")
+        }, new List<string> {},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("setAutoCookies", "com.HTTPRequest", false, "Enables automatic cookie management for a given request.", new List<ParameterResult>
+        {
+            new ParameterResult("val", "", "integer")
+        }, new List<string> {},
+GeneroLanguageVersion.V310,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("setAutoReply", "com.HTTPRequest", false, "Defines the auto reply option for response methods.", new List<ParameterResult>
+        {
+            new ParameterResult("reply", "", "boolean")
+        }, new List<string> {},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("setCharset", "com.HTTPRequest", false, "Defines the charset used when sending text or XML.", new List<ParameterResult>
+        {
+            new ParameterResult("charset", "", "string")
+        }, new List<string> {},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("setConnectionTimeOut", "com.HTTPRequest", false, "Defines the timeout for the establishment of the connection.", new List<ParameterResult>
+        {
+            new ParameterResult("timeout", "", "integer")
+        }, new List<string> {},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("setHeader", "com.HTTPRequest", false, "Sets an HTTP header for the request.", new List<ParameterResult>
+        {
+            new ParameterResult("name", "", "string"),
+            new ParameterResult("value", "", "string")
+        }, new List<string> {},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("setKeepConnection", "com.HTTPRequest", false, "Defines if connection is kept open if a new request occurs.", new List<ParameterResult>
+        {
+            new ParameterResult("keep", "", "boolean")
+        }, new List<string> {},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("setMaximumResponseLength", "com.HTTPRequest", false, "Defines the maximum size in Kbyte a response.", new List<ParameterResult>
+        {
+            new ParameterResult("length", "", "integer")
+        }, new List<string> {},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("setMethod", "com.HTTPRequest", false, "Sets the HTTP method of the request.", new List<ParameterResult>
+        {
+            new ParameterResult("method", "", "string")
+        }, new List<string> {},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
         new GeneroPackageClassMethod("setMultipartType", "com.HTTPRequest", false, "Switch HTTPRequest in multipart mode of given type.", new List<ParameterResult>
@@ -2683,9 +3102,31 @@ GeneroLanguageVersion.Latest),
         }, new List<string> {},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("addPart", "com.HTTPRequest", false, "Adds a new part to the HTTP root part request.", new List<ParameterResult>
+        new GeneroPackageClassMethod("setProxy", "com.HTTPRequest", false, "Configure the proxy URL.", new List<ParameterResult>
         {
-            new ParameterResult("part", "", "com.HTTPPart")
+            new ParameterResult("host", "", "string"),
+            new ParameterResult("port", "", "integer")
+        }, new List<string> {},
+GeneroLanguageVersion.V310,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("setProxyAuthentication", "com.HTTPRequest", false, "Define the login and password to use for proxy authentication.", new List<ParameterResult>
+        {
+            new ParameterResult("login", "", "string"),
+            new ParameterResult("password", "", "string"),
+            new ParameterResult("scheme", "", "string"),
+            new ParameterResult("realm", "", "string")
+        }, new List<string> {},
+GeneroLanguageVersion.V310,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("setTimeOut", "com.HTTPRequest", false, "Defines the timeout for a reading or writing operation.", new List<ParameterResult>
+        {
+            new ParameterResult("timeout", "", "integer")
+        }, new List<string> {},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("setVersion", "com.HTTPRequest", false, "Sets the HTTP version of the request.", new List<ParameterResult>
+        {
+            new ParameterResult("version", "", "string")
         }, new List<string> {},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest)
@@ -2743,6 +3184,11 @@ GeneroLanguageVersion.Latest),
             new ParameterResult("data", "", "byte")
         }, new List<string> {},
 GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("getFileResponse", "com.HTTPResponse", false, "Returns the entire HTTP response in a file on the disk.", new List<ParameterResult>
+        {
+        }, new List<string> {"string"},
+GeneroLanguageVersion.V300,
 GeneroLanguageVersion.Latest),
         new GeneroPackageClassMethod("getTextResponse", "com.HTTPResponse", false, "Returns an entire HTTP string as response from the server.", new List<ParameterResult>
         {
@@ -2844,29 +3290,22 @@ GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
     new GeneroPackageClass("TCPRequest", "com", false, new List<GeneroPackageClassMethod>
     {
+        new GeneroPackageClassMethod("beginXmlRequest", "com.TCPRequest", false, "Starts a streaming XML request.", new List<ParameterResult>
+        {
+        }, new List<string> {"xml.StaxWriter"},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
         new GeneroPackageClassMethod("Create", "com.TCPRequest", true, "Creates a new TCP request object.", new List<ParameterResult>
         {
             new ParameterResult("url", "", "string")
         }, new List<string> {"com.TCPRequest"},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("setTimeOut", "com.TCPRequest", false, "Defines the time out for read/write operations.", new List<ParameterResult>
+        new GeneroPackageClassMethod("doDataRequest", "com.TCPRequest", false, "Performs the request by sending binary data.", new List<ParameterResult>
         {
-            new ParameterResult("seconds", "", "integer")
+            new ParameterResult("data", "", "byte")
         }, new List<string> {},
-GeneroLanguageVersion.None,
-GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("setConnectionTimeOut", "com.TCPRequest", false, "Defines the connection time out.", new List<ParameterResult>
-        {
-            new ParameterResult("seconds", "", "integer")
-        }, new List<string> {},
-GeneroLanguageVersion.None,
-GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("setMaximumResponseLength", "com.TCPRequest", false, "Defines the time out for read/write operations.", new List<ParameterResult>
-        {
-            new ParameterResult("length", "", "integer")
-        }, new List<string> {},
-GeneroLanguageVersion.None,
+GeneroLanguageVersion.V300,
 GeneroLanguageVersion.Latest),
         new GeneroPackageClassMethod("doRequest", "com.TCPRequest", false, "Performs a TCP request.", new List<ParameterResult>
         {
@@ -2885,11 +3324,6 @@ GeneroLanguageVersion.Latest),
         }, new List<string> {},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("beginXmlRequest", "com.TCPRequest", false, "Starts a streaming XML request.", new List<ParameterResult>
-        {
-        }, new List<string> {"xml.StaxWriter"},
-GeneroLanguageVersion.None,
-GeneroLanguageVersion.Latest),
         new GeneroPackageClassMethod("endXmlRequest", "com.TCPRequest", false, "Terminates a streaming TCP request.", new List<ParameterResult>
         {
             new ParameterResult("writer", "", "xml.StaxWriter")
@@ -2904,6 +3338,30 @@ GeneroLanguageVersion.Latest),
         new GeneroPackageClassMethod("getAsyncResponse", "com.TCPRequest", false, "Returns the response after performing a TCP request, asynchronously.", new List<ParameterResult>
         {
         }, new List<string> {"com.TCPResponse"},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("setTimeOut", "com.TCPRequest", false, "Defines the time out for read/write operations.", new List<ParameterResult>
+        {
+            new ParameterResult("seconds", "", "integer")
+        }, new List<string> {},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("setConnectionTimeOut", "com.TCPRequest", false, "Defines the connection time out.", new List<ParameterResult>
+        {
+            new ParameterResult("seconds", "", "integer")
+        }, new List<string> {},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("setKeepConnection", "com.TCPRequest", false, "Defines if the TCP connection is kept open after sending a request.", new List<ParameterResult>
+        {
+            new ParameterResult("on", "", "boolean")
+        }, new List<string> {},
+GeneroLanguageVersion.V300,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("setMaximumResponseLength", "com.TCPRequest", false, "Defines the time out for read/write operations.", new List<ParameterResult>
+        {
+            new ParameterResult("length", "", "integer")
+        }, new List<string> {},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest)
     },
@@ -2922,14 +3380,20 @@ GeneroLanguageVersion.Latest),
         }, new List<string> {},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("getXmlResponse", "com.TCPResponse", false, "Returns an entire DOM document as TCP response from the server.", new List<ParameterResult>
+        new GeneroPackageClassMethod("getDataResponse", "com.TCPResponse", false, "Returns a TCP response in binary format.", new List<ParameterResult>
         {
-        }, new List<string> {"xml.DomDocument"},
-GeneroLanguageVersion.None,
+            new ParameterResult("data", "", "byte")
+        }, new List<string> {},
+GeneroLanguageVersion.V300,
 GeneroLanguageVersion.Latest),
         new GeneroPackageClassMethod("getTextResponse", "com.TCPResponse", false, "Returns a string as TCP response from the server.", new List<ParameterResult>
         {
         }, new List<string> {"string"},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("getXmlResponse", "com.TCPResponse", false, "Returns an entire DOM document as TCP response from the server.", new List<ParameterResult>
+        {
+        }, new List<string> {"xml.DomDocument"},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest)
     },
@@ -2963,6 +3427,35 @@ GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest)
     },
 GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+    new GeneroPackageClass("APNS", "com", true, new List<GeneroPackageClassMethod>
+    {
+        new GeneroPackageClassMethod("DecodeError", "com.APNS", true, "Decodes content of BYTE data returned from the APNS server in case of error.", new List<ParameterResult>
+        {
+            new ParameterResult("data", "", "byte")
+        }, new List<string> {"string", "integer"},
+GeneroLanguageVersion.V300,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("DecodeFeedback", "com.APNS", true, "Decodes content of BYTE data returned from the APNS feedback service.", new List<ParameterResult>
+        {
+            new ParameterResult("data", "", "byte"),
+            new ParameterResult("unregs", "", "dynamic array of record timestamp integer, deviceToken string end record")
+        }, new List<string> {},
+GeneroLanguageVersion.V300,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("EncodeMessage", "com.APNS", true, "Encodes an APNS specific push notification message into a BYTE.", new List<ParameterResult>
+        {
+            new ParameterResult("data", "", "byte"),
+            new ParameterResult("deviceToken", "", "string"),
+            new ParameterResult("json", "", "string"),
+            new ParameterResult("uuid", "", "string"),
+            new ParameterResult("expiration", "", "integer"),
+            new ParameterResult("priority", "", "smallint")
+        }, new List<string> {},
+GeneroLanguageVersion.V300,
+GeneroLanguageVersion.Latest)
+    },
+GeneroLanguageVersion.V300,
 GeneroLanguageVersion.Latest)
 },
                     GeneroLanguageVersion.None,
@@ -4695,6 +5188,52 @@ GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest)
     },
 GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+    new GeneroPackageClass("XSLTtransformer", "xml", false, new List<GeneroPackageClassMethod>
+    {
+        new GeneroPackageClassMethod("clearParameters", "xml.XSLTtransformer", false, "Clear all parameters in an instance of an XSLTTransformer object.", new List<ParameterResult>
+        {
+        }, new List<string> {},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("CreateFromDocument", "xml.XSLTtransformer", true, "Returns a new instance of an XSLTTransformer object to be used to transform a XML document based on given stylesheet.", new List<ParameterResult>
+        {
+            new ParameterResult("doc", "", "xml.DomDocument")
+        }, new List<string> {"xml.XSLTtransformer"},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("doTransform", "xml.XSLTtransformer", false, "Transforms the input source based on the XSLT stylesheet used to create the XSLTTtransformer instance and returns the transformed document.", new List<ParameterResult>
+        {
+            new ParameterResult("doc", "", "xml.DomDocument")
+        }, new List<string> {"xml.DomDocument"},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("getErrorDescription", "xml.XSLTtransformer", false, "Returns the exact description of the error referenced by the index.", new List<ParameterResult>
+        {
+            new ParameterResult("index", "", "integer")
+        }, new List<string> {"string"},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("getErrorsCount", "xml.XSLTtransformer", false, "Returns the number of errors.", new List<ParameterResult>
+        {
+        }, new List<string> {"integer"},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("setParameter", "xml.XSLTtransformer", false, "Set parameters in an instance of an XSLTTransformer corresponding to the XSLT entries named by param.", new List<ParameterResult>
+        {
+            new ParameterResult("param", "", "string"),
+            new ParameterResult("value", "", "string")
+        }, new List<string> {},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("getParameter", "xml.XSLTtransformer", false, "Get the value of a given parameter in an instance of an XSLTTransformer corresponding to the XSLT entry named by param.", new List<ParameterResult>
+        {
+            new ParameterResult("param", "", "string")
+        }, new List<string> {"string"},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest)
+    },
+GeneroLanguageVersion.V310,
 GeneroLanguageVersion.Latest)
 },
                     GeneroLanguageVersion.None,
@@ -4724,7 +5263,13 @@ GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
     new GeneroPackageClass("Base64", "security", true, new List<GeneroPackageClassMethod>
     {
-        new GeneroPackageClassMethod("ToString", "security.Base64", true, "Decodes the given base64 string.", new List<ParameterResult>
+        new GeneroPackageClassMethod("FromByte", "security.Base64", true, "Encodes the given BYTE data in base64.", new List<ParameterResult>
+        {
+            new ParameterResult("source", "", "byte")
+        }, new List<string> {"string"},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("FromHexBinary", "security.Base64", true, "Decodes the given hexadecimal string to base64.", new List<ParameterResult>
         {
             new ParameterResult("source", "", "string")
         }, new List<string> {"string"},
@@ -4736,24 +5281,12 @@ GeneroLanguageVersion.Latest),
         }, new List<string> {"string"},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("ToHexBinary", "security.Base64", true, "Decodes the given base64 string to hexadecimal.", new List<ParameterResult>
+        new GeneroPackageClassMethod("FromStringWithCharset", "security.Base64", true, "Encodes the given string in base64, according to a given charset.", new List<ParameterResult>
         {
-            new ParameterResult("source", "", "string")
+            new ParameterResult("source", "", "string"),
+            new ParameterResult("charset", "", "string")
         }, new List<string> {"string"},
-GeneroLanguageVersion.None,
-GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("FromHexBinary", "security.Base64", true, "Decodes the given hexadecimal string to base64.", new List<ParameterResult>
-        {
-            new ParameterResult("source", "", "string")
-        }, new List<string> {"string"},
-GeneroLanguageVersion.None,
-GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("Xor", "security.Base64", true, "Computes the exclusive disjunction between two base64 encoded strings.", new List<ParameterResult>
-        {
-            new ParameterResult("b64str1", "", "string"),
-            new ParameterResult("b64str2", "", "string")
-        }, new List<string> {"string"},
-GeneroLanguageVersion.None,
+GeneroLanguageVersion.V300,
 GeneroLanguageVersion.Latest),
         new GeneroPackageClassMethod("LoadBinary", "security.Base64", true, "Reads data from a file and encodes to base64.", new List<ParameterResult>
         {
@@ -4767,13 +5300,51 @@ GeneroLanguageVersion.Latest),
             new ParameterResult("data", "", "string")
         }, new List<string> {},
 GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("ToHexBinary", "security.Base64", true, "Decodes the given base64 string to hexadecimal.", new List<ParameterResult>
+        {
+            new ParameterResult("source", "", "string")
+        }, new List<string> {"string"},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("ToByte", "security.Base64", true, "Decodes the given base64 string into a BYTE.", new List<ParameterResult>
+        {
+            new ParameterResult("source", "", "string")
+        }, new List<string> {"byte"},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("ToString", "security.Base64", true, "Decodes the given base64 string.", new List<ParameterResult>
+        {
+            new ParameterResult("source", "", "string")
+        }, new List<string> {"string"},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("ToStringWithCharset", "security.Base64", true, "Decodes the given base64 string.", new List<ParameterResult>
+        {
+            new ParameterResult("source", "", "string"),
+            new ParameterResult("charset", "", "string")
+        }, new List<string> {"string"},
+GeneroLanguageVersion.V300,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("Xor", "security.Base64", true, "Computes the exclusive disjunction between two base64 encoded strings.", new List<ParameterResult>
+        {
+            new ParameterResult("b64str1", "", "string"),
+            new ParameterResult("b64str2", "", "string")
+        }, new List<string> {"string"},
+GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest)
     },
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
     new GeneroPackageClass("HexBinary", "security", true, new List<GeneroPackageClassMethod>
     {
-        new GeneroPackageClassMethod("ToString", "security.HexBinary", true, "Decodes an hexadecimal string to a clear, human-readable string.", new List<ParameterResult>
+        new GeneroPackageClassMethod("FromBase64", "security.HexBinary", true, "Converts a base64 string to the hexadecimal equivalent.", new List<ParameterResult>
+        {
+            new ParameterResult("source", "", "string")
+        }, new List<string> {"string"},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("FromByte", "security.HexBinary", true, "Encodes BYTE data in hexadecimal.", new List<ParameterResult>
         {
             new ParameterResult("source", "", "string")
         }, new List<string> {"string"},
@@ -4785,24 +5356,12 @@ GeneroLanguageVersion.Latest),
         }, new List<string> {"string"},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("ToBase64", "security.HexBinary", true, "Converts an hexadecimal string to the base64 equivalent", new List<ParameterResult>
+        new GeneroPackageClassMethod("FromStringWithCharset", "security.HexBinary", true, "Encodes a given string in hexadecimal, according to a given charset.", new List<ParameterResult>
         {
-            new ParameterResult("source", "", "string")
+            new ParameterResult("source", "", "string"),
+            new ParameterResult("charset", "", "string")
         }, new List<string> {"string"},
-GeneroLanguageVersion.None,
-GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("FromBase64", "security.HexBinary", true, "Converts a base64 string to the hexadecimal equivalent.", new List<ParameterResult>
-        {
-            new ParameterResult("source", "", "string")
-        }, new List<string> {"string"},
-GeneroLanguageVersion.None,
-GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("Xor", "security.HexBinary", true, "Computes the exclusive disjunction between two hexadecimal encoded strings.", new List<ParameterResult>
-        {
-            new ParameterResult("hexstr1", "", "string"),
-            new ParameterResult("hexstr2", "", "string")
-        }, new List<string> {"string"},
-GeneroLanguageVersion.None,
+GeneroLanguageVersion.V300,
 GeneroLanguageVersion.Latest),
         new GeneroPackageClassMethod("LoadBinary", "security.HexBinary", true, "Reads binary data from a file and converts it to hexadecimal.", new List<ParameterResult>
         {
@@ -4816,18 +5375,44 @@ GeneroLanguageVersion.Latest),
             new ParameterResult("data", "", "string")
         }, new List<string> {},
 GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("ToBase64", "security.HexBinary", true, "Converts an hexadecimal string to the base64 equivalent", new List<ParameterResult>
+        {
+            new ParameterResult("source", "", "string")
+        }, new List<string> {"string"},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("ToByte", "security.HexBinary", true, "Decodes an hexadecimal string into a BYTE variable.", new List<ParameterResult>
+        {
+            new ParameterResult("source", "", "string")
+        }, new List<string> {"string"},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("ToString", "security.HexBinary", true, "Decodes an hexadecimal string to a clear, human-readable string.", new List<ParameterResult>
+        {
+            new ParameterResult("source", "", "string")
+        }, new List<string> {"string"},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("ToStringWithCharset", "security.HexBinary", true, "Decodes an hexadecimal string to a clear, human-readable string, according to a given charset.", new List<ParameterResult>
+        {
+            new ParameterResult("source", "", "string"),
+            new ParameterResult("charset", "", "string")
+        }, new List<string> {"string"},
+GeneroLanguageVersion.V300,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("Xor", "security.HexBinary", true, "Computes the exclusive disjunction between two hexadecimal encoded strings.", new List<ParameterResult>
+        {
+            new ParameterResult("hexstr1", "", "string"),
+            new ParameterResult("hexstr2", "", "string")
+        }, new List<string> {"string"},
+GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest)
     },
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
     new GeneroPackageClass("Digest", "security", true, new List<GeneroPackageClassMethod>
     {
-        new GeneroPackageClassMethod("CreateDigest", "security.Digest", true, "Defines a new digest context by specifying the algorithm to be used.", new List<ParameterResult>
-        {
-            new ParameterResult("algo", "", "string")
-        }, new List<string> {},
-GeneroLanguageVersion.None,
-GeneroLanguageVersion.Latest),
         new GeneroPackageClassMethod("AddData", "security.Digest", true, "Adds a data from a BYTE variable to the digest buffer.", new List<ParameterResult>
         {
             new ParameterResult("data", "", "byte")
@@ -4852,6 +5437,26 @@ GeneroLanguageVersion.Latest),
         }, new List<string> {},
 GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("AddStringDataWithCharset", "security.Digest", true, "Adds a data string to the digest buffer, after converting to the specified character set.", new List<ParameterResult>
+        {
+            new ParameterResult("data", "", "string"),
+            new ParameterResult("charset", "", "string")
+        }, new List<string> {},
+GeneroLanguageVersion.V300,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("CreateDigest", "security.Digest", true, "Defines a new digest context by specifying the algorithm to be used.", new List<ParameterResult>
+        {
+            new ParameterResult("algo", "", "string")
+        }, new List<string> {},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("CreateDigestString", "security.Digest", true, "Creates a SHA1 digest from the given string.", new List<ParameterResult>
+        {
+            new ParameterResult("password", "", "string"),
+            new ParameterResult("randBase64", "", "string")
+        }, new List<string> {"string"},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
         new GeneroPackageClassMethod("DoBase64Digest", "security.Digest", true, "Creates a digest of the buffered data and returns the result in base64 format.", new List<ParameterResult>
         {
         }, new List<string> {"string"},
@@ -4861,16 +5466,59 @@ GeneroLanguageVersion.Latest),
         {
         }, new List<string> {"string"},
 GeneroLanguageVersion.None,
-GeneroLanguageVersion.Latest),
-        new GeneroPackageClassMethod("CreateDigestString", "security.Digest", true, "Creates a SHA1 digest from the given string.", new List<ParameterResult>
-        {
-            new ParameterResult("password", "", "string"),
-            new ParameterResult("randBase64", "", "string")
-        }, new List<string> {"string"},
-GeneroLanguageVersion.None,
 GeneroLanguageVersion.Latest)
     },
 GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+    new GeneroPackageClass("PBKDF2", "security", true, new List<GeneroPackageClassMethod>
+    {
+        new GeneroPackageClassMethod("GenerateKey", "security.PBKDF2", true, "Generates a password of a given size and based on a human readable password using Password-Based Key Derivation Function 2 (PBKDF2)", new List<ParameterResult>
+        {
+            new ParameterResult("password", "", "string"),
+            new ParameterResult("salt", "", "string"),
+            new ParameterResult("hash", "", "string"),
+            new ParameterResult("iter", "", "integer"),
+            new ParameterResult("keySize", "", "integer")
+        }, new List<string> {"string"},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("CheckKey", "security.PBKDF2", true, "Validates a hashed key.", new List<ParameterResult>
+        {
+            new ParameterResult("password", "", "string"),
+            new ParameterResult("salt", "", "string"),
+            new ParameterResult("hash", "", "string"),
+            new ParameterResult("iter", "", "integer"),
+            new ParameterResult("hashedKey", "", "string")
+        }, new List<string> {"boolean"},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest)
+    },
+GeneroLanguageVersion.V310,
+GeneroLanguageVersion.Latest),
+    new GeneroPackageClass("BCrypt", "security", true, new List<GeneroPackageClassMethod>
+    {
+        new GeneroPackageClassMethod("GenerateSalt", "security.BCrypt", true, "Generates the encoded value needed as input to the HashPassword method.", new List<ParameterResult>
+        {
+            new ParameterResult("cost", "", "integer")
+        }, new List<string> {"string"},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("HashPassword", "security.BCrypt", true, "Creates a hash password.", new List<ParameterResult>
+        {
+            new ParameterResult("password", "", "string"),
+            new ParameterResult("salt", "", "string")
+        }, new List<string> {"string"},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest),
+        new GeneroPackageClassMethod("CheckPassword", "security.BCrypt", true, "Checks the hash password.", new List<ParameterResult>
+        {
+            new ParameterResult("password", "", "string"),
+            new ParameterResult("hashedPass", "", "string")
+        }, new List<string> {"integer"},
+GeneroLanguageVersion.None,
+GeneroLanguageVersion.Latest)
+    },
+GeneroLanguageVersion.V310,
 GeneroLanguageVersion.Latest)
 },
                     GeneroLanguageVersion.V250,

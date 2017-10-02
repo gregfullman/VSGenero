@@ -233,6 +233,32 @@
                   </xs:sequence>
                 </xs:complexType>
               </xs:element>
+              <xs:element name="Types">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="Type" maxOccurs="unbounded" minOccurs="0">
+                      <xs:complexType>
+                        <xs:sequence>
+                          <xs:element name="recordChild" maxOccurs="unbounded" minOccurs="0">
+                            <xs:complexType>
+                              <xs:attribute name="name" type="xs:string"/>
+                              <xs:attribute name="desc" type="xs:string"/>
+                              <xs:attribute name="systemType" type="xs:string"/>
+                              <xs:attribute name="minVersion" type="GeneroLanguageVersion" use="optional"/>
+                              <xs:attribute name="maxVersion" type="GeneroLanguageVersion" use="optional"/>
+                            </xs:complexType>
+                          </xs:element>
+                        </xs:sequence>
+                        <xs:attribute name="name" type="xs:string"/>
+                        <xs:attribute name="desc" type="xs:string"/>
+                        <xs:attribute name="systemType" type="xs:string"/>
+                        <xs:attribute name="minVersion" type="GeneroLanguageVersion" use="optional"/>
+                        <xs:attribute name="maxVersion" type="GeneroLanguageVersion" use="optional"/>
+                      </xs:complexType>
+                    </xs:element>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
             </xs:all>
           </xs:complexType>
         </xs:element>

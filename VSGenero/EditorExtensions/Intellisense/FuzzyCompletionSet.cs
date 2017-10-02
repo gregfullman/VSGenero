@@ -387,13 +387,14 @@ namespace VSGenero.EditorExtensions.Intellisense
             {
                 foreach (var comp in Completions)
                 {
-                    int temp;
+                    DateTime temp;
                     if(IntellisenseExtensions.LastCommittedCompletions.TryGetValue(comp.DisplayText, out temp))
                     {
-                        if(bestMatch == null || temp > bestValue)
+                        var score = FuzzyStringMatcher.CalculateElapsedTimeBonus(temp);
+                        if(bestMatch == null || score > bestValue)
                         {
                             bestMatch = comp;
-                            bestValue = temp;
+                            bestValue = score;
                             isUnique = true;
                         }
                     }
@@ -405,7 +406,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                 bestMatch = Completions[0];
             }
 
-            if (((DynamicallyVisibleCompletion)bestMatch).Visible)
+            if (((DynamicallyVisibleCompletion)bestMatch).Visible && bestValue > 0)
             {
                 SelectionStatus = new CompletionSelectionStatus(bestMatch,
                     isSelected: allowSelect && bestValue > 0,

@@ -663,6 +663,13 @@
       </SingleTokens>
     </ContextPossibility>
   </ContextEntry>
+  <ContextEntry Entry="dictionary" Type="keyword" minLanguageVersion="3.10">
+    <ContextPossibility>
+      <SingleTokens>
+        <Token>of</Token>
+      </SingleTokens>
+    </ContextPossibility>
+  </ContextEntry>
   <ContextEntry Entry="describe" Type="keyword">
     <ContextPossibility>
       <SingleTokens>
@@ -3566,6 +3573,9 @@
         <BackwardTokenSearchItem>
           <Token>array</Token>
         </BackwardTokenSearchItem>
+        <BackwardTokenSearchItem minLanguageVersion="3.10">
+          <Token>dictionary</Token>
+        </BackwardTokenSearchItem>
       </BackwardSearchItems>
     </ContextPossibility>
     <ContextPossibility>
@@ -4493,6 +4503,7 @@
     <ContextPossibility>
       <ContextSetProviders>
         <Provider>GetExpressionComponents</Provider>
+        <Provider>GetStatementStartKeywords</Provider>
       </ContextSetProviders>
     </ContextPossibility>
   </ContextEntry>

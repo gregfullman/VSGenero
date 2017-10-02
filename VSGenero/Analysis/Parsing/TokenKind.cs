@@ -187,6 +187,7 @@ namespace VSGenero.Analysis.Parsing
         DetailActionKeyword,
         DetailButtonKeyword,
         DialogKeyword,
+        DictionaryKeyword,
         DimensionKeyword,
         DimensionsKeyword,
         DimKeyword,

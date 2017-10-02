@@ -61,6 +61,7 @@ namespace VSGeneroUnitTesting.Utilities
             { "string", new Tuple<string, string>("_stringFunctions", "\"String\"") },
             { "byte", new Tuple<string, string>("_byteFunctions", "\"Byte\"") },
             { "text", new Tuple<string, string>("_textFunctions", "\"Text\"") },
+            { "dictionary", new Tuple<string, string>("_dictionaryFunctions", "\"Dictionary\"") }
         };
 
         private Dictionary<string, HashSet<string>> _duplicatesChecker = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);

@@ -40,6 +40,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         break;
                     if (!parser.PeekToken(TokenKind.Comma))
                         break;
+                    parser.NextToken();
                 }
 
                 if(multiReturn || node.ReturnTypes.Count > 1)
