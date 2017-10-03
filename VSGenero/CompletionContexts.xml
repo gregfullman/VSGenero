@@ -663,6 +663,13 @@
       </SingleTokens>
     </ContextPossibility>
   </ContextEntry>
+  <ContextEntry Entry="dictionary" Type="keyword" minLanguageVersion="3.10">
+    <ContextPossibility>
+      <SingleTokens>
+        <Token>of</Token>
+      </SingleTokens>
+    </ContextPossibility>
+  </ContextEntry>
   <ContextEntry Entry="describe" Type="keyword">
     <ContextPossibility>
       <SingleTokens>
@@ -758,6 +765,9 @@
   </ContextEntry>
   <ContextEntry Entry="Equals" Type="keyword">
     <ContextPossibility>
+      <SingleTokens>
+        <Token minLanguageVersion="3.10">function</Token>
+      </SingleTokens>
       <ContextSetProviders>
         <Provider>GetExpressionComponents</Provider>
       </ContextSetProviders>
@@ -1128,7 +1138,31 @@
         </BackwardTokenSearchItem>
       </BackwardSearchItems>
     </ContextPossibility>
-    <ContextPossibility />
+    <ContextPossibility minLanguageVersion="3.10">
+      <ContextSetProviders>
+        <Provider>GetFunctions</Provider>
+      </ContextSetProviders>
+      <BackwardSearchItems>
+        <BackwardTokenSearchItem>
+          <Token>LeftParenthesis</Token>
+          <!--<OrderedTokenSet>
+            <Item Type="keyword" Value="LeftParenthesis"/>
+          </OrderedTokenSet>-->
+        </BackwardTokenSearchItem>
+        <BackwardTokenSearchItem>
+          <Token>Comma</Token>
+          <!--<OrderedTokenSet>
+            <Item Type="keyword" Value="Comma"/>
+          </OrderedTokenSet>-->
+        </BackwardTokenSearchItem>
+        <BackwardTokenSearchItem>
+          <Token>Equals</Token>
+          <!--<OrderedTokenSet>
+            <Item Type="keyword" Value="Equals"/>
+          </OrderedTokenSet>-->
+        </BackwardTokenSearchItem>
+      </BackwardSearchItems>
+    </ContextPossibility>
   </ContextEntry>
   <ContextEntry Entry="globals" Type="keyword">
     <ContextPossibility>
@@ -1288,6 +1322,7 @@
         <Token>record</Token>
         <Token>array</Token>
         <Token>dynamic</Token>
+        <Token minLanguageVersion="3.10">function</Token>
       </SingleTokens>
       <ContextSetProviders>
         <Provider>GetTypes</Provider>
@@ -1850,6 +1885,41 @@
           <OrderedTokenSet>
             <Item Value="by" Type="keyword" />
             <Item Value="scroll" Type="keyword" />
+          </OrderedTokenSet>
+        </BackwardTokenSearchItem>
+      </BackwardSearchItems>
+    </ContextPossibility>
+    <ContextPossibility minLanguageVersion="3.10">
+      <ContextSetProviders>
+        <Provider>GetTypes</Provider>
+      </ContextSetProviders>
+      <BackwardSearchItems>
+        <BackwardTokenSearchItem>
+          <OrderedTokenSet>
+            <Item Value="LeftParenthesis" Type="keyword" />
+            <Item Value="function" Type="keyword" />
+          </OrderedTokenSet>
+        </BackwardTokenSearchItem>
+        <BackwardTokenSearchItem>
+          <OrderedTokenSet>
+            <Item Value="Comma" Type="keyword" />
+            <Item Value="LeftParenthesis" Type="keyword" />
+            <Item Value="function" Type="keyword" />
+          </OrderedTokenSet>
+        </BackwardTokenSearchItem>
+      </BackwardSearchItems>
+    </ContextPossibility>
+    <ContextPossibility minLanguageVersion="3.10">
+      <ContextSetProviders>
+        <Provider>GetStatementStartKeywords</Provider>
+      </ContextSetProviders>
+      <BackwardSearchItems>
+        <BackwardTokenSearchItem>
+          <OrderedTokenSet>
+            <Item Value="returns" Type="keyword" />
+            <Item Value="RightParenthesis" Type="keyword" />
+            <Item Value="LeftParenthesis" Type="keyword" />
+            <Item Value="function" Type="keyword" />
           </OrderedTokenSet>
         </BackwardTokenSearchItem>
       </BackwardSearchItems>
@@ -1910,6 +1980,7 @@
         <Token>record</Token>
         <Token>array</Token>
         <Token>dynamic</Token>
+        <Token minLanguageVersion="3.10">function</Token>
       </SingleTokens>
       <ContextSetProviders>
         <Provider>GetTypes</Provider>
@@ -2472,6 +2543,41 @@
           <OrderedTokenSet>
             <Item Value="by" Type="keyword" />
             <Item Value="scroll" Type="keyword" />
+          </OrderedTokenSet>
+        </BackwardTokenSearchItem>
+      </BackwardSearchItems>
+    </ContextPossibility>
+    <ContextPossibility minLanguageVersion="3.10">
+      <ContextSetProviders>
+        <Provider>GetTypes</Provider>
+      </ContextSetProviders>
+      <BackwardSearchItems>
+        <BackwardTokenSearchItem>
+          <OrderedTokenSet>
+            <Item Value="LeftParenthesis" Type="keyword" />
+            <Item Value="function" Type="keyword" />
+          </OrderedTokenSet>
+        </BackwardTokenSearchItem>
+        <BackwardTokenSearchItem>
+          <OrderedTokenSet>
+            <Item Value="Comma" Type="keyword" />
+            <Item Value="LeftParenthesis" Type="keyword" />
+            <Item Value="function" Type="keyword" />
+          </OrderedTokenSet>
+        </BackwardTokenSearchItem>
+      </BackwardSearchItems>
+    </ContextPossibility>
+    <ContextPossibility minLanguageVersion="3.10">
+      <ContextSetProviders>
+        <Provider>GetStatementStartKeywords</Provider>
+      </ContextSetProviders>
+      <BackwardSearchItems>
+        <BackwardTokenSearchItem>
+          <OrderedTokenSet>
+            <Item Value="returns" Type="keyword" />
+            <Item Value="RightParenthesis" Type="keyword" />
+            <Item Value="LeftParenthesis" Type="keyword" />
+            <Item Value="function" Type="keyword" />
           </OrderedTokenSet>
         </BackwardTokenSearchItem>
       </BackwardSearchItems>
@@ -3467,6 +3573,9 @@
         <BackwardTokenSearchItem>
           <Token>array</Token>
         </BackwardTokenSearchItem>
+        <BackwardTokenSearchItem minLanguageVersion="3.10">
+          <Token>dictionary</Token>
+        </BackwardTokenSearchItem>
       </BackwardSearchItems>
     </ContextPossibility>
     <ContextPossibility>
@@ -3996,6 +4105,22 @@
         </BackwardTokenSearchItem>
       </BackwardSearchItems>
     </ContextPossibility>
+    <ContextPossibility minLanguageVersion="3.10">
+      <SingleTokens>
+        <Token>returns</Token>
+      </SingleTokens>
+      <ContextSetProviders>
+        <Provider>GetStatementStartKeywords</Provider>
+      </ContextSetProviders>
+      <BackwardSearchItems>
+        <BackwardTokenSearchItem>
+          <OrderedTokenSet>
+            <Item Type="keyword" Value="LeftParenthesis"/>
+            <Item Type="keyword" Value="function"/>
+          </OrderedTokenSet>
+        </BackwardTokenSearchItem>
+      </BackwardSearchItems>
+    </ContextPossibility>
     <ContextPossibility>
       <ContextSetProviders>
         <Provider>GetStatementStartKeywords</Provider>
@@ -4378,6 +4503,7 @@
     <ContextPossibility>
       <ContextSetProviders>
         <Provider>GetExpressionComponents</Provider>
+        <Provider>GetStatementStartKeywords</Provider>
       </ContextSetProviders>
     </ContextPossibility>
   </ContextEntry>
@@ -4888,6 +5014,29 @@
           <OrderedTokenSet>
             <Item Value="to" Type="keyword" />
             <Item Value="interval" Type="keyword" />
+          </OrderedTokenSet>
+        </BackwardTokenSearchItem>
+      </BackwardSearchItems>
+    </ContextPossibility>
+  </ContextEntry>
+  <ContextEntry Entry="returns" Type="keyword" minLanguageVersion="3.10">
+    <ContextPossibility>
+      <SingleTokens>
+        <Token>like</Token>
+        <Token>record</Token>
+        <Token>array</Token>
+        <Token>dynamic</Token>
+        <Token>function</Token>
+      </SingleTokens>
+      <ContextSetProviders>
+        <Provider>GetTypes</Provider>
+      </ContextSetProviders>
+      <BackwardSearchItems>
+        <BackwardTokenSearchItem>
+          <OrderedTokenSet>
+            <Item Value="RightParenthesis" Type="keyword" />
+            <Item Value="LeftParenthesis" Type="keyword" />
+            <Item Value="function" Type="keyword" />
           </OrderedTokenSet>
         </BackwardTokenSearchItem>
       </BackwardSearchItems>

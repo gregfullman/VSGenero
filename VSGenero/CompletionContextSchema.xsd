@@ -6,6 +6,42 @@
     xmlns:mstns="CompletionContextSchema"
     xmlns:xs="http://www.w3.org/2001/XMLSchema"
 >
+  <xs:simpleType name="AvailableContextSetProvider">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="GetPostUnaryOperators"/>
+      <xs:enumeration value="GetExpressionComponents"/>
+      <xs:enumeration value="GetTypes"/>
+      <xs:enumeration value="GetSystemTypes"/>
+      <xs:enumeration value="GetFunctions"/>
+      <xs:enumeration value="GetLabels"/>
+      <xs:enumeration value="GetVariables"/>
+      <xs:enumeration value="GetOptionsStartKeywords"/>
+      <xs:enumeration value="GetDeclaredDialogs"/>
+      <xs:enumeration value="GetReports"/>
+      <xs:enumeration value="GetConstants"/>
+      <xs:enumeration value="GetDatabaseTables"/>
+      <xs:enumeration value="GetAvailableImportModules"/>
+      <xs:enumeration value="GetStatementStartKeywords"/>
+      <xs:enumeration value="GetCursors"/>
+      <xs:enumeration value="GetPreparedCursors"/>
+      <xs:enumeration value="GetDeclaredCursors"/>
+      <xs:enumeration value="GetBinaryOperatorKeywords"/>
+      <xs:enumeration value="GetUiAttributes"/>
+      <xs:enumeration value="GetAvailableCExtensions"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="GeneroLanguageVersion">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="2.32"/>
+      <xs:enumeration value="2.40"/>
+      <xs:enumeration value="2.41"/>
+      <xs:enumeration value="2.50"/>
+      <xs:enumeration value="3.00"/>
+      <xs:enumeration value="3.10"/>
+    </xs:restriction>
+  </xs:simpleType>
+  
   <xs:element name="ContextMap">
     <xs:complexType>
       <xs:sequence>
@@ -18,7 +54,15 @@
                     <xs:element name="SingleTokens" minOccurs="0" maxOccurs="1">
                       <xs:complexType>
                         <xs:sequence>
-                          <xs:element name="Token" type="xs:string" minOccurs="1" maxOccurs="unbounded"/>
+                          <xs:element name="Token" minOccurs="1" maxOccurs="unbounded">
+                            <xs:complexType>
+                              <xs:simpleContent>
+                                <xs:extension base="xs:string">
+                                  <xs:attribute name="minLanguageVersion" type="GeneroLanguageVersion" use="optional"/>
+                                </xs:extension>
+                              </xs:simpleContent>
+                            </xs:complexType>
+                          </xs:element>
                         </xs:sequence>
                       </xs:complexType>
                     </xs:element>
@@ -26,32 +70,13 @@
                       <xs:complexType>
                         <xs:sequence>
                           <xs:element name="Provider" minOccurs="1" maxOccurs="unbounded">
-                            <xs:simpleType>
-                              <!--This is a list of completion provider functions for Genero4glAst.
-                                  If a new provider is added in code, it must be added here as well.-->
-                              <xs:restriction base="xs:string">
-                                <xs:enumeration value="GetPostUnaryOperators"/>
-                                <xs:enumeration value="GetExpressionComponents"/>
-                                <xs:enumeration value="GetTypes"/>
-                                <xs:enumeration value="GetSystemTypes"/>
-                                <xs:enumeration value="GetFunctions"/>
-                                <xs:enumeration value="GetLabels"/>
-                                <xs:enumeration value="GetVariables"/>
-                                <xs:enumeration value="GetOptionsStartKeywords"/>
-                                <xs:enumeration value="GetDeclaredDialogs"/>
-                                <xs:enumeration value="GetReports"/>
-                                <xs:enumeration value="GetConstants"/>
-                                <xs:enumeration value="GetDatabaseTables"/>
-                                <xs:enumeration value="GetAvailableImportModules"/>
-                                <xs:enumeration value="GetStatementStartKeywords"/>
-                                <xs:enumeration value="GetCursors"/>
-                                <xs:enumeration value="GetPreparedCursors"/>
-                                <xs:enumeration value="GetDeclaredCursors"/>
-                                <xs:enumeration value="GetBinaryOperatorKeywords"/>
-                                <xs:enumeration value="GetUiAttributes"/>
-                                <xs:enumeration value="GetAvailableCExtensions"/>
-                              </xs:restriction>
-                            </xs:simpleType>
+                            <xs:complexType>
+                              <xs:simpleContent>
+                                <xs:extension base="AvailableContextSetProvider">
+                                  <xs:attribute name="minLanguageVersion" type="GeneroLanguageVersion" use="optional"/>
+                                </xs:extension>
+                              </xs:simpleContent>
+                            </xs:complexType>
                           </xs:element>
                         </xs:sequence>
                       </xs:complexType>
@@ -80,16 +105,19 @@
                                         </xs:complexType>
                                       </xs:element>
                                     </xs:sequence>
+                                    <xs:attribute name="minLanguageVersion" type="GeneroLanguageVersion" use="optional"/>
                                   </xs:complexType>
                                 </xs:element>
                               </xs:choice>
                               <xs:attribute name="Match" type="xs:boolean" default="true"/>
+                              <xs:attribute name="minLanguageVersion" type="GeneroLanguageVersion" use="optional"/>
                             </xs:complexType>
                           </xs:element>
                         </xs:sequence>
                       </xs:complexType>
                     </xs:element>
                   </xs:sequence>
+                  <xs:attribute name="minLanguageVersion" type="GeneroLanguageVersion" use="optional"/>
                 </xs:complexType>
               </xs:element>
             </xs:sequence>
@@ -102,6 +130,7 @@
                 </xs:restriction>
               </xs:simpleType>
             </xs:attribute>
+            <xs:attribute name="minLanguageVersion" type="GeneroLanguageVersion" use="optional"/>
           </xs:complexType>
         </xs:element>
       </xs:sequence>

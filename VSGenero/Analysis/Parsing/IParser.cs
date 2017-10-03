@@ -39,5 +39,7 @@ namespace VSGenero.Analysis.Parsing
         bool PeekToken(TokenCategory category, uint aheadBy = 1);
         bool Eat(TokenKind kind);
         bool MaybeEat(TokenKind kind);
+
+        GeneroLanguageVersion LanguageVersion { get; }
     }
 }

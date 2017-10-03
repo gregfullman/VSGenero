@@ -14,6 +14,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -32,8 +33,9 @@ namespace VSGenero.Analysis.Parsing
         V250,
         [GeneroLanguageVersion(VersionString = "3.00", LanguageVersion = V300)]
         V300,
-
-        Latest = V300 + 1
+        [GeneroLanguageVersion(VersionString = "3.10", LanguageVersion = V310)]
+        V310,
+        Latest = V310 + 1
     }
 
     public class GeneroLanguageVersionAttribute : Attribute
@@ -47,6 +49,8 @@ namespace VSGenero.Analysis.Parsing
 
     public static class GeneroLanguageVersionExtensions
     {
+        private static Dictionary<string, GeneroLanguageVersion> _languageVersions;
+
         public static Version ToVersion(this GeneroLanguageVersion version)
         {
             switch(version)
@@ -56,6 +60,7 @@ namespace VSGenero.Analysis.Parsing
                 case GeneroLanguageVersion.V241: return new Version(2, 41);
                 case GeneroLanguageVersion.V250: return new Version(2, 50);
                 case GeneroLanguageVersion.V300: return new Version(3, 0);
+                case GeneroLanguageVersion.V310: return new Version(3, 10);
                 default: return null;
             }
         }
@@ -77,11 +82,26 @@ namespace VSGenero.Analysis.Parsing
                     switch(version.Minor)
                     {
                         case 0: return GeneroLanguageVersion.V300;
+                        case 1: return GeneroLanguageVersion.V310;
                         default: return GeneroLanguageVersion.None;
                     }
                 default:
                     return GeneroLanguageVersion.None;
             }
+        }
+
+        public static GeneroLanguageVersion ToLanguageVersion(string versionString)
+        {
+            if (_languageVersions == null)
+            {
+                var type = typeof(GeneroLanguageVersion);
+                _languageVersions = type.GetMembers().Select(x => x.GetCustomAttribute(typeof(GeneroLanguageVersionAttribute), false))
+                                                     .Where(y => y != null)
+                                                     .ToDictionary(y => (y as GeneroLanguageVersionAttribute).VersionString, y => (y as GeneroLanguageVersionAttribute).LanguageVersion);
+            }
+            GeneroLanguageVersion glv = GeneroLanguageVersion.None;
+            _languageVersions.TryGetValue(versionString, out glv);
+            return glv;
         }
 
         internal static GeneroLanguageVersion GetLanguageVersion(string filePath, IProgramFileProvider fileProvider = null)

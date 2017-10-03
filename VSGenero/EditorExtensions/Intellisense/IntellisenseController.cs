@@ -203,6 +203,10 @@ namespace VSGenero.EditorExtensions.Intellisense
             {
                 switch (ch)
                 {
+                    case ' ':
+                        if (_activeSession != null)
+                            _activeSession.Dismiss();
+                        break;
                     //case ' ':
                     //    if (VSGeneroPackage.Instance.LangPrefs.SpaceTriggersCompletion &&
                     //        VSGeneroPackage.Instance.LangPrefs.AutoListMembers && AreSurroundingCharactersWhitespace(ch, true))
@@ -586,18 +590,8 @@ namespace VSGenero.EditorExtensions.Intellisense
                     if (_activeSession.SelectedCompletionSet != null &&
                        _activeSession.SelectedCompletionSet.SelectionStatus != null)
                     {
-                        // find the new completion in the list of MRU completions. If found, move it to the front.
-                        // If not found, add it.
                         string complText = _activeSession.SelectedCompletionSet.ApplicableTo.GetText(_activeSession.TextView.TextBuffer.CurrentSnapshot);
-                        // TODO: will have to see how the size of this affects performance...might need to cull out old entries (do we need to consider max int size?)
-                        if (IntellisenseExtensions.LastCommittedCompletions.ContainsKey(complText))
-                        {
-                            IntellisenseExtensions.LastCommittedCompletions[complText] = IntellisenseExtensions.LastCommittedCompletions.Count;
-                        }
-                        else
-                        {
-                            IntellisenseExtensions.LastCommittedCompletions.Add(complText, IntellisenseExtensions.LastCommittedCompletions.Count + 1);
-                        }
+                        IntellisenseExtensions.LastCommittedCompletions[complText] = DateTime.Now;
                         if (_parentSpan == null)
                         {
                             _parentSpan = GetCompletionParentSpan();
@@ -701,7 +695,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             {
                 var compl = _activeSession.SelectedCompletionSet.SelectionStatus.Completion;
                 string complParentName;
-                if (compl.Properties.TryGetProperty<string>(CompletionAnalysis.CompletionParentPropertyName, out complParentName))
+                if (compl != null && compl.Properties.TryGetProperty<string>(CompletionAnalysis.CompletionParentPropertyName, out complParentName))
                 {
                     var srcSpan = GetPrecedingExpression();
                     if (srcSpan.HasValue && srcSpan.Value.Length > 0)

@@ -169,6 +169,17 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             }
         }
 
+        private static Dictionary<string, IFunctionResult> _dictionaryFunctions;
+        public static IDictionary<string, IFunctionResult> DictionaryFunctions
+        {
+            get
+            {
+                if (_dictionaryFunctions == null)
+                    InitializeBuiltins();
+                return _dictionaryFunctions;
+            }
+        }
+
         private static void InitializeBuiltins()
         {
             lock (_builtinsInitLock)
@@ -181,6 +192,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     _stringFunctions = new Dictionary<string, IFunctionResult>(StringComparer.OrdinalIgnoreCase);
                     _byteFunctions = new Dictionary<string, IFunctionResult>(StringComparer.OrdinalIgnoreCase);
                     _textFunctions = new Dictionary<string, IFunctionResult>(StringComparer.OrdinalIgnoreCase);
+                    _dictionaryFunctions = new Dictionary<string, IFunctionResult>(StringComparer.OrdinalIgnoreCase);
 
                     #region Generated Functions
                     _arrayFunctions.Add("appendElement", new BuiltinFunction("appendElement", "Array", new List<ParameterResult>
@@ -194,6 +206,13 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     "Removes all elements in a dynamic array. Sets all elements to NULL in a static array.",
                     "http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_Arrays_ARRAY_clear.html",
                     GeneroLanguageVersion.None,
+                    GeneroLanguageVersion.Latest));
+                    _arrayFunctions.Add("copyTo", new BuiltinFunction("copyTo", "Array", new List<ParameterResult>
+{new ParameterResult("dst", "", "dynamic-array-type"),
+}, new List<string> { },
+                    "Copies a complete array to the destination array passed as parameter.",
+                    "",
+                    GeneroLanguageVersion.V310,
                     GeneroLanguageVersion.Latest));
                     _arrayFunctions.Add("deleteElement", new BuiltinFunction("deleteElement", "Array", new List<ParameterResult>
 {new ParameterResult("pos", "", "integer"),
@@ -214,6 +233,24 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     "Inserts a new element at the given position. In a static or dynamic array, the elements after the given position are moved down. In a dynamic array, the number of elements increments by 1.",
                     "http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_Arrays_ARRAY_insertElement.html",
                     GeneroLanguageVersion.None,
+                    GeneroLanguageVersion.Latest));
+                    _arrayFunctions.Add("search", new BuiltinFunction("search", "Array", new List<ParameterResult>
+{new ParameterResult("key", "", "string"),
+new ParameterResult("value", "", "string"),
+}, new List<string> { },
+                    "Scans the array to find an element that matches the search parameter.",
+                    "",
+                    GeneroLanguageVersion.V310,
+                    GeneroLanguageVersion.Latest));
+                    _arrayFunctions.Add("searchRange", new BuiltinFunction("searchRange", "Array", new List<ParameterResult>
+{new ParameterResult("key", "", "string"),
+new ParameterResult("value", "", "string"),
+new ParameterResult("from", "", "integer"),
+new ParameterResult("to", "", "integer"),
+}, new List<string> { },
+                    "Scans the array to find an element that matches the search parameter.",
+                    "",
+                    GeneroLanguageVersion.V310,
                     GeneroLanguageVersion.Latest));
                     _arrayFunctions.Add("sort", new BuiltinFunction("sort", "Array", new List<ParameterResult>
 {new ParameterResult("key", "", "string"),
@@ -915,7 +952,70 @@ new ParameterResult("width", "", "integer"),
                     "http://4js.com/online_documentation/fjs-fgl-{0}manual-html/index.html?path=fjs-fgl-manual-html/index#c_fgl_BuiltInFunctions_UPSHIFT.html",
                     GeneroLanguageVersion.None,
                     GeneroLanguageVersion.Latest));
+                    _systemFunctions.Add("FindQueryStringValue", new BuiltinFunction("FindQueryStringValue", null, new List<ParameterResult>
+{new ParameterResult("query", "", "string"),
+new ParameterResult("name", "", "name"),
+}, new List<string> { "string", },
+                    "Get a query string value by name.",
+                    "",
+                    GeneroLanguageVersion.V310,
+                    GeneroLanguageVersion.Latest));
+                    _systemFunctions.Add("SplitQueryString", new BuiltinFunction("SplitQueryString", null, new List<ParameterResult>
+{new ParameterResult("query", "", "string"),
+}, new List<string> { "WSHelper.WSQueryType", },
+                    "Splits a complete URL string into pieces.",
+                    "",
+                    GeneroLanguageVersion.V310,
+                    GeneroLanguageVersion.Latest));
+                    _systemFunctions.Add("SplitUrl", new BuiltinFunction("SplitUrl", null, new List<ParameterResult>
+{new ParameterResult("url", "", "string"),
+}, new List<string> { "string", "string", "string", "string", "string", },
+                    "Splits a complete URL string into pieces.",
+                    "",
+                    GeneroLanguageVersion.V310,
+                    GeneroLanguageVersion.Latest));
+                    _dictionaryFunctions.Add("clear", new BuiltinFunction("clear", "Dictionary", new List<ParameterResult>
+                    { }, new List<string> { },
+                    "Removes all elements of the dictionary.",
+                    "",
+                    GeneroLanguageVersion.None,
+                    GeneroLanguageVersion.Latest));
+                    _dictionaryFunctions.Add("contains", new BuiltinFunction("contains", "Dictionary", new List<ParameterResult>
+{new ParameterResult("key", "", "string"),
+}, new List<string> { },
+                    "Checks if an element with the given key exists in the dictionary.",
+                    "",
+                    GeneroLanguageVersion.None,
+                    GeneroLanguageVersion.Latest));
+                    _dictionaryFunctions.Add("copyTo", new BuiltinFunction("copyTo", "Dictionary", new List<ParameterResult>
+{new ParameterResult("dst", "", "dictionary-type"),
+}, new List<string> { },
+                    "Copies all elements of the dictionary into another dictionary.",
+                    "",
+                    GeneroLanguageVersion.None,
+                    GeneroLanguageVersion.Latest));
+                    _dictionaryFunctions.Add("getLength", new BuiltinFunction("getLength", "Dictionary", new List<ParameterResult>
+                    { }, new List<string> { "integer", },
+                    "Returns the number of elements in the dictionary.",
+                    "",
+                    GeneroLanguageVersion.None,
+                    GeneroLanguageVersion.Latest));
+                    _dictionaryFunctions.Add("getKeys", new BuiltinFunction("getKeys", "Dictionary", new List<ParameterResult>
+                    { }, new List<string> { "dynamic array of string", },
+                    "Returns a dynamic array of all keys of the dictionary.",
+                    "",
+                    GeneroLanguageVersion.None,
+                    GeneroLanguageVersion.Latest));
+                    _dictionaryFunctions.Add("remove", new BuiltinFunction("remove", "Dictionary", new List<ParameterResult>
+{new ParameterResult("key", "", "string"),
+}, new List<string> { },
+                    "Removes an element of the dictionary identified by the key.",
+                    "",
+                    GeneroLanguageVersion.None,
+                    GeneroLanguageVersion.Latest));
                     #endregion
+
+
 
 
                     _builtinsInitialized = true;

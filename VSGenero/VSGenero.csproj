@@ -397,8 +397,11 @@
     <Compile Include="Analysis\Interfaces\ITypeResolver.cs" />
     <Compile Include="Analysis\MemberTypeAttribute.cs" />
     <Compile Include="Analysis\Parsing\AST_4GL\BuiltinFunction.cs" />
+    <Compile Include="Analysis\Parsing\AST_4GL\DictionaryDefinitionNode.cs" />
     <Compile Include="Analysis\Parsing\AST_4GL\FglNameExpression.cs" />
+    <Compile Include="Analysis\Parsing\AST_4GL\FunctionTypeReference.cs" />
     <Compile Include="Analysis\Parsing\AST_4GL\ProgramRegister.cs" />
+    <Compile Include="Analysis\Parsing\AST_4GL\ReturnsStatement.cs" />
     <Compile Include="Analysis\Parsing\AST_4GL\SystemClass.cs" />
     <Compile Include="Analysis\Parsing\AST_4GL\SystemConstant.cs" />
     <Compile Include="Analysis\Parsing\AST_4GL\SystemImportModule.cs" />

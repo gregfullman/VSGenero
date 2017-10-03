@@ -1,4 +1,5 @@
 ﻿
+using System;
 using VSGenero.Analysis.Parsing.AST_PER;
 
 namespace VSGenero.Analysis.Parsing
@@ -10,10 +11,18 @@ namespace VSGenero.Analysis.Parsing
         {
         }
 
+        public override GeneroLanguageVersion LanguageVersion
+        {
+            get
+            {
+                return GeneroLanguageVersion.None;
+            }
+        }
+
         protected override GeneroAst CreateAst()
         {
             ModuleNode moduleNode = new ModuleNode();
-            var ast = new GeneroPerAst(moduleNode, _tokenizer.GetLineLocations(), GeneroLanguageVersion.None, _projectEntry, _filename);
+            var ast = new GeneroPerAst(moduleNode, _tokenizer.GetLineLocations(), LanguageVersion, _projectEntry, _filename);
             UpdateNodeAndTree(moduleNode, ast);
             return ast;
         }

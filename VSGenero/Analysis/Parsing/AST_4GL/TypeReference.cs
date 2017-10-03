@@ -181,6 +181,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
             ArrayTypeReference arrayType;
             RecordDefinitionNode recordDef;
+            FunctionTypeReference functionType;
+            DictionaryDefinitionNode dictType;
             if (ArrayTypeReference.TryParseNode(parser, out arrayType) && arrayType != null)
             {
                 result = true;
@@ -191,6 +193,29 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 defNode.Children.Add(arrayType.StartIndex, arrayType);
                 defNode.IsComplete = true;
             }
+            else if(parser.LanguageVersion >= GeneroLanguageVersion.V310 &&
+                    FunctionTypeReference.TryParseNode(parser, out functionType, isPublic) && functionType != null)
+            {
+                result = true;
+                //defNode = new TypeReference();
+                //defNode.StartIndex = functionType.StartIndex;
+                //defNode.EndIndex = functionType.EndIndex;
+                defNode = functionType;
+                defNode._isPublic = isPublic;
+                //defNode.Children.Add(functionType.StartIndex, functionType);
+                defNode.IsComplete = true;
+            }
+            else if(parser.LanguageVersion >= GeneroLanguageVersion.V310 &&
+                    DictionaryDefinitionNode.TryParseNode(parser, out dictType) && dictType != null)
+            {
+                result = true;
+                defNode = new TypeReference();
+                defNode.StartIndex = dictType.StartIndex;
+                defNode.EndIndex = dictType.EndIndex;
+                defNode._isPublic = isPublic;
+                defNode.Children.Add(dictType.StartIndex, dictType);
+                defNode.IsComplete = true;
+            }    
             else if (RecordDefinitionNode.TryParseNode(parser, out recordDef, isPublic) && recordDef != null)
             {
                 result = true;
@@ -329,7 +354,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             }
         }
 
-        public string Name
+        public virtual string Name
         {
             get { return ToString(); }
         }
@@ -386,6 +411,10 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 else if (node is RecordDefinitionNode)
                 {
                     return (node as RecordDefinitionNode).GetAnalysisResults(input.AST);
+                }
+                else if(node is DictionaryDefinitionNode)
+                {
+                    return (node as DictionaryDefinitionNode).GetAnalysisResults(memberType, input);
                 }
             }
             else
@@ -523,8 +552,12 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 {
                     return (node as RecordDefinitionNode).GetMembers(input);
                 }
+                else if (node is DictionaryDefinitionNode)
+                {
+                    return (node as DictionaryDefinitionNode).GetMembersInternal(input);
+                }
             }
-            else
+            else if(!string.IsNullOrEmpty(_typeNameString))
             {
                 if (!string.IsNullOrWhiteSpace(TableName))
                 {

@@ -52,6 +52,7 @@ namespace VSGenero.Analysis.Parsing
             return ast;
         }
 
+        public abstract GeneroLanguageVersion LanguageVersion { get; }
         protected abstract GeneroAst CreateAst();
 
         protected void UpdateNodeAndTree(AstNode node, GeneroAst ast)

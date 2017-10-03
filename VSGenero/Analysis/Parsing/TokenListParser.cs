@@ -174,5 +174,13 @@ namespace VSGenero.Analysis.Parsing
         {
             get { return null; }
         }
+
+        public GeneroLanguageVersion LanguageVersion
+        {
+            get
+            {
+                return GeneroLanguageVersion.None;
+            }
+        }
     }
 }

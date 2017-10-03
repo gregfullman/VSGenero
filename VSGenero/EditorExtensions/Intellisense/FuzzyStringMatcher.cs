@@ -159,7 +159,10 @@ namespace VSGenero.EditorExtensions.Intellisense
             return 0;
         }
 
-        const int LAST_USED_BONUS = 8;
+        /// <summary>
+        /// The reward for matching something that was used recently
+        /// </summary>
+        const int LAST_USED_BONUS = 100;
         /// <summary>
         /// The reward for the first matching character.
         /// </summary>
@@ -198,6 +201,14 @@ namespace VSGenero.EditorExtensions.Intellisense
         /// </summary>
         const int EXPECTED_UPPERCASE_BONUS = -2;
 
+        public static int CalculateElapsedTimeBonus(DateTime lastUsed)
+        {
+            int score = 0;
+            int millisecondsInHour = (int)3.6E6;
+            var elapsedTime = DateTime.Now - lastUsed;
+            score = millisecondsInHour - (int)elapsedTime.TotalMilliseconds;
+            return score;
+        }
 
         static int FuzzyMatchInternal(string text, string pattern, bool ignoreLowerCase, bool ignoreUpperCase)
         {
@@ -209,12 +220,18 @@ namespace VSGenero.EditorExtensions.Intellisense
             int increment = BASE_REWARD + START_OF_WORD_BONUS;
             int y = 0;
 
+            // If we have an exact match, ensure this is the best match
+            if (string.Compare(text, pattern, true) == 0)
+            {
+                return int.MaxValue;
+            }
+
             if (VSGeneroPackage.Instance.IntellisenseOptions4GL.PreSelectMRU)
             {
-                int mruBonus;
-                if(IntellisenseExtensions.LastCommittedCompletions.TryGetValue(text, out mruBonus))
+                DateTime lastUsedTime;
+                if(IntellisenseExtensions.LastCommittedCompletions.TryGetValue(text, out lastUsedTime))
                 {
-                    increment += LAST_USED_BONUS + mruBonus;
+                    increment += LAST_USED_BONUS + CalculateElapsedTimeBonus(lastUsedTime);
                 }
             }
 
