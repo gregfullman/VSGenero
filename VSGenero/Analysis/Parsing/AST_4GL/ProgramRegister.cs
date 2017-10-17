@@ -5,7 +5,7 @@ using System.Text;
 
 namespace VSGenero.Analysis.Parsing.AST_4GL
 {
-    public class ProgramRegister : IVariableResult
+    public class ProgramRegister : IVariableResult, ITypeResult
     {
         private ProgramRegister _parentRegister;
         private readonly string _name;
@@ -26,6 +26,9 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         public ProgramRegister(string name, 
                                string typeName, 
                                IEnumerable<ProgramRegister> childRegisters = null,
+                               bool isArray = false,
+                               int arrayDimension = 0,
+                               string arrayType = null,
                                GeneroLanguageVersion minimumBdlVersion = GeneroLanguageVersion.None,
                                GeneroLanguageVersion maximumBdlVersion = GeneroLanguageVersion.Latest)
         {
@@ -34,6 +37,15 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             _typeName = typeName;
             _minBdlVersion = minimumBdlVersion;
             _maxBdlVersion = maximumBdlVersion;
+            _isArray = isArray;
+            _arrayDimension = arrayDimension;
+            if(arrayType != null)
+            {
+                _arrayType = new VariableTypeResult
+                {
+                    Typename = arrayType
+                };
+            }
             _childRegisters = new Dictionary<string, ProgramRegister>(StringComparer.OrdinalIgnoreCase);
             if (childRegisters != null)
             {
@@ -120,7 +132,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         public ITypeResult GetGeneroType()
         {
             // TODO:
-            return null;
+            return this;
         }
 
         public string Typename
@@ -141,6 +153,57 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             get
             {
                 return _maxBdlVersion;
+            }
+        }
+
+        public bool IsRecord
+        {
+            get
+            {
+                return _childRegisters.Count > 0;
+            }
+        }
+
+        public Dictionary<string, ITypeResult> RecordMemberTypes
+        {
+            get
+            {
+                return _childRegisters.ToDictionary(x => x.Key, x => x.Value as ITypeResult);
+            }
+        }
+
+        private readonly bool _isArray;
+        public bool IsArray
+        {
+            get
+            {
+                return _isArray;
+            }
+        }
+
+        private readonly int _arrayDimension;
+        public int ArrayDimension
+        {
+            get
+            {
+                return _arrayDimension;
+            }
+        }
+
+        private readonly ITypeResult _arrayType;
+        public ITypeResult ArrayType
+        {
+            get
+            {
+                return _arrayType;
+            }
+        }
+
+        public ITypeResult UnderlyingType
+        {
+            get
+            {
+                return null;
             }
         }
     }

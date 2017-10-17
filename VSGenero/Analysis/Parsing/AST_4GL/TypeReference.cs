@@ -48,7 +48,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             {
                 IsArray = this.IsArray,
                 IsRecord = this.IsRecord,
-                Typename = this.Name
+                Typename = this.Name,
+                ArrayDimension = this.ArrayDimension
             };
             if (Children.Count == 1 && Children[Children.Keys[0]] is ArrayTypeReference)
             {
@@ -518,6 +519,23 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     }
                 }
                 return false;
+            }
+        }
+
+        public int ArrayDimension
+        {
+            get
+            {
+                if (Children.Count == 1)
+                {
+                    // we have an array type or a record type definition
+                    var node = Children[Children.Keys[0]];
+                    if (node is ArrayTypeReference)
+                    {
+                        return (int)(node as ArrayTypeReference).DynamicArrayDimension;
+                    }
+                }
+                return 0;
             }
         }
 

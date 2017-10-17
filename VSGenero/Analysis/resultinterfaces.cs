@@ -59,6 +59,8 @@ namespace VSGenero.Analysis
 
         bool IsArray { get; }
 
+        int ArrayDimension { get; }
+
         ITypeResult ArrayType { get; }
 
         string Typename { get; }

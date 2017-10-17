@@ -44,7 +44,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                             new ProgramRegister("sqlcode", "int"),
                             new ProgramRegister("sqlerrm", "char(71)"),
                             new ProgramRegister("sqlerrp", "char(8)"),
-                            new ProgramRegister("sqlerrd", "array[6] of int"),
+                            new ProgramRegister("sqlerrd", "array[6] of int", null, true, 1, "int"),
                             new ProgramRegister("sqlawarn", "char(7)")
                         }));
                     _systemVariables.Add("SQLSTATE", new ProgramRegister("SQLSTATE", "int"));

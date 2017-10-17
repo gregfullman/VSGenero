@@ -370,6 +370,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
     internal class VariableTypeResult : ITypeResult
     {
+        public int ArrayDimension { get; internal set; }
+
         public ITypeResult ArrayType { get; internal set; }
 
         public bool IsArray { get; internal set; }
