@@ -206,7 +206,7 @@ namespace VSGenero.EditorExtensions.Intellisense
             int score = 0;
             int millisecondsInHour = (int)3.6E6;
             var elapsedTime = DateTime.Now - lastUsed;
-            score = millisecondsInHour - (int)elapsedTime.TotalMilliseconds;
+            score = Math.Max(0, millisecondsInHour - (int)elapsedTime.TotalMilliseconds);
             return score;
         }
 
@@ -282,7 +282,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                             }
                             else
                             {
-                                if (char.IsLower(text, x))
+                                if (char.IsLower(text, x) || ignoreLowerCase)
                                 {
                                     // The user typed lowercase and it matched
                                     // lowercase.
@@ -290,15 +290,15 @@ namespace VSGenero.EditorExtensions.Intellisense
                                     increment += CONSECUTIVE_BONUS;
                                     y += 1;
                                 }
-                                else if (ignoreLowerCase)
-                                {
-                                    // The user typed lowercase and it matched
-                                    // uppercase, so reward with a slight
-                                    // penalty.
-                                    total += increment + EXPECTED_LOWERCASE_BONUS;
-                                    increment += CONSECUTIVE_BONUS;
-                                    y += 1;
-                                }
+                                //else if (ignoreLowerCase)
+                                //{
+                                //    // The user typed lowercase and it matched
+                                //    // uppercase, so reward with a slight
+                                //    // penalty.
+                                //    total += increment + EXPECTED_LOWERCASE_BONUS;
+                                //    increment += CONSECUTIVE_BONUS;
+                                //    y += 1;
+                                //}
                                 else
                                 {
                                     // The user typed lowercase and it matched
