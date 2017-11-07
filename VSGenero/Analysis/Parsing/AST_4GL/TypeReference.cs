@@ -35,7 +35,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         private bool _isPublic;
         public bool IsPublic { get { return _isPublic; } }
 
-        private string _typeNameString;
+        protected string _typeNameString;
         private string _dbTypeNameString;
         private bool _isConstrainedType;
         public string DatabaseName { get; private set; }

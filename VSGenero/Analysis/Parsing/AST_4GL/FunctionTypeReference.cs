@@ -124,6 +124,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 parser.NextToken();
                 defNode.StartIndex = parser.Token.Span.Start;
                 defNode._location = parser.TokenLocation;
+                defNode._typeNameString = defNode.Name;
 
                 // TODO: not sure if a function name is allowable...
                 if (parser.PeekToken(TokenKind.LeftParenthesis))
