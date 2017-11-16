@@ -173,7 +173,7 @@ namespace VSGenero.EditorExtensions
                     {
                         _tokenCache.DeleteLines(snapshot.GetLineNumberFromPosition(change.NewEnd) + 1, -change.LineCountDelta);
                     }
-                    catch (ArgumentOutOfRangeException)
+                    catch (Exception)
                     { }
                 }
 

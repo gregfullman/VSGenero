@@ -439,16 +439,23 @@ namespace Microsoft.VisualStudio.VSCommon
 
         public static void NavigateTo(string filename, Guid docViewGuidType, int line, int col)
         {
-            IVsTextView viewAdapter;
-            IVsWindowFrame pWindowFrame;
-            OpenDocument(filename, out viewAdapter, out pWindowFrame);
+            try
+            {
+                IVsTextView viewAdapter;
+                IVsWindowFrame pWindowFrame;
+                OpenDocument(filename, out viewAdapter, out pWindowFrame);
 
-            ErrorHandler.ThrowOnFailure(pWindowFrame.Show());
+                ErrorHandler.ThrowOnFailure(pWindowFrame.Show());
 
-            // Set the cursor at the beginning of the declaration.            
-            ErrorHandler.ThrowOnFailure(viewAdapter.SetCaretPos(line, col));
-            // Make sure that the text is visible.
-            viewAdapter.CenterLines(line, 1);
+                // Set the cursor at the beginning of the declaration.            
+                ErrorHandler.ThrowOnFailure(viewAdapter.SetCaretPos(line, col));
+                // Make sure that the text is visible.
+                viewAdapter.CenterLines(line, 1);
+            }
+            catch(Exception ex)
+            {
+                Instance.ShowDialog("Error", string.Format("Unable to navigate to file {0}:\n{1}", filename, ex.Message));
+            }
         }
 
         public static void NavigateTo(string filename, Guid docViewGuidType, int pos)

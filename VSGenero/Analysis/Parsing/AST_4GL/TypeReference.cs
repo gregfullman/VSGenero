@@ -425,15 +425,15 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                     // TODO: return the table's columns
                     int i = 0;
                 }
-                else if (_typeNameString.Equals("string", StringComparison.OrdinalIgnoreCase))
+                else if (_typeNameString != null && _typeNameString.Equals("string", StringComparison.OrdinalIgnoreCase))
                 {
                     return Genero4glAst.StringFunctions.Values.Where(x => input.AST.LanguageVersion >= x.MinimumLanguageVersion && input.AST.LanguageVersion <= x.MaximumLanguageVersion);
                 }
-                else if(_typeNameString.Equals("text", StringComparison.OrdinalIgnoreCase))
+                else if(_typeNameString != null && _typeNameString.Equals("text", StringComparison.OrdinalIgnoreCase))
                 {
                     return Genero4glAst.TextFunctions.Values.Where(x => input.AST.LanguageVersion >= x.MinimumLanguageVersion && input.AST.LanguageVersion <= x.MaximumLanguageVersion);
                 }
-                else if(_typeNameString.Equals("byte", StringComparison.OrdinalIgnoreCase))
+                else if(_typeNameString != null && _typeNameString.Equals("byte", StringComparison.OrdinalIgnoreCase))
                 {
                     return Genero4glAst.ByteFunctions.Values.Where(x => input.AST.LanguageVersion >= x.MinimumLanguageVersion && input.AST.LanguageVersion <= x.MaximumLanguageVersion);
                 }
