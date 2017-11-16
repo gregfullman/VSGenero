@@ -545,6 +545,10 @@ namespace VSGenero.Analysis.Parser
             {
                 return text != null && text.TrimStart().StartsWith("-") ? Double.NegativeInfinity : Double.PositiveInfinity;
             }
+            catch(FormatException)
+            {
+                return text != null && text.TrimStart().StartsWith("-") ? Double.NegativeInfinity : Double.PositiveInfinity;
+            }
         }
 
         private static double ParseFloatNoCatch(string text)

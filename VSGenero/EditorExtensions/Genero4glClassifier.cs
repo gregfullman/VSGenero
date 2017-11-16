@@ -599,7 +599,14 @@ namespace VSGenero.EditorExtensions
                 if (intersection != null && intersection.Value.Length > 0 ||
                     (span.Length == 0 && tokenSpan.Contains(span.Start)))
                 { // handle zero-length spans which Intersect and Overlap won't return true on ever.
-                    return new ClassificationSpan(new SnapshotSpan(span.Snapshot, tokenSpan), classification);
+                    try
+                    {
+                        return new ClassificationSpan(new SnapshotSpan(span.Snapshot, tokenSpan), classification);
+                    }
+                    catch(Exception ex)
+                    {
+                        // TODO: log and try to get more info...
+                    }
                 }
             }
 

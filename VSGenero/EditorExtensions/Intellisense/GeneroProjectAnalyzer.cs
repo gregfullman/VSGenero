@@ -894,6 +894,9 @@ namespace VSGenero.EditorExtensions.Intellisense
 
         private void UnloadImportedModules(IGeneroProject project, List<IGeneroProject> unloadingList = null)
         {
+            if (project == null || project.ReferencedProjects == null)
+                return;
+
             // This unloading list is used to prevent a stack overflow exception in the case of a circular reference between import modules.
             // TODO: really we need to prevent/display an error when a circular reference is detected, but that should be done seperately.
             if (unloadingList == null)
@@ -904,50 +907,64 @@ namespace VSGenero.EditorExtensions.Intellisense
             for (int i = 0; i < refList.Count; i++)
             {
                 // if the project references another project, attempt to unload the referenced project (by recursing into it)
-                if (refList[i].ReferencedProjects.Count > 0 && !unloadingList.Contains(refList[i]))
+                if (refList[i].ReferencedProjects != null &&
+                    refList[i].ReferencedProjects.Count > 0 &&
+                    !unloadingList.Contains(refList[i]))
                 {
                     UnloadImportedModules(refList[i]);
                 }
 
-                if (refList[i].ReferencingProjectEntries.Count != 0)
-                {
-                    var referrList = refList[i].ReferencingProjectEntries.ToList();
-                    for (int j = 0; j < referrList.Count; j++)
+                if (refList[i].ReferencingProjectEntries != null)
+                { 
+                    if (refList[i].ReferencingProjectEntries.Count != 0)
                     {
-                        if (referrList[j].ParentProject == project)
-                            refList[i].ReferencingProjectEntries.Remove(referrList[j]);
-                    }
-                }
-
-                // if no other things 
-                if (refList[i].ReferencingProjectEntries.Count == 0)
-                {
-                    IGeneroProject remProj;
-                    project.ReferencedProjects.TryRemove(refList[i].Directory, out remProj);
-                    IGeneroProject remProj2;
-                    if (_projects.TryRemove(refList[i].Directory, out remProj2))
-                    {
-                        foreach (var remProj2Entry in remProj2.ProjectEntries.Values)
+                        var referrList = refList[i].ReferencingProjectEntries.ToList();
+                        for (int j = 0; j < referrList.Count; j++)
                         {
-                            HashSet<IGeneroProjectEntry> includedFiles;
-                            if (_includersToIncludesMap.TryGetValue(remProj2Entry, out includedFiles) &&
-                                includedFiles.Count > 0)
+                            if (referrList[j].ParentProject == project)
+                                refList[i].ReferencingProjectEntries.Remove(referrList[j]);
+                        }
+                    }
+
+                    // if no other things 
+                    if (refList[i].ReferencingProjectEntries.Count == 0)
+                    {
+                        IGeneroProject remProj;
+                        project.ReferencedProjects.TryRemove(refList[i].Directory, out remProj);
+                        IGeneroProject remProj2;
+                        if (_projects.TryRemove(refList[i].Directory, out remProj2))
+                        {
+                            if (remProj2 != null && remProj2.ProjectEntries != null)
                             {
-                                foreach (var includeFile in includedFiles.ToList())
-                                    RemoveIncludedFile(includeFile.FilePath, remProj2Entry);
+                                foreach (var remProj2Entry in remProj2.ProjectEntries.Values)
+                                {
+                                    HashSet<IGeneroProjectEntry> includedFiles;
+                                    if (_includersToIncludesMap.TryGetValue(remProj2Entry, out includedFiles) &&
+                                        includedFiles.Count > 0)
+                                    {
+                                        foreach (var includeFile in includedFiles.ToList())
+                                            RemoveIncludedFile(includeFile.FilePath, remProj2Entry);
+                                    }
+                                }
+                            }
+
+                            // Dispose of the project entries in this referenced project
+                            foreach (var item in refList[i].ProjectEntries)
+                                item.Value.Dispose();
+                            refList[i].ProjectEntries.Clear();
+
+                            if (_errorProvider != null)
+                            {
+                                _errorProvider.Clear(refList[i].Directory, ParserTaskMoniker);
+                                _errorProvider.ClearErrorSource(refList[i].Directory);
+                            }
+
+                            if (_commentTaskProvider != null)
+                            {
+                                _commentTaskProvider.Clear(refList[i].Directory, ParserTaskMoniker);
+                                _commentTaskProvider.ClearErrorSource(refList[i].Directory);
                             }
                         }
-
-                        // Dispose of the project entries in this referenced project
-                        foreach (var item in refList[i].ProjectEntries)
-                            item.Value.Dispose();
-                        refList[i].ProjectEntries.Clear();
-
-                        _errorProvider.Clear(refList[i].Directory, ParserTaskMoniker);
-                        _errorProvider.ClearErrorSource(refList[i].Directory);
-
-                        _commentTaskProvider.Clear(refList[i].Directory, ParserTaskMoniker);
-                        _commentTaskProvider.ClearErrorSource(refList[i].Directory);
                     }
                 }
             }
@@ -1101,12 +1118,19 @@ namespace VSGenero.EditorExtensions.Intellisense
 
             var loc = parser.Span.GetSpan(parser.Snapshot.Version);
 
-            int paramIndex;
-            SnapshotPoint? sigStart;
-            string lastKeywordArg;
+            int paramIndex = 0;
+            SnapshotPoint? sigStart = null;
+            string lastKeywordArg = null;
             bool isParameterName;
             bool isFunctionCallOrDefinition;
-            var exprRange = parser.GetExpressionRange(1, out paramIndex, out sigStart, out lastKeywordArg, out isParameterName, out isFunctionCallOrDefinition);
+            SnapshotSpan? exprRange = null;
+            try
+            {
+                exprRange = parser.GetExpressionRange(1, out paramIndex, out sigStart, out lastKeywordArg, out isParameterName, out isFunctionCallOrDefinition);
+            }
+            catch(Exception ex)
+            {
+            }
             if (exprRange == null || sigStart == null)
             {
                 return new SignatureAnalysis("", 0, new ISignature[0]);
@@ -1329,7 +1353,11 @@ namespace VSGenero.EditorExtensions.Intellisense
             {
                 foreach (var snapshot in snapshots)
                 {
-                    if (VSGeneroPackage.Instance.ProgramCodeContentTypes.Any(x => snapshot.TextBuffer.ContentType.IsOfType(x.TypeName)))
+                    if (VSGeneroPackage.Instance.ProgramCodeContentTypes.Any(x => x != null &&
+                                                                                  snapshot != null &&
+                                                                                  snapshot.TextBuffer != null &&
+                                                                                  snapshot.TextBuffer.ContentType != null && 
+                                                                                  snapshot.TextBuffer.ContentType.IsOfType(x.TypeName)))
                     {
                         GeneroAst ast;
                         CollectingErrorSink errorSink;

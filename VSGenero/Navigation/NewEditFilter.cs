@@ -930,7 +930,14 @@ namespace VSGenero.Navigation
                 }
             }
 
-            return _next.Exec(pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
+            try
+            {
+                return _next.Exec(pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
+            }
+            catch(Exception ex)
+            {
+                return VSConstants.S_FALSE;
+            }
         }
 
         private bool ExtractMethod()

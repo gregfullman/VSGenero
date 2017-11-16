@@ -134,21 +134,27 @@ namespace VSGenero.EditorExtensions.Intellisense
         {
             if (viewAdapter != null)
             {
-                int startLine, startCol;
-                int endLine, endCol;
-
-                viewAdapter.GetLineAndColumn(span.Start.Position, out startLine, out startCol);
-                viewAdapter.GetLineAndColumn(span.End.Position, out endLine, out endCol);
-
-                TextSpan newSpan = new TextSpan()
+                try
                 {
-                    iStartLine = startLine,
-                    iStartIndex = startCol,
-                    iEndLine = endLine,
-                    iEndIndex = endCol
-                };
+                    int startLine, startCol;
+                    int endLine, endCol;
 
-                return newSpan;
+                    viewAdapter.GetLineAndColumn(span.Start.Position, out startLine, out startCol);
+                    viewAdapter.GetLineAndColumn(span.End.Position, out endLine, out endCol);
+
+                    TextSpan newSpan = new TextSpan()
+                    {
+                        iStartLine = startLine,
+                        iStartIndex = startCol,
+                        iEndLine = endLine,
+                        iEndIndex = endCol
+                    };
+                    return newSpan;
+                }
+                catch(Exception)
+                {
+                    return default(TextSpan);
+                }
             }
             return default(TextSpan);
         }
@@ -277,6 +283,11 @@ namespace VSGenero.EditorExtensions.Intellisense
             // TODO: need to
             // 1) Retrieve the GeneroAst based on the filename
             // 2) 
+
+            if(filename == null)
+            {
+                return null;
+            }
 
             if (_provider._PublicFunctionProvider != null)
                 _provider._PublicFunctionProvider.SetFilename(filename);

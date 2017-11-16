@@ -720,10 +720,17 @@ namespace VSGenero.EditorExtensions.Intellisense
 
         private void Refresh()
         {
-            if (_taskList != null || _errorProvider != null && !_isRefreshing)
+            try
             {
-                _serviceProvider.GetUIThread().MustNotBeCalledFromUIThread();
-                RefreshAsync().WaitAndHandleAllExceptions("VSGenero", GetType());
+                if (_taskList != null || _errorProvider != null && !_isRefreshing)
+                {
+                    _serviceProvider.GetUIThread().MustNotBeCalledFromUIThread();
+                    RefreshAsync().WaitAndHandleAllExceptions("VSGenero", GetType());
+                }
+            }
+            catch(Exception ex)
+            {
+
             }
         }
 
@@ -767,56 +774,61 @@ namespace VSGenero.EditorExtensions.Intellisense
                 }
             }
 
-            await _serviceProvider.GetUIThread().InvokeAsync(() =>
+            try
             {
-                if (_taskList != null)
+                await _serviceProvider.GetUIThread().InvokeAsync(() =>
                 {
-                    if (_cookie == 0)
+                    if (_taskList != null)
                     {
-                        ErrorHandler.ThrowOnFailure(_taskList.RegisterTaskProvider(this, out _cookie));
-                    }
-                    try
-                    {
-                        _taskList.RefreshTasks(_cookie);
-                    }
-                    catch (InvalidComObjectException)
-                    {
-                        // DevDiv2 759317 - Watson bug, COM object can go away...
-                    }
-                }
-
-                if (UpdatesSquiggles && _errorProvider != null)
-                {
-                    foreach (var kv in bufferToErrorList)
-                    {
-                        var tagger = _errorProvider.GetErrorTagger(kv.Key);
-                        if (tagger == null)
+                        if (_cookie == 0)
                         {
-                            continue;
+                            ErrorHandler.ThrowOnFailure(_taskList.RegisterTaskProvider(this, out _cookie));
                         }
-
-                        if (buffers.Remove(kv.Key))
+                        try
                         {
-                            tagger.RemoveTagSpans(span => span.Span.TextBuffer == kv.Key);
+                            _taskList.RefreshTasks(_cookie);
                         }
-
-                        foreach (var taskProviderItem in kv.Value)
+                        catch (InvalidComObjectException)
                         {
-                            taskProviderItem.CreateSquiggleSpan(tagger);
+                            // DevDiv2 759317 - Watson bug, COM object can go away...
                         }
                     }
 
-                    if (buffers.Any())
+                    if (UpdatesSquiggles && _errorProvider != null)
                     {
-                        // Clear tags for any remaining buffers.
-                        foreach (var buffer in buffers)
+                        foreach (var kv in bufferToErrorList)
                         {
-                            var tagger = _errorProvider.GetErrorTagger(buffer);
-                            tagger.RemoveTagSpans(span => span.Span.TextBuffer == buffer);
+                            var tagger = _errorProvider.GetErrorTagger(kv.Key);
+                            if (tagger == null)
+                            {
+                                continue;
+                            }
+
+                            if (buffers.Remove(kv.Key))
+                            {
+                                tagger.RemoveTagSpans(span => span.Span.TextBuffer == kv.Key);
+                            }
+
+                            foreach (var taskProviderItem in kv.Value)
+                            {
+                                taskProviderItem.CreateSquiggleSpan(tagger);
+                            }
+                        }
+
+                        if (buffers.Any())
+                        {
+                            // Clear tags for any remaining buffers.
+                            foreach (var buffer in buffers)
+                            {
+                                var tagger = _errorProvider.GetErrorTagger(buffer);
+                                tagger.RemoveTagSpans(span => span.Span.TextBuffer == buffer);
+                            }
                         }
                     }
-                }
-            });
+                });
+            }
+            catch (Exception)
+            { }
             _isRefreshing = false;
         }
 

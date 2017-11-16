@@ -175,12 +175,14 @@ namespace VSGenero.ProductivityTools
 
         public string Statement(int repeatCount)
         {
-                if (_outlinable == null)
-                    return "";
+            if (_outlinable == null)
+                return "";
 
-                StringBuilder sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
 
-                // Get the normal text
+            // Get the normal text
+            if (_outlinable.DecoratorEnd >= _outlinable.DecoratorStart)
+            {
                 var decSpan = new SnapshotSpan(_textView.TextSnapshot, _outlinable.DecoratorStart, (_outlinable.DecoratorEnd - _outlinable.DecoratorStart));
                 sb.Append(decSpan.GetText());
 
@@ -218,8 +220,9 @@ namespace VSGenero.ProductivityTools
                         }
                     }
                 }
+            }
 
-                return sb.ToString();
+            return sb.ToString();
         }
 
         public SnapshotPoint StatementStart

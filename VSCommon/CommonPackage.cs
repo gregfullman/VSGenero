@@ -407,15 +407,26 @@ namespace Microsoft.VisualStudio.VSCommon
             IVsUIHierarchy hierarchy;
             uint itemid;
 
-
-            VsShellUtilities.OpenDocument(
-                Instance,
-                filename,
-                Guid.Empty,
-                out hierarchy,
-                out itemid,
-                out pWindowFrame,
-                out viewAdapter);
+            try
+            {
+                VsShellUtilities.OpenDocument(
+                    Instance,
+                    filename,
+                    Guid.Empty,
+                    out hierarchy,
+                    out itemid,
+                    out pWindowFrame,
+                    out viewAdapter);
+            }
+            catch(Exception ex)
+            {
+                viewAdapter = null;
+                pWindowFrame = null;
+                if (Instance != null)
+                {
+                    Instance.ShowDialog("Error opening file", string.Format("Error opening file {0}: \n{1}", filename, ex.Message));
+                }
+            }
         }
 
         public static IComponentModel ComponentModel
