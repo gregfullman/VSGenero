@@ -382,9 +382,10 @@ namespace VSGenero.EditorExtensions.Intellisense
             }
         }
 
+        private object _bufferChangedLock = new object();
         internal void BufferChangedLowPriority(object sender, TextContentChangedEventArgs e)
         {
-            lock (this)
+            lock (_bufferChangedLock)
             {
                 // only immediately re-parse on line changes after we've seen a text change.
                 if (!_disposed && _timer != null)
