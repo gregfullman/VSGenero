@@ -1216,7 +1216,13 @@ namespace VSGenero.Analysis.Parsing
                 }
                 else if ((nlKind = ReadEolnOpt(ch)) > 0)//(ch == '\\')
                 {
+                    _newLineLocations.Add(CurrentIndex);
                     ch = NextChar();
+                    while((nlKind = ReadEolnOpt(ch)) > 0)
+                    {
+                        _newLineLocations.Add(CurrentIndex);
+                        ch = NextChar();
+                    }
 
                     if (ch == EOF)
                     {
@@ -1233,8 +1239,7 @@ namespace VSGenero.Analysis.Parsing
                     }
                     else if ((nlKind = ReadEolnOpt(ch)) > 0)
                     {
-                        _newLineLocations.Add(CurrentIndex);
-
+                        ch = NextChar();
                         // skip \<eoln> unless followed by EOF:
                         if (Peek() == EOF)
                         {
