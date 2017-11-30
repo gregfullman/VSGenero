@@ -184,6 +184,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 {
                     parser.NextToken();
                     defNode.AccessModifier = accMod.Value;
+                    defNode.StartIndex = parser.Token.Span.Start;
                 }
                 else
                 {
@@ -191,7 +192,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 }
 
                 parser.NextToken(); // move past the Function keyword
-                defNode.StartIndex = parser.Token.Span.Start;
+                if (!accMod.HasValue)
+                    defNode.StartIndex = parser.Token.Span.Start;
 
                 // get the name
                 if (parser.PeekToken(TokenCategory.Keyword) || parser.PeekToken(TokenCategory.Identifier))
