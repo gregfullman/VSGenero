@@ -903,7 +903,7 @@ namespace VSGenero.EditorExtensions.Intellisense
                 unloadingList = new List<IGeneroProject>();
             unloadingList.Add(project);
 
-            var refList = project.ReferencedProjects.Select(x => x.Value).ToList();
+            var refList = project.ReferencedProjects.Select(x => x.Value).Where(y => y != null).ToList();
             for (int i = 0; i < refList.Count; i++)
             {
                 // if the project references another project, attempt to unload the referenced project (by recursing into it)
@@ -938,20 +938,28 @@ namespace VSGenero.EditorExtensions.Intellisense
                             {
                                 foreach (var remProj2Entry in remProj2.ProjectEntries.Values)
                                 {
-                                    HashSet<IGeneroProjectEntry> includedFiles;
-                                    if (_includersToIncludesMap.TryGetValue(remProj2Entry, out includedFiles) &&
-                                        includedFiles.Count > 0)
+                                    if (remProj2Entry != null)
                                     {
-                                        foreach (var includeFile in includedFiles.ToList())
-                                            RemoveIncludedFile(includeFile.FilePath, remProj2Entry);
+                                        HashSet<IGeneroProjectEntry> includedFiles;
+                                        if (_includersToIncludesMap.TryGetValue(remProj2Entry, out includedFiles) &&
+                                            includedFiles != null &&
+                                            includedFiles.Count > 0)
+                                        {
+                                            foreach (var includeFile in includedFiles.ToList())
+                                                if (includeFile != null)
+                                                    RemoveIncludedFile(includeFile.FilePath, remProj2Entry);
+                                        }
                                     }
                                 }
                             }
 
-                            // Dispose of the project entries in this referenced project
-                            foreach (var item in refList[i].ProjectEntries)
-                                item.Value.Dispose();
-                            refList[i].ProjectEntries.Clear();
+                            if (refList[i].ProjectEntries != null)
+                            {
+                                // Dispose of the project entries in this referenced project
+                                foreach (var item in refList[i].ProjectEntries)
+                                    item.Value.Dispose();
+                                refList[i].ProjectEntries.Clear();
+                            }
 
                             if (_errorProvider != null)
                             {
