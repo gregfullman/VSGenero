@@ -242,7 +242,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                                     }
                                                     else if(backwardItem.Name == "OrderedTokenSet")
                                                     {
-                                                        List<object> tokenSet = new List<object>();
+                                                        List<TokenContainer> tokenSet = new List<TokenContainer>();
                                                         foreach(XmlNode tokenSetItem in backwardItem.ChildNodes)
                                                         {
                                                             object tokenItem = null;
@@ -269,7 +269,13 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
                                                             if(tokenItem != null)
                                                             {
-                                                                tokenSet.Add(tokenItem);
+                                                                bool failIfMatch = false;
+                                                                var failValue = tokenSetItem.Attributes["FailIfMatch"]?.Value;
+                                                                if (failValue != null)
+                                                                {
+                                                                    bool.TryParse(failValue, out failIfMatch);
+                                                                }
+                                                                tokenSet.Add(new TokenContainer { Token = tokenItem, FailIfMatch = failIfMatch });
                                                             }
                                                         }
                                                         backwardItems.Add(new BackwardTokenSearchItem(new OrderedTokenSet(tokenSet), match, bsiGLV));
@@ -395,21 +401,25 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                 foreach(var item in searchItem.TokenSet.Set)
                                 {
                                     itemEle = contextXml.CreateElement("Item");
-                                    if (item is TokenKind)
+                                    if (item.Token is TokenKind)
                                     {
-                                        if (!Tokens.TokenKinds.TryGetValue((TokenKind)item, out name))
+                                        if (!Tokens.TokenKinds.TryGetValue((TokenKind)item.Token, out name))
                                         {
-                                            name = Enum.GetName(typeof(TokenKind), (TokenKind)item);
+                                            name = Enum.GetName(typeof(TokenKind), (TokenKind)item.Token);
                                         }
                                         type = "keyword";
                                     }
                                     else
                                     {
-                                        name = Enum.GetName(typeof(TokenCategory), (TokenCategory)item);
+                                        name = Enum.GetName(typeof(TokenCategory), (TokenCategory)item.Token);
                                         type = "category";
                                     }
                                     itemEle.Attributes.Append(CreateAttribute(contextXml, "Value", name));
                                     itemEle.Attributes.Append(CreateAttribute(contextXml, "Type", type));
+                                    if(item.FailIfMatch)
+                                    {
+                                        itemEle.Attributes.Append(CreateAttribute(contextXml, "FailIfMatch", "1"));
+                                    }
                                     searchItemSet.AppendChild(itemEle);
                                 }
                                 backwardSearchItem.AppendChild(searchItemSet);

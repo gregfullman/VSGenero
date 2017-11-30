@@ -384,7 +384,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                             }
                             else
                             {
-                                key = searchItem.TokenSet.Set[0];
+                                key = searchItem.TokenSet.Set[0].Token;
                             }
 
                             if (_flatMatchingSet.ContainsKey(key))
@@ -533,9 +533,11 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         continue;   // linebreak
 
                     if (doMatch &&
-                        (tokenSet.Set[tokenIndex] is TokenKind && (TokenKind)tokenSet.Set[tokenIndex] == tokInfo.Token.Kind) ||
-                        (tokenSet.Set[tokenIndex] is TokenCategory && (TokenCategory)tokenSet.Set[tokenIndex] == tokInfo.Category))
+                        (tokenSet.Set[tokenIndex].Token is TokenKind && (TokenKind)tokenSet.Set[tokenIndex].Token == tokInfo.Token.Kind) ||
+                        (tokenSet.Set[tokenIndex].Token is TokenCategory && (TokenCategory)tokenSet.Set[tokenIndex].Token == tokInfo.Category))
                     {
+                        if(tokenSet.Set[tokenIndex].FailIfMatch)
+                            break;
                         tokenIndex++;
                         if (tokenSet.Set.Count == tokenIndex)
                         {
@@ -544,9 +546,11 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         }
                     }
                     else if (!doMatch &&
-                        (tokenSet.Set[tokenIndex] is TokenKind && (TokenKind)tokenSet.Set[tokenIndex] != tokInfo.Token.Kind) ||
-                        (tokenSet.Set[tokenIndex] is TokenCategory && (TokenCategory)tokenSet.Set[tokenIndex] != tokInfo.Category))
+                        (tokenSet.Set[tokenIndex].Token is TokenKind && (TokenKind)tokenSet.Set[tokenIndex].Token != tokInfo.Token.Kind) ||
+                        (tokenSet.Set[tokenIndex].Token is TokenCategory && (TokenCategory)tokenSet.Set[tokenIndex].Token != tokInfo.Category))
                     {
+                        if (tokenSet.Set[tokenIndex].FailIfMatch)
+                            break;
                         tokenIndex++;
                         if (tokenSet.Set.Count == tokenIndex)
                         {
@@ -635,14 +639,20 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         }
     }
 
+    internal class TokenContainer
+    {
+        public bool FailIfMatch { get; set; }
+        public object Token { get; set; }
+    }
+
     internal class OrderedTokenSet : LanguageVersionSupported
     {
-        public List<object> Set { get; private set; }
+        public List<TokenContainer> Set { get; private set; }
 
-        public OrderedTokenSet(IEnumerable<object> tokenSet, GeneroLanguageVersion minLangVersion = GeneroLanguageVersion.None)
+        public OrderedTokenSet(IEnumerable<TokenContainer> tokenSet, GeneroLanguageVersion minLangVersion = GeneroLanguageVersion.None)
             : base(minLangVersion)
         {
-            Set = new List<object>(tokenSet);
+            Set = new List<TokenContainer>(tokenSet);
         }
     }
 

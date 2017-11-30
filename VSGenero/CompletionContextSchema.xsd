@@ -102,6 +102,7 @@
                                               </xs:restriction>
                                             </xs:simpleType>
                                           </xs:attribute>
+                                          <xs:attribute name="FailIfMatch" type="xs:boolean" use="optional"/>
                                         </xs:complexType>
                                       </xs:element>
                                     </xs:sequence>

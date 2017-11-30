@@ -475,12 +475,14 @@
           <OrderedTokenSet>
             <Item Value="LeftParenthesis" Type="keyword"/>
             <Item Value="attribute" Type="keyword"/>
+            <Item Value="Dot" Type="keyword" FailIfMatch="true"/>
           </OrderedTokenSet>
         </BackwardTokenSearchItem>
         <BackwardTokenSearchItem>
           <OrderedTokenSet>
             <Item Value="LeftParenthesis" Type="keyword"/>
             <Item Value="attributes" Type="keyword"/>
+            <Item Value="Dot" Type="keyword" FailIfMatch="true"/>
           </OrderedTokenSet>
         </BackwardTokenSearchItem>
       </BackwardSearchItems>
