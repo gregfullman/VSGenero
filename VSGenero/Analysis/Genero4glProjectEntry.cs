@@ -19,7 +19,7 @@ namespace VSGenero.Analysis
 
         public override void UpdateIncludesAndImports(string filename, GeneroAst ast)
         {
-            if (_shouldAnalyzeDir && VSGeneroPackage.Instance.ProgramFileProvider != null)
+            if (/*_shouldAnalyzeDir &&*/ VSGeneroPackage.Instance.ProgramFileProvider != null)
             {
                 var fglAst = ast as Genero4glAst;
                 if (fglAst != null)

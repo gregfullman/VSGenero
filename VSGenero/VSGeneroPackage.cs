@@ -372,7 +372,7 @@ namespace VSGenero
 
         private GeneroProjectAnalyzer CreateAnalyzer()
         {
-            return new GeneroProjectAnalyzer(this, BuildTaskProvider);
+            return new GeneroProjectAnalyzer(this, BuildTaskProvider, ErrorTaskProvider);
         }
 
         public IFunctionInformationProvider GlobalFunctionProvider { get; set; }
@@ -383,7 +383,20 @@ namespace VSGenero
 
         public IBuildTaskProvider BuildTaskProvider { get; set; }
 
-#region Program File Provider
+
+        private ErrorTaskProvider _errorTaskProvider;
+        internal ErrorTaskProvider ErrorTaskProvider
+        {
+            get
+            {
+                if(_errorTaskProvider == null)
+                {
+                    _errorTaskProvider = (ErrorTaskProvider)this.GetService(typeof(ErrorTaskProvider));
+                }
+                return _errorTaskProvider;
+            }
+        }
+        #region Program File Provider
 
         private object _programFileProviderLock = new object();
         private IProgramFileProvider _programFileProvider;

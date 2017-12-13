@@ -594,7 +594,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                             var refProjKVP = (ast.ProjectEntry as IGeneroProjectEntry).ParentProject.ReferencedProjects.Values.FirstOrDefault(
                                 x =>
                                 {
-                                    var fn = Path.GetFileName(x.Directory);
+                                    var fn = Path.GetFileNameWithoutExtension(x.Directory);
                                     return fn?.Equals(dotPiece, StringComparison.OrdinalIgnoreCase) ?? false;
                                 });
                             if (refProjKVP is IAnalysisResult)
@@ -893,6 +893,26 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 if (SystemFunctions.TryGetValue(exprText, out funcResult))
                 {
                     vars.Add(new AnalysisVariable(funcResult.Location, VariableType.Definition, funcResult.Name, 2));
+                }
+            }
+
+            // try an imported module
+            if (Body is IModuleResult && ProjectEntry != null)
+            {
+                if ((Body as IModuleResult).FglImports.Contains(exprText))
+                {
+                    // need to get the ast for the other project entry
+                    var refProjKVP = (ProjectEntry as IGeneroProjectEntry).ParentProject.ReferencedProjects.Values.FirstOrDefault(
+                        x =>
+                        {
+                            var fn = Path.GetFileNameWithoutExtension(x.Directory);
+                            return fn?.Equals(exprText, StringComparison.OrdinalIgnoreCase) ?? false;
+                        });
+                    if (refProjKVP is IAnalysisResult)
+                    {
+                        IGeneroProject definingProject = refProjKVP;
+                        vars.Add(new AnalysisVariable(new LocationInfo(definingProject.Directory, 1), VariableType.Definition));                        
+                    }
                 }
             }
 

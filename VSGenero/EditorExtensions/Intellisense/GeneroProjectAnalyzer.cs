@@ -112,11 +112,12 @@ namespace VSGenero.EditorExtensions.Intellisense
 
         private object _contentsLock = new object();
 
-        internal GeneroProjectAnalyzer(IServiceProvider serviceProvider, IBuildTaskProvider buildTaskProvider, bool implicitProject = true)
+        internal GeneroProjectAnalyzer(IServiceProvider serviceProvider, IBuildTaskProvider buildTaskProvider, ErrorTaskProvider errorProvider, bool implicitProject = true)
         {
             _serviceProvider = serviceProvider;
             _buildTaskProvider = buildTaskProvider;
-            _errorProvider = (ErrorTaskProvider)serviceProvider.GetService(typeof(ErrorTaskProvider));
+            //_errorProvider = (ErrorTaskProvider)serviceProvider.GetService(typeof(ErrorTaskProvider));
+            _errorProvider = errorProvider;
             _commentTaskProvider = (CommentTaskProvider)serviceProvider.GetService(typeof(CommentTaskProvider));
 
             _queue = new ParseQueue(this);
@@ -831,24 +832,42 @@ namespace VSGenero.EditorExtensions.Intellisense
                     return;
             }
 
-            string dirPath = Path.GetDirectoryName(path);
             IGeneroProject proj;
-            if (_projects.TryGetValue(dirPath, out proj))
+            // Check for an entry with the whole path (import module)
+            if (_projects.TryGetValue(path, out proj))
             {
                 proj.ProjectEntries.AddOrUpdate(path, projEntry, (x, y) => y);
+            }
+            else
+            {
+                string dirPath = Path.GetDirectoryName(path);
+                if (_projects.TryGetValue(dirPath, out proj))
+                {
+                    proj.ProjectEntries.AddOrUpdate(path, projEntry, (x, y) => y);
+                }
             }
         }
 
         private List<string> QueueDirectoryAnalysis(string path, string excludeFile = null)
         {
-            string normalizedPath = CommonUtils.NormalizeDirectoryPath(path);
+            
             List<string> files = new List<string>();
             try
             {
-                if (Directory.Exists(normalizedPath))
+                FileAttributes fAttribs = File.GetAttributes(path);
+                if (fAttribs.HasFlag(FileAttributes.Directory))
                 {
-                    files.AddRange(Directory.GetFiles(normalizedPath, "*.4gl").Where(x => string.IsNullOrWhiteSpace(excludeFile) ? true : !x.Equals(excludeFile, StringComparison.OrdinalIgnoreCase)));
-                    ThreadPool.QueueUserWorkItem(x => { lock (_contentsLock) { AnalyzeDirectory(normalizedPath, excludeFile, ProjectEntryAnalyzed); } });
+                    string normalizedPath = CommonUtils.NormalizeDirectoryPath(path);
+                    if (Directory.Exists(normalizedPath))
+                    {
+                        files.AddRange(Directory.GetFiles(normalizedPath, "*.4gl").Where(x => string.IsNullOrWhiteSpace(excludeFile) ? true : !x.Equals(excludeFile, StringComparison.OrdinalIgnoreCase)));
+                        ThreadPool.QueueUserWorkItem(x => { lock (_contentsLock) { AnalyzeDirectory(normalizedPath, excludeFile, ProjectEntryAnalyzed); } });
+                    }
+                }
+                else
+                {
+                    files.Add(path);
+                    QueueFileAnalysis(path);
                 }
             }
             catch (UnauthorizedAccessException)
@@ -983,37 +1002,10 @@ namespace VSGenero.EditorExtensions.Intellisense
             IGeneroProjectEntry entry = null;
             if (path != null)
             {
-                string dirPath = Path.GetDirectoryName(path);
                 IGeneroProject projEntry;
-                if (!_projects.TryGetValue(dirPath, out projEntry))
-                {
-                    if (VSGeneroConstants.IsGeneroFile(path))
-                    {
-                        string moduleName = null;   // TODO: get module name from provider (if provider is null, take the file's directory name)
-                        IAnalysisCookie cookie = null;
-                        switch(Path.GetExtension(path).ToLower())
-                        {
-                            case VSGeneroConstants.FileExtension4GL:
-                                entry = new Genero4glProjectEntry(moduleName, path, cookie, true);
-                                break;
-                            case VSGeneroConstants.FileExtensionPER:
-                                entry = new GeneroPerProjectEntry(moduleName, path, cookie, true);
-                                break;
-                            default:
-                                entry = new GeneroProjectEntry(moduleName, path, cookie, true);
-                                break;
-                        }
-                    }
-
-                    if (entry != null)
-                    {
-                        GeneroProject proj = new GeneroProject(dirPath);
-                        proj.ProjectEntries.AddOrUpdate(path, entry, (x, y) => y);
-                        entry.SetProject(proj);
-                        _projects.AddOrUpdate(dirPath, proj, (x, y) => y);
-                    }
-                }
-                else
+                string dirPath = Path.GetDirectoryName(path);
+                if (_projects.TryGetValue(path, out projEntry) ||
+                    _projects.TryGetValue(dirPath, out projEntry))
                 {
                     if (!projEntry.ProjectEntries.TryGetValue(path, out entry))
                     {
@@ -1040,6 +1032,34 @@ namespace VSGenero.EditorExtensions.Intellisense
                         projEntry.ProjectEntries.AddOrUpdate(path, entry, (x, y) => y);
                         entry.SetProject(projEntry);
                         _projects.AddOrUpdate(dirPath, projEntry, (x, y) => y);
+                    }
+                }
+                else
+                {
+                    if (VSGeneroConstants.IsGeneroFile(path))
+                    {
+                        string moduleName = null;   // TODO: get module name from provider (if provider is null, take the file's directory name)
+                        IAnalysisCookie cookie = null;
+                        switch (Path.GetExtension(path).ToLower())
+                        {
+                            case VSGeneroConstants.FileExtension4GL:
+                                entry = new Genero4glProjectEntry(moduleName, path, cookie, true);
+                                break;
+                            case VSGeneroConstants.FileExtensionPER:
+                                entry = new GeneroPerProjectEntry(moduleName, path, cookie, true);
+                                break;
+                            default:
+                                entry = new GeneroProjectEntry(moduleName, path, cookie, true);
+                                break;
+                        }
+                    }
+
+                    if (entry != null)
+                    {
+                        GeneroProject proj = new GeneroProject(dirPath);
+                        proj.ProjectEntries.AddOrUpdate(path, entry, (x, y) => y);
+                        entry.SetProject(proj);
+                        _projects.AddOrUpdate(dirPath, proj, (x, y) => y);
                     }
                 }
 

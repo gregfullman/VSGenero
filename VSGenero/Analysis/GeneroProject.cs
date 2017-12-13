@@ -118,7 +118,7 @@ namespace VSGenero.Analysis
 
         public string Name
         {
-            get { return Path.GetFileName(_directory); }
+            get { return Path.GetFileNameWithoutExtension(_directory); }
         }
 
         public string Documentation

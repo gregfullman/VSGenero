@@ -36,7 +36,7 @@ namespace VSGenero.Analysis
             _moduleName = moduleName ?? "";
             _filePath = filePath;
             _cookie = cookie;
-            _shouldAnalyzeDir = shouldAnalyzeDir;
+            //_shouldAnalyzeDir = shouldAnalyzeDir;
             //_myScope = new ModuleInfo(_moduleName, this, state.Interpreter.CreateModuleContext());
             //_unit = new AnalysisUnit(_tree, _myScope.Scope);
             //AnalysisLog.NewUnit(_unit);
