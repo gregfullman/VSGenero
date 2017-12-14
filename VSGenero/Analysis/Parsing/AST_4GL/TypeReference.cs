@@ -392,7 +392,18 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             {
                 MemberType memType = Analysis.MemberType.All;
                 // TODO: there's probably a better way to do this
-                return GetAnalysisMembers(memType, input).Where(x => x.Name.Equals(name, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+                var member = GetAnalysisMembers(memType, input).Where(x => x.Name.Equals(name, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+                if(member is AstNode4gl)
+                {
+                    input.ProjectEntry = (member as AstNode4gl).SyntaxTree.ProjectEntry;
+                    input.DefiningProject = (member as AstNode4gl).SyntaxTree.ProjectEntry.ParentProject;
+                }
+                else if(member is VariableDef)
+                {
+                    input.ProjectEntry = (member as VariableDef).SyntaxTree.ProjectEntry;
+                    input.DefiningProject = (member as VariableDef).SyntaxTree.ProjectEntry.ParentProject;
+                }
+                return member;
             }
             //}
         }
@@ -439,6 +450,13 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 }
                 else
                 {
+                    if (ResolvedType != null && 
+                        ResolvedType is TypeDefinitionNode &&
+                        (ResolvedType as TypeDefinitionNode).TypeRef != null)
+                    {
+                        return (ResolvedType as TypeDefinitionNode).TypeRef.GetAnalysisMembers(memberType, input);
+                    }
+
                     var gmi = new GetMultipleMembersInput
                     {
                         AST = input.AST,
@@ -558,6 +576,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         {
             bool dummyDef;
             List<MemberResult> members = new List<MemberResult>();
+
             if (Children.Count == 1)
             {
                 // we have an array type or a record type definition
@@ -598,6 +617,11 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 }
                 else
                 {
+                    if(ResolvedType != null)
+                    {
+                        return ResolvedType.GetMembers(input);
+                    }
+
                     // try to determine if the _typeNameString is a user defined type (or package class), in which case we need to call its GetMembers function
                     IAnalysisResult udt = (input.AST as Genero4glAst).TryGetUserDefinedType(_typeNameString, LocationIndex);
                     if (udt != null)

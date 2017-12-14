@@ -153,8 +153,11 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
             }
         }
 
+        public GeneroAst SyntaxTree { get; private set; }
+
         public void PropagateSyntaxTree(GeneroAst ast)
         {
+            SyntaxTree = ast;
             Type?.PropagateSyntaxTree(ast);
         }
     }

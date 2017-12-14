@@ -645,7 +645,8 @@ namespace VSGenero.EditorExtensions.Intellisense
 
         internal void UpdateImportedProject(string projectName, string newProjectPath)
         {
-            var key = _projects.Keys.FirstOrDefault(x => x.EndsWith(projectName, StringComparison.OrdinalIgnoreCase));
+            var key = _projects.Keys.FirstOrDefault(x => x.EndsWith(projectName, StringComparison.OrdinalIgnoreCase) || 
+                                                         x.EndsWith(string.Format("{0}.4gl", projectName), StringComparison.OrdinalIgnoreCase));
             if (key != null)
             {
                 IGeneroProject proj;
@@ -707,10 +708,14 @@ namespace VSGenero.EditorExtensions.Intellisense
             IGeneroProjectEntry entry = null;
             if (filename != null)
             {
-                string dirPath = Path.GetDirectoryName(filename);
-                string extension = Path.GetExtension(filename);
                 IGeneroProject projEntry;
-                if (!_projects.TryGetValue(dirPath, out projEntry))
+                string dirPath = null;
+                if (_projects.TryGetValue(filename, out projEntry))
+                    dirPath = filename;
+                else
+                    dirPath = Path.GetDirectoryName(filename);
+                string extension = Path.GetExtension(filename);
+                if (projEntry == null && !_projects.TryGetValue(dirPath, out projEntry))
                 {
                     if (extension.Equals(VSGeneroConstants.FileExtension4GL, StringComparison.OrdinalIgnoreCase) ||
                         extension.Equals(VSGeneroConstants.FileExtensionINC, StringComparison.OrdinalIgnoreCase) ||

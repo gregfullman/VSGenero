@@ -90,6 +90,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 result = true;
                 defNode = new RecordDefinitionNode();
                 defNode.StartIndex = parser.Token.Span.Start;
+                defNode.Location = parser.TokenLocation;
                 defNode._isPublic = isPublic;
                 parser.NextToken();     // move past the record keyword
                 if (parser.PeekToken(TokenKind.LikeKeyword))
@@ -141,7 +142,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                         if (TypeReference.TryParseNode(parser, out tr, true))
                         {
                             if (!defNode.MemberDictionary.ContainsKey(tok.Token.Value.ToString()))
-                                defNode.MemberDictionary.Add(tok.Token.Value.ToString(), new VariableDef(tok.Token.Value.ToString(), tr, tok.Span.Start, true));
+                                defNode.MemberDictionary.Add(tok.Token.Value.ToString(), new VariableDef(tok.Token.Value.ToString(), tr, tok.Span.Start, true, defNode.Location?.FilePath));
                             else
                                 parser.ReportSyntaxError(string.Format("Record field {0} defined more than once.", tok.Token.Value.ToString()), Severity.Error);
                         }
@@ -196,10 +197,16 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
 
         public int LocationIndex
         {
-            get { return -1; }
+            get
+            {
+                if (Location != null)
+                    return Location.Index;
+                else
+                    return -1;
+            }
         }
 
-        public LocationInfo Location { get { return null; } }
+        public LocationInfo Location { get; private set; }
 
         public IAnalysisResult GetMember(GetMemberInput input)
         {
