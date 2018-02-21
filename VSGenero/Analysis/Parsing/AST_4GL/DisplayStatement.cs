@@ -545,6 +545,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         Display,
         Row,
         Idle,
+        Timer,
         Action,
         Fill,
         Append,
@@ -564,6 +565,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
     public class DisplayControlBlock : AstNode4gl
     {
         public ExpressionNode IdleSeconds { get; private set; }
+
+        public ExpressionNode TimerSeconds { get; private set; }
         public FglNameExpression ActionName { get; private set; }
         public FglNameExpression RowIndex { get; private set; }
 
@@ -633,6 +636,16 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                     node.IdleSeconds = idleExpr;
                                 else
                                     parser.ReportSyntaxError("Invalid idle-seconds found in display array statement.");
+                                break;
+                            case TokenKind.TimerKeyword:
+                                parser.NextToken();
+                                node.Type = DisplayControlBlockType.Timer;
+                                // get the timer seconds
+                                ExpressionNode timerExpr;
+                                if (FglExpressionNode.TryGetExpressionNode(parser, out timerExpr))
+                                    node.TimerSeconds = timerExpr;
+                                else
+                                    parser.ReportSyntaxError("Invalid timer-seconds found in display array statement.");
                                 break;
                             case TokenKind.ActionKeyword:
                                 parser.NextToken();

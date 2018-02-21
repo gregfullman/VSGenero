@@ -322,6 +322,8 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
         public FglNameExpression ActionName { get; private set; }
 
         public ExpressionNode IdleSeconds { get; private set; }
+
+        public ExpressionNode TimerSeconds { get; private set; }
         public bool IsBeforeMenuBlock { get; private set;}
 
         private MenuOption()
@@ -476,8 +478,22 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                                                                         limitedScopeVariableAdder, validExitKeywords, contextStatementFactories, endKeywords) && menuStmt != null)
                                 node.Children.Add(menuStmt.StartIndex, menuStmt);
                         }
+                        else if(parser.PeekToken(TokenKind.TimerKeyword))
+                        {
+                            parser.NextToken();
+                            ExpressionNode idleExpr;
+                            if (FglExpressionNode.TryGetExpressionNode(parser, out idleExpr))
+                                node.TimerSeconds = idleExpr;
+                            else
+                                parser.ReportSyntaxError("Invalid timer-seconds found in menu block.");
+                            node.DecoratorEnd = parser.Token.Span.End;
+                            FglStatement menuStmt = null;
+                            while (MenuStatementFactory.TryGetStatement(parser, out menuStmt, containingModule, prepStatementBinders, returnStatementBinder,
+                                                                        limitedScopeVariableAdder, validExitKeywords, contextStatementFactories, endKeywords) && menuStmt != null)
+                                node.Children.Add(menuStmt.StartIndex, menuStmt);
+                        }
                         else
-                            parser.ReportSyntaxError("Expecting \"action\" or \"idle\" keyword in menu option.");
+                            parser.ReportSyntaxError("Expecting \"action\", \"idle\", or \"timer\" keyword in menu option.");
                         break;
                     }
                 default:
