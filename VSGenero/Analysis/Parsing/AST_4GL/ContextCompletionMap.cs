@@ -40,7 +40,7 @@ namespace VSGenero.Analysis.Parsing.AST_4GL
                 if(File.Exists(Filename))
                 {
                     // Make sure it's the correct file
-                    var firstLine = File.ReadLines(Filename).First();
+                    var firstLine = File.ReadLines(Filename).FirstOrDefault();
                     if (!firstLine.Contains(string.Format("Version=\"{0}", VSGeneroPackage.Instance.ProductVersion.ToString())))
                         getAssemblyFile = true;
                 }

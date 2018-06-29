@@ -247,7 +247,12 @@ namespace VSGenero.Navigation
                 cpc.FindConnectionPoint(typeof(IVsCodeWindowEvents).GUID, out cp);
                 if (cp != null)
                 {
-                    cp.Unadvise(_cookieVsCodeWindowEvents);
+                    try
+                    {
+                        cp.Unadvise(_cookieVsCodeWindowEvents);
+                    }
+                    catch (ArgumentException) // ArgException, invalid cookie. At this point, not much we can do.
+                    { }
                 }
             }
 
