@@ -590,7 +590,6 @@ namespace Microsoft.VisualStudio.VSCommon
 
         public event EventHandler<ComponentManagerEventArgs> OnIdle;
 
-        [MethodTracing(AttributeExclude = true)]
         public int FDoIdle(uint grfidlef)
         {
             var onIdle = OnIdle;
@@ -658,7 +657,6 @@ namespace Microsoft.VisualStudio.VSCommon
         }
     }
 
-    [MethodTracing(AttributeExclude = true)]
     public class ComponentManagerEventArgs : EventArgs
     {
         private readonly IOleComponentManager _compMgr;

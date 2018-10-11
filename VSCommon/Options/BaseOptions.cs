@@ -12,7 +12,6 @@ namespace Microsoft.VisualStudio.VSCommon.Options
         public HashSet<string> ChangedOptions { get; set; }
     }
 
-    [MethodTracing(AttributeExclude = true)]
     public abstract class BaseOptions
     {
         public event EventHandler<OptionsChangedEventArgs> OptionsChanged;
