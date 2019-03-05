@@ -4,8 +4,21 @@
   <Import Project="..\packages\Microsoft.Net.Compilers.1.3.2\build\Microsoft.Net.Compilers.props" Condition="('$(VisualStudioVersion)'=='12.0'  Or '$(TargetVisualStudioVersion)'=='VS120') And Exists('..\packages\Microsoft.Net.Compilers.1.3.2\build\Microsoft.Net.Compilers.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <Choose>
+    <When Condition=" '$(VisualStudioVersion)'=='16.0'  Or '$(TargetVisualStudioVersion)'=='VS160' ">
+      <PropertyGroup>
+        <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+        <MinimumVisualStudioVersion>16.0</MinimumVisualStudioVersion>
+        <FileUpgradeFlags>
+        </FileUpgradeFlags>
+        <UpgradeBackupLocation>
+        </UpgradeBackupLocation>
+        <OldToolsVersion>4.0</OldToolsVersion>
+        <VSInstallPath>$(VSAPPIDDIR)</VSInstallPath>
+      </PropertyGroup>
+    </When>
     <When Condition=" '$(VisualStudioVersion)'=='15.0'  Or '$(TargetVisualStudioVersion)'=='VS150' ">
       <PropertyGroup>
+        <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
         <MinimumVisualStudioVersion>15.0</MinimumVisualStudioVersion>
         <FileUpgradeFlags>
         </FileUpgradeFlags>
@@ -17,6 +30,7 @@
     </When>
     <When Condition=" '$(VisualStudioVersion)'=='14.0'  Or '$(TargetVisualStudioVersion)'=='VS140' ">
       <PropertyGroup>
+        <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
         <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
         <FileUpgradeFlags>
         </FileUpgradeFlags>
@@ -28,6 +42,7 @@
     </When>
     <When Condition=" '$(VisualStudioVersion)'=='12.0'  Or '$(TargetVisualStudioVersion)'=='VS120' ">
       <PropertyGroup>
+        <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
         <MinimumVisualStudioVersion>12.0</MinimumVisualStudioVersion>
         <FileUpgradeFlags>
         </FileUpgradeFlags>
@@ -39,6 +54,12 @@
     </When>
   </Choose>
   <!--Define compile-time constants-->
+  <PropertyGroup Condition=" '$(VisualStudioVersion)' == '16.0' ">
+    <DefineConstants>$(DefineConstants);DEV16;DEV16_OR_LATER;DEV15;DEV15_OR_LATER;DEV14_OR_LATER;DEV12_OR_LATER;DEV11_OR_LATER</DefineConstants>
+    <VSCTDefinitions>DEV16;DEV16_OR_LATER;DEV15;DEV15_OR_LATER;DEV14_OR_LATER;DEV12_OR_LATER;DEV11_OR_LATER</VSCTDefinitions>
+    <MicrosoftBuildAssemblyVersion>16.0.0.0</MicrosoftBuildAssemblyVersion>
+    <MicrosoftBuildAssemblyVersionSuffix>Core</MicrosoftBuildAssemblyVersionSuffix>
+  </PropertyGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '15.0' ">
     <DefineConstants>$(DefineConstants);DEV15;DEV15_OR_LATER;DEV14_OR_LATER;DEV12_OR_LATER;DEV11_OR_LATER</DefineConstants>
     <VSCTDefinitions>DEV15;DEV15_OR_LATER;DEV14_OR_LATER;DEV12_OR_LATER;DEV11_OR_LATER</VSCTDefinitions>
@@ -97,7 +118,6 @@
     <AssemblyName>Microsoft.VisualStudio.VSCommon</AssemblyName>
     <SignAssembly>True</SignAssembly>
     <AssemblyOriginatorKeyFile>Key.snk</AssemblyOriginatorKeyFile>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileUpgradeFlags>
     </FileUpgradeFlags>
     <UpgradeBackupLocation>
@@ -268,15 +288,39 @@
     <Reference Include="Microsoft.VisualStudio.Text.UI.Wpf, Version=$(VisualStudioVersion).0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <Private>False</Private>
     </Reference>
-    <Reference Include="Microsoft.VisualStudio.Shell.$(VisualStudioVersion), Version=$(VisualStudioVersion).0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <Private>False</Private>
-    </Reference>
     <Reference Include="Microsoft.VisualStudio.ExtensionManager, Version=$(VisualStudioVersion).0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <Private>False</Private>
       <HintPath>$(VSInstallPath)PrivateAssemblies\Microsoft.VisualStudio.ExtensionManager.dll</HintPath>
     </Reference>
   </ItemGroup>
   <Choose>
+    <When Condition="'$(VisualStudioVersion)' &gt;= '16.0'">
+      <ItemGroup>
+        <Reference Include="Microsoft.VisualStudio.Shell.15.0, Version=$(VisualStudioVersion).0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+          <Private>False</Private>
+        </Reference>
+      </ItemGroup>
+    </When>
+    <Otherwise>
+      <ItemGroup>
+        <Reference Include="Microsoft.VisualStudio.Shell.$(VisualStudioVersion), Version=$(VisualStudioVersion).0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+          <Private>False</Private>
+        </Reference>
+      </ItemGroup>
+    </Otherwise>
+  </Choose>
+  <Choose>
+    <When Condition="'$(VisualStudioVersion)' &gt;= '16.0'">
+      <ItemGroup>
+        <Reference Include="Microsoft.VisualStudio.ExtensionEngine, Version=$(VisualStudioVersion).0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+          <Private>False</Private>
+          <HintPath>$(VSInstallPath)Microsoft.VisualStudio.ExtensionEngine.dll</HintPath>
+        </Reference>
+        <Reference Include="Microsoft.VisualStudio.Shell.Interop.15.3.DesignTime, Version=15.3.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+          <EmbedInteropTypes>True</EmbedInteropTypes>
+        </Reference>
+      </ItemGroup>
+    </When>
     <When Condition="'$(VisualStudioVersion)' &gt;= '15.0'">
       <ItemGroup>
         <Reference Include="Microsoft.VisualStudio.ExtensionEngine, Version=$(VisualStudioVersion).0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">

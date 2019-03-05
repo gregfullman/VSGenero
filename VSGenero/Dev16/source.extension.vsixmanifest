@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
+    <Metadata>
+        <Identity Id="5F1B92E8-B0EC-494D-95E4-E40D03514BC6" Version="1.4.0" Language="en-US" Publisher="Greg Fullman" />
+        <DisplayName>VSGenero for VS2019</DisplayName>
+        <Description xml:space="preserve">This is a Visual Studio plugin for the Genero BDL. It currently supports syntax highlighting and a list of functions with 4GL files.</Description>
+        <MoreInfo>https://github.com/gregfullman/VSGenero/wiki</MoreInfo>
+        <ReleaseNotes>https://github.com/gregfullman/VSGenero/wiki</ReleaseNotes>
+        <Icon>VSGenero32.ico</Icon>
+        <PreviewImage>VSGenero256.ico</PreviewImage>
+    </Metadata>
+    <Installation InstalledByMsi="false">
+        <InstallationTarget Version="[15.0, 17.0)" Id="Microsoft.VisualStudio.IntegratedShell" />
+    </Installation>
+    <Dependencies>
+        <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.5,)" />
+    </Dependencies>
+    <Assets>
+        <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%;PkgdefProjectOutputGroup|" />
+        <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%|" />
+        <Asset Type="Microsoft.VisualStudio.ProjectTemplate" Path="ProjectTemplates"/>
+        <Asset Type="Microsoft.VisualStudio.ItemTemplate" Path="ItemTemplates"/>
+    </Assets>
+    <Prerequisites>
+        <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[15.0,)" DisplayName="Visual Studio core editor" />
+    </Prerequisites>
+</PackageManifest>
