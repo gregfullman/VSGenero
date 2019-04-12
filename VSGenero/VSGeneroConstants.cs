@@ -62,7 +62,9 @@ namespace VSGenero
         public static Guid Std2KCmdGroupGuid = typeof(VSConstants.VSStd2KCmdID).GUID;
 
         public static readonly Guid guidGenero4glLanguageServiceGuid = new Guid(guidGenero4glLanguageService);
-#if DEV15
+#if DEV16
+        internal const string VsixIdentity = "502F9288-ABF6-45FA-81DB-5DB2D3A1D72F";
+#elif DEV15
         internal const string VsixIdentity = "5F1B92E8-B0EC-494D-95E4-E40D03514BC6";
 #elif DEV14
         internal const string VsixIdentity = "3B9A1942-E923-4BB7-B1FA-FF6DC9A5685C";
